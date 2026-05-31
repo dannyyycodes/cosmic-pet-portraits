@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -8,7 +9,6 @@ import { motion } from 'framer-motion';
 import {
   Sparkles,
   DollarSign,
-  Link as LinkIcon,
   TrendingUp,
   CheckCircle,
   Copy,
@@ -16,15 +16,157 @@ import {
   ArrowLeft,
   Users,
   Percent,
-  Zap
+  Clock,
+  Heart,
+  Zap,
+  ChevronDown,
 } from 'lucide-react';
+
+/**
+ * /become-affiliate : Partner programme landing.
+ * Palette + type locked to the /pawtraits commercial look:
+ *   white surfaces, charcoal ink, Rose (#bf524a) CTA, Asap/Assistant fonts.
+ * Copy is brand-locked: "soul readings" (never "report"/"AI"), the bond,
+ * honest tiered earnings. Terms corrected: 60-day cookie, monthly payouts.
+ */
+
+const C = {
+  bg: '#ffffff',
+  panel: '#fafafa',
+  card: '#ffffff',
+  border: '#ededed',
+  borderDeep: '#e2e2e2',
+  ink: '#1c1c1c',
+  body: '#3a3a3a',
+  muted: '#7a7a7a',
+  rose: '#bf524a',
+  roseDeep: '#9c3d36',
+  roseSoft: '#fbeae8',
+  gold: '#c4a265',
+};
+const FONT_DISPLAY = 'Asap, system-ui, sans-serif';
+const FONT_BODY = 'Assistant, system-ui, sans-serif';
+
+const BENEFITS = [
+  { icon: Percent, title: 'Up to 50% Commission', desc: 'Earn on every soul reading, membership and pawtrait you refer.' },
+  { icon: Clock, title: '60-Day Cookie', desc: "They've got two months to come back, and you still get paid." },
+  { icon: TrendingUp, title: 'Monthly Payouts', desc: 'Straight to your bank via Stripe, every single month.' },
+];
+
+const STEPS = [
+  { title: 'Apply in 60 seconds', desc: 'Tell us about you and connect Stripe for payouts. Approved instantly.' },
+  { title: 'Share your link', desc: 'Drop it in your videos, posts, bio or stories. Your audience gets a discount.' },
+  { title: 'Earn on every sale', desc: "Your 60-day cookie means you're paid even when they come back later." },
+];
+
+// What partners earn, with a plain explainer that expands on tap.
+const TIERS = [
+  {
+    label: 'Soul readings',
+    rate: '50%',
+    info: "The secret inner world of your pet, revealed: their true nature, their instincts, the why behind who they are. Reads like it knows them better than they do.",
+  },
+  {
+    label: 'Horoscope memberships',
+    rate: '20% for life',
+    info: "A weekly reading of what's stirring for your pet. Quietly addictive. People check their pet's before their own.",
+  },
+  {
+    label: 'Custom pawtraits',
+    rate: '15%',
+    info: "Your pet turned into a piece of art worth framing, in whatever style they choose. The 'I have to have this' gift, printed and ready to hang.",
+  },
+];
+
+// Honest earnings math. Premium soul reading ~£50, partner keeps 50% = £25.
+const PER_READING = 25;
+
+const SITE = 'https://littlesouls.app';
+
+// Audience-specific hero copy, selected by ?for=. Falls back to the generic hero.
+type Variant = { badge: string; h1: string; sub: string };
+const VARIANTS: Record<string, Variant> = {
+  customer: {
+    badge: 'Partner Programme',
+    h1: 'You Loved It. Now Earn From It.',
+    sub: 'You already felt what a soul reading does. Share yours and earn up to 50% every time a friend gets theirs, plus 20% for life on horoscopes and 15% on pawtraits.',
+  },
+  pet: {
+    badge: 'For Pet Creators',
+    h1: 'Turn Your Pet Content Into Income',
+    sub: 'Your audience already loves your pet. Share the soul readings, horoscopes and custom pawtraits they want and earn up to 50% on every sale.',
+  },
+  spiritual: {
+    badge: 'For Spiritual Creators',
+    h1: 'Share Cosmic Readings Your Audience Already Wants',
+    sub: 'Real astrology for pets, calculated from their exact birth chart. Earn up to 50% sharing readings, horoscope memberships and custom pawtraits.',
+  },
+  podcast: {
+    badge: 'For Podcast Hosts',
+    h1: 'Your Listeners Will Love This',
+    sub: 'A gift-first partnership: a free soul reading for your own pet, then up to 50% every time your listeners get theirs.',
+  },
+};
+// Alias related sources onto the right variant.
+VARIANTS.youtube = VARIANTS.pet;
+VARIANTS.instagram = VARIANTS.pet;
+VARIANTS.tiktok = VARIANTS.pet;
+VARIANTS.astrology = VARIANTS.spiritual;
+VARIANTS.tarot = VARIANTS.spiritual;
+const DEFAULT_VARIANT: Variant = {
+  badge: 'Partner Programme',
+  h1: 'Earn While You Share the Bond',
+  sub: 'Partner with Little Souls and earn up to 50% sharing the soul readings, horoscopes and custom pawtraits your audience already loves.',
+};
+
+// Affiliate-program FAQ — also emitted as FAQPage JSON-LD for rich results / AI answers.
+const FAQS: { q: string; a: string }[] = [
+  { q: 'How much do Little Souls affiliates earn?', a: 'Partners earn up to 50% on every soul reading, 20% for life on horoscope memberships, and 15% on custom pawtraits, plus a £15 bonus on the first sale. Rates climb to 45% as you grow.' },
+  { q: 'Is the Little Souls affiliate program free to join?', a: 'Yes. It is free to join, you are approved instantly, and there is no audience minimum. You connect Stripe once and get paid monthly.' },
+  { q: 'How long is the affiliate cookie?', a: 'Sixty days. If someone clicks your link and buys within two months, you still earn the commission.' },
+  { q: 'When and how do affiliates get paid?', a: 'Payouts are sent monthly straight to your bank via Stripe Connect.' },
+];
 
 export default function BecomeAffiliate() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const forKey = (searchParams.get('for') || '').toLowerCase();
+  const variant = VARIANTS[forKey] || DEFAULT_VARIANT;
+  const canonical = `${SITE}/become-affiliate`;
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+  const programSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Little Souls Pet Affiliate & Partner Programme',
+    description: 'Pet and pet-astrology affiliate program. Earn up to 50% on cosmic soul readings, 20% lifetime on horoscope memberships and 15% on custom pawtraits.',
+    url: canonical,
+    provider: {
+      '@type': 'Organization',
+      name: 'Little Souls',
+      url: SITE,
+    },
+  };
   const [step, setStep] = useState<'info' | 'form' | 'success'>('info');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(() => (searchParams.get('name') || '').slice(0, 100));
+  const [email, setEmail] = useState(() => (searchParams.get('email') || '').slice(0, 254));
+
+  // Strip prefilled email/name from the URL so they don't linger in browser history
+  // / referrer headers (the form keeps the values in state). Runs once.
+  useEffect(() => {
+    if (searchParams.get('email') || searchParams.get('name')) {
+      try { window.history.replaceState({}, '', window.location.pathname); } catch { /* noop */ }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [referralCode, setReferralCodeInput] = useState('');
   const [country, setCountry] = useState('US');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +175,12 @@ export default function BecomeAffiliate() {
     onboardingUrl: string;
   } | null>(null);
   const [backLinkHovered, setBackLinkHovered] = useState(false);
+  const [referralsPerMonth, setReferralsPerMonth] = useState(10);
+  const [openTier, setOpenTier] = useState<string | null>(null);
+
+  const monthly = referralsPerMonth * PER_READING;
+  const yearly = monthly * 12;
+  const fmt = (n: number) => '£' + n.toLocaleString('en-GB');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,32 +216,43 @@ export default function BecomeAffiliate() {
     toast.success(t('affiliate.linkCopied'));
   };
 
-  const benefits = [
-    { icon: Percent, titleKey: 'affiliate.benefit1Title', descKey: 'affiliate.benefit1Desc' },
-    { icon: LinkIcon, titleKey: 'affiliate.benefit2Title', descKey: 'affiliate.benefit2Desc' },
-    { icon: TrendingUp, titleKey: 'affiliate.benefit3Title', descKey: 'affiliate.benefit3Desc' },
-  ];
-
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '14px 16px',
-    background: '#faf6ef',
-    border: '1px solid #e8ddd0',
-    borderRadius: '10px',
-    color: '#3d2f2a',
+    background: C.panel,
+    border: `1px solid ${C.border}`,
+    borderRadius: '12px',
+    color: C.ink,
     fontSize: '14px',
+    fontFamily: FONT_BODY,
     outline: 'none',
     transition: 'border-color 0.2s',
   };
 
   return (
-    <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
+    <div style={{ background: C.bg, minHeight: '100vh' }} className="relative overflow-hidden">
+      <Helmet>
+        <title>Pet Affiliate Program — Earn up to 50% | Little Souls</title>
+        <meta name="description" content="Join the Little Souls pet & astrology affiliate program. Earn up to 50% on cosmic soul readings, 20% lifetime on horoscope memberships and 15% on custom pawtraits. Free to join, 60-day cookie, monthly Stripe payouts." />
+        <link rel="canonical" href={canonical} />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Pet Affiliate Program — Earn up to 50% | Little Souls" />
+        <meta property="og:description" content="Earn up to 50% sharing cosmic pet soul readings, horoscopes and custom pawtraits. Free to join, instant approval, monthly payouts." />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:site_name" content="Little Souls" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Pet Affiliate Program — Earn up to 50% | Little Souls" />
+        <meta name="twitter:description" content="Earn up to 50% sharing cosmic pet soul readings, horoscopes and custom pawtraits. Free to join, instant approval, monthly payouts." />
+        <script type="application/ld+json">{JSON.stringify(programSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+      </Helmet>
       <div className="relative z-10 p-6 max-w-2xl mx-auto py-12">
         {/* Back Link */}
         <Link
           to="/"
           className="inline-flex items-center gap-2 transition-colors mb-8"
-          style={{ color: backLinkHovered ? '#3d2f2a' : '#9a8578', textDecoration: 'none' }}
+          style={{ color: backLinkHovered ? C.ink : C.muted, textDecoration: 'none', fontFamily: FONT_BODY, fontWeight: 600 }}
           onMouseEnter={() => setBackLinkHovered(true)}
           onMouseLeave={() => setBackLinkHovered(false)}
         >
@@ -110,21 +269,21 @@ export default function BecomeAffiliate() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
+            transition={{ type: 'spring', delay: 0.2 }}
             className="inline-flex items-center gap-2 px-5 py-2 rounded-full mb-6"
-            style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
+            style={{ background: C.roseSoft, color: C.rose }}
           >
-            <Sparkles className="w-4 h-4" style={{ color: '#c4a265' }} />
-            <span className="text-sm font-semibold">{t('affiliate.badge')}</span>
+            <Heart className="w-4 h-4" style={{ color: C.rose }} fill={C.rose} />
+            <span className="text-sm font-bold" style={{ fontFamily: FONT_BODY, letterSpacing: '0.02em' }}>{variant.badge}</span>
           </motion.div>
           <h1
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}
+            className="text-4xl md:text-5xl mb-4"
+            style={{ fontFamily: FONT_DISPLAY, fontWeight: 800, color: C.ink, letterSpacing: '-0.02em', lineHeight: 1.05 }}
           >
-            {t('affiliate.title')}
+            {variant.h1}
           </h1>
-          <p className="text-lg max-w-md mx-auto" style={{ color: '#9a8578' }}>
-            {t('affiliate.subtitle')}
+          <p className="text-lg max-w-lg mx-auto" style={{ color: C.muted, fontFamily: FONT_BODY }}>
+            {variant.sub}
           </p>
         </motion.div>
 
@@ -138,23 +297,23 @@ export default function BecomeAffiliate() {
           >
             {/* Benefits Grid */}
             <div className="grid md:grid-cols-3 gap-4">
-              {benefits.map((benefit, i) => (
+              {BENEFITS.map((benefit, i) => (
                 <motion.div
-                  key={benefit.titleKey}
+                  key={benefit.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + i * 0.1 }}
                   className="p-6 text-center group"
-                  style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
+                  style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '16px', boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
                 >
                   <div
                     className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"
-                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                    style={{ background: C.roseSoft }}
                   >
-                    <benefit.icon className="w-7 h-7" style={{ color: '#c4a265' }} />
+                    <benefit.icon className="w-7 h-7" style={{ color: C.rose }} />
                   </div>
-                  <h3 className="font-semibold mb-2" style={{ color: '#3d2f2a' }}>{t(benefit.titleKey)}</h3>
-                  <p className="text-sm" style={{ color: '#5a4a42' }}>{t(benefit.descKey)}</p>
+                  <h3 className="font-bold mb-2" style={{ color: C.ink, fontFamily: FONT_DISPLAY, fontSize: '17px' }}>{benefit.title}</h3>
+                  <p className="text-sm" style={{ color: C.body, fontFamily: FONT_BODY }}>{benefit.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -164,57 +323,149 @@ export default function BecomeAffiliate() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="grid grid-cols-3 gap-2 sm:gap-6 p-4 sm:p-6 rounded-2xl"
-              style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+              className="grid grid-cols-3 gap-2 sm:gap-6 p-5 sm:p-6 rounded-2xl"
+              style={{ background: C.panel, border: `1px solid ${C.border}` }}
             >
               <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#c4a265' }}>Up to 50%</p>
-                <p className="text-xs sm:text-sm" style={{ color: '#9a8578' }}>Commission</p>
+                <p className="text-2xl sm:text-3xl font-extrabold" style={{ color: C.rose, fontFamily: FONT_DISPLAY }}>Up to 50%</p>
+                <p className="text-xs sm:text-sm" style={{ color: C.muted, fontFamily: FONT_BODY }}>Commission</p>
               </div>
-              <div className="text-center" style={{ borderLeft: '1px solid #e8ddd0', borderRight: '1px solid #e8ddd0' }}>
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#3d2f2a' }}>60 days</p>
-                <p className="text-xs sm:text-sm" style={{ color: '#9a8578' }}>Cookie</p>
+              <div className="text-center" style={{ borderLeft: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}` }}>
+                <p className="text-2xl sm:text-3xl font-extrabold" style={{ color: C.ink, fontFamily: FONT_DISPLAY }}>60 days</p>
+                <p className="text-xs sm:text-sm" style={{ color: C.muted, fontFamily: FONT_BODY }}>Cookie</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#3d2f2a' }}>Monthly</p>
-                <p className="text-xs sm:text-sm" style={{ color: '#9a8578' }}>Payouts</p>
+                <p className="text-2xl sm:text-3xl font-extrabold" style={{ color: C.ink, fontFamily: FONT_DISPLAY }}>Monthly</p>
+                <p className="text-xs sm:text-sm" style={{ color: C.muted, fontFamily: FONT_BODY }}>Payouts</p>
               </div>
             </motion.div>
 
-            {/* What you earn — tiered commission */}
+            {/* What you earn, tiered commission with expandable explainers */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55 }}
               className="rounded-2xl p-6 sm:p-8"
-              style={{ background: 'white', border: '1px solid #e8ddd0' }}
+              style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
             >
-              <h2 className="text-xl font-semibold mb-5 flex items-center gap-2" style={{ color: '#3d2f2a' }}>
-                <Percent className="w-5 h-5" style={{ color: '#c4a265' }} />
+              <h2 className="text-xl mb-1 flex items-center gap-2" style={{ color: C.ink, fontFamily: FONT_DISPLAY, fontWeight: 800 }}>
+                <Percent className="w-5 h-5" style={{ color: C.rose }} />
                 What you earn
               </h2>
-              <div className="space-y-1">
-                {[
-                  { label: 'Soul readings', rate: '50%' },
-                  { label: 'Horoscope memberships', rate: '20% for life' },
-                  { label: 'Hand-painted pawtraits', rate: '15%' },
-                ].map((tier) => (
-                  <div
-                    key={tier.label}
-                    className="flex items-center justify-between py-3"
-                    style={{ borderBottom: '1px solid #f0e8dc' }}
-                  >
-                    <span className="text-sm sm:text-base" style={{ color: '#5a4a42' }}>{tier.label}</span>
-                    <span className="font-bold text-base sm:text-lg" style={{ color: '#c4a265' }}>{tier.rate}</span>
-                  </div>
-                ))}
+              <p className="text-xs mb-4" style={{ color: C.muted, fontFamily: FONT_BODY }}>Tap any product to see what it is.</p>
+              <div className="space-y-0">
+                {TIERS.map((tier) => {
+                  const open = openTier === tier.label;
+                  return (
+                    <div key={tier.label} style={{ borderBottom: `1px solid ${C.border}` }}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenTier(open ? null : tier.label)}
+                        className="w-full flex items-center justify-between py-3 text-left"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                        aria-expanded={open}
+                      >
+                        <span className="flex items-center gap-1.5 text-sm sm:text-base" style={{ color: C.body, fontFamily: FONT_BODY }}>
+                          {tier.label}
+                          <ChevronDown
+                            className="w-4 h-4 transition-transform"
+                            style={{ color: C.muted, transform: open ? 'rotate(180deg)' : 'none' }}
+                          />
+                        </span>
+                        <span className="font-extrabold text-base sm:text-lg whitespace-nowrap" style={{ color: C.rose, fontFamily: FONT_DISPLAY }}>{tier.rate}</span>
+                      </button>
+                      {open && (
+                        <motion.p
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="text-sm pb-4 pr-6 overflow-hidden"
+                          style={{ color: C.muted, fontFamily: FONT_BODY, lineHeight: 1.55 }}
+                        >
+                          {tier.info}
+                        </motion.p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div className="mt-5 rounded-xl p-4" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
-                <p className="text-sm" style={{ color: '#3d2f2a' }}>
-                  <strong>+£15 on your first sale.</strong> Reach more souls and your rate climbs —{' '}
-                  <strong>35% / 40% / 45%</strong> as you hit 5, 10 and 25 sales.
+              <div className="mt-5 rounded-xl p-4" style={{ background: C.panel, border: `1px solid ${C.border}` }}>
+                <p className="text-sm" style={{ color: C.body, fontFamily: FONT_BODY }}>
+                  <strong style={{ color: C.ink }}>+£15 on your first sale.</strong> Share more and your rate climbs to{' '}
+                  <strong style={{ color: C.ink }}>35%, then 40%, then 45%</strong> as you reach 5, 10 and 25 sales.
                 </p>
               </div>
+            </motion.div>
+
+            {/* Earnings potential calculator */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.58 }}
+              className="rounded-2xl p-6 sm:p-8"
+              style={{ background: C.roseSoft, border: `1px solid ${C.rose}33` }}
+            >
+              <h2 className="text-xl mb-1 flex items-center gap-2" style={{ color: C.ink, fontFamily: FONT_DISPLAY, fontWeight: 800 }}>
+                <TrendingUp className="w-5 h-5" style={{ color: C.rose }} />
+                See what you could earn
+              </h2>
+              <p className="text-sm mb-6" style={{ color: C.body, fontFamily: FONT_BODY }}>
+                Drag to set how many soul readings you refer each month.
+              </p>
+
+              <div className="flex items-baseline justify-between mb-2 gap-3">
+                <span className="text-sm" style={{ color: C.body, fontFamily: FONT_BODY }}>You refer</span>
+                <span className="flex items-baseline gap-1.5">
+                  <input
+                    type="number"
+                    min={0}
+                    value={referralsPerMonth}
+                    onChange={(e) => setReferralsPerMonth(Math.max(0, Math.floor(Number(e.target.value)) || 0))}
+                    className="text-right font-extrabold text-lg"
+                    style={{
+                      width: '4.5ch',
+                      minWidth: '4.5ch',
+                      color: C.rose,
+                      fontFamily: FONT_DISPLAY,
+                      background: '#fff',
+                      border: `1px solid ${C.rose}33`,
+                      borderRadius: '8px',
+                      padding: '2px 6px',
+                      outline: 'none',
+                    }}
+                    aria-label="Soul readings referred per month"
+                  />
+                  <span className="font-extrabold text-lg" style={{ color: C.rose, fontFamily: FONT_DISPLAY }}>a month</span>
+                </span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={100}
+                value={Math.min(referralsPerMonth, 100)}
+                onChange={(e) => setReferralsPerMonth(Number(e.target.value))}
+                className="w-full"
+                style={{ accentColor: C.rose, height: '6px' }}
+                aria-label="Drag to set soul readings referred per month"
+              />
+              <p className="text-xs mt-1.5" style={{ color: C.muted, fontFamily: FONT_BODY }}>
+                Drag the bar, or type any number above.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="rounded-xl p-4 text-center" style={{ background: '#fff', border: `1px solid ${C.rose}22` }}>
+                  <p className="text-3xl font-extrabold" style={{ color: C.rose, fontFamily: FONT_DISPLAY }}>{fmt(monthly)}</p>
+                  <p className="text-xs mt-1" style={{ color: C.muted, fontFamily: FONT_BODY }}>per month</p>
+                </div>
+                <div className="rounded-xl p-4 text-center" style={{ background: '#fff', border: `1px solid ${C.rose}22` }}>
+                  <p className="text-3xl font-extrabold" style={{ color: C.ink, fontFamily: FONT_DISPLAY }}>{fmt(yearly)}</p>
+                  <p className="text-xs mt-1" style={{ color: C.muted, fontFamily: FONT_BODY }}>per year</p>
+                </div>
+              </div>
+
+              <p className="text-xs mt-5" style={{ color: C.muted, fontFamily: FONT_BODY, lineHeight: 1.5 }}>
+                Based on £25 per soul reading, your 50% of a £50 reading. Custom pawtraits (15%) and horoscope
+                memberships (20% every month, for life) stack on top, so your real total is usually higher.
+              </p>
             </motion.div>
 
             {/* How it works */}
@@ -223,24 +474,24 @@ export default function BecomeAffiliate() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
               className="rounded-2xl p-8"
-              style={{ background: 'white', border: '1px solid #e8ddd0' }}
+              style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
             >
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#3d2f2a' }}>
-                <Zap className="w-5 h-5" style={{ color: '#c4a265' }} />
-                {t('affiliate.howItWorks')}
+              <h2 className="text-xl mb-6 flex items-center gap-2" style={{ color: C.ink, fontFamily: FONT_DISPLAY, fontWeight: 800 }}>
+                <Zap className="w-5 h-5" style={{ color: C.rose }} />
+                How it works
               </h2>
               <ol className="space-y-5">
-                {[1, 2, 3].map((num) => (
-                  <li key={num} className="flex gap-4">
+                {STEPS.map((s, i) => (
+                  <li key={s.title} className="flex gap-4">
                     <span
                       className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
-                      style={{ background: '#c4a265', color: 'white' }}
+                      style={{ background: C.rose, color: 'white', fontFamily: FONT_DISPLAY }}
                     >
-                      {num}
+                      {i + 1}
                     </span>
                     <div>
-                      <p className="font-medium" style={{ color: '#3d2f2a' }}>{t(`affiliate.step${num}Title`)}</p>
-                      <p className="text-sm" style={{ color: '#5a4a42' }}>{t(`affiliate.step${num}Desc`)}</p>
+                      <p className="font-bold" style={{ color: C.ink, fontFamily: FONT_DISPLAY }}>{s.title}</p>
+                      <p className="text-sm" style={{ color: C.body, fontFamily: FONT_BODY }}>{s.desc}</p>
                     </div>
                   </li>
                 ))}
@@ -256,17 +507,22 @@ export default function BecomeAffiliate() {
               <Button
                 onClick={() => setStep('form')}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold shadow-lg"
+                className="px-8 py-3 text-base font-bold shadow-lg active:scale-[0.98] transition-transform"
                 style={{
-                  background: 'linear-gradient(135deg, #c4a265, #b8973e)',
+                  background: C.rose,
                   color: 'white',
                   border: 'none',
-                  borderRadius: '10px'
+                  borderRadius: '12px',
+                  fontFamily: FONT_BODY,
+                  boxShadow: '0 8px 20px rgba(191,82,74,0.28)',
                 }}
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                {t('affiliate.applyNow')}
+                Become a partner
               </Button>
+              <p className="text-xs mt-3" style={{ color: C.muted, fontFamily: FONT_BODY }}>
+                Free to join · Approved instantly · No audience minimum
+              </p>
             </motion.div>
           </motion.div>
         )}
@@ -277,16 +533,16 @@ export default function BecomeAffiliate() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl p-8"
-            style={{ background: 'white', border: '1px solid #e8ddd0' }}
+            style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
           >
-            <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#3d2f2a' }}>
-              <Users className="w-6 h-6" style={{ color: '#c4a265' }} />
+            <h2 className="text-2xl mb-6 flex items-center gap-2" style={{ color: C.ink, fontFamily: FONT_DISPLAY, fontWeight: 800 }}>
+              <Users className="w-6 h-6" style={{ color: C.rose }} />
               {t('affiliate.applicationTitle')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#3d2f2a' }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: C.ink, fontFamily: FONT_BODY }}>
                   {t('affiliate.fullName')}
                 </label>
                 <input
@@ -295,14 +551,15 @@ export default function BecomeAffiliate() {
                   onChange={(e) => setName(e.target.value)}
                   style={inputStyle}
                   placeholder={t('affiliate.fullNamePlaceholder')}
+                  maxLength={100}
                   required
-                  onFocus={(e) => { e.target.style.borderColor = '#c4a265'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e8ddd0'; }}
+                  onFocus={(e) => { e.target.style.borderColor = C.rose; }}
+                  onBlur={(e) => { e.target.style.borderColor = C.border; }}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#3d2f2a' }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: C.ink, fontFamily: FONT_BODY }}>
                   {t('affiliate.emailAddress')}
                 </label>
                 <input
@@ -311,18 +568,19 @@ export default function BecomeAffiliate() {
                   onChange={(e) => setEmail(e.target.value)}
                   style={inputStyle}
                   placeholder="you@example.com"
+                  maxLength={254}
                   required
-                  onFocus={(e) => { e.target.style.borderColor = '#c4a265'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e8ddd0'; }}
+                  onFocus={(e) => { e.target.style.borderColor = C.rose; }}
+                  onBlur={(e) => { e.target.style.borderColor = C.border; }}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#3d2f2a' }}>
-                  {t('affiliate.customCode')} <span style={{ color: '#9a8578', fontWeight: 'normal' }}>{t('affiliate.customCodeOptional')}</span>
+                <label className="block text-sm font-medium mb-2" style={{ color: C.ink, fontFamily: FONT_BODY }}>
+                  {t('affiliate.customCode')} <span style={{ color: C.muted, fontWeight: 'normal' }}>{t('affiliate.customCodeOptional')}</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm whitespace-nowrap" style={{ color: '#9a8578' }}>littlesouls.app/ref/</span>
+                  <span className="text-sm whitespace-nowrap" style={{ color: C.muted, fontFamily: FONT_BODY }}>littlesouls.app/ref/</span>
                   <input
                     type="text"
                     value={referralCode}
@@ -330,17 +588,17 @@ export default function BecomeAffiliate() {
                     style={{ ...inputStyle, fontFamily: 'monospace' }}
                     placeholder="petlover"
                     maxLength={20}
-                    onFocus={(e) => { e.target.style.borderColor = '#c4a265'; }}
-                    onBlur={(e) => { e.target.style.borderColor = '#e8ddd0'; }}
+                    onFocus={(e) => { e.target.style.borderColor = C.rose; }}
+                    onBlur={(e) => { e.target.style.borderColor = C.border; }}
                   />
                 </div>
-                <p className="text-xs mt-2" style={{ color: '#9a8578' }}>
+                <p className="text-xs mt-2" style={{ color: C.muted, fontFamily: FONT_BODY }}>
                   {t('affiliate.customCodeHint')}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#3d2f2a' }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: C.ink, fontFamily: FONT_BODY }}>
                   {t('affiliate.country')}
                 </label>
                 <select
@@ -348,8 +606,8 @@ export default function BecomeAffiliate() {
                   onChange={(e) => setCountry(e.target.value)}
                   style={inputStyle}
                   required
-                  onFocus={(e) => { e.target.style.borderColor = '#c4a265'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#e8ddd0'; }}
+                  onFocus={(e) => { e.target.style.borderColor = C.rose; }}
+                  onBlur={(e) => { e.target.style.borderColor = C.border; }}
                 >
                   <option value="US">United States</option>
                   <option value="GB">United Kingdom</option>
@@ -369,26 +627,27 @@ export default function BecomeAffiliate() {
                   variant="outline"
                   onClick={() => setStep('info')}
                   className="px-6"
-                  style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'white' }}
+                  style={{ border: `1px solid ${C.borderDeep}`, color: C.body, borderRadius: '12px', background: 'white', fontFamily: FONT_BODY }}
                 >
                   {t('common.back')}
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1"
+                  className="flex-1 font-bold"
                   disabled={isLoading}
                   style={{
-                    background: isLoading ? '#d4c4a0' : 'linear-gradient(135deg, #c4a265, #b8973e)',
+                    background: isLoading ? '#d8a39d' : C.rose,
                     color: 'white',
                     border: 'none',
-                    borderRadius: '10px'
+                    borderRadius: '12px',
+                    fontFamily: FONT_BODY,
                   }}
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                         className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
                       />
                       {t('affiliate.creating')}
@@ -400,7 +659,7 @@ export default function BecomeAffiliate() {
               </div>
             </form>
 
-            <p className="text-xs mt-6 text-center" style={{ color: '#9a8578' }}>
+            <p className="text-xs mt-6 text-center" style={{ color: C.muted, fontFamily: FONT_BODY }}>
               {t('affiliate.termsNote')}
             </p>
           </motion.div>
@@ -412,52 +671,52 @@ export default function BecomeAffiliate() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="rounded-2xl p-8 text-center"
-            style={{ background: 'white', border: '1px solid #e8ddd0' }}
+            style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
           >
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.1 }}
+              transition={{ type: 'spring', delay: 0.1 }}
               className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center shadow-2xl"
-              style={{ background: '#c4a265' }}
+              style={{ background: C.rose }}
             >
               <CheckCircle className="w-10 h-10 text-white" />
             </motion.div>
 
-            <h2 className="text-2xl font-semibold mb-2" style={{ color: '#3d2f2a' }}>
+            <h2 className="text-2xl mb-2" style={{ color: C.ink, fontFamily: FONT_DISPLAY, fontWeight: 800 }}>
               You're in! 🎉
             </h2>
-            <p className="mb-8" style={{ color: '#9a8578' }}>
+            <p className="mb-8" style={{ color: C.muted, fontFamily: FONT_BODY }}>
               Your partner account is live. Finish payout setup below and your link's ready to share.
             </p>
 
             {/* Referral Link */}
-            <div className="rounded-xl p-5 mb-6" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
-              <p className="text-sm mb-3" style={{ color: '#9a8578' }}>{t('affiliate.yourLink')}</p>
+            <div className="rounded-xl p-5 mb-6" style={{ background: C.panel, border: `1px solid ${C.border}` }}>
+              <p className="text-sm mb-3" style={{ color: C.muted, fontFamily: FONT_BODY }}>{t('affiliate.yourLink')}</p>
               <div
                 className="flex items-center gap-3 p-3 rounded-lg"
-                style={{ background: 'white', border: '1px solid #e8ddd0' }}
+                style={{ background: 'white', border: `1px solid ${C.border}` }}
               >
-                <code className="flex-1 text-sm break-all font-mono" style={{ color: '#c4a265' }}>
+                <code className="flex-1 text-sm break-all font-mono" style={{ color: C.rose }}>
                   {window.location.origin}/ref/{result.referralCode}
                 </code>
                 <button
                   onClick={copyReferralLink}
                   className="p-2.5 rounded-lg transition-colors"
-                  style={{ border: '1px solid #e8ddd0' }}
+                  style={{ border: `1px solid ${C.border}` }}
                 >
-                  <Copy className="w-4 h-4" style={{ color: '#9a8578' }} />
+                  <Copy className="w-4 h-4" style={{ color: C.muted }} />
                 </button>
               </div>
             </div>
 
             {/* Important: Complete Stripe */}
-            <div className="rounded-xl p-6 mb-6" style={{ background: '#faf6ef', border: '1px solid #c4a265' }}>
-              <p className="text-sm font-semibold mb-2 flex items-center justify-center gap-2" style={{ color: '#3d2f2a' }}>
-                <DollarSign className="w-4 h-4" style={{ color: '#c4a265' }} />
+            <div className="rounded-xl p-6 mb-6" style={{ background: C.panel, border: `1px solid ${C.rose}` }}>
+              <p className="text-sm font-semibold mb-2 flex items-center justify-center gap-2" style={{ color: C.ink, fontFamily: FONT_BODY }}>
+                <DollarSign className="w-4 h-4" style={{ color: C.rose }} />
                 {t('affiliate.stripeImportant')}
               </p>
-              <p className="text-sm mb-4" style={{ color: '#5a4a42' }}>
+              <p className="text-sm mb-4" style={{ color: C.body, fontFamily: FONT_BODY }}>
                 {t('affiliate.stripeNote')}
               </p>
               <a
@@ -467,12 +726,13 @@ export default function BecomeAffiliate() {
               >
                 <Button
                   size="lg"
-                  className="w-full shadow-lg font-semibold"
+                  className="w-full shadow-lg font-bold"
                   style={{
-                    background: 'linear-gradient(135deg, #c4a265, #b8973e)',
+                    background: C.rose,
                     color: 'white',
                     border: 'none',
-                    borderRadius: '10px'
+                    borderRadius: '12px',
+                    fontFamily: FONT_BODY,
                   }}
                 >
                   {t('affiliate.completeStripe')}
@@ -484,9 +744,9 @@ export default function BecomeAffiliate() {
             <button
               onClick={() => navigate('/')}
               className="text-sm transition-colors"
-              style={{ color: '#9a8578', background: 'none', border: 'none', cursor: 'pointer' }}
-              onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#3d2f2a'; }}
-              onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#9a8578'; }}
+              style={{ color: C.muted, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT_BODY }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.color = C.ink; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.color = C.muted; }}
             >
               {t('common.returnHome')}
             </button>

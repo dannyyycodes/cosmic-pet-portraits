@@ -112,6 +112,68 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
   }
 }
 
+// Warm customer→affiliate invite. Sent once, after a non-memorial paid order, from
+// the warm noreply@ identity (NOT the cold outreach domain). Returns true if sent.
+async function sendAffiliateInvite(email: string, name: string): Promise<boolean> {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    console.error("[STRIPE-WEBHOOK] No RESEND_API_KEY for affiliate invite");
+    return false;
+  }
+  const resend = new Resend(resendKey);
+  const first = (name || "").trim().split(/\s+/)[0] || "";
+  const greeting = first ? `${first},` : "Hello,";
+  const url = `https://littlesouls.app/become-affiliate?for=customer&email=${encodeURIComponent(email)}${first ? `&name=${encodeURIComponent(first)}` : ""}`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#faf6f1;font-family:Georgia,'Times New Roman',serif;">
+<div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+  <div style="text-align:center;margin-bottom:36px;">
+    <p style="font-size:28px;margin:0 0 8px 0;">&#10024;</p>
+    <p style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c4a265;margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Little Souls</p>
+  </div>
+  <div style="background:#ffffff;border-radius:16px;border:1px solid #e8ddd0;padding:40px 32px;">
+    <p style="font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#c4a265;margin:0 0 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">A little thank you</p>
+    <h1 style="color:#3d2f2a;font-size:25px;font-weight:400;margin:0 0 20px 0;line-height:1.35;">${greeting}<br>share the soul, earn from the bond</h1>
+    <p style="color:#7a6a60;font-size:15px;line-height:1.85;margin:0 0 22px 0;">
+      You felt what a reading can do. If a friend's pet would love one too, you can share yours, and earn when they do.
+    </p>
+    <p style="color:#7a6a60;font-size:15px;line-height:1.85;margin:0 0 26px 0;">
+      Partners earn 50% on every soul reading, 20% for life on horoscope memberships, and 15% on pawtraits, with a &pound;15 bonus on your first sale. Your friends get a discount through your link. No cost, no catch.
+    </p>
+    <div style="text-align:center;margin:30px 0;">
+      <a href="${url}" style="display:inline-block;background:#bf524a;color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;">Get your sharing link</a>
+    </div>
+    <p style="color:#b8a99e;font-size:13px;line-height:1.6;margin:0;text-align:center;">Takes a minute. Share only if it feels right.</p>
+  </div>
+  <div style="text-align:center;margin-top:36px;">
+    <p style="color:#d4c8bc;font-size:11px;margin:0;letter-spacing:1px;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Little Souls</p>
+  </div>
+</div>
+</body>
+</html>`;
+
+  try {
+    const result = await resend.emails.send({
+      from: "Little Souls <noreply@littlesouls.app>",
+      to: [email],
+      subject: "share the soul, earn from the bond \u{1F90D}",
+      html,
+    });
+    const resendError = (result as any)?.error;
+    if (resendError) {
+      console.error("[STRIPE-WEBHOOK] Affiliate invite Resend error:", resendError);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[STRIPE-WEBHOOK] Affiliate invite send error:", err);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: getCorsHeaders(req) });
@@ -497,6 +559,63 @@ serve(async (req) => {
             console.error("[STRIPE-WEBHOOK] Failed to update reports:", updateError);
           } else {
             console.log("[STRIPE-WEBHOOK] Reports marked as paid:", reportIds);
+          }
+
+          // ────────────────────────────────────────────────────────────
+          // Customer → affiliate invite (warm flywheel). ADDITIVE — never
+          // touches revenue/report logic. Sent once per buyer, never for a
+          // memorial/grief order (we don't pitch earning to the grieving).
+          // ────────────────────────────────────────────────────────────
+          try {
+            const buyerEmail = (session.customer_details?.email || session.customer_email || "").toLowerCase().trim();
+            const buyerName = (session.customer_details?.name || "").trim();
+            if (buyerEmail && EMAIL_PATTERN.test(buyerEmail)) {
+              const { data: occRows } = await supabaseClient
+                .from("pet_reports")
+                .select("occasion_mode")
+                .in("id", reportIds);
+              const anyMemorial = (occRows || []).some(
+                (r: any) => (r.occasion_mode || "").toLowerCase() === "memorial"
+              );
+              if (anyMemorial) {
+                console.log("[STRIPE-WEBHOOK] Memorial order — skipping affiliate invite");
+              } else {
+                const { data: adv } = await supabaseClient
+                  .from("customer_advocates")
+                  .select("id, invite_sent_at")
+                  .eq("email", buyerEmail)
+                  .maybeSingle();
+                if (adv && adv.invite_sent_at) {
+                  console.log("[STRIPE-WEBHOOK] Advocate already invited:", buyerEmail);
+                } else {
+                  if (!adv) {
+                    await supabaseClient.from("customer_advocates").insert({
+                      email: buyerEmail,
+                      name: buyerName || null,
+                      report_occasion: isGift ? "gift" : "regular",
+                      invited_via: "resend_email",
+                    });
+                  }
+                  const sent = await sendAffiliateInvite(buyerEmail, buyerName);
+                  if (sent) {
+                    await supabaseClient
+                      .from("customer_advocates")
+                      .update({
+                        invite_sent_at: new Date().toISOString(),
+                        invited_via: "resend_email",
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq("email", buyerEmail);
+                    console.log("[STRIPE-WEBHOOK] Affiliate invite sent to:", buyerEmail);
+                  } else {
+                    // Row stays with invite_sent_at = null, so the next paid order retries.
+                    console.warn("[STRIPE-WEBHOOK] Affiliate invite send failed (will retry next order):", buyerEmail);
+                  }
+                }
+              }
+            }
+          } catch (inviteErr) {
+            console.error("[STRIPE-WEBHOOK] Affiliate invite failed (non-fatal):", inviteErr);
           }
 
           // ────────────────────────────────────────────────────────────

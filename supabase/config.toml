@@ -60,6 +60,9 @@ verify_jwt = false
 [functions.admin-data]
 verify_jwt = false
 
+[functions.admin-donations]
+verify_jwt = false
+
 [functions.redeem-gift]
 verify_jwt = false
 
@@ -139,4 +142,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.update-pet-data]
+verify_jwt = false
+
+[functions.affiliate-onboarding-drip]
 verify_jwt = false
