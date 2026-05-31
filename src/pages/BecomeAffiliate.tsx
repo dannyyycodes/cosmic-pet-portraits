@@ -47,6 +47,41 @@ const C = {
 const FONT_DISPLAY = 'Asap, system-ui, sans-serif';
 const FONT_BODY = 'Assistant, system-ui, sans-serif';
 
+// Astrological glyphs used as section accents.
+const PLANETS = ['☉', '☽', '☿', '♀', '♂', '♃', '♄', '♅', '♆']; // ☉☽☿♀♂♃♄♅♆
+const ZODIAC = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓']; // ♈..♓
+
+// Deterministic starfield — each row is [top%, left%, sizePx, delayS, durS, isGold].
+const STARS = [
+  [6, 8, 2, 0, 3.4, 1], [11, 78, 3, 0.6, 4.1, 0], [18, 24, 2, 1.2, 3.0, 1], [9, 54, 2, 0.3, 3.8, 0],
+  [22, 92, 3, 1.7, 4.6, 1], [27, 13, 2, 0.9, 3.2, 0], [32, 67, 2, 2.1, 4.0, 1], [37, 40, 3, 0.4, 3.6, 0],
+  [41, 88, 2, 1.4, 4.4, 1], [47, 6, 2, 2.4, 3.1, 0], [52, 72, 3, 0.7, 3.9, 1], [58, 30, 2, 1.9, 4.2, 0],
+  [63, 95, 2, 0.2, 3.5, 1], [69, 18, 3, 1.1, 4.7, 0], [74, 60, 2, 2.6, 3.3, 1], [79, 84, 2, 0.5, 3.7, 0],
+  [84, 38, 3, 1.6, 4.3, 1], [89, 9, 2, 2.2, 3.0, 0], [92, 70, 2, 0.8, 4.5, 1], [15, 45, 2, 2.9, 3.4, 0],
+  [44, 52, 2, 1.3, 4.1, 1], [66, 47, 2, 0.1, 3.8, 0], [35, 78, 2, 2.0, 4.0, 1], [55, 14, 3, 1.5, 3.6, 0],
+];
+
+const COSMIC_CSS = `
+@keyframes lsTwinkle { 0%,100% { opacity:.15; transform:scale(.8) } 50% { opacity:1; transform:scale(1.15) } }
+@keyframes lsDriftA { 0%,100% { transform:translate(0,0) } 50% { transform:translate(22px,-26px) } }
+@keyframes lsDriftB { 0%,100% { transform:translate(0,0) } 50% { transform:translate(-28px,20px) } }
+@keyframes lsSpinSlow { to { transform:rotate(360deg) } }
+@keyframes lsSpinRev { to { transform:rotate(-360deg) } }
+@keyframes lsFloat { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-7px) } }
+@keyframes lsPulseGlow { 0%,100% { opacity:.45 } 50% { opacity:.85 } }
+.ls-cosmos { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+.ls-star { position:absolute; border-radius:50%; animation:lsTwinkle ease-in-out infinite; }
+.ls-orb { position:absolute; border-radius:50%; filter:blur(10px); will-change:transform; }
+.ls-ring { position:absolute; left:50%; top:120px; width:520px; height:520px; margin-left:-260px; border-radius:50%;
+  border:1px solid rgba(196,162,101,.18); animation:lsSpinSlow 90s linear infinite; }
+.ls-ring2 { width:360px; height:360px; margin-left:-180px; top:200px; border-color:rgba(191,82,74,.14); animation:lsSpinRev 70s linear infinite; }
+.ls-ring .ls-glyph { position:absolute; left:50%; top:-13px; font-size:18px; color:rgba(196,162,101,.5); transform-origin:0 273px; }
+.ls-ring2 .ls-glyph { font-size:15px; color:rgba(191,82,74,.45); transform-origin:0 193px; top:-11px; }
+.ls-sect-glyph { position:absolute; top:14px; right:16px; font-size:30px; line-height:1; color:rgba(196,162,101,.22); pointer-events:none; animation:lsFloat 6s ease-in-out infinite; }
+.ls-num-glyph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,.85); }
+@media (prefers-reduced-motion: reduce) { .ls-cosmos *, .ls-sect-glyph { animation:none !important } }
+`;
+
 const BENEFITS = [
   { icon: Percent, title: 'Up to 50% Commission', desc: 'Earn on every soul reading, membership and pawtrait you refer.' },
   { icon: Clock, title: '60-Day Cookie', desc: "They've got two months to come back, and you still get paid." },
@@ -181,6 +216,8 @@ export default function BecomeAffiliate() {
   const monthly = referralsPerMonth * PER_READING;
   const yearly = monthly * 12;
   const fmt = (n: number) => '£' + n.toLocaleString('en-GB');
+  // Force text (monochrome line) presentation of astro glyphs, not the chunky emoji form.
+  const txt = (g: string) => g + '︎';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +244,21 @@ export default function BecomeAffiliate() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Hero freebie capture — grab the email immediately (best-effort persist so a lead is
+  // never lost), then open the signup form prefilled. Destination of the lead is
+  // confirmable later; the email already enters the signup funnel here.
+  const handleClaimEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const v = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { toast.error('Enter a valid email to claim your free reading'); return; }
+    try {
+      await supabase.from('email_subscribers').insert({ email: v, is_subscribed: true, source: 'become-affiliate-freebie' });
+    } catch { /* non-blocking lead capture */ }
+    setStep('form');
+    toast.success('Your free soul reading is reserved — finish below to get your link.');
+    setTimeout(() => { try { document.getElementById('aff-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { /* noop */ } }, 60);
   };
 
   const copyReferralLink = () => {
@@ -247,6 +299,25 @@ export default function BecomeAffiliate() {
         <script type="application/ld+json">{JSON.stringify(programSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
+
+      {/* Cosmic backdrop — drifting planets, twin rotating glyph rings, starfield. */}
+      <style>{COSMIC_CSS}</style>
+      <div className="ls-cosmos" aria-hidden="true">
+        <div className="ls-orb" style={{ width: 220, height: 220, left: '-60px', top: '70px', background: 'radial-gradient(circle at 35% 30%, rgba(196,162,101,.30), rgba(196,162,101,0) 70%)', animation: 'lsDriftA 26s ease-in-out infinite' }} />
+        <div className="ls-orb" style={{ width: 300, height: 300, right: '-90px', top: '300px', background: 'radial-gradient(circle at 40% 35%, rgba(191,82,74,.20), rgba(191,82,74,0) 70%)', animation: 'lsDriftB 32s ease-in-out infinite' }} />
+        <div className="ls-orb" style={{ width: 170, height: 170, left: '8%', bottom: '120px', background: 'radial-gradient(circle at 40% 35%, rgba(28,28,28,.08), rgba(28,28,28,0) 70%)', animation: 'lsDriftA 40s ease-in-out infinite' }} />
+        <div className="ls-orb" style={{ width: 40, height: 40, right: '7%', top: '56px', filter: 'blur(0.4px)', background: 'radial-gradient(circle at 32% 28%, #d8b878, #b07f3e 72%)', boxShadow: '0 0 18px rgba(196,162,101,.45)', animation: 'lsFloat 7s ease-in-out infinite' }} />
+        <div className="ls-ring">
+          {ZODIAC.map((g, i) => (<span key={i} className="ls-glyph" style={{ transform: `rotate(${i * 30}deg)` }}>{txt(g)}</span>))}
+        </div>
+        <div className="ls-ring ls-ring2">
+          {PLANETS.slice(0, 8).map((g, i) => (<span key={i} className="ls-glyph" style={{ transform: `rotate(${i * 45}deg)` }}>{txt(g)}</span>))}
+        </div>
+        {STARS.map((s, i) => (
+          <span key={i} className="ls-star" style={{ top: `${s[0]}%`, left: `${s[1]}%`, width: s[2], height: s[2], background: s[5] ? '#c4a265' : '#bf524a', animationDuration: `${s[4]}s`, animationDelay: `${s[3]}s` }} />
+        ))}
+      </div>
+
       <div className="relative z-10 p-6 max-w-2xl mx-auto py-12">
         {/* Back Link */}
         <Link
@@ -285,6 +356,42 @@ export default function BecomeAffiliate() {
           <p className="text-lg max-w-lg mx-auto" style={{ color: C.muted, fontFamily: FONT_BODY }}>
             {variant.sub}
           </p>
+
+          {/* Freebie email capture — gift-first hook, captures the lead before the form. */}
+          <motion.form
+            onSubmit={handleClaimEmail}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 max-w-md mx-auto"
+          >
+            <p style={{ color: C.rose, fontFamily: FONT_BODY, fontWeight: 800, fontSize: 13, letterSpacing: '.05em', textTransform: 'uppercase', marginBottom: 10 }}>
+              <span style={{ color: C.gold }}>✦</span> Start with a free soul reading for your own pet
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                maxLength={254}
+                aria-label="Your email"
+                style={{ ...inputStyle, background: '#fff', boxShadow: '0 2px 10px rgba(196,162,101,0.10)', textAlign: 'center' }}
+                onFocus={(e) => { e.target.style.borderColor = C.gold; }}
+                onBlur={(e) => { e.target.style.borderColor = C.border; }}
+              />
+              <Button
+                type="submit"
+                className="font-bold whitespace-nowrap active:scale-[0.98] transition-transform"
+                style={{ background: C.rose, color: '#fff', border: 'none', borderRadius: '12px', fontFamily: FONT_BODY, padding: '0 22px', boxShadow: '0 8px 20px rgba(191,82,74,0.26)' }}
+              >
+                <Sparkles className="w-4 h-4 mr-1.5" /> Claim free reading
+              </Button>
+            </div>
+            <p style={{ color: C.muted, fontFamily: FONT_BODY, fontSize: 12, marginTop: 9 }}>
+              Free to start · then earn up to 50% sharing it · no card needed
+            </p>
+          </motion.form>
         </motion.div>
 
         {/* Info Step */}
@@ -304,8 +411,9 @@ export default function BecomeAffiliate() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + i * 0.1 }}
                   className="p-6 text-center group"
-                  style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '16px', boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
+                  style={{ position: 'relative', overflow: 'hidden', background: C.card, border: `1px solid ${C.border}`, borderRadius: '16px', boxShadow: '0 1px 3px rgba(20,18,16,0.04)' }}
                 >
+                  <span className="ls-sect-glyph" style={{ animationDelay: `${i * 0.8}s` }}>{txt(PLANETS[i])}</span>
                   <div
                     className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"
                     style={{ background: C.roseSoft }}
@@ -354,7 +462,7 @@ export default function BecomeAffiliate() {
               </h2>
               <p className="text-xs mb-4" style={{ color: C.muted, fontFamily: FONT_BODY }}>Tap any product to see what it is.</p>
               <div className="space-y-0">
-                {TIERS.map((tier) => {
+                {TIERS.map((tier, i) => {
                   const open = openTier === tier.label;
                   return (
                     <div key={tier.label} style={{ borderBottom: `1px solid ${C.border}` }}>
@@ -366,6 +474,7 @@ export default function BecomeAffiliate() {
                         aria-expanded={open}
                       >
                         <span className="flex items-center gap-1.5 text-sm sm:text-base" style={{ color: C.body, fontFamily: FONT_BODY }}>
+                          <span style={{ color: C.gold, fontSize: '15px', opacity: 0.8 }}>{txt([ZODIAC[4], ZODIAC[7], ZODIAC[9]][i] || ZODIAC[i])}</span>
                           {tier.label}
                           <ChevronDown
                             className="w-4 h-4 transition-transform"
@@ -490,7 +599,10 @@ export default function BecomeAffiliate() {
                       {i + 1}
                     </span>
                     <div>
-                      <p className="font-bold" style={{ color: C.ink, fontFamily: FONT_DISPLAY }}>{s.title}</p>
+                      <p className="font-bold" style={{ color: C.ink, fontFamily: FONT_DISPLAY }}>
+                        {s.title}
+                        <span style={{ color: C.gold, opacity: 0.6, marginLeft: 7, fontSize: '15px' }}>{txt(PLANETS[i + 2])}</span>
+                      </p>
                       <p className="text-sm" style={{ color: C.body, fontFamily: FONT_BODY }}>{s.desc}</p>
                     </div>
                   </li>
@@ -530,6 +642,7 @@ export default function BecomeAffiliate() {
         {/* Form Step */}
         {step === 'form' && (
           <motion.div
+            id="aff-form"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl p-8"
