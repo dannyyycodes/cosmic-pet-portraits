@@ -502,31 +502,33 @@ function PlanetCard({
 }
 
 const SOLAR_ORBITS = [
-  { planet: "mercury", size: 28, dur: 16, ring: "26%" },
-  { planet: "venus", size: 36, dur: 24, ring: "40%" },
-  { planet: "mars", size: 32, dur: 34, ring: "54%" },
-  { planet: "jupiter", size: 54, dur: 48, ring: "70%" },
-  { planet: "saturn", size: 60, dur: 66, ring: "88%" },
+  { planet: "mercury", size: 11, dur: 20, ring: 30 },
+  { planet: "venus", size: 17, dur: 32, ring: 46 },
+  { planet: "mars", size: 13, dur: 44, ring: 62 },
+  { planet: "jupiter", size: 30, dur: 64, ring: 78 },
+  { planet: "saturn", size: 40, dur: 88, ring: 94 },
 ] as const;
 
 function SolarSystemBackdrop() {
   return (
     <div className="ls-solar" aria-hidden="true">
-      <img className="ls-solar-sun" src={PLANET_META.sun.img} alt="" loading="lazy" />
-      {SOLAR_ORBITS.map((o, i) => (
-        <div
-          key={o.planet}
-          className="ls-solar-ring"
-          style={{ width: o.ring, animationDuration: `${o.dur}s`, animationDirection: i % 2 ? "reverse" : "normal" }}
-        >
-          <img
-            src={PLANET_META[o.planet].img}
-            alt=""
-            loading="lazy"
-            style={{ width: o.size, height: o.size, animationDuration: `${o.dur}s`, animationDirection: i % 2 ? "normal" : "reverse" }}
-          />
-        </div>
-      ))}
+      <div className="ls-solar-stage">
+        {SOLAR_ORBITS.map((o) => (
+          <div
+            key={o.planet}
+            className="ls-solar-ring"
+            style={{ width: `${o.ring}%`, animationDuration: `${o.dur}s` }}
+          >
+            <img
+              src={PLANET_META[o.planet].img}
+              alt=""
+              loading="lazy"
+              style={{ width: o.size, height: o.size }}
+            />
+          </div>
+        ))}
+        <img className="ls-solar-sun" src={PLANET_META.sun.img} alt="" loading="lazy" />
+      </div>
     </div>
   );
 }
@@ -800,24 +802,34 @@ function CosmicStyles() {
       .ls-solar {
         position: absolute;
         inset: 0;
-        display: grid;
-        place-items: center;
         overflow: hidden;
         pointer-events: none;
-        opacity: 0.2;
-        filter: blur(1px);
+        opacity: 0.32;
+        filter: blur(0.4px);
+      }
+      .ls-solar-stage {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(128%, 560px);
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
       }
       .ls-solar-sun {
         position: absolute;
-        width: clamp(60px, 13%, 100px);
-        aspect-ratio: 1;
+        inset: 0;
+        margin: auto;
+        width: 60px;
+        height: 60px;
         object-fit: contain;
-        filter: drop-shadow(0 0 26px rgba(255,178,88,0.55));
+        filter: drop-shadow(0 0 24px rgba(255,178,88,0.6));
       }
       .ls-solar-ring {
         position: absolute;
+        inset: 0;
+        margin: auto;
         aspect-ratio: 1;
-        border: 1px solid rgba(212,182,122,0.12);
+        border: 1px solid rgba(212,182,122,0.10);
         border-radius: 50%;
         animation: ls-orbit linear infinite;
         will-change: transform;
@@ -828,9 +840,10 @@ function CosmicStyles() {
         left: 50%;
         transform: translate(-50%, -50%);
         object-fit: contain;
-        filter: drop-shadow(0 0 8px rgba(212,182,122,0.38));
+        filter: drop-shadow(0 0 6px rgba(212,182,122,0.4));
       }
       @keyframes ls-orbit {
+        from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
       .ls-chart-pill {
