@@ -69,54 +69,54 @@
   }
 
 
-  /* Variant C: Warm Cream & Rose Theme */
+  /* Variant C: Cosmic Dark Theme (was warm cream/rose — flipped 2026-05-31) */
   .variant-c {
-    --background: 45 100% 98%;
-    --foreground: 30 15% 11%;
+    --background: 258 24% 6%;
+    --foreground: 39 47% 93%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 30 15% 11%;
+    --card: 267 24% 9%;
+    --card-foreground: 39 47% 93%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 30 15% 11%;
+    --popover: 267 24% 9%;
+    --popover-foreground: 39 47% 93%;
 
-    --primary: 4 46% 52%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 39 52% 65%;
+    --primary-foreground: 30 23% 8%;
 
-    --secondary: 35 30% 92%;
-    --secondary-foreground: 30 15% 11%;
+    --secondary: 290 19% 11%;
+    --secondary-foreground: 39 47% 93%;
 
-    --muted: 38 40% 94%;
-    --muted-foreground: 30 12% 44%;
+    --muted: 290 16% 13%;
+    --muted-foreground: 30 13% 64%;
 
-    --accent: 39 40% 56%;
-    --accent-foreground: 30 15% 11%;
+    --accent: 39 52% 65%;
+    --accent-foreground: 30 23% 8%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 39 47% 93%;
 
-    --border: 35 35% 88%;
-    --input: 35 35% 88%;
-    --ring: 4 46% 52%;
+    --border: 40 30% 24%;
+    --input: 40 30% 24%;
+    --ring: 39 52% 65%;
 
-    /* Warm custom tokens */
-    --warm-sage: 4 46% 52%;
-    --warm-gold: 39 40% 56%;
-    --warm-green: 140 30% 42%;
-    --warm-cream: 45 100% 98%;
-    --warm-cream-dark: 38 40% 91%;
+    /* Cosmic custom tokens */
+    --warm-sage: 39 52% 65%;
+    --warm-gold: 39 52% 65%;
+    --warm-green: 140 30% 50%;
+    --warm-cream: 39 47% 93%;
+    --warm-cream-dark: 290 16% 13%;
 
-    --shadow-card: 0 4px 20px hsl(35 40% 30% / 0.08);
+    --shadow-card: 0 18px 60px hsl(258 40% 2% / 0.5);
     --shadow-glow-orange: none;
-    --shadow-glow-gold: none;
+    --shadow-glow-gold: 0 0 40px hsl(39 52% 65% / 0.18);
   }
 
   .variant-c .glass-card,
   .variant-c .cosmic-card,
   .variant-c .testimonial-card {
-    background: hsl(0 0% 100%);
-    border: 1px solid hsl(35 35% 85%);
-    box-shadow: 0 4px 20px hsl(35 40% 30% / 0.08);
+    background: hsl(267 24% 9%);
+    border: 1px solid hsl(40 30% 24%);
+    box-shadow: 0 18px 60px hsl(258 40% 2% / 0.4);
   }
 
   .variant-c .cosmic-card::before,

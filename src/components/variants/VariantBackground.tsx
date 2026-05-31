@@ -9,7 +9,7 @@ export const VariantBackground = ({ intensity: _intensity, interactive: _interac
       <div
         className="absolute inset-0"
         style={{
-          background: '#FFFDF5',
+          background: '#0d0a14',
         }}
       />
     </div>
