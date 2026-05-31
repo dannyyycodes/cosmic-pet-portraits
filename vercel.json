@@ -243,6 +243,10 @@
       "destination": "/tools/:path*.html"
     },
     {
+      "source": "/breeds/:path*",
+      "destination": "/breeds/:path*.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }
