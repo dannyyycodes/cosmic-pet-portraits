@@ -140,3 +140,6 @@ verify_jwt = false
 
 [functions.update-pet-data]
 verify_jwt = false
+
+[functions.pet-birth-chart]
+verify_jwt = false
