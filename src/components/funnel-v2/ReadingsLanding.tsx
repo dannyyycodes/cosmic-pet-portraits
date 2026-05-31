@@ -1,16 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, RefObject } from "react";
-import {
-  ArrowRight,
-  BookOpen,
-  Check,
-  Clock3,
-  Heart,
-  MessageCircle,
-  Moon,
-  ShieldCheck,
-  Stars,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, Stars } from "lucide-react";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -64,24 +54,24 @@ const PLACEHOLDERS = [
 
 const AUTHORITY_ITEMS = [
   {
-    icon: ShieldCheck,
-    title: "VSOP87 ephemeris",
-    body: "The same planetary model observatories rely on, accurate to the arcsecond.",
+    stat: "VSOP87",
+    label: "Ephemeris model",
+    body: "The same planetary theory observatories run, resolved to the arcsecond.",
   },
   {
-    icon: Clock3,
-    title: "Time and place resolved",
-    body: "Their exact birth date, time and location fix the real sky overhead that moment.",
-  },
-  {
-    icon: Stars,
-    title: "13 celestial bodies",
+    stat: "13",
+    label: "Celestial bodies",
     body: "Sun through Pluto, plus Chiron, the Lunar Node and Lilith, read as one chart.",
   },
   {
-    icon: Check,
-    title: "Computed, never guessed",
-    body: "Every placement is calculated from their own chart. No templates, no generic sun signs.",
+    stat: "3",
+    label: "Coordinates fixed",
+    body: "Birth date, time and place pin the exact sky standing over them that moment.",
+  },
+  {
+    stat: "0",
+    label: "Templates used",
+    body: "Every placement is computed from their own chart. No generic sun-sign filler.",
   },
 ];
 
@@ -346,14 +336,11 @@ function BirthChartPreviewSection() {
         <div className="ls-chart-shell mt-10">
           <SolarSystemBackdrop />
           <div className="relative z-10">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <p style={eyebrowStyle(C.gold)}>Computed sky</p>
-                <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-                  {status === "ready" ? `${name || "Their"} birth sky` : "Their birth sky preview"}
-                </h3>
-              </div>
-              <Stars size={28} style={{ color: C.gold }} />
+            <div>
+              <p style={eyebrowStyle(C.gold)}>Computed sky</p>
+              <h3 className="mt-4 text-balance" style={chartTitleStyle}>
+                {status === "ready" ? `${name || "Their"} birth sky` : "Their birth sky preview"}
+              </h3>
             </div>
 
             {status !== "ready" ? (
@@ -556,7 +543,7 @@ function CalcDropdown({ open, onToggle }: { open: boolean; onToggle: () => void 
           <span style={eyebrowStyle(C.gold)}>The calculation underneath</span>
           <span className="ls-calc-title">Real astronomy, not a sun-sign guess.</span>
         </span>
-        <span className="ls-calc-icon" aria-hidden="true">{open ? "−" : "+"}</span>
+        <ChevronDown className="ls-calc-chevron" size={26} strokeWidth={2.25} aria-hidden="true" />
       </button>
       {open && (
         <div className="ls-calc-body">
@@ -565,11 +552,11 @@ function CalcDropdown({ open, onToggle }: { open: boolean; onToggle: () => void 
             computed from their own chart with observatory-grade ephemeris.
           </p>
           <div className="ls-calc-grid">
-            {AUTHORITY_ITEMS.map(({ icon: Icon, title, body }) => (
-              <article key={title} className="ls-authority-card">
-                <Icon size={20} style={{ color: C.gold }} />
-                <h3 className="mt-4" style={smallTitleStyle}>{title}</h3>
-                <p className="mt-3 text-pretty" style={smallBodyStyle}>{body}</p>
+            {AUTHORITY_ITEMS.map(({ stat, label, body }) => (
+              <article key={label} className="ls-calc-card">
+                <span className="ls-calc-stat">{stat}</span>
+                <span className="ls-calc-stat-label">{label}</span>
+                <p className="ls-calc-stat-body">{body}</p>
               </article>
             ))}
           </div>
@@ -827,36 +814,65 @@ function CosmicStyles() {
         font-size: clamp(1.15rem, 2.4vw, 1.5rem);
         line-height: 1.1;
       }
-      .ls-calc-icon {
+      .ls-calc-chevron {
         flex: none;
-        display: grid;
-        place-items: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 1px solid rgba(212,182,122,0.4);
         color: ${C.gold};
-        font-size: 1.4rem;
-        line-height: 1;
+        transition: transform 0.28s ease;
       }
+      .ls-calc-toggle.is-open .ls-calc-chevron { transform: rotate(180deg); }
       .ls-calc-body {
         border: 1px solid rgba(212,182,122,0.26);
         border-top: none;
         border-radius: 0 0 10px 10px;
-        padding: 18px;
+        padding: clamp(18px, 3vw, 28px);
+        background:
+          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 46%),
+          linear-gradient(180deg, rgba(5,4,7,0.32), rgba(5,4,7,0.12));
       }
       .ls-calc-lead {
-        color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif;
-        font-size: 0.92rem;
-        line-height: 1.55;
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+        line-height: 1.45;
         max-width: 640px;
       }
       .ls-calc-grid {
-        margin-top: 16px;
+        margin-top: 22px;
         display: grid;
-        gap: 12px;
+        gap: 1px;
+        background: rgba(212,182,122,0.16);
+        border: 1px solid rgba(212,182,122,0.16);
+        border-radius: 10px;
+        overflow: hidden;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ls-calc-card {
+        display: grid;
+        gap: 6px;
+        padding: clamp(18px, 2.6vw, 26px);
+        background: ${C.cosmos};
+      }
+      .ls-calc-stat {
+        color: ${C.gold};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(2.2rem, 5vw, 3.1rem);
+        line-height: 0.95;
+        letter-spacing: -0.01em;
+      }
+      .ls-calc-stat-label {
+        color: ${C.cream};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .ls-calc-stat-body {
+        margin-top: 4px;
+        color: ${C.muted};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.84rem;
+        line-height: 1.5;
       }
       .ls-chart-shell {
         position: relative;
