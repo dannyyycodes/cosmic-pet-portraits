@@ -51,6 +51,15 @@ for (const s of PAWTRAIT_STYLE_SLUGS) {
   STATIC_ENTRIES.push({ loc: `${SITE}/pawtraits/style/${s}`, changefreq: "weekly", priority: 0.7 });
 }
 
+// Pet-astrology programmatic SEO pages (zodiac x species) + tools.
+const ZODIAC_SIGNS = ["aries","taurus","gemini","cancer","leo","virgo","libra","scorpio","sagittarius","capricorn","aquarius","pisces"];
+for (const sp of ["dog", "cat"]) {
+  STATIC_ENTRIES.push({ loc: `${SITE}/zodiac/${sp}`, changefreq: "weekly", priority: 0.8 });
+  for (const s of ZODIAC_SIGNS) STATIC_ENTRIES.push({ loc: `${SITE}/zodiac/${sp}/${s}`, changefreq: "monthly", priority: 0.7 });
+}
+STATIC_ENTRIES.push({ loc: `${SITE}/tools/pet-birth-chart`, changefreq: "monthly", priority: 0.9 });
+STATIC_ENTRIES.push({ loc: `${SITE}/methodology`, changefreq: "yearly", priority: 0.6 });
+
 function escapeXml(s: string): string {
   return s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c] as string));
 }
