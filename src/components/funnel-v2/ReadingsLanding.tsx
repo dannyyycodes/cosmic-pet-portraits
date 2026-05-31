@@ -253,15 +253,9 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
 
       <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.86fr_1.14fr]">
         <div className="max-w-2xl">
-          <p style={eyebrowStyle(C.gold)}>Little Souls readings</p>
           <h1 className="mt-6 text-balance" style={heroTitleStyle}>
             See the little soul behind the eyes.
           </h1>
-          <p className="mt-7 max-w-xl text-pretty" style={heroBodyStyle}>
-            For the look they give you when no one else is watching. A private
-            soul reading built from their birth sky, their face, and the bond
-            only you know.
-          </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button onClick={onBegin} className="ls-gold-button">
               Begin Their Reading <ArrowRight size={17} />
@@ -366,13 +360,6 @@ function BirthChartPreviewSection() {
           <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
             Show them the sky they came in with.
           </h2>
-          <p className="mt-6 text-pretty" style={sectionBodyStyle}>
-            A first glimpse before the full reading: Moon, Rising, full-moon
-            context and the placements that make this feel like them.
-          </p>
-          <p className="mt-6 text-pretty" style={bodyStyle}>
-            Enough truth to make them pause. Enough mystery to want the deeper reading.
-          </p>
         </div>
 
         <div className="ls-chart-shell">
@@ -1100,13 +1087,6 @@ const heroTitleStyle = {
   fontWeight: 500,
   lineHeight: 0.92,
   letterSpacing: "-0.018em",
-} as const;
-
-const heroBodyStyle = {
-  color: C.creamDim,
-  fontFamily: "Lato, system-ui, sans-serif",
-  fontSize: "clamp(1.1rem, 2vw, 1.28rem)",
-  lineHeight: 1.72,
 } as const;
 
 const sectionTitleStyle = {
