@@ -338,17 +338,13 @@ function BirthChartPreviewSection() {
             Free mini reading calculations.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-pretty" style={sectionBodyStyle}>
-            Enter their birth or adoption date and watch their real planets light up —
-            the same sky engine behind the full reading.
+            Enter their birth or adoption date and watch their real planets light up.
+            The same sky engine behind the full reading.
           </p>
         </div>
 
         <div className="ls-chart-shell mt-10">
-          <div className="ls-chart-orb" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
+          <SolarSystemBackdrop />
           <div className="relative z-10">
             <div className="flex items-start justify-between gap-6">
               <div>
@@ -370,7 +366,7 @@ function BirthChartPreviewSection() {
                 <p className="ls-chart-message">
                   {status === "loading"
                     ? "Reading their sky..."
-                    : "Enter their date to light up their real planets — Sun, Moon and the placements that make them, them."}
+                    : "Enter their date to light up their real planets. Sun, Moon and the placements that make them, them."}
                 </p>
               </div>
             ) : (
@@ -404,7 +400,7 @@ function BirthChartPreviewSection() {
                     <div className="ls-sky-gate">
                       <Stars size={22} style={{ color: C.gold }} />
                       <p>See {themName} whole sky.</p>
-                      <small>The rest of their placements now — and we&apos;ll send their chart to your inbox.</small>
+                      <small>The rest of their placements now, and we&apos;ll send their chart to your inbox.</small>
                       <form onSubmit={handleUnlock}>
                         <input
                           type="email"
@@ -498,10 +494,40 @@ function PlanetCard({
           <i className="ls-planet-glyph" aria-hidden="true">{meta.glyph}</i>
           {meta.label}
         </span>
-        <strong className="ls-planet-sign">{sign ? `${signGlyph} ${degree}${sign}` : "—"}</strong>
+        <strong className="ls-planet-sign">{sign ? `${signGlyph} ${degree}${sign}` : "·"}</strong>
         <small>{meta.line}</small>
       </div>
     </article>
+  );
+}
+
+const SOLAR_ORBITS = [
+  { planet: "mercury", size: 28, dur: 16, ring: "26%" },
+  { planet: "venus", size: 36, dur: 24, ring: "40%" },
+  { planet: "mars", size: 32, dur: 34, ring: "54%" },
+  { planet: "jupiter", size: 54, dur: 48, ring: "70%" },
+  { planet: "saturn", size: 60, dur: 66, ring: "88%" },
+] as const;
+
+function SolarSystemBackdrop() {
+  return (
+    <div className="ls-solar" aria-hidden="true">
+      <img className="ls-solar-sun" src={PLANET_META.sun.img} alt="" loading="lazy" />
+      {SOLAR_ORBITS.map((o, i) => (
+        <div
+          key={o.planet}
+          className="ls-solar-ring"
+          style={{ width: o.ring, animationDuration: `${o.dur}s`, animationDirection: i % 2 ? "reverse" : "normal" }}
+        >
+          <img
+            src={PLANET_META[o.planet].img}
+            alt=""
+            loading="lazy"
+            style={{ width: o.size, height: o.size, animationDuration: `${o.dur}s`, animationDirection: i % 2 ? "normal" : "reverse" }}
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -771,33 +797,41 @@ function CosmicStyles() {
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
         box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.28);
       }
-      .ls-chart-orb {
+      .ls-solar {
         position: absolute;
-        inset: 34px;
+        inset: 0;
         display: grid;
         place-items: center;
-        opacity: 0.58;
+        overflow: hidden;
+        pointer-events: none;
+        opacity: 0.2;
+        filter: blur(1px);
       }
-      .ls-chart-orb span {
+      .ls-solar-sun {
         position: absolute;
-        border: 1px solid rgba(212,182,122,0.22);
+        width: clamp(60px, 13%, 100px);
+        aspect-ratio: 1;
+        object-fit: contain;
+        filter: drop-shadow(0 0 26px rgba(255,178,88,0.55));
+      }
+      .ls-solar-ring {
+        position: absolute;
+        aspect-ratio: 1;
+        border: 1px solid rgba(212,182,122,0.12);
         border-radius: 50%;
+        animation: ls-orbit linear infinite;
+        will-change: transform;
       }
-      .ls-chart-orb span:nth-child(1) {
-        width: min(82%, 380px);
-        aspect-ratio: 1;
+      .ls-solar-ring > img {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        object-fit: contain;
+        filter: drop-shadow(0 0 8px rgba(212,182,122,0.38));
       }
-      .ls-chart-orb span:nth-child(2) {
-        width: min(58%, 268px);
-        aspect-ratio: 1;
-        transform: rotate(22deg);
-        border-style: dashed;
-      }
-      .ls-chart-orb span:nth-child(3) {
-        width: min(24%, 112px);
-        aspect-ratio: 1;
-        background: radial-gradient(circle, rgba(212,182,122,0.30), rgba(212,182,122,0.05) 58%, transparent 70%);
-        border-color: rgba(212,182,122,0.32);
+      @keyframes ls-orbit {
+        to { transform: rotate(360deg); }
       }
       .ls-chart-pill {
         position: relative;
@@ -1258,7 +1292,8 @@ function CosmicStyles() {
         }
         .ls-orbit-a,
         .ls-orbit-b,
-        .ls-orbit-c {
+        .ls-orbit-c,
+        .ls-solar-ring {
           animation: none !important;
         }
       }
