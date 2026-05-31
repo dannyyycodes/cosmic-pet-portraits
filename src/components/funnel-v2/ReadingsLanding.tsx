@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { RefObject } from "react";
+import type { FormEvent, RefObject } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -133,6 +133,35 @@ const CHART_PREVIEW_ITEMS = [
   ["All planets", "Sun through Pluto"],
 ] as const;
 
+type ChartBody = {
+  sign: string;
+  degree?: number;
+  element?: string;
+  modality?: string;
+  ruler?: string;
+};
+
+type PetBirthChart = {
+  sun?: ChartBody;
+  moon?: ChartBody;
+  ascendant?: ChartBody | null;
+  mercury?: ChartBody;
+  venus?: ChartBody;
+  mars?: ChartBody;
+  jupiter?: ChartBody;
+  saturn?: ChartBody;
+  uranus?: ChartBody;
+  neptune?: ChartBody;
+  pluto?: ChartBody;
+  chiron?: ChartBody;
+  northNode?: ChartBody;
+  lilith?: ChartBody;
+  dominantElement?: string;
+  ascendantNote?: string;
+};
+
+const BIRTH_CHART_ENDPOINT = "https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/pet-birth-chart";
+
 const FAQ = [
   {
     q: "What if I do not know their exact birthday?",
@@ -224,7 +253,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
 
       <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.86fr_1.14fr]">
         <div className="max-w-2xl">
-          <p style={eyebrowStyle(C.gold)}>Pet soul readings</p>
+          <p style={eyebrowStyle(C.gold)}>Little Souls readings</p>
           <h1 className="mt-6 text-balance" style={heroTitleStyle}>
             See the little soul behind the eyes.
           </h1>
@@ -242,7 +271,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
             </a>
           </div>
           <p className="mt-8 max-w-lg text-pretty" style={whisperStyle}>
-            For the little soul who made a house feel like home.
+            For the look you never needed translated until now.
           </p>
         </div>
 
@@ -284,6 +313,51 @@ function SignalStrip() {
 }
 
 function BirthChartPreviewSection() {
+  const [date, setDate] = useState("");
+  const [chart, setChart] = useState<PetBirthChart | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const previewItems = chart
+    ? [
+        ["Sun", describeBody(chart.sun)],
+        ["Moon", describeBody(chart.moon)],
+        ["Mercury", describeBody(chart.mercury)],
+        ["Venus", describeBody(chart.venus)],
+        ["Mars", describeBody(chart.mars)],
+        ["Jupiter", describeBody(chart.jupiter)],
+        ["Saturn", describeBody(chart.saturn)],
+        ["Dominant", chart.dominantElement ? `${chart.dominantElement} element` : "Calculated pattern"],
+      ]
+    : CHART_PREVIEW_ITEMS;
+
+  const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!date) {
+      setStatus("error");
+      setMessage("Choose their birth date or adoption date first.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+    try {
+      const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Birth chart request failed: ${response.status}`);
+      const data = (await response.json()) as PetBirthChart;
+      if (!data?.sun) throw new Error("Birth chart response was incomplete.");
+      setChart(data);
+      setStatus("ready");
+      setMessage(data.ascendantNote || "Full planetary preview calculated from the same sky engine as the paid reading.");
+    } catch (error) {
+      console.warn("[Little Souls] birth chart preview failed", error);
+      setChart(null);
+      setStatus("error");
+      setMessage("The chart did not open. Please try again in a moment.");
+    }
+  };
+
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
@@ -312,14 +386,14 @@ function BirthChartPreviewSection() {
               <div>
                 <p style={eyebrowStyle(C.gold)}>Computed sky</p>
                 <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-                  Their first celestial signature
+                  Their birth sky preview
                 </h3>
               </div>
               <Stars size={28} style={{ color: C.gold }} />
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {CHART_PREVIEW_ITEMS.map(([label, detail]) => (
+              {previewItems.map(([label, detail]) => (
                 <article key={label} className="ls-chart-pill">
                   <span>{label}</span>
                   <small>{detail}</small>
@@ -329,18 +403,47 @@ function BirthChartPreviewSection() {
 
             <div className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
               <p className="text-pretty" style={bodyStyle}>
-                Enter birth date, time and place. See the key placements, then
-                open the full interpretation.
+                Enter a birth date or adoption date. See the first placements,
+                then open the full interpretation.
               </p>
-              <div className="ls-chart-note mt-6">
-                Moon, Rising and full-planet preview
-              </div>
+              <form className="ls-chart-form mt-6" onSubmit={handlePreview}>
+                <label htmlFor="birth-chart-date">Birth or adoption date</label>
+                <div>
+                  <input
+                    id="birth-chart-date"
+                    type="date"
+                    value={date}
+                    onChange={(event) => {
+                      setDate(event.target.value);
+                      if (status === "error") {
+                        setStatus("idle");
+                        setMessage("");
+                      }
+                    }}
+                    max="2030-12-31"
+                  />
+                  <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
+                    {status === "loading" ? "Reading Their Sky..." : "Preview Their Birth Chart"}
+                  </button>
+                </div>
+              </form>
+              {message && (
+                <p className={`ls-chart-message ${status === "error" ? "is-error" : ""}`}>
+                  {message}
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
     </section>
   );
+}
+
+function describeBody(body?: ChartBody | null) {
+  if (!body?.sign) return "Waiting for date";
+  const degree = typeof body.degree === "number" ? `${Math.round(body.degree)}deg ` : "";
+  return `${degree}${body.sign}`;
 }
 
 function ProcessSection() {
@@ -727,20 +830,47 @@ function CosmicStyles() {
         font-size: 0.78rem;
         line-height: 1.35;
       }
-      .ls-chart-note {
-        display: inline-flex;
-        align-items: center;
-        min-height: 44px;
-        border: 1px solid rgba(212,182,122,0.34);
-        border-radius: 999px;
-        background: rgba(212,182,122,0.08);
+      .ls-chart-form {
+        display: grid;
+        gap: 10px;
+      }
+      .ls-chart-form label {
         color: ${C.gold};
-        padding: 0 16px;
         font-family: Lato, system-ui, sans-serif;
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
+      }
+      .ls-chart-form > div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+      .ls-chart-form input {
+        min-height: 48px;
+        width: 100%;
+        border: 1px solid rgba(212,182,122,0.34);
+        border-radius: 8px;
+        background: rgba(5,4,7,0.62);
+        color: ${C.cream};
+        padding: 0 14px;
+        font-family: Lato, system-ui, sans-serif;
+        color-scheme: dark;
+      }
+      .ls-chart-form .ls-gold-button {
+        white-space: nowrap;
+      }
+      .ls-chart-message {
+        margin: 12px 0 0;
+        color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.84rem;
+        line-height: 1.45;
+      }
+      .ls-chart-message.is-error {
+        color: ${C.goldSoft};
       }
       .ls-checkout-shell {
         background:
@@ -939,6 +1069,12 @@ function CosmicStyles() {
           bottom: 12px;
           right: 12px;
           max-width: 180px;
+        }
+        .ls-chart-form > div {
+          grid-template-columns: 1fr;
+        }
+        .ls-chart-form .ls-gold-button {
+          width: 100%;
         }
       }
       @media (prefers-reduced-motion: reduce) {
