@@ -506,11 +506,13 @@ function PlanetCard({
 // Real-ish relative orbital periods; start angles staggered so the planets
 // never line up (classroom orrery, not a conjunction).
 const SOLAR_ORBITS = [
-  { planet: "mercury", size: 9, dur: 18, ring: 30, start: 35 },
-  { planet: "venus", size: 13, dur: 29, ring: 46, start: 160 },
-  { planet: "mars", size: 10, dur: 41, ring: 62, start: 255 },
+  // Kepler's 3rd law: period proportional to orbit-radius^1.5 (inner fast,
+  // outer slow). Sizes keep real relative order, compressed; Sun dwarfs all.
+  { planet: "mercury", size: 7, dur: 16, ring: 30, start: 35 },
+  { planet: "venus", size: 12, dur: 30, ring: 46, start: 160 },
+  { planet: "mars", size: 9, dur: 48, ring: 62, start: 255 },
   { planet: "jupiter", size: 22, dur: 67, ring: 78, start: 100 },
-  { planet: "saturn", size: 28, dur: 97, ring: 94, start: 300 },
+  { planet: "saturn", size: 34, dur: 89, ring: 94, start: 300 },
 ] as const;
 
 function SolarSystemBackdrop() {
@@ -889,10 +891,10 @@ function CosmicStyles() {
         position: absolute;
         inset: 0;
         margin: auto;
-        width: 104px;
-        height: 104px;
+        width: 118px;
+        height: 118px;
         object-fit: contain;
-        filter: drop-shadow(0 0 30px rgba(255,178,88,0.62));
+        filter: drop-shadow(0 0 32px rgba(255,178,88,0.62));
       }
       .ls-solar-ring {
         position: absolute;
