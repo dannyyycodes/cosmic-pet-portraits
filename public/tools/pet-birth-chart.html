@@ -47,6 +47,9 @@ h1{font-family:Fraunces,Georgia,serif;color:var(--ink);font-size:2.1rem;line-hei
 #result .signname{font-family:Fraunces,Georgia,serif;font-size:1.8rem;color:var(--ink);font-weight:700;margin:4px 0}
 .chips{display:flex;flex-wrap:wrap;gap:8px;font-family:Inter,system-ui,sans-serif;font-size:13px;margin:8px 0 14px}
 .chips span{background:var(--cream2);border:1px solid var(--sand);border-radius:999px;padding:5px 12px;color:var(--ink)}
+.chart{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}
+.pl{display:flex;justify-content:space-between;background:var(--cream2);border:1px solid var(--sand);border-radius:8px;padding:8px 12px;font-family:Inter,system-ui,sans-serif;font-size:14px}
+.pl .pn{color:var(--muted)}.pl .pv{color:var(--ink);font-weight:600}
 h2{font-family:Fraunces,Georgia,serif;color:var(--ink);font-size:1.5rem;margin:38px 0 12px;font-weight:600}
 h3{font-family:Inter,system-ui,sans-serif;color:var(--ink);font-size:1.05rem;margin:18px 0 6px;font-weight:600}
 .faq{border-top:1px solid var(--sand);padding-top:6px;margin-top:14px}
@@ -113,6 +116,24 @@ function signFor(m,d){
  }
  return SIGNS[0];
 }
+var EDGE="https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/pet-birth-chart";
+var SYM={Aries:"♈",Taurus:"♉",Gemini:"♊",Cancer:"♋",Leo:"♌",Virgo:"♍",Libra:"♎",Scorpio:"♏",Sagittarius:"♐",Capricorn:"♑",Aquarius:"♒",Pisces:"♓"};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function body(label,b){if(!b)return"";return '<div class="pl"><span class="pn">'+label+'</span><span class="pv">'+(SYM[b.sign]||"")+' '+esc(b.sign)+'</span></div>';}
+function renderFull(r,sp,data){
+ var grid='<div class="chart">'+
+   body("☉ Sun",data.sun)+body("☽ Moon",data.moon)+
+   (data.ascendant?body("↑ Rising",data.ascendant):"")+
+   body("☿ Mercury",data.mercury)+body("♀ Venus",data.venus)+body("♂ Mars",data.mars)+
+   body("♃ Jupiter",data.jupiter)+body("♄ Saturn",data.saturn)+body("♅ Uranus",data.uranus)+
+   body("♆ Neptune",data.neptune)+body("♇ Pluto",data.pluto)+body("⚷ Chiron",data.chiron)+
+   '</div>';
+ var bal=data.elementBalance||{};
+ var balStr=["Fire","Earth","Air","Water"].map(function(e){return e+" "+(bal[e]||0);}).join(" · ");
+ var full='<h3 style="margin-top:22px">Full birth chart</h3>'+grid+
+   '<p style="font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted)">Element balance: '+balStr+' · Dominant: <strong>'+esc(data.dominantElement||"")+'</strong><br>'+esc(data.ascendantNote||"")+'</p>';
+ var el=document.getElementById("fullchart"); if(el){el.innerHTML=full;}
+}
 document.getElementById("go").addEventListener("click",function(){
  var v=document.getElementById("dob").value; var sp=document.getElementById("species").value;
  var r=document.getElementById("result");
@@ -125,8 +146,14 @@ document.getElementById("go").addEventListener("click",function(){
   '<div class="chips"><span>'+s.el+'</span><span>'+s.mod+'</span><span>Ruled by '+s.pl+'</span></div>'+
   '<p><em>'+s.t+'.</em> Your '+sp+' carries the '+s.el.toLowerCase()+' element and is ruled by '+s.pl+'. '+
   'That is their sun sign — the core of who they are.</p>'+
+  '<div id="fullchart"><p style="font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted)">Computing their full chart…</p></div>'+
   '<p><a href="/zodiac/'+sp+'/'+s.k+'"><strong>Read the full '+s.n+' '+spLabel+' profile →</strong></a></p>';
  if(window.gtag){gtag('event','birth_chart_calc',{sign:s.k,species:sp});}
+ // Full chart via our VSOP87 engine (no AI). Graceful: sun-sign already shown if this fails.
+ fetch(EDGE+"?date="+encodeURIComponent(v))
+  .then(function(res){return res.ok?res.json():null;})
+  .then(function(data){ if(data&&data.sun){renderFull(r,sp,data);} else {var el=document.getElementById("fullchart");if(el)el.innerHTML="";} })
+  .catch(function(){var el=document.getElementById("fullchart");if(el)el.innerHTML="";});
 });
 </script>
 </body></html>
