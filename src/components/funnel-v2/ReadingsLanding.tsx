@@ -65,23 +65,23 @@ const PLACEHOLDERS = [
 const AUTHORITY_ITEMS = [
   {
     icon: ShieldCheck,
-    title: "VSOP87",
-    body: "Precise planetary positions.",
+    title: "VSOP87 ephemeris",
+    body: "The same planetary model observatories rely on, accurate to the arcsecond.",
   },
   {
     icon: Clock3,
-    title: "Calculated with care",
-    body: "Birth date, time and place matter.",
+    title: "Time and place resolved",
+    body: "Their exact birth date, time and location fix the real sky overhead that moment.",
   },
   {
     icon: Stars,
     title: "13 celestial bodies",
-    body: "Sun through Pluto, plus Chiron, Node and Lilith.",
+    body: "Sun through Pluto, plus Chiron, the Lunar Node and Lilith, read as one chart.",
   },
   {
     icon: Check,
-    title: "Specific, not generic",
-    body: "Their chart gives the reading shape.",
+    title: "Computed, never guessed",
+    body: "Every placement is calculated from their own chart. No templates, no generic sun signs.",
   },
 ];
 
@@ -166,7 +166,6 @@ export function ReadingsLanding() {
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
       <BirthChartPreviewSection />
-      <AuthoritySection />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -263,6 +262,7 @@ function BirthChartPreviewSection() {
   const [unlocked, setUnlocked] = useState(false);
   const [gateStatus, setGateStatus] = useState<"idle" | "loading">("idle");
   const [gateError, setGateError] = useState("");
+  const [calcOpen, setCalcOpen] = useState(false);
 
   const name = petName.trim();
   const bodyFor = (key: (typeof PLANET_ORDER)[number]): ChartBody | undefined =>
@@ -432,6 +432,8 @@ function BirthChartPreviewSection() {
           </div>
         </div>
 
+        <CalcDropdown open={calcOpen} onToggle={() => setCalcOpen((v) => !v)} />
+
         <form className="ls-lead-form ls-lead-form--wide mt-8" onSubmit={handlePreview}>
           <div className="ls-lead-field">
             <label htmlFor="chart-pet-name">Their name (optional)</label>
@@ -494,7 +496,7 @@ function PlanetCard({
           <i className="ls-planet-glyph" aria-hidden="true">{meta.glyph}</i>
           {meta.label}
         </span>
-        <strong className="ls-planet-sign">{sign ? `${signGlyph} ${degree}${sign}` : "·"}</strong>
+        {sign && <strong className="ls-planet-sign">{`${signGlyph} ${degree}${sign}`}</strong>}
         <small>{meta.line}</small>
       </div>
     </article>
@@ -539,34 +541,39 @@ function SolarSystemBackdrop() {
   );
 }
 
-function AuthoritySection() {
+function CalcDropdown({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
-    <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto max-w-6xl">
-        <div className="ls-authority-stage">
-          <div className="grid items-end gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <div>
-              <p style={eyebrowStyle(C.gold)}>The calculation underneath</p>
-              <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-                Tender, but not vague.
-              </h2>
-            </div>
-            <p className="max-w-2xl text-pretty" style={sectionBodyStyle}>
-              The emotion is yours. The sky underneath is calculated.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="ls-calc mt-6">
+      <button
+        type="button"
+        className={`ls-calc-toggle ${open ? "is-open" : ""}`}
+        onClick={onToggle}
+        aria-expanded={open}
+      >
+        <span className="ls-calc-head">
+          <span style={eyebrowStyle(C.gold)}>The calculation underneath</span>
+          <span className="ls-calc-title">Real astronomy, not a sun-sign guess.</span>
+        </span>
+        <span className="ls-calc-icon" aria-hidden="true">{open ? "−" : "+"}</span>
+      </button>
+      {open && (
+        <div className="ls-calc-body">
+          <p className="ls-calc-lead">
+            The feeling is yours. The sky beneath it is measured. Every placement here is
+            computed from their own chart with observatory-grade ephemeris.
+          </p>
+          <div className="ls-calc-grid">
             {AUTHORITY_ITEMS.map(({ icon: Icon, title, body }) => (
               <article key={title} className="ls-authority-card">
                 <Icon size={20} style={{ color: C.gold }} />
-                <h3 className="mt-5" style={smallTitleStyle}>{title}</h3>
+                <h3 className="mt-4" style={smallTitleStyle}>{title}</h3>
                 <p className="mt-3 text-pretty" style={smallBodyStyle}>{body}</p>
               </article>
             ))}
           </div>
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 }
 
@@ -790,6 +797,64 @@ function CosmicStyles() {
         background:
           radial-gradient(ellipse at 18% 0%, rgba(212,182,122,0.14), transparent 34%),
           linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.025));
+      }
+      .ls-calc-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(212,182,122,0.26);
+        border-radius: 10px;
+        background: rgba(5,4,7,0.4);
+        padding: 16px 18px;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+      }
+      .ls-calc-toggle:hover { border-color: rgba(212,182,122,0.5); }
+      .ls-calc-toggle.is-open {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
+      }
+      .ls-calc-head { display: grid; gap: 4px; }
+      .ls-calc-title {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+        line-height: 1.1;
+      }
+      .ls-calc-icon {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(212,182,122,0.4);
+        color: ${C.gold};
+        font-size: 1.4rem;
+        line-height: 1;
+      }
+      .ls-calc-body {
+        border: 1px solid rgba(212,182,122,0.26);
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        padding: 18px;
+      }
+      .ls-calc-lead {
+        color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.92rem;
+        line-height: 1.55;
+        max-width: 640px;
+      }
+      .ls-calc-grid {
+        margin-top: 16px;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .ls-chart-shell {
         position: relative;
@@ -1294,6 +1359,7 @@ function CosmicStyles() {
         }
         .ls-lead-form { max-width: none; }
         .ls-sky-grid { grid-template-columns: 1fr; gap: 10px; }
+        .ls-calc-grid { grid-template-columns: 1fr; }
         .ls-planet-card { min-height: 0; padding: 11px; gap: 12px; }
         .ls-planet-orb { width: 42px; height: 42px; }
         .ls-planet-sign { font-size: 1.05rem; }
