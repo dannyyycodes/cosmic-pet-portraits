@@ -15,11 +15,11 @@ function getCorsHeaders(req: Request) {
 // Input validation schema
 const trackSchema = z.object({
   email: z.string().email().max(255),
-  event: z.enum(["intake_started", "intake_completed", "purchase_completed", "unsubscribe"]),
+  event: z.enum(["birth_chart_lead", "intake_started", "intake_completed", "purchase_completed", "unsubscribe"]),
   petName: z.string().max(50).nullish(),
   petReportId: z.string().uuid().nullish(),
   tier: z.enum(["basic", "premium"]).nullish(),
-  source: z.enum(["intake", "gift", "referral"]).nullish(),
+  source: z.enum(["intake", "gift", "referral", "birth_chart_preview"]).nullish(),
   referralCode: z.string().max(50).nullish(),
 });
 
@@ -62,6 +62,29 @@ serve(async (req) => {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
+    }
+
+    if (input.event === "birth_chart_lead") {
+      // Free birth-chart preview lead. New emails enter the standard welcome
+      // nurture via journey_stage "new_lead"; existing subscribers are only
+      // enriched (never downgraded out of a later stage).
+      if (existing) {
+        await supabase
+          .from("email_subscribers")
+          .update({
+            pet_name: input.petName || existing.pet_name,
+            source: existing.source || input.source || "birth_chart_preview",
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("email_subscribers").insert({
+          email: input.email,
+          pet_name: input.petName,
+          journey_stage: "new_lead",
+          source: input.source || "birth_chart_preview",
+          referral_code: input.referralCode,
+        });
+      }
     }
 
     if (input.event === "intake_started") {

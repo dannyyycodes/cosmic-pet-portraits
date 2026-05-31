@@ -12,6 +12,7 @@ import {
   Stars,
 } from "lucide-react";
 import { InlineCheckout } from "./InlineCheckout";
+import { supabase } from "@/integrations/supabase/client";
 
 const C = {
   ink: "#141210",
@@ -122,16 +123,26 @@ const AUTHORITY_ITEMS = [
   },
 ];
 
-const CHART_PREVIEW_ITEMS = [
-  ["Moon", "Emotional body"],
-  ["Rising", "How they meet the world"],
-  ["Venus", "How they ask for love"],
-  ["Mars", "Instinct and courage"],
-  ["Jupiter", "Their trust pattern"],
-  ["Saturn", "What makes them feel safe"],
-  ["Full moon", "The phase imprint"],
-  ["All planets", "Sun through Pluto"],
-] as const;
+const PLANET_META = {
+  sun: { glyph: "☉", label: "Sun", line: "Who they are at their core.", img: "/readings/planets/sun.png" },
+  moon: { glyph: "☽", label: "Moon", line: "How they feel, and what soothes them.", img: "/readings/planets/moon.png" },
+  mercury: { glyph: "☿", label: "Mercury", line: "How they read you and answer back.", img: "/readings/planets/mercury.png" },
+  venus: { glyph: "♀", label: "Venus", line: "How they give, and ask for, love.", img: "/readings/planets/venus.png" },
+  mars: { glyph: "♂", label: "Mars", line: "Their drive, courage and play.", img: "/readings/planets/mars.png" },
+  jupiter: { glyph: "♃", label: "Jupiter", line: "Where they trust enough to open up.", img: "/readings/planets/jupiter.png" },
+  saturn: { glyph: "♄", label: "Saturn", line: "What steadies them and holds them.", img: "/readings/planets/saturn.png" },
+} as const;
+
+const PLANET_ORDER = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"] as const;
+
+// Sun + Moon revealed free; the rest unlock behind the email gate.
+const FREE_BODIES = 2;
+
+const SIGN_GLYPHS: Record<string, string> = {
+  Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
+  Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏",
+  Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓",
+};
 
 type ChartBody = {
   sign: string;
@@ -307,23 +318,19 @@ function SignalStrip() {
 }
 
 function BirthChartPreviewSection() {
+  const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
   const [chart, setChart] = useState<PetBirthChart | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [gateStatus, setGateStatus] = useState<"idle" | "loading">("idle");
+  const [gateError, setGateError] = useState("");
 
-  const previewItems = chart
-    ? [
-        ["Sun", describeBody(chart.sun)],
-        ["Moon", describeBody(chart.moon)],
-        ["Mercury", describeBody(chart.mercury)],
-        ["Venus", describeBody(chart.venus)],
-        ["Mars", describeBody(chart.mars)],
-        ["Jupiter", describeBody(chart.jupiter)],
-        ["Saturn", describeBody(chart.saturn)],
-        ["Dominant", chart.dominantElement ? `${chart.dominantElement} element` : "Calculated pattern"],
-      ]
-    : CHART_PREVIEW_ITEMS;
+  const name = petName.trim();
+  const bodyFor = (key: (typeof PLANET_ORDER)[number]): ChartBody | undefined =>
+    chart ? (chart[key] as ChartBody | undefined) : undefined;
 
   const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -335,6 +342,7 @@ function BirthChartPreviewSection() {
 
     setStatus("loading");
     setMessage("");
+    setUnlocked(false);
     try {
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
       const response = await fetch(url);
@@ -343,7 +351,7 @@ function BirthChartPreviewSection() {
       if (!data?.sun) throw new Error("Birth chart response was incomplete.");
       setChart(data);
       setStatus("ready");
-      setMessage(data.ascendantNote || "Full planetary preview calculated from the same sky engine as the paid reading.");
+      setMessage("");
     } catch (error) {
       console.warn("[Little Souls] birth chart preview failed", error);
       setChart(null);
@@ -352,14 +360,87 @@ function BirthChartPreviewSection() {
     }
   };
 
+  const handleUnlock = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(clean)) {
+      setGateError("Enter a valid email.");
+      return;
+    }
+    setGateError("");
+    setGateStatus("loading");
+    try {
+      await supabase.functions.invoke("track-subscriber", {
+        body: {
+          email: clean,
+          event: "birth_chart_lead",
+          petName: name || null,
+          source: "birth_chart_preview",
+        },
+      });
+    } catch (error) {
+      // Lead capture is best-effort — never block the reveal on a hiccup.
+      console.warn("[Little Souls] lead capture failed", error);
+    }
+    try {
+      sessionStorage.setItem("ls_chart_email", clean);
+    } catch {
+      /* ignore */
+    }
+    setGateStatus("idle");
+    setUnlocked(true);
+  };
+
+  const themName = name || "their";
+
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
         <div>
           <p style={eyebrowStyle(C.gold)}>Free birth-chart preview</p>
           <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
             Show them the sky they came in with.
           </h2>
+          <p className="mt-6 text-pretty" style={sectionBodyStyle}>
+            Enter their birth or adoption date and watch their real planets light up —
+            the same sky engine behind the full reading.
+          </p>
+          <form className="ls-lead-form mt-8" onSubmit={handlePreview}>
+            <div className="ls-lead-field">
+              <label htmlFor="chart-pet-name">Their name (optional)</label>
+              <input
+                id="chart-pet-name"
+                type="text"
+                value={petName}
+                maxLength={40}
+                onChange={(event) => setPetName(event.target.value)}
+                placeholder="e.g. Bella"
+              />
+            </div>
+            <div className="ls-lead-field">
+              <label htmlFor="birth-chart-date">Birth or adoption date</label>
+              <input
+                id="birth-chart-date"
+                type="date"
+                value={date}
+                onChange={(event) => {
+                  setDate(event.target.value);
+                  if (status === "error") {
+                    setStatus("idle");
+                    setMessage("");
+                  }
+                }}
+                max="2030-12-31"
+              />
+            </div>
+            <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
+              {status === "loading" ? "Reading Their Sky..." : "Reveal Their Birth Sky"}
+              {status !== "loading" && <ArrowRight size={17} />}
+            </button>
+            {message && status === "error" && (
+              <p className="ls-chart-message is-error">{message}</p>
+            )}
+          </form>
         </div>
 
         <div className="ls-chart-shell">
@@ -373,53 +454,85 @@ function BirthChartPreviewSection() {
               <div>
                 <p style={eyebrowStyle(C.gold)}>Computed sky</p>
                 <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-                  Their birth sky preview
+                  {status === "ready" ? `${name || "Their"} birth sky` : "Their birth sky preview"}
                 </h3>
               </div>
               <Stars size={28} style={{ color: C.gold }} />
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {previewItems.map(([label, detail]) => (
-                <article key={label} className="ls-chart-pill">
-                  <span>{label}</span>
-                  <small>{detail}</small>
-                </article>
-              ))}
-            </div>
-
-            <div className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
-              <p className="text-pretty" style={bodyStyle}>
-                Enter a birth date or adoption date. See the first placements,
-                then open the full interpretation.
-              </p>
-              <form className="ls-chart-form mt-6" onSubmit={handlePreview}>
-                <label htmlFor="birth-chart-date">Birth or adoption date</label>
-                <div>
-                  <input
-                    id="birth-chart-date"
-                    type="date"
-                    value={date}
-                    onChange={(event) => {
-                      setDate(event.target.value);
-                      if (status === "error") {
-                        setStatus("idle");
-                        setMessage("");
-                      }
-                    }}
-                    max="2030-12-31"
-                  />
-                  <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
-                    {status === "loading" ? "Reading Their Sky..." : "Preview Their Birth Chart"}
-                  </button>
+            {status !== "ready" ? (
+              <div className="ls-sky-teaser">
+                <div className="ls-teaser-orbs" aria-hidden="true">
+                  {PLANET_ORDER.map((key) => (
+                    <img key={key} src={PLANET_META[key].img} alt="" loading="lazy" />
+                  ))}
                 </div>
-              </form>
-              {message && (
-                <p className={`ls-chart-message ${status === "error" ? "is-error" : ""}`}>
-                  {message}
+                <p className="ls-chart-message">
+                  {status === "loading"
+                    ? "Reading their sky..."
+                    : "Enter their date to light up their real planets — Sun, Moon and the placements that make them, them."}
                 </p>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="mt-8">
+                <div className="ls-sky-grid">
+                  {PLANET_ORDER.slice(0, FREE_BODIES).map((key) => (
+                    <PlanetCard key={key} planet={key} body={bodyFor(key)} />
+                  ))}
+                </div>
+
+                <div className={`ls-sky-locked ${unlocked ? "is-open" : ""}`}>
+                  <div className="ls-sky-grid ls-sky-rest">
+                    {PLANET_ORDER.slice(FREE_BODIES).map((key) => (
+                      <PlanetCard key={key} planet={key} body={bodyFor(key)} locked={!unlocked} />
+                    ))}
+                    {unlocked && (
+                      <article className="ls-planet-card ls-element-card">
+                        <span className="ls-planet-orb ls-element-orb" aria-hidden="true">✦</span>
+                        <div className="ls-planet-body">
+                          <span className="ls-planet-head">Dominant</span>
+                          <strong className="ls-planet-sign">
+                            {chart?.dominantElement ? `${chart.dominantElement} element` : "Calculated pattern"}
+                          </strong>
+                          <small>The thread running through all of it.</small>
+                        </div>
+                      </article>
+                    )}
+                  </div>
+
+                  {!unlocked && (
+                    <div className="ls-sky-gate">
+                      <Stars size={22} style={{ color: C.gold }} />
+                      <p>See {themName} whole sky.</p>
+                      <small>The rest of their placements now — and we&apos;ll send their chart to your inbox.</small>
+                      <form onSubmit={handleUnlock}>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(event) => {
+                            setEmail(event.target.value);
+                            if (gateError) setGateError("");
+                          }}
+                          placeholder="your@email.com"
+                          aria-label="Your email"
+                          autoComplete="email"
+                        />
+                        <button type="submit" className="ls-gold-button" disabled={gateStatus === "loading"}>
+                          {gateStatus === "loading" ? "Opening..." : "Reveal the full sky"}
+                        </button>
+                      </form>
+                      {gateError && <p className="ls-chart-message is-error">{gateError}</p>}
+                    </div>
+                  )}
+                </div>
+
+                {unlocked && (
+                  <a href="#begin" className="ls-gold-button ls-sky-cta">
+                    Get {name || "their"} full soul reading <ArrowRight size={17} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -427,10 +540,32 @@ function BirthChartPreviewSection() {
   );
 }
 
-function describeBody(body?: ChartBody | null) {
-  if (!body?.sign) return "Waiting for date";
-  const degree = typeof body.degree === "number" ? `${Math.round(body.degree)}deg ` : "";
-  return `${degree}${body.sign}`;
+function PlanetCard({
+  planet,
+  body,
+  locked = false,
+}: {
+  planet: keyof typeof PLANET_META;
+  body?: ChartBody;
+  locked?: boolean;
+}) {
+  const meta = PLANET_META[planet];
+  const sign = body?.sign;
+  const signGlyph = sign ? SIGN_GLYPHS[sign] ?? "" : "";
+  const degree = typeof body?.degree === "number" ? `${Math.round(body.degree)}° ` : "";
+  return (
+    <article className={`ls-planet-card ${locked ? "is-locked" : ""}`}>
+      <img className="ls-planet-orb" src={meta.img} alt={meta.label} loading="lazy" width={56} height={56} />
+      <div className="ls-planet-body">
+        <span className="ls-planet-head">
+          <i className="ls-planet-glyph" aria-hidden="true">{meta.glyph}</i>
+          {meta.label}
+        </span>
+        <strong className="ls-planet-sign">{sign ? `${signGlyph} ${degree}${sign}` : "—"}</strong>
+        <small>{meta.line}</small>
+      </div>
+    </article>
+  );
 }
 
 function ProcessSection() {
@@ -531,7 +666,7 @@ function CheckoutSection({
   onSelectedPriceChange: (price: number) => void;
 }) {
   return (
-    <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
+    <section id="begin" className="ls-parallax-band relative px-5 py-18 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <p style={eyebrowStyle(C.gold)}>Begin</p>
@@ -821,7 +956,8 @@ function CosmicStyles() {
         display: grid;
         gap: 10px;
       }
-      .ls-chart-form label {
+      .ls-chart-form label,
+      .ls-lead-form label {
         color: ${C.gold};
         font-family: Lato, system-ui, sans-serif;
         font-size: 0.72rem;
@@ -835,7 +971,8 @@ function CosmicStyles() {
         gap: 10px;
         align-items: center;
       }
-      .ls-chart-form input {
+      .ls-chart-form input,
+      .ls-lead-form input {
         min-height: 48px;
         width: 100%;
         border: 1px solid rgba(212,182,122,0.34);
@@ -846,6 +983,133 @@ function CosmicStyles() {
         font-family: Lato, system-ui, sans-serif;
         color-scheme: dark;
       }
+      .ls-lead-form { display: grid; gap: 16px; max-width: 460px; }
+      .ls-lead-field { display: grid; gap: 6px; }
+      .ls-lead-form .ls-gold-button { justify-content: center; }
+
+      .ls-sky-teaser { margin-top: 30px; }
+      .ls-teaser-orbs {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .ls-teaser-orbs img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: contain;
+        filter: drop-shadow(0 0 9px rgba(212,182,122,0.20));
+        opacity: 0.9;
+      }
+      .ls-sky-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ls-planet-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 86px;
+        border: 1px solid rgba(245,239,230,0.10);
+        border-radius: 10px;
+        background: rgba(5,4,7,0.46);
+        padding: 14px;
+      }
+      .ls-planet-orb {
+        width: 54px;
+        height: 54px;
+        flex: none;
+        object-fit: contain;
+        filter: drop-shadow(0 0 10px rgba(212,182,122,0.26));
+      }
+      .ls-element-orb {
+        display: grid;
+        place-items: center;
+        color: ${C.gold};
+        font-size: 1.7rem;
+        border: 1px solid rgba(212,182,122,0.42);
+        border-radius: 50%;
+        filter: none;
+      }
+      .ls-planet-body { display: grid; gap: 3px; min-width: 0; }
+      .ls-planet-head {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .ls-planet-glyph { color: ${C.gold}; font-size: 1.15rem; font-style: normal; }
+      .ls-planet-sign {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: 1.18rem;
+        font-weight: 500;
+        line-height: 1.05;
+      }
+      .ls-planet-card small {
+        color: ${C.muted};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.76rem;
+        line-height: 1.35;
+      }
+      .ls-sky-locked { position: relative; margin-top: 12px; }
+      .ls-planet-card.is-locked .ls-planet-body {
+        filter: blur(7px);
+        opacity: 0.55;
+        user-select: none;
+      }
+      .ls-sky-gate {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 10px;
+        padding: 22px;
+        text-align: center;
+        border-radius: 10px;
+        background: linear-gradient(180deg, rgba(13,10,20,0.60), rgba(13,10,20,0.88));
+        backdrop-filter: blur(2px);
+      }
+      .ls-sky-gate p {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.4rem, 3.6vw, 1.9rem);
+        line-height: 1.1;
+      }
+      .ls-sky-gate small {
+        color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.86rem;
+        line-height: 1.4;
+        max-width: 360px;
+      }
+      .ls-sky-gate form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        width: 100%;
+        max-width: 420px;
+        margin-top: 4px;
+      }
+      .ls-sky-gate input {
+        min-height: 48px;
+        width: 100%;
+        border: 1px solid rgba(212,182,122,0.34);
+        border-radius: 8px;
+        background: rgba(5,4,7,0.72);
+        color: ${C.cream};
+        padding: 0 14px;
+        font-family: Lato, system-ui, sans-serif;
+      }
+      .ls-sky-cta { margin-top: 18px; width: 100%; justify-content: center; }
       .ls-chart-form .ls-gold-button {
         white-space: nowrap;
       }
@@ -1063,6 +1327,16 @@ function CosmicStyles() {
         .ls-chart-form .ls-gold-button {
           width: 100%;
         }
+        .ls-chart-shell {
+          min-height: 0;
+          padding: clamp(18px, 5vw, 28px);
+        }
+        .ls-lead-form { max-width: none; }
+        .ls-sky-grid { grid-template-columns: 1fr; }
+        .ls-teaser-orbs { grid-template-columns: repeat(4, 1fr); }
+        .ls-sky-gate { padding: 18px 14px; }
+        .ls-sky-gate form { grid-template-columns: 1fr; }
+        .ls-sky-gate .ls-gold-button { width: 100%; }
       }
       @media (prefers-reduced-motion: reduce) {
         .ls-parallax-band::before,
