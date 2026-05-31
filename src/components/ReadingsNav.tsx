@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Brush, Gift, HelpCircle, Sparkles, Stars } from "lucide-react";
+import { Brush, Gift, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sheet,
@@ -29,11 +29,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Inside the Reading", href: "/#inside-reading", icon: Stars },
   { label: "Pawtraits", href: "/pawtraits", icon: Brush },
   { label: "Gift", href: "/gift", icon: Gift },
-  { label: "FAQ", href: "/#faq", icon: HelpCircle },
 ];
 
 export function ReadingsNav() {
