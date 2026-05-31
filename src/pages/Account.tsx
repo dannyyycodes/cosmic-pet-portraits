@@ -102,12 +102,12 @@ function PetAvatarMini({ url, fallback }: { url?: string | null; fallback?: stri
   return (
     <div
       className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
-      style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.25), rgba(191,82,74,0.15))', border: '2px solid #FFFDF5' }}
+      style={{ background: 'linear-gradient(135deg, rgba(212,182,122,0.25), rgba(212,182,122,0.12))', border: '2px solid rgba(212,182,122,0.22)' }}
     >
       {url ? (
         <img src={url} alt="" className="w-full h-full object-cover" />
       ) : (
-        <span className="text-sm font-semibold" style={{ color: '#a07c3a' }}>{fallback || '🐾'}</span>
+        <span className="text-sm font-semibold" style={{ color: '#d4b67a' }}>{fallback || '🐾'}</span>
       )}
     </div>
   );
@@ -353,27 +353,27 @@ const Account = () => {
 
   if (loading || dataLoading) {
     return (
-      <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="flex items-center justify-center">
-        <div className="animate-pulse" style={{ color: '#9a8578' }}>Loading...</div>
+      <div style={{ background: '#0d0a14', minHeight: '100vh' }} className="flex items-center justify-center">
+        <div className="animate-pulse" style={{ color: '#9d8d7f' }}>Loading...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
+    <div style={{ background: '#0d0a14', minHeight: '100vh' }} className="relative overflow-hidden">
       <NoIndex />
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 gap-3 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>My Account</h1>
-            <p style={{ color: '#9a8578' }}>{user?.email}</p>
+            <h1 className="text-3xl font-bold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>My Account</h1>
+            <p style={{ color: '#9d8d7f' }}>{user?.email}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/contact')}
               className="flex items-center gap-2 px-4 py-2 font-medium transition-opacity hover:opacity-80"
-              style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+              style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
             >
               <Mail className="w-4 h-4" />
               Support
@@ -381,7 +381,7 @@ const Account = () => {
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 px-4 py-2 font-medium transition-opacity hover:opacity-80"
-              style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+              style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -393,7 +393,7 @@ const Account = () => {
           {/* Mobile (<640px): 3-col × 2-row grid so labels stay visible and
               every tab keeps a proper tap target. Desktop collapses back to
               a single row of 6. */}
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto gap-1 p-1" style={{ background: '#faf6ef', border: '1px solid #e8ddd0', borderRadius: '10px' }}>
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto gap-1 p-1" style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '10px' }}>
             <TabsTrigger value="reports" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
               <FileText className="w-4 h-4 shrink-0" />
               <span>Reports</span>
@@ -422,20 +422,20 @@ const Account = () => {
 
           {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-4">
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Your Cosmic Reports</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>All your pet astrology readings in one place</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Your Cosmic Reports</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>All your pet astrology readings in one place</p>
               </div>
               <div className="p-6 pt-4">
                 {customerData?.reports.length === 0 ? (
                   <div className="text-center py-8">
-                    <FileText className="w-12 h-12 mx-auto mb-4" style={{ color: '#9a8578' }} />
-                    <p className="mb-4" style={{ color: '#9a8578' }}>No reports yet — unlock your first pet's cosmic reading.</p>
+                    <FileText className="w-12 h-12 mx-auto mb-4" style={{ color: '#9d8d7f' }} />
+                    <p className="mb-4" style={{ color: '#9d8d7f' }}>No reports yet — unlock your first pet's cosmic reading.</p>
                     <a
                       href="/#checkout"
                       className="inline-block px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
-                      style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                      style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                     >
                       Get Your First Reading
                     </a>
@@ -445,10 +445,10 @@ const Account = () => {
                     {/* Pooled SoulSpeak balance — only shown once we have a household credit row */}
                     {householdCredits !== null && (
                       <div className="flex items-center justify-between p-3 rounded-xl"
-                        style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.12), rgba(191,82,74,0.08))', border: '1.5px solid rgba(196,162,101,0.35)' }}>
+                        style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}>
                         <div className="flex items-center gap-2">
-                          <MessageCircle className="w-4 h-4" style={{ color: '#a07c3a' }} />
-                          <span className="text-sm" style={{ color: '#5a4a42', fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          <MessageCircle className="w-4 h-4" style={{ color: '#d4b67a' }} />
+                          <span className="text-sm" style={{ color: '#cfc1b1', fontFamily: "\"Playfair Display\", Georgia, serif" }}>
                             SoulSpeak pool · {householdCredits === -1
                               ? "Unlimited"
                               : `${Math.floor(householdCredits / 50)} messages left across your pets`}
@@ -460,7 +460,7 @@ const Account = () => {
                       <div
                         key={report.id}
                         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl"
-                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                        style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                       >
                         <div className="flex items-center gap-3">
                           {(report.portrait_url || report.pet_photo_url) ? (
@@ -469,22 +469,22 @@ const Account = () => {
                               alt={report.pet_name}
                               loading="lazy"
                               className="w-12 h-12 rounded-full object-cover shrink-0"
-                              style={{ border: '2px solid #c4a265', background: '#faf6ef' }}
+                              style={{ border: '2px solid #d4b67a', background: 'rgba(245,239,230,0.05)' }}
                             />
                           ) : (
                             <div
                               className="w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0"
-                              style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                              style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                             >
                               🐾
                             </div>
                           )}
                           <div>
-                            <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{report.pet_name}</h3>
-                            <p className="text-sm" style={{ color: '#9a8578' }}>
+                            <h3 className="font-medium" style={{ color: '#f5efe6' }}>{report.pet_name}</h3>
+                            <p className="text-sm" style={{ color: '#9d8d7f' }}>
                               {report.species} {report.breed && `• ${report.breed}`}
                             </p>
-                            <p className="text-xs" style={{ color: '#9a8578' }}>
+                            <p className="text-xs" style={{ color: '#9d8d7f' }}>
                               {new Date(report.created_at).toLocaleDateString()}
                             </p>
                           </div>
@@ -493,7 +493,7 @@ const Account = () => {
                           <a
                             href={`/soul-chat.html?id=${report.id}${report.share_token ? '&token=' + report.share_token : ''}`}
                             className="flex items-center gap-1 px-3 py-2 text-sm font-medium transition-all hover:opacity-90 no-underline"
-                            style={{ background: 'white', border: '1.5px solid #c4a265', color: '#a07c3a', borderRadius: '10px' }}
+                            style={{ background: 'transparent', border: '1.5px solid #d4b67a', color: '#d4b67a', borderRadius: '10px' }}
                             title={`Talk with ${report.pet_name}'s soul`}
                           >
                             <MessageCircle className="w-4 h-4" />
@@ -502,7 +502,7 @@ const Account = () => {
                           <button
                             onClick={() => navigate(`/report?id=${report.id}`)}
                             className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-                            style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                            style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                           >
                             <ExternalLink className="w-4 h-4" />
                             View
@@ -518,24 +518,24 @@ const Account = () => {
 
           {/* Bonds Tab — cross-pet compatibility readings */}
           <TabsContent value="bonds" className="space-y-4">
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>
                   Your Cosmic Bonds
                 </h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>
                   Cross-pet readings — how two of your souls move through the world together.
                 </p>
               </div>
               <div className="p-6 pt-4">
                 {compatibilities.length === 0 ? (
                   <div className="text-center py-10 rounded-xl"
-                    style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.08), rgba(191,82,74,0.05))', border: '1.5px dashed rgba(196,162,101,0.35)' }}>
-                    <Heart className="w-10 h-10 mx-auto mb-3" style={{ color: '#c4a265' }} />
-                    <p className="mb-2" style={{ color: '#3d2f2a', fontFamily: "'DM Serif Display', Georgia, serif", fontSize: '1.05rem' }}>
+                    style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}>
+                    <Heart className="w-10 h-10 mx-auto mb-3" style={{ color: '#d4b67a' }} />
+                    <p className="mb-2" style={{ color: '#f5efe6', fontFamily: "\"Playfair Display\", Georgia, serif", fontSize: '1.05rem' }}>
                       No bond readings yet
                     </p>
-                    <p className="text-sm max-w-sm mx-auto mb-5" style={{ color: '#9a8578' }}>
+                    <p className="text-sm max-w-sm mx-auto mb-5" style={{ color: '#9d8d7f' }}>
                       {(customerData?.reports.length ?? 0) < 2
                         ? "Unlock a second pet's reading first, then pair any two of them."
                         : "Pair any two of your pets to reveal how they move through the world together."}
@@ -544,7 +544,7 @@ const Account = () => {
                       <button
                         onClick={() => navigate(`/report?id=${customerData.reports[0].id}`)}
                         className="px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 inline-flex items-center gap-1.5"
-                        style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)', color: 'white', border: 'none', borderRadius: '10px' }}
+                        style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                       >
                         <Sparkles className="w-4 h-4" />
                         Unlock a bond reading
@@ -557,7 +557,7 @@ const Account = () => {
                       <div
                         key={compat.id}
                         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl"
-                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                        style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex -space-x-2">
@@ -565,20 +565,20 @@ const Account = () => {
                             <PetAvatarMini url={compat.pet_b?.pet_photo_url} fallback={compat.pet_b?.pet_name?.[0]} />
                           </div>
                           <div>
-                            <h3 className="font-medium" style={{ color: '#3d2f2a' }}>
+                            <h3 className="font-medium" style={{ color: '#f5efe6' }}>
                               {compat.pet_a?.pet_name} × {compat.pet_b?.pet_name}
                             </h3>
                             {compat.reading_content?.headline && (
-                              <p className="text-xs italic" style={{ color: '#5a4a42', fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              <p className="text-xs italic" style={{ color: '#cfc1b1', fontFamily: "\"Playfair Display\", Georgia, serif" }}>
                                 {compat.reading_content.headline}
                               </p>
                             )}
-                            <p className="text-xs" style={{ color: '#9a8578' }}>
+                            <p className="text-xs" style={{ color: '#9d8d7f' }}>
                               {new Date(compat.created_at).toLocaleDateString()} ·{' '}
                               <span style={{
                                 color: compat.status === 'ready' ? '#4a8c6a'
-                                  : compat.status === 'failed' ? '#bf524a'
-                                  : '#a07c3a'
+                                  : compat.status === 'failed' ? '#f0d99f'
+                                  : '#d4b67a'
                               }}>
                                 {compat.status === 'ready' ? 'Ready' : compat.status === 'failed' ? 'Refunded or failed' : 'Composing…'}
                               </span>
@@ -589,15 +589,15 @@ const Account = () => {
                           <button
                             onClick={() => navigate(`/compatibility?id=${compat.id}`)}
                             className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-                            style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                            style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                           >
                             <ExternalLink className="w-4 h-4" />
                             Open
                           </button>
                         ) : compat.status === 'failed' ? (
-                          <span className="text-xs" style={{ color: '#9a8578' }}>—</span>
+                          <span className="text-xs" style={{ color: '#9d8d7f' }}>—</span>
                         ) : (
-                          <span className="text-xs italic" style={{ color: '#a07c3a' }}>
+                          <span className="text-xs italic" style={{ color: '#d4b67a' }}>
                             Weaving the reading...
                           </span>
                         )}
@@ -611,17 +611,17 @@ const Account = () => {
 
           {/* Subscriptions Tab */}
           <TabsContent value="subscriptions" className="space-y-4">
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Weekly Horoscopes</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Your active horoscope subscriptions</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Weekly Horoscopes</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Your active horoscope subscriptions</p>
               </div>
               <div className="p-6 pt-4">
                 {customerData?.subscriptions.length === 0 ? (
                   <div className="text-center py-8">
-                    <Star className="w-12 h-12 mx-auto mb-4" style={{ color: '#9a8578' }} />
-                    <p className="mb-4" style={{ color: '#9a8578' }}>No horoscope subscriptions</p>
-                    <p className="text-sm" style={{ color: '#9a8578' }}>
+                    <Star className="w-12 h-12 mx-auto mb-4" style={{ color: '#9d8d7f' }} />
+                    <p className="mb-4" style={{ color: '#9d8d7f' }}>No horoscope subscriptions</p>
+                    <p className="text-sm" style={{ color: '#9d8d7f' }}>
                       Weekly horoscopes are included with Portrait gift tiers
                     </p>
                   </div>
@@ -631,29 +631,29 @@ const Account = () => {
                       <div
                         key={sub.id}
                         className="flex items-center justify-between p-4 rounded-xl"
-                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                        style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{sub.pet_name}</h3>
+                            <h3 className="font-medium" style={{ color: '#f5efe6' }}>{sub.pet_name}</h3>
                             <span
                               className="text-xs px-2 py-0.5 rounded"
                               style={sub.status === 'active'
                                 ? { background: '#e8f5e9', color: '#2e7d32' }
-                                : { background: '#faf6ef', color: '#9a8578' }
+                                : { background: 'rgba(245,239,230,0.05)', color: '#9d8d7f' }
                               }
                             >
                               {sub.status === 'active' ? 'Active' : 'Cancelled'}
                             </span>
                           </div>
                           {sub.status === 'active' && (
-                            <div className="flex items-center gap-1 text-sm mt-1" style={{ color: '#9a8578' }}>
+                            <div className="flex items-center gap-1 text-sm mt-1" style={{ color: '#9d8d7f' }}>
                               <Calendar className="w-3 h-3" />
                               Next: {new Date(sub.next_send_at).toLocaleDateString()}
                             </div>
                           )}
                           {sub.cancelled_at && (
-                            <p className="text-xs mt-1" style={{ color: '#9a8578' }}>
+                            <p className="text-xs mt-1" style={{ color: '#9d8d7f' }}>
                               Cancelled on {new Date(sub.cancelled_at).toLocaleDateString()}
                             </p>
                           )}
@@ -663,7 +663,7 @@ const Account = () => {
                             <button
                               onClick={() => navigate(`/report?id=${sub.pet_report_id}`)}
                               className="p-2 transition-opacity hover:opacity-70"
-                              style={{ color: '#c4a265' }}
+                              style={{ color: '#d4b67a' }}
                             >
                               <ExternalLink className="w-4 h-4" />
                             </button>
@@ -694,21 +694,21 @@ const Account = () => {
           <TabsContent value="gifts" className="space-y-4">
             {/* Received gifts — a separate card at the top, only if any exist */}
             {customerData?.giftsReceived && customerData.giftsReceived.length > 0 && (
-              <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+              <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
                 <div className="p-6 pb-2">
-                  <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Gifts for You</h2>
-                  <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Someone gifted you these — redeem any unused codes below</p>
+                  <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Gifts for You</h2>
+                  <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Someone gifted you these — redeem any unused codes below</p>
                 </div>
                 <div className="p-6 pt-4 space-y-3">
                   {customerData.giftsReceived.map((gift) => (
                     <div
                       key={gift.id}
                       className="flex items-center justify-between p-4 rounded-xl"
-                      style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                      style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium" style={{ color: '#3d2f2a' }}>
+                          <span className="font-medium" style={{ color: '#f5efe6' }}>
                             ${(gift.amount_cents / 100).toFixed(2)}
                           </span>
                           <span
@@ -721,12 +721,12 @@ const Account = () => {
                             {gift.is_redeemed ? 'Redeemed' : 'Ready to redeem'}
                           </span>
                         </div>
-                        <p className="text-sm" style={{ color: '#9a8578' }}>
+                        <p className="text-sm" style={{ color: '#9d8d7f' }}>
                           {gift.purchaser_name || gift.purchaser_email
                             ? `From: ${gift.purchaser_name || gift.purchaser_email}`
                             : 'From a cosmic friend'}
                         </p>
-                        <p className="text-xs" style={{ color: '#9a8578' }}>
+                        <p className="text-xs" style={{ color: '#9d8d7f' }}>
                           {new Date(gift.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -734,7 +734,7 @@ const Account = () => {
                         <a
                           href={`/redeem?code=${gift.code}`}
                           className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90 no-underline"
-                          style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                          style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                         >
                           <Sparkles className="w-4 h-4" />
                           Redeem
@@ -743,7 +743,7 @@ const Account = () => {
                         <button
                           onClick={() => copyToClipboard(gift.code, 'Gift code')}
                           className="flex items-center gap-1 text-sm hover:opacity-80 transition-opacity"
-                          style={{ color: '#c4a265' }}
+                          style={{ color: '#d4b67a' }}
                         >
                           <Copy className="w-4 h-4" />
                           {gift.code}
@@ -755,20 +755,20 @@ const Account = () => {
               </div>
             )}
 
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Gifts You've Sent</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Gifts you've purchased for others</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Gifts You've Sent</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Gifts you've purchased for others</p>
               </div>
               <div className="p-6 pt-4">
                 {customerData?.gifts.length === 0 ? (
                   <div className="text-center py-8">
-                    <Gift className="w-12 h-12 mx-auto mb-4" style={{ color: '#9a8578' }} />
-                    <p className="mb-4" style={{ color: '#9a8578' }}>No gift certificates purchased</p>
+                    <Gift className="w-12 h-12 mx-auto mb-4" style={{ color: '#9d8d7f' }} />
+                    <p className="mb-4" style={{ color: '#9d8d7f' }}>No gift certificates purchased</p>
                     <button
                       onClick={() => navigate("/gift")}
                       className="px-6 py-3 font-medium transition-opacity hover:opacity-90"
-                      style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                      style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                     >
                       Send a Gift
                     </button>
@@ -779,11 +779,11 @@ const Account = () => {
                       <div
                         key={gift.id}
                         className="flex items-center justify-between p-4 rounded-xl"
-                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                        style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                       >
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium" style={{ color: '#3d2f2a' }}>
+                            <span className="font-medium" style={{ color: '#f5efe6' }}>
                               ${(gift.amount_cents / 100).toFixed(2)}
                             </span>
                             <span
@@ -796,17 +796,17 @@ const Account = () => {
                               {gift.is_redeemed ? "Redeemed" : "Active"}
                             </span>
                           </div>
-                          <p className="text-sm" style={{ color: '#9a8578' }}>
+                          <p className="text-sm" style={{ color: '#9d8d7f' }}>
                             For: {gift.recipient_name || gift.recipient_email || "Anyone"}
                           </p>
-                          <p className="text-xs" style={{ color: '#9a8578' }}>
+                          <p className="text-xs" style={{ color: '#9d8d7f' }}>
                             {new Date(gift.created_at).toLocaleDateString()}
                           </p>
                         </div>
                         <button
                           onClick={() => copyToClipboard(gift.code, "Gift code")}
                           className="flex items-center gap-1 text-sm hover:opacity-80 transition-opacity"
-                          style={{ color: '#c4a265' }}
+                          style={{ color: '#d4b67a' }}
                         >
                           <Copy className="w-4 h-4" />
                           {gift.code}
@@ -821,23 +821,23 @@ const Account = () => {
 
           {/* Affiliate Tab */}
           <TabsContent value="affiliate" className="space-y-4">
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Affiliate Program</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Earn by sharing Little Souls</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Affiliate Program</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Earn by sharing Little Souls</p>
               </div>
               <div className="p-6 pt-4">
                 {!customerData?.affiliate ? (
                   <div className="text-center py-8">
-                    <Users className="w-12 h-12 mx-auto mb-4" style={{ color: '#9a8578' }} />
-                    <p className="mb-2" style={{ color: '#9a8578' }}>You're not an affiliate yet</p>
-                    <p className="text-sm mb-4" style={{ color: '#9a8578' }}>
+                    <Users className="w-12 h-12 mx-auto mb-4" style={{ color: '#9d8d7f' }} />
+                    <p className="mb-2" style={{ color: '#9d8d7f' }}>You're not an affiliate yet</p>
+                    <p className="text-sm mb-4" style={{ color: '#9d8d7f' }}>
                       Earn {20}% commission on every sale you refer!
                     </p>
                     <button
                       onClick={() => navigate("/become-affiliate")}
                       className="px-6 py-3 font-medium transition-opacity hover:opacity-90"
-                      style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                      style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                     >
                       Become an Affiliate
                     </button>
@@ -846,19 +846,19 @@ const Account = () => {
                   <div className="space-y-6">
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 rounded-xl text-center" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
-                        <TrendingUp className="w-6 h-6 mx-auto mb-2" style={{ color: '#c4a265' }} />
-                        <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>
+                      <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}>
+                        <TrendingUp className="w-6 h-6 mx-auto mb-2" style={{ color: '#d4b67a' }} />
+                        <p className="text-2xl font-bold" style={{ color: '#f5efe6' }}>
                           {customerData.affiliate.total_referrals}
                         </p>
-                        <p className="text-xs" style={{ color: '#9a8578' }}>Total Referrals</p>
+                        <p className="text-xs" style={{ color: '#9d8d7f' }}>Total Referrals</p>
                       </div>
-                      <div className="p-4 rounded-xl text-center" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
+                      <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}>
                         <DollarSign className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                        <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>
+                        <p className="text-2xl font-bold" style={{ color: '#f5efe6' }}>
                           ${(customerData.affiliate.total_earnings_cents / 100).toFixed(2)}
                         </p>
-                        <p className="text-xs" style={{ color: '#9a8578' }}>Total Earned</p>
+                        <p className="text-xs" style={{ color: '#9d8d7f' }}>Total Earned</p>
                       </div>
                     </div>
 
@@ -872,10 +872,10 @@ const Account = () => {
                     )}
 
                     {/* Referral Link */}
-                    <div className="p-4 rounded-xl" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
-                      <p className="text-sm mb-2" style={{ color: '#9a8578' }}>Your referral link:</p>
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}>
+                      <p className="text-sm mb-2" style={{ color: '#9d8d7f' }}>Your referral link:</p>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 text-sm px-3 py-2 rounded overflow-x-auto" style={{ background: 'white', color: '#3d2f2a', border: '1px solid #e8ddd0' }}>
+                        <code className="flex-1 text-sm px-3 py-2 rounded overflow-x-auto" style={{ background: 'rgba(245,239,230,0.05)', color: '#f5efe6', border: '1px solid rgba(212,182,122,0.22)' }}>
                           {window.location.origin}/ref/{customerData.affiliate.referral_code}
                         </code>
                         <button
@@ -884,14 +884,14 @@ const Account = () => {
                             "Referral link"
                           )}
                           className="p-2 hover:opacity-80 transition-opacity"
-                          style={{ color: '#c4a265' }}
+                          style={{ color: '#d4b67a' }}
                         >
                           <Copy className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
 
-                    <p className="text-sm text-center" style={{ color: '#9a8578' }}>
+                    <p className="text-sm text-center" style={{ color: '#9d8d7f' }}>
                       Commission rate: {(customerData.affiliate.commission_rate * 100).toFixed(0)}%
                     </p>
 
@@ -900,7 +900,7 @@ const Account = () => {
                       <a
                         href="/affiliate/dashboard"
                         className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-opacity hover:opacity-90 no-underline"
-                        style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                        style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                       >
                         <TrendingUp className="w-4 h-4" />
                         Full Dashboard
@@ -908,7 +908,7 @@ const Account = () => {
                       <a
                         href="/affiliate/media-kit"
                         className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-opacity hover:opacity-80 no-underline"
-                        style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'white' }}
+                        style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
                       >
                         <Sparkles className="w-4 h-4" />
                         Media Kit
@@ -923,18 +923,18 @@ const Account = () => {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
             {/* Email preferences */}
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Email Preferences</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Manage your communication settings</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Email Preferences</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Manage your communication settings</p>
               </div>
               <div className="p-6 pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label htmlFor="marketing-emails" className="font-medium" style={{ color: '#3d2f2a' }}>
+                    <label htmlFor="marketing-emails" className="font-medium" style={{ color: '#f5efe6' }}>
                       Marketing emails
                     </label>
-                    <p className="text-sm" style={{ color: '#9a8578' }}>
+                    <p className="text-sm" style={{ color: '#9d8d7f' }}>
                       Receive tips, updates, and cosmic insights
                     </p>
                   </div>
@@ -949,38 +949,38 @@ const Account = () => {
             </div>
 
             {/* Billing & Payments */}
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Billing & Payments</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Update your card, view invoices, and download receipts.</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Billing & Payments</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Update your card, view invoices, and download receipts.</p>
               </div>
               <div className="p-6 pt-4">
                 <button
                   onClick={handleOpenBillingPortal}
                   disabled={openingPortal}
                   className="flex items-center gap-2 px-5 py-3 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
-                  style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                  style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                 >
                   <CreditCard className="w-4 h-4" />
                   {openingPortal ? 'Opening…' : 'Manage Billing'}
                 </button>
-                <p className="text-xs mt-3" style={{ color: '#9a8578' }}>
+                <p className="text-xs mt-3" style={{ color: '#9d8d7f' }}>
                   Opens your secure Stripe billing portal in a new page.
                 </p>
               </div>
             </div>
 
             {/* Security */}
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Account Security</h2>
-                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Reset your password or close your account.</p>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>Account Security</h2>
+                <p className="text-sm mt-1" style={{ color: '#9d8d7f' }}>Reset your password or close your account.</p>
               </div>
               <div className="p-6 pt-4 space-y-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
-                    <p className="font-medium" style={{ color: '#3d2f2a' }}>Reset password</p>
-                    <p className="text-sm break-all" style={{ color: '#9a8578' }}>
+                    <p className="font-medium" style={{ color: '#f5efe6' }}>Reset password</p>
+                    <p className="text-sm break-all" style={{ color: '#9d8d7f' }}>
                       We'll email a reset link to {user?.email}
                     </p>
                   </div>
@@ -988,17 +988,17 @@ const Account = () => {
                     onClick={handlePasswordReset}
                     disabled={sendingReset}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
-                    style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'white' }}
+                    style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
                   >
                     <KeyRound className="w-4 h-4" />
                     {sendingReset ? 'Sending…' : 'Send reset link'}
                   </button>
                 </div>
 
-                <div className="pt-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderTop: '1px solid #e8ddd0' }}>
+                <div className="pt-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderTop: '1px solid rgba(212,182,122,0.22)' }}>
                   <div className="min-w-0">
-                    <p className="font-medium" style={{ color: '#3d2f2a' }}>Close account</p>
-                    <p className="text-sm" style={{ color: '#9a8578' }}>
+                    <p className="font-medium" style={{ color: '#f5efe6' }}>Close account</p>
+                    <p className="text-sm" style={{ color: '#9d8d7f' }}>
                       Unsubscribes you and signs you out. Email us to fully erase data.
                     </p>
                   </div>
@@ -1006,7 +1006,7 @@ const Account = () => {
                     <button
                       onClick={() => setShowDeleteConfirm(true)}
                       className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                      style={{ border: '1px solid #e8c6c2', color: '#bf524a', borderRadius: '10px', background: 'white' }}
+                      style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#f0d99f', borderRadius: '10px', background: 'transparent' }}
                     >
                       <AlertTriangle className="w-4 h-4" />
                       Close account
@@ -1017,14 +1017,14 @@ const Account = () => {
                         onClick={handleDeleteAccount}
                         disabled={deleting}
                         className="px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
-                        style={{ background: '#bf524a', color: 'white', border: 'none', borderRadius: '10px' }}
+                        style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                       >
                         {deleting ? 'Closing…' : 'Confirm close'}
                       </button>
                       <button
                         onClick={() => setShowDeleteConfirm(false)}
                         className="px-3 py-2 text-sm"
-                        style={{ color: '#9a8578', background: 'transparent', border: 'none' }}
+                        style={{ color: '#9d8d7f', background: 'transparent', border: 'none' }}
                       >
                         Cancel
                       </button>
@@ -1035,17 +1035,17 @@ const Account = () => {
             </div>
 
             {/* Support */}
-            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+            <div style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6">
-                <h4 className="font-medium mb-2" style={{ color: '#3d2f2a' }}>Need help?</h4>
-                <p className="text-sm mb-3" style={{ color: '#9a8578' }}>
+                <h4 className="font-medium mb-2" style={{ color: '#f5efe6' }}>Need help?</h4>
+                <p className="text-sm mb-3" style={{ color: '#9d8d7f' }}>
                   For refunds, order issues, or questions — our support team responds within 24 hours.
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => navigate('/contact')}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-                    style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                    style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                   >
                     <Mail className="w-4 h-4" />
                     Contact support
@@ -1053,7 +1053,7 @@ const Account = () => {
                   <a
                     href="mailto:hello@littlesouls.app"
                     className="text-sm hover:underline"
-                    style={{ color: '#c4a265' }}
+                    style={{ color: '#d4b67a' }}
                   >
                     hello@littlesouls.app
                   </a>

@@ -277,23 +277,23 @@ function PreparingState({ petName, message }: { petName: string; message?: strin
   return (
     <div
       className="min-h-screen flex items-center justify-center px-6"
-      style={{ background: "#FFFDF5" }}
+      style={{ background: "#0d0a14" }}
     >
       <div className="max-w-md w-full text-center">
         <div className="relative mx-auto mb-8 w-24 h-24" aria-hidden="true">
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              background: "radial-gradient(circle at 50% 50%, rgba(196,162,101,0.35), rgba(196,162,101,0))",
+              background: "radial-gradient(circle at 50% 50%, rgba(212,182,122,0.35), rgba(212,182,122,0))",
               animation: "soulReadingPulse 2.6s ease-in-out infinite",
             }}
           />
           <div
             className="absolute inset-3 rounded-full flex items-center justify-center"
             style={{
-              background: "linear-gradient(165deg, #f5f0e0 0%, #ede5c8 100%)",
-              border: "1px solid rgba(196,162,101,0.35)",
-              boxShadow: "0 8px 32px rgba(196,162,101,0.22)",
+              background: "linear-gradient(165deg, #201722 0%, #15101c 100%)",
+              border: "1px solid rgba(212,182,122,0.35)",
+              boxShadow: "0 8px 32px rgba(212,182,122,0.22)",
             }}
           >
             <span style={{ fontSize: 32 }} role="img" aria-label="sparkles">
@@ -307,7 +307,7 @@ function PreparingState({ petName, message }: { petName: string; message?: strin
             fontWeight: 700,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: "#c4a265",
+            color: "#d4b67a",
             margin: "0 0 12px 0",
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
@@ -316,20 +316,20 @@ function PreparingState({ petName, message }: { petName: string; message?: strin
         </p>
         <h1
           style={{
-            color: "#141210",
+            color: "#f5efe6",
             fontSize: 28,
             fontWeight: 400,
             lineHeight: 1.3,
             margin: "0 0 16px 0",
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
           }}
         >
           Preparing {petName}'s Soul Reading…
         </h1>
-        <p style={{ color: "#5a4a42", fontSize: 16, lineHeight: 1.7, margin: "0 0 24px 0" }}>
+        <p style={{ color: "#cfc1b1", fontSize: 16, lineHeight: 1.7, margin: "0 0 24px 0" }}>
           {message ?? "We're consulting the stars. This usually takes a few minutes — feel free to leave the page open or come back from your email."}
         </p>
-        <p style={{ color: "#958779", fontSize: 13, fontStyle: "italic", margin: 0 }}>
+        <p style={{ color: "#a89a8a", fontSize: 13, fontStyle: "italic", margin: 0 }}>
           You'll also get an email the moment it's ready.
         </p>
         <style>{`
@@ -353,19 +353,19 @@ interface ErrorStateProps {
 }
 
 function ErrorState({ title, message, ctaLabel, ctaHref, onCta, tone = "neutral" }: ErrorStateProps) {
-  const iconBg = tone === "rose" ? "rgba(191,82,74,0.15)" : "rgba(196,162,101,0.15)";
-  const iconBorder = tone === "rose" ? "rgba(191,82,74,0.3)" : "rgba(196,162,101,0.35)";
+  const iconBg = tone === "rose" ? "rgba(212,182,122,0.18)" : "rgba(212,182,122,0.15)";
+  const iconBorder = tone === "rose" ? "rgba(212,182,122,0.4)" : "rgba(212,182,122,0.35)";
   const icon = tone === "rose" ? "♡" : "✦";
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#FFFDF5" }}>
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#0d0a14" }}>
       <div className="max-w-md w-full text-center">
         <div
           className="mx-auto mb-6 w-16 h-16 rounded-full flex items-center justify-center"
           style={{
             background: iconBg,
             border: `1px solid ${iconBorder}`,
-            color: tone === "rose" ? "#bf524a" : "#c4a265",
+            color: tone === "rose" ? "#d4b67a" : "#d4b67a",
             fontSize: 28,
           }}
           aria-hidden="true"
@@ -374,25 +374,25 @@ function ErrorState({ title, message, ctaLabel, ctaHref, onCta, tone = "neutral"
         </div>
         <h1
           style={{
-            color: "#141210",
+            color: "#f5efe6",
             fontSize: 26,
             fontWeight: 400,
             lineHeight: 1.3,
             margin: "0 0 16px 0",
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
           }}
         >
           {title}
         </h1>
-        <p style={{ color: "#5a4a42", fontSize: 15, lineHeight: 1.7, margin: "0 0 28px 0" }}>{message}</p>
+        <p style={{ color: "#cfc1b1", fontSize: 15, lineHeight: 1.7, margin: "0 0 28px 0" }}>{message}</p>
         {ctaLabel && (
           ctaHref ? (
             <a
               href={ctaHref}
               style={{
                 display: "inline-block",
-                background: "#bf524a",
-                color: "#ffffff",
+                background: "#d4b67a",
+                color: "#141210",
                 textDecoration: "none",
                 padding: "14px 32px",
                 borderRadius: 50,
@@ -400,7 +400,7 @@ function ErrorState({ title, message, ctaLabel, ctaHref, onCta, tone = "neutral"
                 fontSize: 14,
                 letterSpacing: 0.4,
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-                boxShadow: "0 4px 16px rgba(191,82,74,0.25)",
+                boxShadow: "0 4px 16px rgba(212,182,122,0.3)",
               }}
             >
               {ctaLabel}
@@ -409,8 +409,8 @@ function ErrorState({ title, message, ctaLabel, ctaHref, onCta, tone = "neutral"
             <CosmicButton onClick={onCta}>{ctaLabel}</CosmicButton>
           )
         )}
-        <p style={{ color: "#958779", fontSize: 12, marginTop: 24 }}>
-          Back to <Link to="/" style={{ color: "#5a4a42", textDecoration: "underline" }}>littlesouls.app</Link>
+        <p style={{ color: "#a89a8a", fontSize: 12, marginTop: 24 }}>
+          Back to <Link to="/" style={{ color: "#cfc1b1", textDecoration: "underline" }}>littlesouls.app</Link>
         </p>
       </div>
     </div>
@@ -419,7 +419,7 @@ function ErrorState({ title, message, ctaLabel, ctaHref, onCta, tone = "neutral"
 
 function NotFoundState() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#FFFDF5" }}>
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#0d0a14" }}>
       <div className="max-w-md w-full text-center">
         <p
           style={{
@@ -427,7 +427,7 @@ function NotFoundState() {
             fontWeight: 700,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: "#c4a265",
+            color: "#d4b67a",
             margin: "0 0 16px 0",
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           }}
@@ -436,17 +436,17 @@ function NotFoundState() {
         </p>
         <h1
           style={{
-            color: "#141210",
+            color: "#f5efe6",
             fontSize: 26,
             fontWeight: 400,
             lineHeight: 1.3,
             margin: "0 0 16px 0",
-            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
           }}
         >
           This link doesn't appear to be valid
         </h1>
-        <p style={{ color: "#5a4a42", fontSize: 15, lineHeight: 1.7, margin: "0 0 28px 0" }}>
+        <p style={{ color: "#cfc1b1", fontSize: 15, lineHeight: 1.7, margin: "0 0 28px 0" }}>
           Double-check the link in your reading-ready email, or reply to your order
           confirmation and we'll re-send the link to you.
         </p>
@@ -454,8 +454,8 @@ function NotFoundState() {
           to="/"
           style={{
             display: "inline-block",
-            background: "#bf524a",
-            color: "#ffffff",
+            background: "#d4b67a",
+            color: "#141210",
             textDecoration: "none",
             padding: "14px 32px",
             borderRadius: 50,
@@ -463,7 +463,7 @@ function NotFoundState() {
             fontSize: 14,
             letterSpacing: 0.4,
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            boxShadow: "0 4px 16px rgba(191,82,74,0.25)",
+            boxShadow: "0 4px 16px rgba(212,182,122,0.3)",
           }}
         >
           Back to littlesouls.app

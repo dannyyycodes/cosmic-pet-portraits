@@ -26,12 +26,12 @@ export default function FindReport() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#FFFDF5',
+        background: '#0d0a14',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
-        fontFamily: "'Cormorant', Georgia, serif",
+        fontFamily: "'Lato', system-ui, sans-serif",
       }}
     >
       <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
@@ -41,9 +41,9 @@ export default function FindReport() {
 
         <h1
           style={{
-            fontFamily: "'DM Serif Display', Georgia, serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
             fontSize: 'clamp(1.6rem, 5vw, 2rem)',
-            color: '#2D2926',
+            color: '#f5efe6',
             marginBottom: 12,
           }}
         >
@@ -53,7 +53,7 @@ export default function FindReport() {
         <p
           style={{
             fontSize: '0.95rem',
-            color: '#6B5E54',
+            color: '#cfc1b1',
             lineHeight: 1.6,
             marginBottom: 32,
             fontStyle: 'italic',
@@ -65,8 +65,8 @@ export default function FindReport() {
         {submitted ? (
           <div
             style={{
-              background: '#fff',
-              border: '1px solid #E8DFD6',
+              background: 'rgba(245,239,230,0.05)',
+              border: '1px solid rgba(212,182,122,0.22)',
               borderRadius: 16,
               padding: '32px 24px',
             }}
@@ -74,15 +74,15 @@ export default function FindReport() {
             <span style={{ fontSize: '2rem', display: 'block', marginBottom: 12 }}>✉️</span>
             <p
               style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: '1.2rem',
-                color: '#2D2926',
+                color: '#f5efe6',
                 marginBottom: 8,
               }}
             >
               Saved. Check your email for the link.
             </p>
-            <p style={{ fontSize: '0.85rem', color: '#9B8E84', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.85rem', color: '#9d8d7f', lineHeight: 1.6 }}>
               If that email has readings linked to it, we&rsquo;ll send a secure link so you can return to them inside Little Souls.
             </p>
           </div>
@@ -97,18 +97,18 @@ export default function FindReport() {
               style={{
                 width: '100%',
                 padding: '14px 18px',
-                border: '1.5px solid #E8DFD6',
+                border: '1.5px solid rgba(212,182,122,0.22)',
                 borderRadius: 12,
-                fontFamily: "'Cormorant', Georgia, serif",
+                fontFamily: "'Lato', system-ui, sans-serif",
                 fontSize: '1.05rem',
-                color: '#2D2926',
-                background: '#fff',
+                color: '#f5efe6',
+                background: 'rgba(245,239,230,0.05)',
                 outline: 'none',
                 marginBottom: 12,
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#bf524a')}
-              onBlur={(e) => (e.target.style.borderColor = '#E8DFD6')}
+              onFocus={(e) => (e.target.style.borderColor = '#d4b67a')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(212,182,122,0.22)')}
             />
             <button
               type="submit"
@@ -116,11 +116,11 @@ export default function FindReport() {
               style={{
                 width: '100%',
                 padding: '14px',
-                background: '#bf524a',
-                color: '#fff',
+                background: '#d4b67a',
+                color: '#141210',
                 border: 'none',
                 borderRadius: 12,
-                fontFamily: "'Cormorant', Georgia, serif",
+                fontFamily: "'Lato', system-ui, sans-serif",
                 fontWeight: 700,
                 fontSize: '1.05rem',
                 cursor: loading ? 'wait' : 'pointer',
@@ -138,7 +138,7 @@ export default function FindReport() {
             to="/"
             style={{
               fontSize: '0.82rem',
-              color: '#958779',
+              color: '#9d8d7f',
               textDecoration: 'none',
             }}
           >

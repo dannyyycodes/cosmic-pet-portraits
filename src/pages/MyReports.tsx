@@ -120,19 +120,19 @@ export default function MyReports() {
 
   if (authLoading || loading) {
     return (
-      <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="flex items-center justify-center">
+      <div style={{ background: '#0d0a14', minHeight: '100vh' }} className="flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         >
-          <Sparkles className="w-8 h-8" style={{ color: '#c4a265' }} />
+          <Sparkles className="w-8 h-8" style={{ color: '#d4b67a' }} />
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
+    <div style={{ background: '#0d0a14', minHeight: '100vh' }} className="relative overflow-hidden">
 
       <div className="relative z-10 min-h-screen px-6 py-10">
         <div className="max-w-4xl mx-auto">
@@ -141,13 +141,13 @@ export default function MyReports() {
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)' }}
+                style={{ background: '#d4b67a' }}
               >
-                <Star className="w-5 h-5 text-white fill-white" />
+                <Star className="w-5 h-5 fill-current" style={{ color: '#141210' }} />
               </div>
               <div>
-                <h1 className="text-2xl font-display font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>My Cosmic Reports</h1>
-                <p className="text-sm" style={{ color: '#9a8578' }}>{user?.email}</p>
+                <h1 className="text-2xl font-display font-bold" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>My Cosmic Reports</h1>
+                <p className="text-sm" style={{ color: '#9d8d7f' }}>{user?.email}</p>
               </div>
             </div>
 
@@ -155,7 +155,7 @@ export default function MyReports() {
               <button
                 onClick={() => navigate('/')}
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+                style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
               >
                 <Home className="w-4 h-4" />
                 Home
@@ -163,7 +163,7 @@ export default function MyReports() {
               <button
                 onClick={() => navigate('/account')}
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+                style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
               >
                 <User className="w-4 h-4" />
                 Account
@@ -171,7 +171,7 @@ export default function MyReports() {
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                style={{ color: '#9a8578', background: 'transparent', border: 'none' }}
+                style={{ color: '#9d8d7f', background: 'transparent', border: 'none' }}
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
@@ -188,19 +188,19 @@ export default function MyReports() {
             >
               <div
                 className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
-                style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
               >
-                <Sparkles className="w-10 h-10" style={{ color: '#9a8578' }} />
+                <Sparkles className="w-10 h-10" style={{ color: '#9d8d7f' }} />
               </div>
-              <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>No Reports Yet</h2>
-              <p className="mb-6 max-w-sm mx-auto" style={{ color: '#9a8578' }}>
+              <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>No Reports Yet</h2>
+              <p className="mb-6 max-w-sm mx-auto" style={{ color: '#9d8d7f' }}>
                 If you purchased before creating an account, tap "Sync purchases" and we'll pull them in.
               </p>
               <div className="flex flex-col items-center gap-3">
                 <button
                   onClick={() => navigate('/checkout')}
                   className="flex items-center gap-2 px-8 py-4 font-medium text-lg transition-opacity hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                  style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                 >
                   <Sparkles className="w-5 h-5" />
                   Get Your First Report
@@ -222,14 +222,14 @@ export default function MyReports() {
                     }
                   }}
                   className="px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                  style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+                  style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
                 >
                   Sync purchases
                 </button>
                 <button
                   onClick={() => navigate('/account')}
                   className="text-sm font-medium transition-opacity hover:opacity-80"
-                  style={{ color: '#9a8578', background: 'transparent', border: 'none' }}
+                  style={{ color: '#9d8d7f', background: 'transparent', border: 'none' }}
                 >
                   View gifts, referrals & weekly updates
                 </button>
@@ -244,22 +244,22 @@ export default function MyReports() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-6 rounded-[14px] p-4 flex items-center justify-between"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(196,162,101,0.14), rgba(191,82,74,0.08))',
-                    border: '1.5px solid rgba(196,162,101,0.4)',
+                    background: 'rgba(245,239,230,0.05)',
+                    border: '1px solid rgba(212,182,122,0.22)',
                   }}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center"
-                      style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)' }}
+                      style={{ background: 'linear-gradient(135deg, #d4b67a, #f0d99f)' }}
                     >
-                      <MessageCircle className="w-4 h-4 text-white" />
+                      <MessageCircle className="w-4 h-4" style={{ color: '#141210' }} />
                     </div>
                     <div>
-                      <div className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: '#a07c3a' }}>
+                      <div className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: '#d4b67a' }}>
                         SoulSpeak · shared across your pets
                       </div>
-                      <div className="text-[1.02rem]" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#2D2926' }}>
+                      <div className="text-[1.02rem]" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: '#f5efe6' }}>
                         {isUnlimited
                           ? 'Unlimited messages'
                           : `${Math.floor((householdCredits ?? 0) / 50)} messages left`}
@@ -269,7 +269,7 @@ export default function MyReports() {
                   <button
                     onClick={() => navigate('/chat')}
                     className="text-sm font-medium transition-opacity hover:opacity-80"
-                    style={{ color: '#bf524a', background: 'transparent', border: 'none' }}
+                    style={{ color: '#d4b67a', background: 'transparent', border: 'none' }}
                   >
                     Open SoulSpeak →
                   </button>
@@ -284,7 +284,7 @@ export default function MyReports() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className="rounded-2xl p-5 transition-all hover:shadow-md"
-                    style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
+                    style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', borderRadius: '16px' }}
                   >
                     <div className="flex items-start gap-4">
                       {/* Prefer the AI portrait (Portrait tier) → fall back to the uploaded
@@ -295,25 +295,25 @@ export default function MyReports() {
                           alt={report.pet_name}
                           loading="lazy"
                           className="w-14 h-14 rounded-xl object-cover shrink-0"
-                          style={{ border: '2px solid #c4a265', background: '#faf6ef' }}
+                          style={{ border: '2px solid #d4b67a', background: 'rgba(245,239,230,0.05)' }}
                         />
                       ) : (
                         <div
                           className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                          style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                          style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
                         >
                           {getSpeciesEmoji(report.species)}
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold truncate" style={{ color: '#3d2f2a' }}>
+                        <h3 className="text-lg font-semibold truncate" style={{ color: '#f5efe6' }}>
                           {report.pet_name}
                         </h3>
-                        <p className="text-sm capitalize" style={{ color: '#9a8578' }}>
+                        <p className="text-sm capitalize" style={{ color: '#9d8d7f' }}>
                           {report.breed || report.species}
                         </p>
-                        <p className="text-xs mt-1" style={{ color: '#9a8578' }}>
+                        <p className="text-xs mt-1" style={{ color: '#9d8d7f' }}>
                           Created {format(new Date(report.created_at), 'MMM d, yyyy')}
                         </p>
                       </div>
@@ -322,7 +322,7 @@ export default function MyReports() {
                     <div className="flex gap-2 mt-4">
                       <button
                         className="flex-1 flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium transition-opacity hover:opacity-90"
-                        style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                        style={{ background: '#d4b67a', color: '#141210', border: 'none', borderRadius: '10px' }}
                         onClick={() => handleViewReport(report.id)}
                       >
                         <Eye className="w-4 h-4" />
@@ -331,7 +331,7 @@ export default function MyReports() {
                       <a
                         href={`/soul-chat.html?id=${report.id}${report.share_token ? '&token=' + report.share_token : ''}`}
                         className="flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium transition-all hover:opacity-90 no-underline"
-                        style={{ background: 'white', border: '1.5px solid #c4a265', color: '#a07c3a', borderRadius: '10px' }}
+                        style={{ background: 'transparent', border: '1.5px solid #d4b67a', color: '#d4b67a', borderRadius: '10px' }}
                         title={`Talk with ${report.pet_name}'s soul`}
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -340,7 +340,7 @@ export default function MyReports() {
                       <button
                         onClick={() => handleShare(report)}
                         className="p-2 transition-opacity hover:opacity-80"
-                        style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+                        style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
                         aria-label="Share"
                       >
                         <Share2 className="w-4 h-4" />
@@ -363,7 +363,7 @@ export default function MyReports() {
               <button
                 onClick={() => navigate('/checkout')}
                 className="flex items-center gap-2 mx-auto px-6 py-3 font-medium transition-opacity hover:opacity-80"
-                style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+                style={{ border: '1px solid rgba(212,182,122,0.22)', color: '#cfc1b1', borderRadius: '10px', background: 'transparent' }}
               >
                 <Sparkles className="w-4 h-4" />
                 Add Another Pet

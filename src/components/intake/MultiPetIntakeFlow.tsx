@@ -68,7 +68,7 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
       <div
         className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden"
         style={{
-          backgroundColor: '#FFFDF5',
+          backgroundColor: '#0d0a14',
           paddingBottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))',
           paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))',
           ...grainStyle,
@@ -94,15 +94,15 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
               transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
               className="absolute inset-0 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, rgba(196,162,101,0.25), rgba(191,82,74,0.2))',
+                background: 'linear-gradient(135deg, rgba(212,182,122,0.25), rgba(212,182,122,0.2))',
                 filter: 'blur(16px)',
               }}
             />
             <div
               className="relative w-full h-full rounded-full flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, #c4a265, #bf524a)',
-                boxShadow: '0 10px 40px -8px rgba(191,82,74,0.4)',
+                background: 'linear-gradient(135deg, #d4b67a, #d4b67a)',
+                boxShadow: '0 10px 40px -8px rgba(212,182,122,0.4)',
               }}
             >
               <Sparkles className="w-10 h-10 text-white" />
@@ -114,7 +114,7 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
             className="text-[0.7rem] uppercase tracking-[0.2em] mb-3"
-            style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif', fontVariant: 'small-caps' }}
+            style={{ color: '#d4b67a', fontFamily: '"Playfair Display", Georgia, serif', fontVariant: 'small-caps' }}
           >
             {currentIndex + 1} of {pets.length} saved ✦
           </motion.p>
@@ -123,8 +123,8 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-[#2D2926] mb-3"
-            style={{ fontFamily: 'DM Serif Display, serif', fontSize: 'clamp(1.6rem, 5vw, 2.1rem)' }}
+            className="mb-3"
+            style={{ color: '#f5efe6', fontFamily: '"Playfair Display", Georgia, serif', fontSize: 'clamp(1.6rem, 5vw, 2.1rem)' }}
           >
             Beautiful.
           </motion.h1>
@@ -133,8 +133,8 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="text-[1.05rem] text-[#6B5E54] italic mb-2 break-words px-2"
-            style={{ fontFamily: 'Cormorant, serif' }}
+            className="text-[1.05rem] italic mb-2 break-words px-2"
+            style={{ color: '#cfc1b1', fontFamily: '"Playfair Display", Georgia, serif' }}
           >
             {nextPet.petName
               ? `Now let's introduce us to ${nextPet.petName}.`
@@ -145,8 +145,8 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-[0.88rem] text-[#9B8E84] mb-8"
-            style={{ fontFamily: 'Cormorant, serif' }}
+            className="text-[0.88rem] mb-8"
+            style={{ color: '#9d8d7f', fontFamily: '"Playfair Display", Georgia, serif' }}
           >
             {sharedEmail || sharedOwner
               ? 'Good news — we already have your email' + (sharedOwner ? ' and your own stars' : '') + ', so this one is faster.'
@@ -169,7 +169,7 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
                   className="h-1.5 rounded-full transition-all"
                   style={{
                     width: i <= currentIndex ? 28 : 14,
-                    background: i <= currentIndex ? '#bf524a' : '#E8DFD6',
+                    background: i <= currentIndex ? '#d4b67a' : 'rgba(212,182,122,0.22)',
                   }}
                 />
               </div>
@@ -181,8 +181,8 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0 }}
             onClick={handleContinueToNext}
-            className="w-full py-4 rounded-xl text-white text-[1.02rem] relative overflow-hidden"
-            style={{ fontFamily: 'DM Serif Display, serif', backgroundColor: '#bf524a' }}
+            className="w-full py-4 rounded-xl text-[1.02rem] relative overflow-hidden"
+            style={{ fontFamily: '"Playfair Display", Georgia, serif', backgroundColor: '#d4b67a', color: '#141210' }}
           >
             <motion.div
               className="absolute inset-0"

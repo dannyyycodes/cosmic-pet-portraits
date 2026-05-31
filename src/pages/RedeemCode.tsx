@@ -67,13 +67,13 @@ export default function RedeemCode() {
   };
 
   return (
-    <div style={{ background: '#FFFDF5', minHeight: '100vh' }}>
+    <div style={{ background: '#0d0a14', minHeight: '100vh' }}>
       <div className="max-w-md mx-auto px-6 py-12">
         {/* Back link */}
         <Link
           to="/"
           className="inline-flex items-center gap-2 mb-8 text-sm transition-colors"
-          style={{ color: '#9a8578' }}
+          style={{ color: '#9d8d7f' }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
@@ -86,21 +86,21 @@ export default function RedeemCode() {
         >
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-            style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+            style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
           >
-            <Ticket className="w-4 h-4" style={{ color: '#c4a265' }} />
-            <span className="text-sm font-semibold" style={{ color: '#c4a265' }}>
+            <Ticket className="w-4 h-4" style={{ color: '#d4b67a' }} />
+            <span className="text-sm font-semibold" style={{ color: '#d4b67a' }}>
               Free Reading
             </span>
           </div>
 
           <h1
             className="text-3xl md:text-4xl font-bold mb-3"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}
+            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}
           >
             Redeem Your Free Reading
           </h1>
-          <p style={{ color: '#9a8578' }}>
+          <p style={{ color: '#9d8d7f' }}>
             Enter your code below to unlock a complimentary Little Souls reading
           </p>
         </motion.div>
@@ -111,13 +111,13 @@ export default function RedeemCode() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="p-8 rounded-2xl"
-            style={{ background: 'white', border: '1px solid #e8ddd0', boxShadow: '0 2px 8px rgba(61,47,42,0.06)' }}
+            style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
           >
             <form onSubmit={handleRedeem} className="space-y-6">
               <div>
                 <label
                   className="block text-sm font-medium mb-2"
-                  style={{ color: '#3d2f2a' }}
+                  style={{ color: '#f5efe6' }}
                 >
                   What's this reading for?
                 </label>
@@ -129,9 +129,9 @@ export default function RedeemCode() {
                     // signals product respect.
                     const isMemorialOpt = opt.value === 'memorial';
                     const selectedBg = isMemorialOpt
-                      ? 'rgba(120,130,125,0.12)'
-                      : 'rgba(196,162,101,0.12)';
-                    const selectedBorder = isMemorialOpt ? '#788280' : '#c4a265';
+                      ? 'rgba(120,130,125,0.18)'
+                      : 'rgba(212,182,122,0.18)';
+                    const selectedBorder = isMemorialOpt ? '#788280' : '#d4b67a';
                     return (
                       <button
                         key={opt.value}
@@ -139,15 +139,15 @@ export default function RedeemCode() {
                         onClick={() => setOccasion(opt.value)}
                         className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
                         style={{
-                          background: occasion === opt.value ? selectedBg : '#faf6ef',
+                          background: occasion === opt.value ? selectedBg : 'rgba(245,239,230,0.05)',
                           border: occasion === opt.value
                             ? `1.5px solid ${selectedBorder}`
-                            : '1.5px solid #e8ddd0',
+                            : '1.5px solid rgba(212,182,122,0.22)',
                         }}
                       >
                         <span className="text-xl">{opt.emoji}</span>
-                        <span className="text-[0.85rem] font-semibold" style={{ color: '#3d2f2a' }}>{opt.label}</span>
-                        <span className="text-[0.68rem]" style={{ color: '#9a8578' }}>{opt.desc}</span>
+                        <span className="text-[0.85rem] font-semibold" style={{ color: '#f5efe6' }}>{opt.label}</span>
+                        <span className="text-[0.68rem]" style={{ color: '#9d8d7f' }}>{opt.desc}</span>
                       </button>
                     );
                   })}
@@ -156,7 +156,7 @@ export default function RedeemCode() {
               <div>
                 <label
                   className="block text-sm font-medium mb-2"
-                  style={{ color: '#3d2f2a' }}
+                  style={{ color: '#f5efe6' }}
                 >
                   Redeem Code
                 </label>
@@ -166,12 +166,12 @@ export default function RedeemCode() {
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   className="w-full px-4 py-3.5 rounded-xl text-center text-lg font-mono tracking-widest transition-all outline-none"
                   style={{
-                    background: '#faf6ef',
-                    border: '1px solid #e8ddd0',
-                    color: '#3d2f2a',
+                    background: 'rgba(245,239,230,0.05)',
+                    border: '1px solid rgba(212,182,122,0.22)',
+                    color: '#f5efe6',
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = '#c4a265')}
-                  onBlur={(e) => (e.target.style.borderColor = '#e8ddd0')}
+                  onFocus={(e) => (e.target.style.borderColor = '#d4b67a')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(212,182,122,0.22)')}
                   placeholder="ENTER CODE"
                   required
                   autoFocus
@@ -181,9 +181,10 @@ export default function RedeemCode() {
               <button
                 type="submit"
                 disabled={isLoading || !code.trim()}
-                className="w-full py-3.5 rounded-xl font-semibold text-white transition-all disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl font-semibold transition-all disabled:opacity-50"
                 style={{
-                  background: 'linear-gradient(135deg, #c4a265, #b8973e)',
+                  background: '#d4b67a',
+                  color: '#141210',
                   border: 'none',
                 }}
               >
@@ -192,7 +193,7 @@ export default function RedeemCode() {
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      className="w-5 h-5 border-2 border-[#141210] border-t-transparent rounded-full"
                     />
                     Redeeming...
                   </span>
@@ -205,7 +206,7 @@ export default function RedeemCode() {
               </button>
             </form>
 
-            <p className="text-center text-xs mt-6" style={{ color: '#9a8578' }}>
+            <p className="text-center text-xs mt-6" style={{ color: '#9d8d7f' }}>
               Codes are case-insensitive and single-use unless specified otherwise
             </p>
           </motion.div>
@@ -214,21 +215,21 @@ export default function RedeemCode() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="p-8 rounded-2xl text-center"
-            style={{ background: 'white', border: '1px solid #e8ddd0' }}
+            style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
           >
             <div
               className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-              style={{ background: '#c4a265' }}
+              style={{ background: '#d4b67a' }}
             >
-              <CheckCircle className="w-8 h-8 text-white" />
+              <CheckCircle className="w-8 h-8" style={{ color: '#141210' }} />
             </div>
             <h2
               className="text-xl font-bold mb-2"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}
+              style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}
             >
               Code Redeemed!
             </h2>
-            <p style={{ color: '#5a4a42' }}>
+            <p style={{ color: '#cfc1b1' }}>
               Taking you to your free {result.tier} reading...
             </p>
           </motion.div>

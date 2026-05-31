@@ -14,7 +14,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { PALETTE } from "@/components/portraits/tokens";
 
 type LoadState = "loading" | "ready" | "already-submitted" | "invalid" | "error";
 
@@ -109,7 +108,7 @@ export default function SoulReadingIntake() {
       <main
         className="min-h-screen"
         style={{
-          background: PALETTE.cream,
+          background: "#0d0a14",
           paddingTop: "clamp(56px, 9vh, 100px)",
           paddingBottom: "clamp(80px, 12vh, 160px)",
           paddingLeft: 20,
@@ -120,12 +119,12 @@ export default function SoulReadingIntake() {
           <p
             className="text-center"
             style={{
-              fontFamily: "Asap, system-ui, sans-serif",
+              fontFamily: "Lato, system-ui, sans-serif",
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: PALETTE.gold,
+              color: "#d4b67a",
               margin: 0,
               marginBottom: 28,
             }}
@@ -136,13 +135,13 @@ export default function SoulReadingIntake() {
           <section
             className="rounded-3xl px-6 py-9"
             style={{
-              background: "#ffffff",
-              border: `1px solid ${PALETTE.sand}`,
+              background: "rgba(245,239,230,0.05)",
+              border: `1px solid rgba(212,182,122,0.22)`,
               boxShadow: "0 16px 40px rgba(20, 18, 16, 0.06)",
             }}
           >
             {loadState === "loading" && (
-              <p className="text-center" style={{ color: PALETTE.earthMuted, fontFamily: "Georgia, serif" }}>
+              <p className="text-center" style={{ color: "#9d8d7f", fontFamily: "\"Playfair Display\", Georgia, serif" }}>
                 Looking up your order…
               </p>
             )}
@@ -187,12 +186,12 @@ export default function SoulReadingIntake() {
               <>
                 <p
                   style={{
-                    fontFamily: "Asap, system-ui, sans-serif",
+                    fontFamily: "Lato, system-ui, sans-serif",
                     fontSize: 11,
                     fontWeight: 600,
                     letterSpacing: "0.2em",
                     textTransform: "uppercase",
-                    color: PALETTE.gold,
+                    color: "#d4b67a",
                     margin: "0 0 12px 0",
                   }}
                 >
@@ -238,8 +237,8 @@ export default function SoulReadingIntake() {
                   {errorMsg && (
                     <p
                       style={{
-                        color: PALETTE.rose,
-                        fontFamily: "Assistant, system-ui, sans-serif",
+                        color: "#f0d99f",
+                        fontFamily: "Lato, system-ui, sans-serif",
                         fontSize: 13,
                         margin: "0 0 10px 0",
                       }}
@@ -258,9 +257,9 @@ export default function SoulReadingIntake() {
                   <p
                     style={{
                       textAlign: "center",
-                      fontFamily: "Assistant, system-ui, sans-serif",
+                      fontFamily: "Lato, system-ui, sans-serif",
                       fontSize: 12,
-                      color: PALETTE.earthMuted,
+                      color: "#9d8d7f",
                       marginTop: 12,
                       marginBottom: 0,
                     }}
@@ -275,9 +274,9 @@ export default function SoulReadingIntake() {
           <p
             className="text-center mt-8"
             style={{
-              fontFamily: "Assistant, system-ui, sans-serif",
+              fontFamily: "Lato, system-ui, sans-serif",
               fontSize: 13,
-              color: PALETTE.earthMuted,
+              color: "#9d8d7f",
             }}
           >
             Questions? Reply to your order email — a real person reads them.
@@ -289,28 +288,28 @@ export default function SoulReadingIntake() {
 }
 
 const titleStyle: React.CSSProperties = {
-  fontFamily: "Cormorant Garamond, Georgia, serif",
+  fontFamily: "\"Playfair Display\", Georgia, serif",
   fontSize: "clamp(24px, 4vw, 32px)",
   fontWeight: 500,
-  color: PALETTE.ink,
+  color: "#f5efe6",
   margin: "0 0 14px 0",
   lineHeight: 1.25,
 };
 
 const bodyStyle: React.CSSProperties = {
-  fontFamily: "Georgia, 'Times New Roman', serif",
+  fontFamily: "\"Playfair Display\", Georgia, serif",
   fontSize: 15,
   lineHeight: 1.7,
-  color: PALETTE.earth,
+  color: "#cfc1b1",
   margin: "0 0 22px 0",
 };
 
 const primaryButtonStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
-  background: PALETTE.rose,
-  color: PALETTE.cream,
-  fontFamily: "Asap, system-ui, sans-serif",
+  background: "#d4b67a",
+  color: "#141210",
+  fontFamily: "Lato, system-ui, sans-serif",
   fontSize: 15,
   fontWeight: 700,
   letterSpacing: "0.02em",
@@ -318,7 +317,7 @@ const primaryButtonStyle: React.CSSProperties = {
   borderRadius: 999,
   padding: "14px 22px",
   cursor: "pointer",
-  boxShadow: "0 12px 28px rgba(191, 82, 74, 0.28)",
+  boxShadow: "0 12px 28px rgba(212, 182, 122, 0.28)",
 };
 
 interface FieldProps {
@@ -338,10 +337,10 @@ function Field({ label, value, onChange, placeholder, type = "text", maxLength, 
     <label className="block mb-3">
       <span
         style={{
-          fontFamily: "Asap, system-ui, sans-serif",
+          fontFamily: "Lato, system-ui, sans-serif",
           fontSize: 10.5,
           fontWeight: 700,
-          color: PALETTE.earthMuted,
+          color: "#9d8d7f",
           letterSpacing: "0.14em",
           textTransform: "uppercase",
           display: "block",
@@ -361,11 +360,12 @@ function Field({ label, value, onChange, placeholder, type = "text", maxLength, 
         min={min}
         className="w-full px-3 py-2.5 rounded-lg"
         style={{
-          background: PALETTE.cream2,
-          border: `1px solid ${PALETTE.sand}`,
-          fontFamily: "Assistant, system-ui, sans-serif",
+          background: "rgba(5,4,7,0.6)",
+          border: `1px solid rgba(212,182,122,0.34)`,
+          fontFamily: "Lato, system-ui, sans-serif",
           fontSize: 15,
-          color: PALETTE.ink,
+          color: "#f5efe6",
+          colorScheme: "dark",
         }}
       />
     </label>

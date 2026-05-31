@@ -129,11 +129,11 @@ export default function CompatibilityViewer() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#FFFDF5' }}>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#0d0a14' }}>
         <div className="max-w-md text-center">
-          <h1 className="text-2xl text-[#2D2926] mb-3" style={{ fontFamily: 'DM Serif Display, serif' }}>We couldn't find that reading</h1>
-          <p className="text-[#6B5E54] mb-6" style={{ fontFamily: 'Cormorant, serif' }}>{error}</p>
-          <button onClick={() => navigate('/account')} className="underline text-[#bf524a]">Back to your account</button>
+          <h1 className="text-2xl mb-3" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}>We couldn't find that reading</h1>
+          <p className="mb-6" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>{error}</p>
+          <button onClick={() => navigate('/account')} className="underline" style={{ color: '#d4b67a' }}>Back to your account</button>
         </div>
       </div>
     );
@@ -154,11 +154,11 @@ export default function CompatibilityViewer() {
 
   if (data.status === 'failed') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#FFFDF5' }}>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#0d0a14' }}>
         <div className="max-w-md text-center">
-          <h1 className="text-2xl text-[#2D2926] mb-3" style={{ fontFamily: 'DM Serif Display, serif' }}>Something went sideways</h1>
-          <p className="text-[#6B5E54] mb-6" style={{ fontFamily: 'Cormorant, serif' }}>We'll retry this automatically. Please check back in a few minutes.</p>
-          <button onClick={() => navigate('/account')} className="underline text-[#bf524a]">Back to your account</button>
+          <h1 className="text-2xl mb-3" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}>Something went sideways</h1>
+          <p className="mb-6" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>We'll retry this automatically. Please check back in a few minutes.</p>
+          <button onClick={() => navigate('/account')} className="underline" style={{ color: '#d4b67a' }}>Back to your account</button>
         </div>
       </div>
     );
@@ -167,7 +167,7 @@ export default function CompatibilityViewer() {
   // Ready — render the reading.
   const reading = data.reading || {};
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #FFFDF5 0%, #f5efe6 60%, #ede5d8 100%)', ...grainStyle }}>
+    <div className="min-h-screen" style={{ background: '#0d0a14', ...grainStyle }}>
       <NoIndex />
       <div className="max-w-[640px] mx-auto px-4 py-10 md:py-16">
         {/* Hero */}
@@ -178,7 +178,7 @@ export default function CompatibilityViewer() {
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[0.6rem] font-bold uppercase tracking-[0.18em] mb-4"
-            style={{ background: 'rgba(191,82,74,0.9)', color: 'white' }}>
+            style={{ background: '#d4b67a', color: '#141210' }}>
             <Heart className="w-3 h-3" /> Cross-pet reading
           </div>
 
@@ -187,15 +187,15 @@ export default function CompatibilityViewer() {
             <motion.div
               animate={{ scale: [1, 1.12, 1], rotate: [0, 6, -6, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="text-[2rem]" style={{ color: '#bf524a' }}
+              className="text-[2rem]" style={{ color: '#d4b67a' }}
             >
               ✦
             </motion.div>
             <PetHero pet={data.petB} />
           </div>
 
-          <h1 className="text-[1.5rem] sm:text-[1.75rem] md:text-[2.3rem] text-[#2D2926] leading-tight mb-3 break-words px-2"
-            style={{ fontFamily: 'DM Serif Display, serif' }}>
+          <h1 className="text-[1.5rem] sm:text-[1.75rem] md:text-[2.3rem] leading-tight mb-3 break-words px-2"
+            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}>
             {reading.headline || `${data.petA?.petName || 'They'} & ${data.petB?.petName || 'they'}`}
           </h1>
         </motion.div>
@@ -205,11 +205,11 @@ export default function CompatibilityViewer() {
           <motion.div
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }}
             transition={{ duration: 0.6 }}
-            className="rounded-[20px] p-6 md:p-8 mb-8 bg-white border"
-            style={{ borderColor: '#E8DFD6' }}
+            className="rounded-[20px] p-6 md:p-8 mb-8 border"
+            style={{ background: 'rgba(245,239,230,0.05)', borderColor: 'rgba(212,182,122,0.22)' }}
           >
-            <p className="text-[1.02rem] md:text-[1.1rem] leading-[1.85] italic text-[#6B5E54]"
-              style={{ fontFamily: 'Cormorant, serif' }}>
+            <p className="text-[1.02rem] md:text-[1.1rem] leading-[1.85] italic"
+              style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>
               {reading.opening}
             </p>
           </motion.div>
@@ -224,18 +224,18 @@ export default function CompatibilityViewer() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.6, delay: i * 0.05 }}
-              className="rounded-[20px] p-6 md:p-7 mb-5 bg-white border"
-              style={{ borderColor: '#E8DFD6' }}
+              className="rounded-[20px] p-6 md:p-7 mb-5 border"
+              style={{ background: 'rgba(245,239,230,0.05)', borderColor: 'rgba(212,182,122,0.22)' }}
             >
               <div className="flex items-center gap-2 mb-3">
                 {section.icon && <span className="text-[1.3rem]">{section.icon}</span>}
-                <h3 className="text-[1.2rem] text-[#2D2926]"
-                  style={{ fontFamily: 'DM Serif Display, serif' }}>
+                <h3 className="text-[1.2rem]"
+                  style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}>
                   {section.title}
                 </h3>
               </div>
-              <p className="text-[0.98rem] text-[#4a3f3a] leading-[1.75] whitespace-pre-line"
-                style={{ fontFamily: 'Cormorant, serif' }}>
+              <p className="text-[0.98rem] leading-[1.75] whitespace-pre-line"
+                style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>
                 {section.body}
               </p>
             </motion.div>
@@ -246,11 +246,11 @@ export default function CompatibilityViewer() {
         {reading.body && !reading.sections && (
           <motion.div
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="rounded-[20px] p-6 md:p-8 mb-8 bg-white border"
-            style={{ borderColor: '#E8DFD6' }}
+            className="rounded-[20px] p-6 md:p-8 mb-8 border"
+            style={{ background: 'rgba(245,239,230,0.05)', borderColor: 'rgba(212,182,122,0.22)' }}
           >
-            <p className="text-[0.98rem] text-[#4a3f3a] leading-[1.8] whitespace-pre-line"
-              style={{ fontFamily: 'Cormorant, serif' }}>
+            <p className="text-[0.98rem] leading-[1.8] whitespace-pre-line"
+              style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>
               {reading.body}
             </p>
           </motion.div>
@@ -263,7 +263,7 @@ export default function CompatibilityViewer() {
             className="text-center my-10"
           >
             <p className="text-[1.2rem] italic"
-              style={{ fontFamily: 'Caveat, cursive', color: '#bf524a' }}>
+              style={{ fontFamily: 'Caveat, cursive', color: '#d4b67a' }}>
               {reading.blessing}
             </p>
           </motion.div>
@@ -271,15 +271,15 @@ export default function CompatibilityViewer() {
 
         {/* Share */}
         <div className="mt-12 rounded-[18px] p-5 text-center"
-          style={{ background: 'rgba(196,162,101,0.1)', border: '1px solid rgba(196,162,101,0.35)' }}>
-          <p className="text-[0.88rem] text-[#6B5E54] mb-3"
-            style={{ fontFamily: 'Cormorant, serif' }}>
+          style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}>
+          <p className="text-[0.88rem] mb-3"
+            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>
             Want to share this with the other pet's family? This link lets anyone read it.
           </p>
           <button
             onClick={handleCopyShare}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold"
-            style={{ background: '#bf524a', fontFamily: 'DM Serif Display, serif' }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold"
+            style={{ background: '#d4b67a', color: '#141210', fontFamily: '"Playfair Display", Georgia, serif' }}
           >
             {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Share2 className="w-4 h-4" /> Copy share link</>}
           </button>
@@ -297,23 +297,23 @@ function PetHero({ pet }: { pet: CompatPet | null }) {
         initial={{ scale: 0.9 }} animate={{ scale: 1 }}
         transition={{ type: 'spring', damping: 12 }}
         className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-[3px]"
-        style={{ borderColor: '#c4a265' }}
+        style={{ borderColor: '#d4b67a' }}
       >
         {pet.petPhotoUrl ? (
           <img src={pet.petPhotoUrl} alt={pet.petName} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[2rem]"
-            style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.25), rgba(191,82,74,0.15))' }}>
+            style={{ background: 'linear-gradient(135deg, rgba(212,182,122,0.25), rgba(212,182,122,0.12))' }}>
             🐾
           </div>
         )}
       </motion.div>
       <div className="mt-2 text-center">
-        <div className="text-[0.95rem] text-[#2D2926] font-semibold"
-          style={{ fontFamily: 'DM Serif Display, serif' }}>{pet.petName}</div>
+        <div className="text-[0.95rem] font-semibold"
+          style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}>{pet.petName}</div>
         {pet.sunSign && (
-          <div className="text-[0.7rem] text-[#9B8E84]"
-            style={{ fontFamily: 'Cormorant, serif' }}>
+          <div className="text-[0.7rem]"
+            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#9d8d7f' }}>
             {pet.sunSign} Sun
           </div>
         )}
@@ -324,19 +324,19 @@ function PetHero({ pet }: { pet: CompatPet | null }) {
 
 function LoadingState({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#0d0a14', ...grainStyle }}>
       <div className="max-w-md text-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
           className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)', boxShadow: '0 10px 40px -10px rgba(191,82,74,0.4)' }}
+          style={{ background: 'linear-gradient(135deg, #d4b67a, #f0d99f)', boxShadow: '0 10px 40px -10px rgba(212,182,122,0.4)' }}
         >
-          <Sparkles className="w-8 h-8 text-white" />
+          <Sparkles className="w-8 h-8" style={{ color: '#141210' }} />
         </motion.div>
-        <h1 className="text-2xl text-[#2D2926] mb-3" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h1>
+        <h1 className="text-2xl mb-3" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}>{title}</h1>
         {subtitle && (
-          <p className="text-[#6B5E54] italic" style={{ fontFamily: 'Cormorant, serif' }}>{subtitle}</p>
+          <p className="italic" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#cfc1b1' }}>{subtitle}</p>
         )}
       </div>
     </div>

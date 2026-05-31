@@ -80,7 +80,7 @@ export default function SoulSpeakHub() {
     <div
       className="min-h-screen"
       style={{
-        background: "#FFFDF5",
+        background: "#0d0a14",
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         paddingTop: 'env(safe-area-inset-top, 0px)',
         ...grainStyle,
@@ -94,13 +94,13 @@ export default function SoulSpeakHub() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <p className="text-[0.68rem] uppercase tracking-[0.18em] mb-2" style={{ color: "#a07c3a", fontFamily: "Cormorant, serif", fontVariant: "small-caps" }}>
+          <p className="text-[0.68rem] uppercase tracking-[0.18em] mb-2" style={{ color: "#d4b67a", fontFamily: "\"Playfair Display\", Georgia, serif", fontVariant: "small-caps" }}>
             ✦ SoulSpeak · Household
           </p>
-          <h1 className="text-[1.9rem] md:text-[2.4rem] leading-tight mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: "#2D2926" }}>
+          <h1 className="text-[1.9rem] md:text-[2.4rem] leading-tight mb-2" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: "#f5efe6" }}>
             Who do you want to talk to today?
           </h1>
-          <p className="text-[0.98rem] italic" style={{ color: "#6B5E54", fontFamily: "Cormorant, serif" }}>
+          <p className="text-[0.98rem] italic" style={{ color: "#cfc1b1", fontFamily: "\"Playfair Display\", Georgia, serif" }}>
             Pick any of your pets — the conversation picks up exactly where you left it.
           </p>
         </motion.div>
@@ -113,20 +113,20 @@ export default function SoulSpeakHub() {
             transition={{ delay: 0.15 }}
             className="mb-8 rounded-[16px] p-4 flex items-center justify-between"
             style={{
-              background: "linear-gradient(135deg, rgba(196,162,101,0.14), rgba(191,82,74,0.08))",
-              border: "1.5px solid rgba(196,162,101,0.4)",
+              background: "rgba(245,239,230,0.05)",
+              border: "1px solid rgba(212,182,122,0.22)",
             }}
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #c4a265, #bf524a)" }}>
-                <Sparkles className="w-4 h-4 text-white" />
+                style={{ background: "linear-gradient(135deg, #d4b67a, #f0d99f)" }}>
+                <Sparkles className="w-4 h-4" style={{ color: "#141210" }} />
               </div>
               <div>
-                <div className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: "#a07c3a" }}>
+                <div className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: "#d4b67a" }}>
                   Shared across all your pets
                 </div>
-                <div className="text-[1.05rem]" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: "#2D2926" }}>
+                <div className="text-[1.05rem]" style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: "#f5efe6" }}>
                   {isUnlimited ? "Unlimited messages" : `${messagesLeft} message${messagesLeft === 1 ? "" : "s"} left`}
                 </div>
               </div>
@@ -135,7 +135,7 @@ export default function SoulSpeakHub() {
               <a
                 href={`/soul-chat.html?id=${pets[0].id}${pets[0].share_token ? `&token=${pets[0].share_token}` : ""}&topup=1`}
                 className="text-[0.82rem] underline-offset-4 hover:underline"
-                style={{ color: "#bf524a", fontFamily: "Cormorant, serif" }}
+                style={{ color: "#d4b67a", fontFamily: "\"Playfair Display\", Georgia, serif" }}
               >
                 Top up
               </a>
@@ -145,21 +145,21 @@ export default function SoulSpeakHub() {
 
         {/* Pet grid */}
         {fetching ? (
-          <div className="text-center py-12" style={{ color: "#9a8578" }}>Loading your pets…</div>
+          <div className="text-center py-12" style={{ color: "#9d8d7f" }}>Loading your pets…</div>
         ) : pets.length === 0 ? (
           <div className="text-center py-12 rounded-[16px]"
-            style={{ background: "white", border: "1.5px dashed rgba(196,162,101,0.35)" }}>
-            <MessageCircle className="w-10 h-10 mx-auto mb-3" style={{ color: "#c4a265" }} />
-            <p className="mb-2" style={{ color: "#3d2f2a", fontFamily: "'DM Serif Display', Georgia, serif", fontSize: "1.05rem" }}>
+            style={{ background: "rgba(245,239,230,0.05)", border: "1px solid rgba(212,182,122,0.22)" }}>
+            <MessageCircle className="w-10 h-10 mx-auto mb-3" style={{ color: "#d4b67a" }} />
+            <p className="mb-2" style={{ color: "#f5efe6", fontFamily: "\"Playfair Display\", Georgia, serif", fontSize: "1.05rem" }}>
               No pets yet
             </p>
-            <p className="text-sm max-w-xs mx-auto mb-5" style={{ color: "#9a8578" }}>
+            <p className="text-sm max-w-xs mx-auto mb-5" style={{ color: "#9d8d7f" }}>
               Once you've unlocked a reading, your pet's soul lives in here.
             </p>
             <button
               onClick={() => navigate("/")}
               className="px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #c4a265, #bf524a)", color: "white", border: "none", borderRadius: "10px" }}
+              style={{ background: "#d4b67a", color: "#141210", border: "none", borderRadius: "10px" }}
             >
               Begin a reading
             </button>
@@ -176,11 +176,11 @@ export default function SoulSpeakHub() {
                   transition={{ delay: 0.2 + i * 0.05 }}
                   href={`/soul-chat.html?id=${p.id}${p.share_token ? `&token=${p.share_token}` : ""}`}
                   className="relative group p-5 rounded-[18px] flex items-center gap-4 transition-all hover:shadow-lg no-underline"
-                  style={{ background: "white", border: "1.5px solid #e8ddd0" }}
+                  style={{ background: "rgba(245,239,230,0.05)", border: "1px solid rgba(212,182,122,0.22)" }}
                 >
                   <div
                     className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg, rgba(196,162,101,0.25), rgba(191,82,74,0.15))", border: "2.5px solid #c4a265" }}
+                    style={{ background: "linear-gradient(135deg, rgba(212,182,122,0.25), rgba(212,182,122,0.12))", border: "2.5px solid #d4b67a" }}
                   >
                     {p.pet_photo_url ? (
                       <img src={p.pet_photo_url} alt={p.pet_name} className="w-full h-full object-cover" />
@@ -190,19 +190,19 @@ export default function SoulSpeakHub() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-[1.15rem] truncate"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: "#2D2926" }}>
+                      style={{ fontFamily: "\"Playfair Display\", Georgia, serif", color: "#f5efe6" }}>
                       {p.pet_name}
                     </h3>
-                    <p className="text-[0.82rem] truncate" style={{ color: "#6B5E54", fontFamily: "Cormorant, serif" }}>
+                    <p className="text-[0.82rem] truncate" style={{ color: "#cfc1b1", fontFamily: "\"Playfair Display\", Georgia, serif" }}>
                       {p.species}{p.breed ? ` · ${p.breed}` : ""}
                     </p>
                     {isMemorial && (
-                      <p className="text-[0.7rem] italic mt-0.5" style={{ color: "#a07c3a" }}>
+                      <p className="text-[0.7rem] italic mt-0.5" style={{ color: "#d4b67a" }}>
                         Memorial — speaking across the veil
                       </p>
                     )}
                   </div>
-                  <ArrowRight className="w-5 h-5 shrink-0 transition-transform group-hover:translate-x-1" style={{ color: "#bf524a" }} />
+                  <ArrowRight className="w-5 h-5 shrink-0 transition-transform group-hover:translate-x-1" style={{ color: "#d4b67a" }} />
                 </motion.a>
               );
             })}
@@ -213,7 +213,7 @@ export default function SoulSpeakHub() {
           <button
             onClick={() => navigate("/account")}
             className="text-[0.85rem] underline-offset-4 hover:underline"
-            style={{ color: "#9B8E84", fontFamily: "Cormorant, serif" }}
+            style={{ color: "#9d8d7f", fontFamily: "\"Playfair Display\", Georgia, serif" }}
           >
             ← Back to your account
           </button>

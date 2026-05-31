@@ -192,16 +192,16 @@ export default function ViewReport() {
   // Email verification prompt
   if (needsEmailVerification && !isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-6 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden" style={{ background: '#0d0a14', fontFamily: "'Playfair Display', Georgia, serif" }}>
         <VariantBackground />
         <div className="max-w-md w-full text-center relative z-10">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(212,182,122,0.18)' }}>
             <span className="text-3xl">🔮</span>
           </div>
-          <h1 className="text-2xl font-display font-bold text-foreground mb-4">
+          <h1 className="text-2xl font-display font-bold mb-4" style={{ color: '#f5efe6' }}>
             Verify Your Email
           </h1>
-          <p className="text-muted-foreground mb-6">
+          <p className="mb-6" style={{ color: '#cfc1b1' }}>
             Please enter the email address you used when purchasing this cosmic reading to view your report.
           </p>
           
@@ -228,7 +228,7 @@ export default function ViewReport() {
             </CosmicButton>
           </form>
           
-          <p className="text-xs text-muted-foreground mt-6">
+          <p className="text-xs mt-6" style={{ color: '#a89a8a' }}>
             Can't remember your email? Check your inbox for the purchase confirmation.
           </p>
         </div>
@@ -246,16 +246,16 @@ export default function ViewReport() {
     const errorMessage = error || reportData?.report?.error || 'Something went wrong';
     
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-6 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden" style={{ background: '#0d0a14', fontFamily: "'Playfair Display', Georgia, serif" }}>
         <VariantBackground />
         <div className="max-w-md text-center relative z-10">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-destructive/20 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(212,182,122,0.18)' }}>
             <span className="text-3xl">{isTimeout ? '⏳' : '😿'}</span>
           </div>
-          <h1 className="text-2xl font-display font-bold text-foreground mb-4">
+          <h1 className="text-2xl font-display font-bold mb-4" style={{ color: '#f5efe6' }}>
             {isTimeout ? 'Report Still Generating' : 'Report Not Available'}
           </h1>
-          <p className="text-muted-foreground mb-6">
+          <p className="mb-6" style={{ color: '#cfc1b1' }}>
             {isTimeout
               ? `${reportData?.petName || 'Your pet'}'s ${reportData?.occasionMode === 'memorial' ? 'memorial' : 'reading'} is taking a bit longer than usual. Please try again in a moment.`
               : errorMessage
@@ -274,13 +274,14 @@ export default function ViewReport() {
             </CosmicButton>
             <button
               onClick={() => navigate('/')}
-              className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+              className="text-sm underline-offset-4 hover:underline transition-colors"
+              style={{ color: '#a89a8a' }}
             >
               Go back home
             </button>
           </div>
           {isTimeout && (
-            <p className="text-xs text-muted-foreground mt-6">
+            <p className="text-xs mt-6" style={{ color: '#a89a8a' }}>
               If this persists, please contact hello@littlesouls.app
             </p>
           )}

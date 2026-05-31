@@ -33,10 +33,10 @@ const GIFT_OCCASION_OPTIONS: Array<{ value: GiftOccasion; emoji: string; label: 
 ];
 
 const C = {
-  cream: '#FFFDF5', cream2: '#faf4e8', cream3: '#f3eadb',
-  ink: '#1f1c18', deep: '#2e2a24', warm: '#4d443b', earth: '#6e6259', muted: '#958779',
-  rose: '#bf524a', roseGlow: 'rgba(191,82,74,0.10)',
-  gold: '#c4a265', goldSoft: 'rgba(196,162,101,0.15)',
+  cream: '#0d0a14', cream2: 'rgba(245,239,230,0.05)', cream3: 'rgba(212,182,122,0.22)',
+  ink: '#f5efe6', deep: '#f5efe6', warm: '#cfc1b1', earth: '#cfc1b1', muted: '#9d8d7f',
+  rose: '#d4b67a', roseGlow: 'rgba(212,182,122,0.20)',
+  gold: '#d4b67a', goldSoft: 'rgba(212,182,122,0.15)',
   green: '#4a8c5c',
 };
 
@@ -185,7 +185,7 @@ const OCCASION_TIER_KICKER: Record<GiftOccasion, string> = {
 const OCCASION_ACCENT: Record<GiftOccasion, { ring: string; badge: string }> = {
   new:      { ring: 'rgba(74,140,92,0.28)',   badge: '#4a8c5c' }, // green (fresh beginning)
   discover: { ring: 'rgba(139,92,172,0.28)',  badge: '#8b5cac' }, // violet (mystery/reveal)
-  memorial: { ring: 'rgba(196,162,101,0.42)', badge: '#c4a265' }, // gold (sacred, honouring)
+  memorial: { ring: 'rgba(212,182,122,0.42)', badge: '#d4b67a' }, // gold (sacred, honouring)
   birthday: { ring: 'rgba(217,119,60,0.30)',  badge: '#d9773c' }, // amber (celebration)
 };
 
@@ -293,12 +293,12 @@ function TierCard({
       style={{
         width: '100%', textAlign: 'left', padding: '24px 22px', borderRadius: 20, cursor: 'pointer',
         border: `2px solid ${selected ? accent : C.cream3}`,
-        background: selected ? 'rgba(255,253,245,0.96)' : 'rgba(255,253,245,0.92)',
+        background: selected ? 'rgba(245,239,230,0.08)' : 'rgba(245,239,230,0.05)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         boxShadow: selected
           ? `0 6px 24px ${accentGlow}${occAccent ? `, 0 0 0 5px ${occAccent.ring}` : ''}`
-          : `0 2px 12px rgba(0,0,0,0.04)${occAccent ? `, inset 0 0 0 1px ${occAccent.ring}` : ''}`,
+          : `0 2px 12px rgba(0,0,0,0.3)${occAccent ? `, inset 0 0 0 1px ${occAccent.ring}` : ''}`,
         transition: 'border-color 0.2s, background 0.2s, box-shadow 0.2s',
         position: 'relative',
       }}
@@ -310,7 +310,7 @@ function TierCard({
         <span style={{
           position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)',
           background: occAccent?.badge ?? base.badgeColor,
-          color: '#fff',
+          color: '#141210',
           fontSize: '0.58rem', fontWeight: 800, padding: '3px 14px', borderRadius: 20, letterSpacing: '0.1em',
           whiteSpace: 'nowrap',
         }}>
@@ -322,13 +322,13 @@ function TierCard({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontFamily: '"Playfair Display", Georgia, serif',
             fontWeight: 400, fontSize: '1.3rem', color: C.ink, marginBottom: 4, lineHeight: 1.15,
           }}>
             {tier.label}
           </p>
           <p style={{
-            fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic',
+            fontFamily: 'Lato, system-ui, sans-serif', fontStyle: 'italic',
             fontSize: '0.86rem', color: C.earth, lineHeight: 1.4,
           }}>
             {tier.tagline}
@@ -337,11 +337,11 @@ function TierCard({
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           {wasCents && (
             <p style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontFamily: '"Playfair Display", Georgia, serif',
               fontSize: '1rem', lineHeight: 1,
               color: C.muted,
               textDecoration: 'line-through',
-              textDecorationColor: 'rgba(191,82,74,0.55)',
+              textDecorationColor: 'rgba(212,182,122,0.55)',
               textDecorationThickness: '1.5px',
               marginBottom: 3,
             }}>
@@ -349,7 +349,7 @@ function TierCard({
             </p>
           )}
           <p style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontFamily: '"Playfair Display", Georgia, serif',
             fontSize: '2rem', lineHeight: 1,
             color: C.ink,
             transition: 'color 0.2s',
@@ -473,11 +473,11 @@ function GiftReviewCard({ r, image }: { r: GiftReview; image?: string }) {
       style={{
         padding: '14px 16px 16px',
         borderRadius: 14,
-        background: 'rgba(255,253,245,0.88)',
+        background: 'rgba(245,239,230,0.05)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
-        border: '1px solid rgba(196,162,101,0.18)',
-        boxShadow: '0 2px 10px rgba(31,28,24,0.04)',
+        border: '1px solid rgba(212,182,122,0.22)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -515,7 +515,7 @@ function GiftReviewCard({ r, image }: { r: GiftReview; image?: string }) {
       </div>
       <p style={{
         margin: 0,
-        fontFamily: 'Cormorant, Georgia, serif',
+        fontFamily: 'Lato, system-ui, sans-serif',
         fontStyle: 'italic',
         fontSize: '0.88rem',
         color: C.warm,
@@ -555,7 +555,7 @@ function GiftReviewStrip() {
     <div style={{ margin: '4px 0' }}>
       <p style={{
         textAlign: 'center',
-        fontFamily: 'Cormorant, Georgia, serif',
+        fontFamily: 'Lato, system-ui, sans-serif',
         fontStyle: 'italic',
         fontSize: '0.82rem',
         color: C.earth,
@@ -759,14 +759,14 @@ export default function GiftPurchase() {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '14px 16px', borderRadius: 14,
     border: `1px solid ${C.cream3}`, background: C.cream2,
-    fontSize: '0.95rem', color: C.ink, fontFamily: 'Cormorant, Georgia, serif', outline: 'none',
+    fontSize: '0.95rem', color: C.ink, fontFamily: 'Lato, system-ui, sans-serif', outline: 'none',
     boxSizing: 'border-box',
   };
 
   const stepCount = 3;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 16px 80px', fontFamily: 'Cormorant, Georgia, serif', background: C.cream }}>
+    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 16px 80px', fontFamily: 'Lato, system-ui, sans-serif', background: C.cream }}>
       <WallpaperBackdrop />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 540 }}>
@@ -791,11 +791,11 @@ export default function GiftPurchase() {
             textAlign: 'center', marginBottom: 40,
             padding: 'clamp(48px, 7vw, 64px) clamp(24px, 4vw, 40px) clamp(40px, 5vw, 48px)',
             borderRadius: 18,
-            background: 'rgba(255,253,245,0.94)',
+            background: 'rgba(245,239,230,0.05)',
             backdropFilter: 'blur(3px)',
             WebkitBackdropFilter: 'blur(3px)',
-            border: '1px solid rgba(196,162,101,0.22)',
-            boxShadow: '0 6px 32px rgba(0,0,0,0.05)',
+            border: '1px solid rgba(212,182,122,0.22)',
+            boxShadow: '0 6px 32px rgba(0,0,0,0.4)',
           }}
         >
           {/* Gold star ornament — small presentation cue at the top of
@@ -810,7 +810,7 @@ export default function GiftPurchase() {
               top: -11,
               left: '50%',
               transform: 'translateX(-50%)',
-              background: '#FFFDF5',
+              background: '#0d0a14',
               padding: 4,
               borderRadius: '50%',
             }}
@@ -848,7 +848,7 @@ export default function GiftPurchase() {
               padding: '15px 30px',
               borderRadius: 50,
               background: C.rose,
-              color: '#fff',
+              color: '#141210',
               fontFamily: 'Lato, system-ui, sans-serif',
               fontWeight: 600,
               fontSize: '0.98rem',
@@ -886,7 +886,7 @@ export default function GiftPurchase() {
             <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, textAlign: 'center', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
               Start here — who's it for?
             </p>
-            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto', maxWidth: 420 }}>
+            <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto', maxWidth: 420 }}>
               Four readings, four different voices. Pick the one that fits their moment.
             </p>
 
@@ -924,12 +924,12 @@ export default function GiftPurchase() {
 
           <style>{`
             .gift-toc-card {
-              background: rgba(255, 253, 245, 0.92);
+              background: rgba(245, 239, 230, 0.05);
               backdrop-filter: blur(3px);
               -webkit-backdrop-filter: blur(3px);
-              border: 1px solid rgba(196, 162, 101, 0.16);
+              border: 1px solid rgba(212, 182, 122, 0.22);
               border-radius: 18px;
-              box-shadow: 0 4px 28px rgba(0, 0, 0, 0.04);
+              box-shadow: 0 4px 28px rgba(0, 0, 0, 0.4);
               padding: clamp(28px, 4.4vw, 40px) clamp(20px, 3.6vw, 32px);
             }
             .gift-toc-rule {
@@ -961,7 +961,7 @@ export default function GiftPurchase() {
               gap: 14px;
               padding: clamp(18px, 3vw, 22px) clamp(14px, 2.6vw, 20px);
               color: ${C.ink};
-              font-family: "Cormorant", Georgia, serif;
+              font-family: Lato, system-ui, sans-serif;
               font-style: italic;
               line-height: 1.25;
               text-align: left;
@@ -980,7 +980,7 @@ export default function GiftPurchase() {
             }
             .gift-toc-label { flex: 1; }
             .gift-toc-arrow {
-              font-family: "Cormorant", Georgia, serif;
+              font-family: Lato, system-ui, sans-serif;
               font-style: normal;
               font-size: 1.18em;
               color: ${C.muted};
@@ -1077,8 +1077,8 @@ export default function GiftPurchase() {
               >
                 {/* Selected tier reminder */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 }}>
-                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{TIERS[selectedTier].label}</span>
-                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{fmt(TIER_CENTS[selectedTier].cents)}</span>
+                  <span style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{TIERS[selectedTier].label}</span>
+                  <span style={{ fontFamily: '"Playfair Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{fmt(TIER_CENTS[selectedTier].cents)}</span>
                   <button
                     onClick={() => { setSelectedTier(null); setStep(1); }}
                     style={{ marginLeft: 4, fontSize: '0.72rem', color: C.muted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
@@ -1098,7 +1098,7 @@ export default function GiftPurchase() {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.78rem', fontWeight: 700,
                           background: step >= s ? C.rose : C.cream3,
-                          color: step >= s ? '#fff' : C.muted,
+                          color: step >= s ? '#141210' : C.muted,
                           transition: 'all 0.3s',
                         }}>
                           {step > s ? <CheckCircle style={{ width: 14, height: 14 }} /> : s}
@@ -1118,7 +1118,7 @@ export default function GiftPurchase() {
                     <motion.div key="ds1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                       style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-                      <p style={{ textAlign: 'center', fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: '1.3rem', color: C.ink }}>Who's it for?</p>
+                      <p style={{ textAlign: 'center', fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 400, fontSize: '1.3rem', color: C.ink }}>Who's it for?</p>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         {[
@@ -1128,7 +1128,7 @@ export default function GiftPurchase() {
                           <button key={opt.key} onClick={() => setGiftType(opt.key)} style={{
                             padding: '22px 16px', borderRadius: 18,
                             border: `2px solid ${giftType === opt.key ? C.rose : C.cream3}`,
-                            background: giftType === opt.key ? C.roseGlow : 'white',
+                            background: giftType === opt.key ? C.roseGlow : C.cream2,
                             cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', position: 'relative',
                           }}>
                             {opt.key === 'multiple' && (
@@ -1148,7 +1148,7 @@ export default function GiftPurchase() {
                           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                           onClick={() => setStep(2)}
                           style={{
-                            width: '100%', padding: '16px 0', borderRadius: 50, background: C.rose, color: '#fff',
+                            width: '100%', padding: '16px 0', borderRadius: 50, background: C.rose, color: '#141210',
                             fontFamily: 'Lato, system-ui, sans-serif', fontWeight: 600, fontSize: '0.96rem', letterSpacing: '0.02em', border: 'none', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                             boxShadow: `0 4px 16px ${C.roseGlow}`,
@@ -1184,7 +1184,7 @@ export default function GiftPurchase() {
                       </div>
 
                       {/* Delivery method */}
-                      <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
+                      <div style={{ padding: 20, background: C.cream2, borderRadius: 18, border: `1px solid ${C.cream3}` }}>
                         <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.92rem', marginBottom: 12 }}>How should we deliver it?</p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                           {[
@@ -1198,7 +1198,7 @@ export default function GiftPurchase() {
                               cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', position: 'relative',
                             }}>
                               {opt.badge && (
-                                <span style={{ position: 'absolute', top: -8, left: 12, fontSize: '0.58rem', fontWeight: 700, background: C.gold, color: '#fff', padding: '2px 8px', borderRadius: 20 }}>
+                                <span style={{ position: 'absolute', top: -8, left: 12, fontSize: '0.58rem', fontWeight: 700, background: C.gold, color: '#141210', padding: '2px 8px', borderRadius: 20 }}>
                                   {opt.badge}
                                 </span>
                               )}
@@ -1212,7 +1212,7 @@ export default function GiftPurchase() {
 
                       {/* Single recipient */}
                       {giftType === 'single' && (
-                        <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
+                        <div style={{ padding: 20, background: C.cream2, borderRadius: 18, border: `1px solid ${C.cream3}` }}>
                           <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.92rem', marginBottom: 12 }}>Who's the lucky pet parent?</p>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             <input type="text" value={singleRecipient.name} onChange={e => updateSingleRecipient('name', e.target.value)} placeholder="Their name (optional)" style={inputStyle} />
@@ -1236,9 +1236,9 @@ export default function GiftPurchase() {
                                           ? `1.5px solid ${isMem ? '#788280' : C.gold}`
                                           : `1px solid ${C.cream3}`,
                                         background: selected
-                                          ? (isMem ? 'rgba(120,130,125,0.12)' : C.goldSoft)
-                                          : 'white',
-                                        fontFamily: 'Cormorant, Georgia, serif',
+                                          ? (isMem ? 'rgba(120,130,125,0.18)' : C.goldSoft)
+                                          : C.cream2,
+                                        fontFamily: 'Lato, system-ui, sans-serif',
                                       }}
                                     >
                                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', fontWeight: 600, color: C.ink }}>
@@ -1261,10 +1261,10 @@ export default function GiftPurchase() {
                       {giftType === 'multiple' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                           {recipients.map((r, idx) => (
-                            <div key={r.id} style={{ padding: 16, background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
+                            <div key={r.id} style={{ padding: 16, background: C.cream2, borderRadius: 16, border: `1px solid ${C.cream3}` }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                  <span style={{ width: 24, height: 24, borderRadius: '50%', background: C.rose, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>{idx + 1}</span>
+                                  <span style={{ width: 24, height: 24, borderRadius: '50%', background: C.rose, color: '#141210', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>{idx + 1}</span>
                                   <span style={{ fontWeight: 600, fontSize: '0.88rem', color: C.ink }}>{r.name || `Recipient ${idx + 1}`}</span>
                                 </div>
                                 {recipients.length > 1 && (
@@ -1296,9 +1296,9 @@ export default function GiftPurchase() {
                                             ? `1.5px solid ${isMem ? '#788280' : C.gold}`
                                             : `1px solid ${C.cream3}`,
                                           background: selected
-                                            ? (isMem ? 'rgba(120,130,125,0.12)' : C.goldSoft)
-                                            : 'white',
-                                          fontFamily: 'Cormorant, Georgia, serif',
+                                            ? (isMem ? 'rgba(120,130,125,0.18)' : C.goldSoft)
+                                            : C.cream2,
+                                          fontFamily: 'Lato, system-ui, sans-serif',
                                           fontSize: '0.78rem', fontWeight: 600, color: C.ink,
                                         }}
                                       >
@@ -1315,7 +1315,7 @@ export default function GiftPurchase() {
                               onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: selectedOccasion ?? 'discover' }])}
                               style={{
                                 padding: 14, borderRadius: 14, border: `2px dashed ${C.rose}40`, background: C.roseGlow, cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.rose, fontWeight: 600, fontSize: '0.88rem', fontFamily: 'Cormorant, Georgia, serif',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.rose, fontWeight: 600, fontSize: '0.88rem', fontFamily: 'Lato, system-ui, sans-serif',
                               }}
                             >
                               <Plus style={{ width: 18, height: 18 }} /> Add another person
@@ -1332,7 +1332,7 @@ export default function GiftPurchase() {
                       <button onClick={() => setStep(3)} disabled={!canProceedStep2()} style={{
                         width: '100%', padding: '16px 0', borderRadius: 50,
                         background: canProceedStep2() ? C.rose : C.cream3,
-                        color: canProceedStep2() ? '#fff' : C.muted,
+                        color: canProceedStep2() ? '#141210' : C.muted,
                         fontFamily: 'Lato, system-ui, sans-serif', fontWeight: 600, fontSize: '0.96rem', letterSpacing: '0.02em',
                         border: 'none', cursor: canProceedStep2() ? 'pointer' : 'default',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -1382,7 +1382,7 @@ export default function GiftPurchase() {
                       </div>
 
                       {/* Order summary */}
-                      <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
+                      <div style={{ padding: 20, background: C.cream2, borderRadius: 18, border: `1px solid ${C.cream3}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 12, borderBottom: `1px solid ${C.cream3}`, marginBottom: 12 }}>
                           <Gift style={{ width: 16, height: 16, color: C.rose }} />
                           <p style={{ fontWeight: 700, color: C.ink, fontSize: '0.88rem' }}>Order Summary</p>
@@ -1418,7 +1418,7 @@ export default function GiftPurchase() {
                           )}
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 700 }}>
                             <span style={{ color: C.ink }}>Total</span>
-                            <span style={{ color: C.ink, fontFamily: '"DM Serif Display", Georgia, serif' }}>
+                            <span style={{ color: C.ink, fontFamily: '"Playfair Display", Georgia, serif' }}>
                               {fmt(pricing.finalTotal)}
                             </span>
                           </div>
@@ -1449,12 +1449,12 @@ export default function GiftPurchase() {
                             <button
                               onClick={applyPromo}
                               disabled={!promoCode.trim() || isValidatingPromo}
-                              style={{ padding: '14px 20px', borderRadius: 14, background: C.rose, color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', opacity: (!promoCode.trim() || isValidatingPromo) ? 0.5 : 1, whiteSpace: 'nowrap' }}
+                              style={{ padding: '14px 20px', borderRadius: 14, background: C.rose, color: '#141210', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', opacity: (!promoCode.trim() || isValidatingPromo) ? 0.5 : 1, whiteSpace: 'nowrap' }}
                             >
                               {isValidatingPromo ? '...' : 'Apply'}
                             </button>
                           </div>
-                          {promoError && <p style={{ color: C.rose, fontSize: '0.75rem', marginTop: 4 }}>{promoError}</p>}
+                          {promoError && <p style={{ color: '#f0d99f', fontSize: '0.75rem', marginTop: 4 }}>{promoError}</p>}
                         </div>
                       )}
 
@@ -1476,7 +1476,7 @@ export default function GiftPurchase() {
                         style={{
                           width: '100%', padding: '18px 0', borderRadius: 50,
                           background: (isLoading || !purchaserEmail.includes('@')) ? C.cream3 : C.rose,
-                          color: (isLoading || !purchaserEmail.includes('@')) ? C.muted : '#fff',
+                          color: (isLoading || !purchaserEmail.includes('@')) ? C.muted : '#141210',
                           fontFamily: 'Lato, system-ui, sans-serif', fontWeight: 600, fontSize: '1.04rem', letterSpacing: '0.02em', border: 'none',
                           cursor: (isLoading || !purchaserEmail.includes('@')) ? 'default' : 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -1508,7 +1508,7 @@ export default function GiftPurchase() {
               <summary style={{ textAlign: 'center', fontSize: '0.85rem', color: C.rose, fontWeight: 500, userSelect: 'none' }}>
                 How does gifting work?
               </summary>
-              <div style={{ marginTop: 14, padding: 18, background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
+              <div style={{ marginTop: 14, padding: 18, background: C.cream2, borderRadius: 16, border: `1px solid ${C.cream3}` }}>
                 {[
                   { n: '1', t: 'Choose their reading', d: 'Pick the gift, finish checkout' },
                   { n: '2', t: 'Share the link, your way', d: 'Email it, text it, slip it in a card' },
@@ -1582,13 +1582,13 @@ export default function GiftPurchase() {
 
 function SpinnerInline() {
   return (
-    <div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+    <div style={{ width: 18, height: 18, border: '2px solid rgba(20,18,16,0.3)', borderTopColor: '#141210', borderRadius: '50%', animation: 'spin 1s linear infinite', flexShrink: 0 }} />
   );
 }
 
 function TrustRow({ items, icons }: { items: string[]; icons: React.ElementType[] }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap', fontSize: '0.72rem', color: '#958779' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap', fontSize: '0.72rem', color: '#9d8d7f' }}>
       {items.map((t, i) => {
         const Icon = icons[i];
         return (

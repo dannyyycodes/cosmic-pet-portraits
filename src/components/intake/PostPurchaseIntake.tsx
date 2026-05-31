@@ -510,10 +510,10 @@ export function PostPurchaseIntake({
     }
   };
 
-  const inputClass = "w-full border-[1.5px] border-[#E8DFD6] rounded-xl px-5 py-[0.9rem] text-[1.1rem] text-[#2D2926] bg-white placeholder:text-[#9B8E84] focus:outline-none focus:border-[#bf524a] transition-colors font-[Cormorant,serif]";
-  const hintClass = "text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mt-1";
-  const labelClass = "text-[0.7rem] text-[#9B8E84] uppercase tracking-widest font-[Cormorant,serif] font-semibold mb-1 block";
-  const roseBtn = "w-full py-[0.9rem] rounded-xl text-white font-[Cormorant,serif] font-semibold text-[1rem] transition-all";
+  const inputClass = "w-full border-[1.5px] border-[rgba(212,182,122,0.34)] rounded-xl px-5 py-[0.9rem] text-[1.1rem] text-[#f5efe6] bg-[rgba(5,4,7,0.6)] [color-scheme:dark] placeholder:text-[#9d8d7f] focus:outline-none focus:border-[#d4b67a] transition-colors font-['Playfair_Display',Georgia,serif]";
+  const hintClass = "text-[0.78rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] mt-1";
+  const labelClass = "text-[0.7rem] text-[#9d8d7f] uppercase tracking-widest font-['Playfair_Display',Georgia,serif] font-semibold mb-1 block";
+  const roseBtn = "w-full py-[0.9rem] rounded-xl text-[#141210] font-['Playfair_Display',Georgia,serif] font-semibold text-[1rem] transition-all";
 
   // Screen 5 is a per-product slot:
   // - Memorial path  → memorial anchors (passed_date, favorite_memory, remembered_by)
@@ -565,11 +565,11 @@ export function PostPurchaseIntake({
           aria-label={`Pet ${currentPetNumber} of ${totalPets}`}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full"
           style={{
-            background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(191,82,74,0.12))',
-            border: '1px solid rgba(196,162,101,0.35)',
+            background: 'linear-gradient(135deg, rgba(212,182,122,0.15), rgba(212,182,122,0.12))',
+            border: '1px solid rgba(212,182,122,0.35)',
           }}
         >
-          <span className="text-[0.68rem] font-bold uppercase tracking-[0.15em]" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
+          <span className="text-[0.68rem] font-bold uppercase tracking-[0.15em]" style={{ color: '#d4b67a', fontFamily: '"Playfair Display", Georgia, serif' }}>
             Pet {currentPetNumber} of {totalPets}
           </span>
           <div className="flex gap-1" aria-hidden="true">
@@ -578,7 +578,7 @@ export function PostPurchaseIntake({
                 key={i}
                 className={cn(
                   "h-1 rounded-full transition-all",
-                  i < currentPetNumber ? "bg-[#bf524a] w-4" : "bg-[#E8DFD6] w-2"
+                  i < currentPetNumber ? "bg-[#d4b67a] w-4" : "bg-[rgba(212,182,122,0.22)] w-2"
                 )}
               />
             ))}
@@ -593,7 +593,7 @@ export function PostPurchaseIntake({
             transition={{ duration: 0.3 }}
             className={cn(
               "w-2 h-2 rounded-full transition-colors",
-              i === screen ? "bg-[#bf524a]" : "border border-[#E8DFD6] bg-transparent"
+              i === screen ? "bg-[#d4b67a]" : "border border-[rgba(212,182,122,0.22)] bg-transparent"
             )}
           />
         ))}
@@ -624,15 +624,15 @@ export function PostPurchaseIntake({
       <div
         className="min-h-screen flex items-center justify-center px-4"
         style={{
-          backgroundColor: '#FFFDF5',
+          backgroundColor: '#0d0a14',
           paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
           paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))',
           ...grainStyle,
         }}
       >
         <div className="flex flex-col items-center gap-3" aria-busy="true" aria-live="polite">
-          <Loader2 className="w-6 h-6 text-[#bf524a] animate-spin" />
-          <p className="text-[0.88rem] text-[#9B8E84] font-[Cormorant,serif]">
+          <Loader2 className="w-6 h-6 text-[#d4b67a] animate-spin" />
+          <p className="text-[0.88rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif]">
             Preparing your reading…
           </p>
         </div>
@@ -644,7 +644,7 @@ export function PostPurchaseIntake({
     <div
       className="min-h-screen flex items-start sm:items-center justify-center px-4 py-8"
       style={{
-        backgroundColor: '#FFFDF5',
+        backgroundColor: '#0d0a14',
         paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
         paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))',
         ...grainStyle,
@@ -656,8 +656,8 @@ export function PostPurchaseIntake({
             type="button"
             onClick={goBack}
             aria-label="Go back to the previous step"
-            className="flex items-center gap-1.5 mb-3 text-[0.82rem] text-[#9B8E84] hover:text-[#2D2926] transition-colors"
-            style={{ fontFamily: 'Cormorant, serif' }}
+            className="flex items-center gap-1.5 mb-3 text-[0.82rem] text-[#9d8d7f] hover:text-[#f5efe6] transition-colors"
+            style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -668,22 +668,22 @@ export function PostPurchaseIntake({
           {/* SCREEN 0: Occasion Mode */}
           {screen === 0 && (
             <motion.div key="s0" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>What's the occasion?</h1>
+              <h1 className="text-center text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>What's the occasion?</h1>
               <div className="grid grid-cols-2 gap-2">
                 {OCCASION_OPTIONS.map(opt => (
                   <button key={opt.value} onClick={() => setOccasionMode(opt.value)}
                     className={cn(
                       "flex flex-col items-center gap-1 py-4 px-3 rounded-xl border-[1.5px] transition-all",
-                      occasionMode === opt.value ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white hover:border-[#c9665f]"
+                      occasionMode === opt.value ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] hover:border-[#f0d99f]"
                     )}>
                     <span className="text-[1.5rem]">{opt.emoji}</span>
-                    <span className="text-[0.88rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{opt.label}</span>
-                    <span className="text-[0.72rem] font-[Cormorant,serif] text-[#9B8E84]">{opt.desc}</span>
+                    <span className="text-[0.88rem] font-['Playfair_Display',Georgia,serif] font-semibold text-[#f5efe6]">{opt.label}</span>
+                    <span className="text-[0.72rem] font-['Playfair_Display',Georgia,serif] text-[#9d8d7f]">{opt.desc}</span>
                   </button>
                 ))}
               </div>
               <button onClick={() => setScreen(1)}
-                className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+                className={cn(roseBtn, "bg-[#d4b67a] hover:bg-[#f0d99f]")}>
                 Continue →
               </button>
             </motion.div>
@@ -692,7 +692,7 @@ export function PostPurchaseIntake({
           {/* SCREEN 1: Name, Species, Gender */}
           {screen === 1 && (
             <motion.div key="s1" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <h1 className="text-center text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 {isMemorial ? 'Tell us about them' : isNew ? 'Let\'s welcome them' : "Let's meet them"}
               </h1>
 
@@ -717,10 +717,10 @@ export function PostPurchaseIntake({
                       <button key={opt.value} onClick={() => setSpecies(opt.value)}
                         className={cn(
                           "flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-[1.5px] transition-all",
-                          species === opt.value ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white hover:border-[#c9665f]"
+                          species === opt.value ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] hover:border-[#f0d99f]"
                         )}>
                         <span className="text-[1.3rem]">{opt.emoji}</span>
-                        <span className="text-[0.82rem] font-[Cormorant,serif] text-[#2D2926]">{opt.label}</span>
+                        <span className="text-[0.82rem] font-['Playfair_Display',Georgia,serif] text-[#f5efe6]">{opt.label}</span>
                       </button>
                     ))}
                   </div>
@@ -733,8 +733,8 @@ export function PostPurchaseIntake({
                     {GENDER_OPTIONS.map(opt => (
                       <button key={opt.value} onClick={() => setGender(opt.value)}
                         className={cn(
-                          "px-5 py-[0.6rem] rounded-[20px] border-[1.5px] text-[0.88rem] font-[Cormorant,serif] transition-all",
-                          gender === opt.value ? "bg-[#bf524a] text-white border-[#bf524a]" : "border-[#E8DFD6] bg-white text-[#2D2926] hover:border-[#c9665f]"
+                          "px-5 py-[0.6rem] rounded-[20px] border-[1.5px] text-[0.88rem] font-['Playfair_Display',Georgia,serif] transition-all",
+                          gender === opt.value ? "bg-[#d4b67a] text-[#141210] border-[#d4b67a]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] text-[#f5efe6] hover:border-[#f0d99f]"
                         )}>
                         {opt.label}
                       </button>
@@ -744,7 +744,7 @@ export function PostPurchaseIntake({
               )}
 
               <button onClick={() => setScreen(2)} disabled={!screen1Ready}
-                className={cn(roseBtn, screen1Ready ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed")}>
+                className={cn(roseBtn, screen1Ready ? "bg-[#d4b67a] hover:bg-[#f0d99f]" : "bg-[#d4b67a]/50 cursor-not-allowed")}>
                 Continue →
               </button>
             </motion.div>
@@ -753,10 +753,10 @@ export function PostPurchaseIntake({
           {/* SCREEN 2: Birthday + Time */}
           {screen === 2 && (
             <motion.div key="s2" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <h1 className="text-center text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 When was {petName} born?
               </h1>
-              <p className="text-center text-[0.92rem] text-[#6B5E54] italic" style={{ fontFamily: 'Cormorant, serif' }}>
+              <p className="text-center text-[0.92rem] text-[#cfc1b1] italic" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 {isMemorial
                   ? `Every planetary position in ${pronouns.possessive} chart was set the moment ${pronouns.subject} arrived.`
                   : isNew
@@ -769,8 +769,8 @@ export function PostPurchaseIntake({
                 <button
                   onClick={() => { setUseEstimateAge(false); setBirthDate(''); }}
                   className={cn(
-                    "px-4 py-2 rounded-full text-[0.82rem] font-[Cormorant,serif] font-semibold border-[1.5px] transition-all",
-                    !useEstimateAge ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)] text-[#2D2926]" : "border-[#E8DFD6] bg-white text-[#9B8E84]"
+                    "px-4 py-2 rounded-full text-[0.82rem] font-['Playfair_Display',Georgia,serif] font-semibold border-[1.5px] transition-all",
+                    !useEstimateAge ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)] text-[#f5efe6]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] text-[#9d8d7f]"
                   )}
                 >
                   📅 I know the date
@@ -778,8 +778,8 @@ export function PostPurchaseIntake({
                 <button
                   onClick={() => { setUseEstimateAge(true); setBirthDate(''); }}
                   className={cn(
-                    "px-4 py-2 rounded-full text-[0.82rem] font-[Cormorant,serif] font-semibold border-[1.5px] transition-all",
-                    useEstimateAge ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)] text-[#2D2926]" : "border-[#E8DFD6] bg-white text-[#9B8E84]"
+                    "px-4 py-2 rounded-full text-[0.82rem] font-['Playfair_Display',Georgia,serif] font-semibold border-[1.5px] transition-all",
+                    useEstimateAge ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)] text-[#f5efe6]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] text-[#9d8d7f]"
                   )}
                 >
                   🤔 Estimate age
@@ -803,7 +803,7 @@ export function PostPurchaseIntake({
                             <option key={m} value={i.toString()}>{m}</option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                       </div>
                       <div className="w-[100px] relative">
                         <select
@@ -817,7 +817,7 @@ export function PostPurchaseIntake({
                             <option key={y} value={y.toString()}>{y}</option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                       </div>
                     </div>
 
@@ -831,10 +831,10 @@ export function PostPurchaseIntake({
                               key={day}
                               onClick={() => setBirthDay(day.toString())}
                               className={cn(
-                                "py-2 rounded-lg text-[0.88rem] font-[Cormorant,serif] font-semibold transition-all",
+                                "py-2 rounded-lg text-[0.88rem] font-['Playfair_Display',Georgia,serif] font-semibold transition-all",
                                 birthDay === day.toString()
-                                  ? "bg-[#bf524a] text-white"
-                                  : "bg-white border border-[#E8DFD6] text-[#2D2926] hover:border-[#c9665f]"
+                                  ? "bg-[#d4b67a] text-[#141210]"
+                                  : "bg-[rgba(245,239,230,0.05)] border border-[rgba(212,182,122,0.22)] text-[#f5efe6] hover:border-[#f0d99f]"
                               )}
                             >
                               {day}
@@ -846,7 +846,7 @@ export function PostPurchaseIntake({
                   </motion.div>
                 ) : (
                   <motion.div key="estimate-age" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
-                    <p className="text-center text-[0.85rem] text-[#6B5E54]" style={{ fontFamily: 'Cormorant, serif' }}>
+                    <p className="text-center text-[0.85rem] text-[#cfc1b1]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                       How old is {petName}?
                     </p>
                     <div className="flex gap-3 justify-center">
@@ -862,7 +862,7 @@ export function PostPurchaseIntake({
                             <option key={i} value={i.toString()}>{i} {i === 1 ? 'year' : 'years'}</option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                       </div>
                       <div className="w-[120px] relative">
                         <select
@@ -876,11 +876,11 @@ export function PostPurchaseIntake({
                             <option key={i} value={i.toString()}>{i} {i === 1 ? 'month' : 'months'}</option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                       </div>
                     </div>
                     {birthDate && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-[0.82rem] text-[#bf524a]" style={{ fontFamily: 'Cormorant, serif' }}>
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-[0.82rem] text-[#d4b67a]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                         Estimated: ~{new Date(birthDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                       </motion.p>
                     )}
@@ -892,7 +892,7 @@ export function PostPurchaseIntake({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <label className={cn(labelClass, "mb-0")}>Time of birth</label>
-                  <span className="text-[0.6rem] font-bold text-[#c4a265] bg-[rgba(196,162,101,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
+                  <span className="text-[0.6rem] font-bold text-[#d4b67a] bg-[rgba(212,182,122,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
                 </div>
                 <input type="time" value={birthTime} onChange={e => setBirthTime(e.target.value)}
                   className={inputClass} aria-label="Time of birth" style={{ fontSize: '16px' }} />
@@ -901,13 +901,13 @@ export function PostPurchaseIntake({
                 </p>
               </div>
 
-              <div className="bg-white border border-[#E8DFD6] rounded-xl p-4 border-l-[3px] border-l-[#c4a265]">
-                <p className="text-[0.82rem] text-[#6B5E54]" style={{ fontFamily: 'Cormorant, serif' }}>
+              <div className="bg-[rgba(245,239,230,0.05)] border border-[rgba(212,182,122,0.22)] rounded-xl p-4 border-l-[3px] border-l-[#d4b67a]">
+                <p className="text-[0.82rem] text-[#cfc1b1]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                   If you're not sure of the exact date, your best estimate still works — the Sun and outer planets move slowly enough to capture {pronouns.possessive} core essence accurately.
                 </p>
               </div>
 
-              <button onClick={() => setScreen(3)} disabled={!birthDate} className={cn(roseBtn, birthDate ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed")}>
+              <button onClick={() => setScreen(3)} disabled={!birthDate} className={cn(roseBtn, birthDate ? "bg-[#d4b67a] hover:bg-[#f0d99f]" : "bg-[#d4b67a]/50 cursor-not-allowed")}>
                 Continue →
               </button>
             </motion.div>
@@ -916,10 +916,10 @@ export function PostPurchaseIntake({
           {/* SCREEN 3: Breed + Location */}
           {screen === 3 && (
             <motion.div key="s3" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <h1 className="text-center text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 A little more about {petName}
               </h1>
-              <p className="text-center text-[0.88rem] text-[#9B8E84] italic" style={{ fontFamily: 'Cormorant, serif' }}>
+              <p className="text-center text-[0.88rem] text-[#9d8d7f] italic" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 {isMemorial
                   ? 'Share only what you remember — skip anything unclear.'
                   : isNew
@@ -938,24 +938,24 @@ export function PostPurchaseIntake({
               <div className="relative">
                 <label className={labelClass}>Birth location</label>
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84]" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f]" />
                   <input value={location} onChange={e => setLocation(e.target.value)}
                     placeholder="Start typing a city..."
                     className={cn(inputClass, "pl-10")} aria-label="Location" style={{ fontSize: '16px' }}
                     onFocus={() => { if (location.length >= 2) setShowLocationResults(true); }}
                     onBlur={() => setTimeout(() => setShowLocationResults(false), 200)} />
                   {isSearchingLocation && (
-                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bf524a] animate-spin" />
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#d4b67a] animate-spin" />
                   )}
                 </div>
                 <AnimatePresence>
                   {showLocationResults && locationResults.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                      className="absolute z-50 w-full mt-1 bg-white border border-[#E8DFD6] rounded-xl shadow-lg overflow-hidden">
+                      className="absolute z-50 w-full mt-1 bg-[rgba(245,239,230,0.05)] border border-[rgba(212,182,122,0.22)] rounded-xl shadow-lg overflow-hidden">
                       {locationResults.map((r, i) => (
                         <button key={i} onMouseDown={e => e.preventDefault()} onClick={() => selectLocation(r)}
-                          className="w-full px-4 py-3 text-left hover:bg-[rgba(240,213,210,0.2)] transition-colors border-b border-[#E8DFD6] last:border-0 text-[0.85rem] font-[Cormorant,serif] text-[#2D2926] flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5 text-[#9B8E84] flex-shrink-0" />
+                          className="w-full px-4 py-3 text-left hover:bg-[rgba(212,182,122,0.1)] transition-colors border-b border-[rgba(212,182,122,0.22)] last:border-0 text-[0.85rem] font-['Playfair_Display',Georgia,serif] text-[#f5efe6] flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#9d8d7f] flex-shrink-0" />
                           {r.display_name.split(',').slice(0, 3).join(',')}
                         </button>
                       ))}
@@ -977,7 +977,7 @@ export function PostPurchaseIntake({
                       setShowLocationResults(false);
                     } catch { /* silently fail */ }
                   }}
-                  className="flex items-center gap-1.5 mt-2 text-[0.78rem] text-[#bf524a] font-[Cormorant,serif] font-semibold hover:underline"
+                  className="flex items-center gap-1.5 mt-2 text-[0.78rem] text-[#d4b67a] font-['Playfair_Display',Georgia,serif] font-semibold hover:underline"
                 >
                   📍 Use my current location
                 </button>
@@ -985,11 +985,11 @@ export function PostPurchaseIntake({
                 {/* Quick-select cities */}
                 {!location && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
-                    <p className="text-[0.7rem] text-[#9B8E84] mb-2">Or quick-select:</p>
+                    <p className="text-[0.7rem] text-[#9d8d7f] mb-2">Or quick-select:</p>
                     <div className="flex flex-wrap gap-1.5">
                       {quickCities.map(c => (
                         <button key={c.city} onClick={() => { setLocation(`${c.city}, ${c.country}`); setShowLocationResults(false); }}
-                          className="px-3 py-1.5 rounded-full border border-[#E8DFD6] bg-white text-[0.78rem] font-[Cormorant,serif] text-[#2D2926] hover:border-[#c9665f] transition-all">
+                          className="px-3 py-1.5 rounded-full border border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] text-[0.78rem] font-['Playfair_Display',Georgia,serif] text-[#f5efe6] hover:border-[#f0d99f] transition-all">
                           {c.flag} {c.city}
                         </button>
                       ))}
@@ -999,10 +999,10 @@ export function PostPurchaseIntake({
                 <p className={hintClass}>Affects which stars were visible — refines house placements in the chart.</p>
               </div>
 
-              <button onClick={() => setScreen(4)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(4)} className={cn(roseBtn, "bg-[#d4b67a] hover:bg-[#f0d99f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(4)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+              <button onClick={() => setScreen(4)} className="w-full text-center text-[0.85rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] hover:underline mt-1">
                 Skip these — keep it simple
               </button>
             </motion.div>
@@ -1011,18 +1011,18 @@ export function PostPurchaseIntake({
           {/* SCREEN 4: Make it personal */}
           {screen === 4 && (
             <motion.div key="s4" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <div className="bg-[rgba(196,162,101,0.15)] rounded-[10px] px-4 py-2 text-center">
-                <span className="text-[0.78rem] text-[#c4a265] font-semibold">⭐ Makes it personal</span>
+              <div className="bg-[rgba(212,182,122,0.15)] rounded-[10px] px-4 py-2 text-center">
+                <span className="text-[0.78rem] text-[#d4b67a] font-semibold">⭐ Makes it personal</span>
               </div>
 
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <h1 className="text-center text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 {isMemorial
                   ? `Help us really hold ${petName}`
                   : isNew
                   ? `First impressions of ${petName}`
                   : `Help us really see ${petName}`}
               </h1>
-              <p className="text-center text-[0.88rem] text-[#6B5E54]" style={{ fontFamily: 'Cormorant, serif' }}>
+              <p className="text-center text-[0.88rem] text-[#cfc1b1]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 {isMemorial
                   ? `The more you share, the more the reading sounds like it was written by someone who truly knew ${petName}.`
                   : isNew
@@ -1032,18 +1032,18 @@ export function PostPurchaseIntake({
 
               {/* Soul Type */}
               <div>
-                <label className={labelClass}>Soul type <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(pick up to 2)</span></label>
+                <label className={labelClass}>Soul type <span className="text-[#9d8d7f] normal-case tracking-normal font-normal">(pick up to 2)</span></label>
                 <div className="grid grid-cols-2 gap-2">
                   {SOUL_TYPES.map(t => (
                     <button key={t.label} onClick={() => toggleMultiSelect(soulTypes, setSoulTypes, t.label, 2)}
                       className={cn(
                         "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-left transition-all flex items-start gap-2",
-                        soulTypes.includes(t.label) ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
+                        soulTypes.includes(t.label) ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)]"
                       )}>
                       <span className="text-[1rem] mt-[1px]">{t.emoji}</span>
                       <div>
-                        <div className="text-[0.82rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{t.label}</div>
-                        <div className="text-[0.7rem] font-[Cormorant,serif] text-[#9B8E84]">{t.desc}</div>
+                        <div className="text-[0.82rem] font-['Playfair_Display',Georgia,serif] font-semibold text-[#f5efe6]">{t.label}</div>
+                        <div className="text-[0.7rem] font-['Playfair_Display',Georgia,serif] text-[#9d8d7f]">{t.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -1052,18 +1052,18 @@ export function PostPurchaseIntake({
 
               {/* Superpower */}
               <div>
-                <label className={labelClass}>Superpower <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(pick up to 2)</span></label>
+                <label className={labelClass}>Superpower <span className="text-[#9d8d7f] normal-case tracking-normal font-normal">(pick up to 2)</span></label>
                 <div className="grid grid-cols-2 gap-2">
                   {SUPERPOWERS.map(s => (
                     <button key={s.label} onClick={() => toggleMultiSelect(superpowers, setSuperpowers, s.label, 2)}
                       className={cn(
                         "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-left transition-all flex items-start gap-2",
-                        superpowers.includes(s.label) ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
+                        superpowers.includes(s.label) ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)]"
                       )}>
                       <span className="text-[1rem] mt-[1px]">{s.emoji}</span>
                       <div>
-                        <div className="text-[0.82rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{s.label}</div>
-                        <div className="text-[0.7rem] font-[Cormorant,serif] text-[#9B8E84]">{s.desc}</div>
+                        <div className="text-[0.82rem] font-['Playfair_Display',Georgia,serif] font-semibold text-[#f5efe6]">{s.label}</div>
+                        <div className="text-[0.7rem] font-['Playfair_Display',Georgia,serif] text-[#9d8d7f]">{s.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -1078,12 +1078,12 @@ export function PostPurchaseIntake({
                     <button key={r.label} onClick={() => setStrangerReaction(strangerReaction === r.label ? "" : r.label)}
                       className={cn(
                         "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-left transition-all flex items-start gap-2",
-                        strangerReaction === r.label ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
+                        strangerReaction === r.label ? "border-[#d4b67a] bg-[rgba(212,182,122,0.12)]" : "border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)]"
                       )}>
                       <span className="text-[1rem] mt-[1px]">{r.emoji}</span>
                       <div>
-                        <div className="text-[0.82rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{r.label}</div>
-                        <div className="text-[0.7rem] font-[Cormorant,serif] text-[#9B8E84]">{r.desc}</div>
+                        <div className="text-[0.82rem] font-['Playfair_Display',Georgia,serif] font-semibold text-[#f5efe6]">{r.label}</div>
+                        <div className="text-[0.7rem] font-['Playfair_Display',Georgia,serif] text-[#9d8d7f]">{r.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -1098,7 +1098,7 @@ export function PostPurchaseIntake({
                     : isNew
                     ? 'The first moment that made you know'
                     : "One memory that's SO them"}{' '}
-                  <span className="text-[#9B8E84] font-normal">(optional)</span>
+                  <span className="text-[#9d8d7f] font-normal">(optional)</span>
                 </label>
                 <textarea
                   value={ownerMemory}
@@ -1109,16 +1109,16 @@ export function PostPurchaseIntake({
                     ? `The first time ${petName || 'they'} looked at you and you knew. Or the first small thing ${petName || 'they'} did that felt like them.`
                     : `The one story that makes ${petName || 'them'} ${petName || 'them'}. ${petName || 'They'} will reference it in SoulSpeak someday and you'll gasp.`}
                   rows={3}
-                  className="w-full px-3 py-2 rounded-[10px] border-[1.5px] border-[#E8DFD6] bg-white text-[0.88rem] font-[Cormorant,serif] text-[#2D2926] placeholder:text-[#C2B8AE] focus:border-[#bf524a] focus:outline-none resize-none"
+                  className="w-full px-3 py-2 rounded-[10px] border-[1.5px] border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] text-[0.88rem] font-['Playfair_Display',Georgia,serif] text-[#f5efe6] placeholder:text-[#9d8d7f] focus:border-[#d4b67a] focus:outline-none resize-none"
                   maxLength={500}
                 />
-                <div className="text-right text-[0.7rem] text-[#9B8E84] font-[Cormorant,serif] mt-1">{ownerMemory.length}/500</div>
+                <div className="text-right text-[0.7rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] mt-1">{ownerMemory.length}/500</div>
               </div>
 
-              <button onClick={() => setScreen(extraScreen ? 5 : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(extraScreen ? 5 : confirmScreen)} className={cn(roseBtn, "bg-[#d4b67a] hover:bg-[#f0d99f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(extraScreen ? 5 : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+              <button onClick={() => setScreen(extraScreen ? 5 : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] hover:underline mt-1">
                 {isMemorial ? 'Skip — let the stars speak for them' : isNew ? "Skip — you'll learn the rest as you go" : 'Skip — let the stars do the talking'}
               </button>
             </motion.div>
@@ -1129,13 +1129,13 @@ export function PostPurchaseIntake({
             <motion.div key="s-sb" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <div className="text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
-                  style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(196,122,122,0.15))', border: '1px solid rgba(196,162,101,0.3)' }}>
-                  <span className="text-[0.78rem] font-semibold" style={{ color: '#c4a265' }}>💞 Soul Bond — Premium</span>
+                  style={{ background: 'linear-gradient(135deg, rgba(212,182,122,0.15), rgba(212,182,122,0.15))', border: '1px solid rgba(212,182,122,0.3)' }}>
+                  <span className="text-[0.78rem] font-semibold" style={{ color: '#d4b67a' }}>💞 Soul Bond — Premium</span>
                 </div>
-                <h1 className="text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                <h1 className="text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                   Now let's look at your stars
                 </h1>
-                <p className="text-[0.88rem] text-[#6B5E54] mt-2" style={{ fontFamily: 'Cormorant, serif' }}>
+                <p className="text-[0.88rem] text-[#cfc1b1] mt-2" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                   We'll compare your natal chart with {petName}'s to reveal why you two were cosmically destined to find each other.
                 </p>
               </div>
@@ -1157,7 +1157,7 @@ export function PostPurchaseIntake({
                       <option value="">Month</option>
                       {months.map((m, i) => <option key={m} value={i.toString()}>{m}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                   </div>
                   <div className="w-[100px] relative">
                     <select value={ownerBirthYear} onChange={e => setOwnerBirthYear(e.target.value)}
@@ -1165,7 +1165,7 @@ export function PostPurchaseIntake({
                       <option value="">Year</option>
                       {ownerYears.map(y => <option key={y} value={y.toString()}>{y}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                   </div>
                 </div>
                 {ownerBirthMonth !== "" && ownerBirthYear && (
@@ -1175,10 +1175,10 @@ export function PostPurchaseIntake({
                       {Array.from({ length: ownerDaysInMonth }, (_, i) => i + 1).map(day => (
                         <button key={day} onClick={() => setOwnerBirthDay(day.toString())}
                           className={cn(
-                            "py-2 rounded-lg text-[0.88rem] font-[Cormorant,serif] font-semibold transition-all",
+                            "py-2 rounded-lg text-[0.88rem] font-['Playfair_Display',Georgia,serif] font-semibold transition-all",
                             ownerBirthDay === day.toString()
-                              ? "bg-[#bf524a] text-white"
-                              : "bg-white border border-[#E8DFD6] text-[#2D2926] hover:border-[#c9665f]"
+                              ? "bg-[#d4b67a] text-[#141210]"
+                              : "bg-[rgba(245,239,230,0.05)] border border-[rgba(212,182,122,0.22)] text-[#f5efe6] hover:border-[#f0d99f]"
                           )}>
                           {day}
                         </button>
@@ -1192,7 +1192,7 @@ export function PostPurchaseIntake({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <label className={cn(labelClass, "mb-0")}>Time of birth</label>
-                  <span className="text-[0.6rem] font-bold text-[#c4a265] bg-[rgba(196,162,101,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
+                  <span className="text-[0.6rem] font-bold text-[#d4b67a] bg-[rgba(212,182,122,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
                 </div>
                 <input type="time" value={ownerBirthTime} onChange={e => setOwnerBirthTime(e.target.value)}
                   className={inputClass} style={{ fontSize: '16px' }} />
@@ -1202,27 +1202,27 @@ export function PostPurchaseIntake({
               <div className="relative">
                 <div className="flex items-center gap-2 mb-1">
                   <label className={cn(labelClass, "mb-0")}>Birth location</label>
-                  <span className="text-[0.6rem] font-bold text-[#c4a265] bg-[rgba(196,162,101,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
+                  <span className="text-[0.6rem] font-bold text-[#d4b67a] bg-[rgba(212,182,122,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
                 </div>
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84]" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f]" />
                   <input value={ownerBirthLocation} onChange={e => setOwnerBirthLocation(e.target.value)}
                     placeholder="Start typing a city..."
                     className={cn(inputClass, "pl-10")} style={{ fontSize: '16px' }}
                     onFocus={() => { if (ownerBirthLocation.length >= 2) setShowOwnerLocationResults(true); }}
                     onBlur={() => setTimeout(() => setShowOwnerLocationResults(false), 200)} />
                   {isSearchingOwnerLocation && (
-                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bf524a] animate-spin" />
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#d4b67a] animate-spin" />
                   )}
                 </div>
                 <AnimatePresence>
                   {showOwnerLocationResults && ownerLocationResults.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                      className="absolute z-50 w-full mt-1 bg-white border border-[#E8DFD6] rounded-xl shadow-lg overflow-hidden">
+                      className="absolute z-50 w-full mt-1 bg-[rgba(245,239,230,0.05)] border border-[rgba(212,182,122,0.22)] rounded-xl shadow-lg overflow-hidden">
                       {ownerLocationResults.map((r, i) => (
                         <button key={i} onMouseDown={e => e.preventDefault()} onClick={() => selectOwnerLocation(r)}
-                          className="w-full px-4 py-3 text-left hover:bg-[rgba(240,213,210,0.2)] transition-colors border-b border-[#E8DFD6] last:border-0 text-[0.85rem] font-[Cormorant,serif] text-[#2D2926] flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5 text-[#9B8E84] flex-shrink-0" />
+                          className="w-full px-4 py-3 text-left hover:bg-[rgba(212,182,122,0.1)] transition-colors border-b border-[rgba(212,182,122,0.22)] last:border-0 text-[0.85rem] font-['Playfair_Display',Georgia,serif] text-[#f5efe6] flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#9d8d7f] flex-shrink-0" />
                           {r.display_name.split(',').slice(0, 3).join(',')}
                         </button>
                       ))}
@@ -1233,7 +1233,7 @@ export function PostPurchaseIntake({
 
               <button onClick={() => setScreen(confirmScreen)}
                 disabled={!ownerName.trim() || !ownerBirthDate}
-                className={cn(roseBtn, ownerName.trim() && ownerBirthDate ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed")}>
+                className={cn(roseBtn, ownerName.trim() && ownerBirthDate ? "bg-[#d4b67a] hover:bg-[#f0d99f]" : "bg-[#d4b67a]/50 cursor-not-allowed")}>
                 Continue →
               </button>
             </motion.div>
@@ -1246,17 +1246,17 @@ export function PostPurchaseIntake({
           {showMemorialScreen && screen === memorialScreen && (
             <motion.div key="s-mem" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <div className="text-center">
-                <h1 className="text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                <h1 className="text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                   A few last, gentle details
                 </h1>
-                <p className="text-[0.92rem] text-[#6B5E54] italic mt-2" style={{ fontFamily: 'Cormorant, serif' }}>
+                <p className="text-[0.92rem] text-[#cfc1b1] italic mt-2" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                   Only share what you're ready to. Each of these shapes how we write about {petName || 'them'} specifically.
                 </p>
               </div>
 
               {/* Field 1: when they passed */}
               <div>
-                <label className={labelClass}>When did {petName || 'they'} pass? <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(optional — for gentle anniversary remembrances)</span></label>
+                <label className={labelClass}>When did {petName || 'they'} pass? <span className="text-[#9d8d7f] normal-case tracking-normal font-normal">(optional — for gentle anniversary remembrances)</span></label>
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
                     <select value={passedMonth} onChange={e => setPassedMonth(e.target.value)}
@@ -1264,7 +1264,7 @@ export function PostPurchaseIntake({
                       <option value="">Month</option>
                       {months.map((m, i) => <option key={m} value={i.toString()}>{m}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                   </div>
                   <div className="w-[100px] relative">
                     <select value={passedYear} onChange={e => setPassedYear(e.target.value)}
@@ -1272,7 +1272,7 @@ export function PostPurchaseIntake({
                       <option value="">Year</option>
                       {years.map(y => <option key={y} value={y.toString()}>{y}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9d8d7f] pointer-events-none" />
                   </div>
                 </div>
                 {passedMonth !== "" && passedYear && (
@@ -1282,10 +1282,10 @@ export function PostPurchaseIntake({
                       {Array.from({ length: passedDaysInMonth }, (_, i) => i + 1).map(day => (
                         <button key={day} onClick={() => setPassedDay(day.toString())}
                           className={cn(
-                            "py-2 rounded-lg text-[0.88rem] font-[Cormorant,serif] font-semibold transition-all",
+                            "py-2 rounded-lg text-[0.88rem] font-['Playfair_Display',Georgia,serif] font-semibold transition-all",
                             passedDay === day.toString()
-                              ? "bg-[#bf524a] text-white"
-                              : "bg-white border border-[#E8DFD6] text-[#2D2926] hover:border-[#c9665f]"
+                              ? "bg-[#d4b67a] text-[#141210]"
+                              : "bg-[rgba(245,239,230,0.05)] border border-[rgba(212,182,122,0.22)] text-[#f5efe6] hover:border-[#f0d99f]"
                           )}>
                           {day}
                         </button>
@@ -1297,8 +1297,8 @@ export function PostPurchaseIntake({
 
               {/* Field 2: favorite memory */}
               <div>
-                <label className={labelClass}>Is there one moment you want us to hold? <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(optional)</span></label>
-                <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-2">
+                <label className={labelClass}>Is there one moment you want us to hold? <span className="text-[#9d8d7f] normal-case tracking-normal font-normal">(optional)</span></label>
+                <p className="text-[0.78rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] mb-2">
                   A small moment only you'd remember — where {petName || 'they'} sat, a sound {petName || 'they'} made, a tiny ritual you shared.
                 </p>
                 <textarea
@@ -1306,17 +1306,17 @@ export function PostPurchaseIntake({
                   onChange={e => setFavoriteMemory(e.target.value.slice(0, 500))}
                   placeholder="A quiet moment, a small ritual, the way they looked at you…"
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl border-[1.5px] border-[#E8DFD6] bg-white text-[0.95rem] font-[Cormorant,serif] text-[#2D2926] placeholder:text-[#C2B8AE] focus:border-[#bf524a] focus:outline-none resize-none"
+                  className="w-full px-4 py-3 rounded-xl border-[1.5px] border-[rgba(212,182,122,0.22)] bg-[rgba(245,239,230,0.05)] text-[0.95rem] font-['Playfair_Display',Georgia,serif] text-[#f5efe6] placeholder:text-[#9d8d7f] focus:border-[#d4b67a] focus:outline-none resize-none"
                   style={{ fontSize: '16px' }}
                   maxLength={500}
                 />
-                <div className="text-right text-[0.7rem] text-[#9B8E84] font-[Cormorant,serif] mt-1">{favoriteMemory.length}/500</div>
+                <div className="text-right text-[0.7rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] mt-1">{favoriteMemory.length}/500</div>
               </div>
 
               {/* Field 3: one-word essence */}
               <div>
-                <label className={labelClass}>If you had one word to capture {petName || 'them'}, what would it be? <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(optional)</span></label>
-                <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-2">
+                <label className={labelClass}>If you had one word to capture {petName || 'them'}, what would it be? <span className="text-[#9d8d7f] normal-case tracking-normal font-normal">(optional)</span></label>
+                <p className="text-[0.78rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] mb-2">
                   Their essence. "Golden light." "Gentle." "Mischief." Skip if nothing fits.
                 </p>
                 <input
@@ -1330,11 +1330,11 @@ export function PostPurchaseIntake({
               </div>
 
               <button onClick={() => setScreen(confirmScreen)}
-                className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+                className={cn(roseBtn, "bg-[#d4b67a] hover:bg-[#f0d99f]")}>
                 Continue →
               </button>
               <button onClick={() => setScreen(confirmScreen)}
-                className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+                className="w-full text-center text-[0.85rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] hover:underline mt-1">
                 Skip for now — the stars will hold {petName || 'them'} regardless
               </button>
             </motion.div>
@@ -1343,7 +1343,7 @@ export function PostPurchaseIntake({
           {/* CONFIRMATION SCREEN */}
           {screen === confirmScreen && (
             <motion.div key="s5" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <h1 className="text-center text-[1.5rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                 {isMemorial
                   ? `Ready to hold ${petName}'s stars`
                   : isNew
@@ -1352,26 +1352,26 @@ export function PostPurchaseIntake({
               </h1>
 
               {/* Summary Card */}
-              <div className="bg-white rounded-[14px] border border-[#E8DFD6] p-5">
+              <div className="bg-[rgba(245,239,230,0.05)] rounded-[14px] border border-[rgba(212,182,122,0.22)] p-5">
                 {summaryRows.map((row, i) => (
                   <div key={row.label}>
                     <div className="flex justify-between py-2">
-                      <span className="text-[0.82rem] text-[#9B8E84] font-[Cormorant,serif]">{row.label}</span>
-                      <span className={cn("text-[0.88rem] font-semibold font-[Cormorant,serif]", row.value ? "text-[#2D2926]" : "text-[#9B8E84] italic")}>
+                      <span className="text-[0.82rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif]">{row.label}</span>
+                      <span className={cn("text-[0.88rem] font-semibold font-['Playfair_Display',Georgia,serif]", row.value ? "text-[#f5efe6]" : "text-[#9d8d7f] italic")}>
                         {row.value || "—"}
                       </span>
                     </div>
-                    {i < summaryRows.length - 1 && <div className="h-[0.5px] bg-[#E8DFD6]" />}
+                    {i < summaryRows.length - 1 && <div className="h-[0.5px] bg-[rgba(212,182,122,0.22)]" />}
                   </div>
                 ))}
               </div>
 
               {/* Photo Upload */}
               <div>
-                <p className="text-[0.95rem] text-[#2D2926] font-[Cormorant,serif] font-semibold mb-1">
+                <p className="text-[0.95rem] text-[#f5efe6] font-['Playfair_Display',Georgia,serif] font-semibold mb-1">
                   {isMemorial ? `📸 Share a treasured photo of ${petName}` : `📸 Upload ${petName}'s photo`}
                 </p>
-                <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-3">
+                <p className="text-[0.78rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif] mb-3">
                   {isMemorial
                     ? `We'll hold ${pronouns.possessive} photo through the reading and SoulSpeak — so you can see ${pronouns.object} again, quietly.`
                     : `We'll weave ${pronouns.possessive} photo through the reveal and SoulSpeak — it brings everything to life.`}
@@ -1380,9 +1380,9 @@ export function PostPurchaseIntake({
                   onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }} />
                 {petPhotoUrl ? (
                   <div className="flex items-center gap-3">
-                    <img src={petPhotoUrl} alt={`${petName}`} className="w-20 h-20 rounded-full object-cover border-2 border-[#E8DFD6]" />
+                    <img src={petPhotoUrl} alt={`${petName}`} className="w-20 h-20 rounded-full object-cover border-2 border-[rgba(212,182,122,0.22)]" />
                     <button onClick={() => { setPetPhotoUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                      className="text-[0.82rem] text-[#9B8E84] hover:text-[#bf524a] underline font-[Cormorant,serif]">
+                      className="text-[0.82rem] text-[#9d8d7f] hover:text-[#d4b67a] underline font-['Playfair_Display',Georgia,serif]">
                       Remove
                     </button>
                   </div>
@@ -1399,16 +1399,16 @@ export function PostPurchaseIntake({
                     }}
                     className={cn(
                       "w-full h-[120px] border-2 border-dashed rounded-[14px] flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer",
-                      isDragging ? "border-[#bf524a] bg-[rgba(240,213,210,0.2)]" : "border-[#E8DFD6] hover:border-[#c9665f]",
+                      isDragging ? "border-[#d4b67a] bg-[rgba(212,182,122,0.1)]" : "border-[rgba(212,182,122,0.22)] hover:border-[#f0d99f]",
                       isUploading && "pointer-events-none opacity-60"
                     )}
                   >
                     {isUploading ? (
-                      <span className="text-[0.82rem] text-[#9B8E84]">Uploading...</span>
+                      <span className="text-[0.82rem] text-[#9d8d7f]">Uploading...</span>
                     ) : (
                       <>
-                        <Camera className="w-5 h-5 text-[#9B8E84]" />
-                        <span className="text-[0.82rem] text-[#9B8E84] font-[Cormorant,serif]">
+                        <Camera className="w-5 h-5 text-[#9d8d7f]" />
+                        <span className="text-[0.82rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif]">
                           {isDragging ? 'Drop photo here' : 'Tap or drag photo here'}
                         </span>
                       </>
@@ -1421,11 +1421,11 @@ export function PostPurchaseIntake({
               {hasSharedEmail ? (
                 <div>
                   <label className={labelClass}>Your email</label>
-                  <div className="flex items-center justify-between rounded-xl px-4 py-3 bg-[rgba(196,162,101,0.08)] border border-[rgba(196,162,101,0.35)]">
-                    <span className="text-[0.95rem] text-[#2D2926]" style={{ fontFamily: 'Cormorant, serif' }}>
+                  <div className="flex items-center justify-between rounded-xl px-4 py-3 bg-[rgba(212,182,122,0.08)] border border-[rgba(212,182,122,0.35)]">
+                    <span className="text-[0.95rem] text-[#f5efe6]" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
                       {email}
                     </span>
-                    <span className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
+                    <span className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: '#d4b67a', fontFamily: '"Playfair Display", Georgia, serif' }}>
                       ✓ Saved
                     </span>
                   </div>
@@ -1462,12 +1462,12 @@ export function PostPurchaseIntake({
                 onClick={handleSubmit}
                 disabled={isSubmitting || !email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
                 className={cn(
-                  "w-full py-4 rounded-xl text-white text-[1.05rem] transition-all",
+                  "w-full py-4 rounded-xl text-[#141210] text-[1.05rem] transition-all",
                   email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && !isSubmitting
-                    ? "bg-[#bf524a] hover:bg-[#c9665f]"
-                    : "bg-[#bf524a]/50 cursor-not-allowed"
+                    ? "bg-[#d4b67a] hover:bg-[#f0d99f]"
+                    : "bg-[#d4b67a]/50 cursor-not-allowed"
                 )}
-                style={{ fontFamily: 'DM Serif Display, serif' }}
+                style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
               >
                 {isSubmitting
                   ? (isMemorial ? 'Holding...' : isNew ? 'Welcoming...' : 'Creating...')
@@ -1479,9 +1479,9 @@ export function PostPurchaseIntake({
                           ? `Welcome ${petName} with Their Reading →`
                           : `Create ${petName}'s Soul Reading →`))}
               </button>
-              <p className="text-center text-[0.72rem] text-[#9B8E84] font-[Cormorant,serif]">
+              <p className="text-center text-[0.72rem] text-[#9d8d7f] font-['Playfair_Display',Georgia,serif]">
                 🔒 Your data is encrypted and never shared.{' '}
-                <a href="/privacy" className="underline hover:text-[#6B5E54]">Privacy policy</a>
+                <a href="/privacy" className="underline hover:text-[#cfc1b1]">Privacy policy</a>
               </p>
             </motion.div>
           )}
