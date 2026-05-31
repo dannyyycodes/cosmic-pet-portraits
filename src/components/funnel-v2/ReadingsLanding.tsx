@@ -62,44 +62,6 @@ const PLACEHOLDERS = [
   },
 ] as const;
 
-const PROCESS = [
-  {
-    title: "Share the clues.",
-    body: "Their name, face, birthday and the little things only you notice.",
-  },
-  {
-    title: "We read their sky.",
-    body: "Their birth chart gives the reading its spine: Moon, planets, rising and pattern.",
-  },
-  {
-    title: "You feel the click.",
-    body: "Their habits, needs and love language start to sound like the pet you know.",
-  },
-];
-
-const READING_DETAILS = [
-  {
-    icon: Heart,
-    title: "The emotional blueprint",
-    body: "How they love, what soothes them, and what they are always asking for.",
-  },
-  {
-    icon: Moon,
-    title: "Their birth sky",
-    body: "Moon, rising and planets read together, not a one-line zodiac label.",
-  },
-  {
-    icon: MessageCircle,
-    title: "SoulSpeak",
-    body: "Ask from inside the same world of their chart and personality.",
-  },
-  {
-    icon: BookOpen,
-    title: "A keepsake you return to",
-    body: "A quiet place to revisit when you need to feel close to them.",
-  },
-];
-
 const AUTHORITY_ITEMS = [
   {
     icon: ShieldCheck,
@@ -192,6 +154,7 @@ export function ReadingsLanding() {
   const pageRef = useRef<HTMLElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
   const [selectedPrice, setSelectedPrice] = useState(0);
+  const [skyOpen, setSkyOpen] = useState(false);
   useCosmicParallax(pageRef);
 
   const scrollToCheckout = () => {
@@ -203,11 +166,7 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
-      <SignalStrip />
-      <BirthChartPreviewSection />
-      <ProcessSection />
-      <InsideReadingSection />
-      <AuthoritySection />
+      <SkyToolkit open={skyOpen} onToggle={() => setSkyOpen((v) => !v)} />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -216,6 +175,33 @@ export function ReadingsLanding() {
       <QuietMomentSection />
       <FaqSection />
     </main>
+  );
+}
+
+function SkyToolkit({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <section className="ls-parallax-band relative px-5 pt-8 pb-4 sm:pt-12">
+      <div className="mx-auto max-w-6xl">
+        <button
+          type="button"
+          className={`ls-disclosure ${open ? "is-open" : ""}`}
+          onClick={onToggle}
+          aria-expanded={open}
+        >
+          <span className="ls-disclosure-text">
+            <span style={eyebrowStyle(C.gold)}>Free birth-chart preview</span>
+            <span className="ls-disclosure-title">Peek at the sky behind their reading</span>
+          </span>
+          <span className="ls-disclosure-icon" aria-hidden="true">{open ? "−" : "+"}</span>
+        </button>
+        {open && (
+          <div className="ls-disclosure-body">
+            <BirthChartPreviewSection />
+            <AuthoritySection />
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -288,29 +274,6 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
             <span>Future hero motion slot</span>
             <strong>Cat watching a shooting star</strong>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SignalStrip() {
-  const items = [
-    ["The bond", "The way they read you."],
-    ["The sky", "The moment they arrived."],
-    ["The reveal", "Words for what you already felt."],
-  ];
-
-  return (
-    <section className="relative px-5 py-12">
-      <div className="mx-auto grid max-w-6xl gap-px overflow-hidden rounded-[8px]" style={{ border: `1px solid ${C.line}`, background: C.line }}>
-        <div className="grid gap-px md:grid-cols-3">
-          {items.map(([title, body]) => (
-            <article key={title} className="ls-panel p-6 md:p-8">
-              <p style={eyebrowStyle(C.gold)}>{title}</p>
-              <p className="mt-4 text-pretty" style={panelLeadStyle}>{body}</p>
-            </article>
-          ))}
         </div>
       </div>
     </section>
@@ -568,63 +531,6 @@ function PlanetCard({
   );
 }
 
-function ProcessSection() {
-  return (
-    <section id="how-it-works" className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto max-w-6xl">
-        <SectionIntro
-          eyebrow="Three steps"
-          title="A few details. A reading that feels like them."
-          body="The chart gives structure. Your memories give it a heartbeat."
-        />
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">
-          {PROCESS.map((item, index) => (
-            <article key={item.title} className="ls-process-card">
-              <span className="ls-process-number">0{index + 1}</span>
-              <h3 className="mt-10 text-balance" style={cardTitleStyle}>{item.title}</h3>
-              <p className="mt-5 text-pretty" style={bodyStyle}>{item.body}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function InsideReadingSection() {
-  return (
-    <section id="inside-reading" className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
-        <div className="relative">
-          <PlaceholderFrame item={PLACEHOLDERS[3]} className="aspect-[4/5]" />
-          <div className="ls-device-caption">
-            Private reveal interface placeholder
-          </div>
-        </div>
-        <div>
-          <p style={eyebrowStyle(C.gold)}>What opens</p>
-          <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-            Finally, words for that look.
-          </h2>
-          <p className="mt-6 text-pretty" style={sectionBodyStyle}>
-            Why they choose you. What they protect. How they ask for love.
-            The reading turns familiar moments into something you can hold.
-          </p>
-          <div className="mt-9 grid gap-4 sm:grid-cols-2">
-            {READING_DETAILS.map(({ icon: Icon, title, body }) => (
-              <article key={title} className="ls-detail-card">
-                <Icon size={19} style={{ color: C.gold }} />
-                <h3 className="mt-4" style={smallTitleStyle}>{title}</h3>
-                <p className="mt-3 text-pretty" style={smallBodyStyle}>{body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function AuthoritySection() {
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
@@ -668,17 +574,6 @@ function CheckoutSection({
   return (
     <section id="begin" className="ls-parallax-band relative px-5 py-18 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <div className="mx-auto mb-10 max-w-3xl text-center">
-          <p style={eyebrowStyle(C.gold)}>Begin</p>
-          <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-            Choose their reading.
-          </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-pretty" style={sectionBodyStyle}>
-            Start with their soul reading, or add the deeper bond layer between
-            your chart and theirs.
-          </p>
-        </div>
-
         <div className="ls-checkout-shell mx-auto max-w-6xl p-3 sm:p-5">
           <div className="ls-checkout-vars">
             <InlineCheckout
@@ -1097,6 +992,58 @@ function CosmicStyles() {
         font-family: Lato, system-ui, sans-serif;
       }
       .ls-sky-cta { margin-top: 18px; width: 100%; justify-content: center; }
+
+      .ls-disclosure {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(212,182,122,0.30);
+        border-radius: 12px;
+        background: linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.02));
+        padding: 20px 22px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+      .ls-disclosure:hover { border-color: rgba(212,182,122,0.52); }
+      .ls-disclosure.is-open {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-color: transparent;
+      }
+      .ls-disclosure-text { display: grid; gap: 6px; }
+      .ls-disclosure-title {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.5rem, 3vw, 2.1rem);
+        line-height: 1.05;
+      }
+      .ls-disclosure-icon {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid rgba(212,182,122,0.4);
+        color: ${C.gold};
+        font-size: 1.6rem;
+        line-height: 1;
+      }
+      .ls-disclosure-body {
+        border: 1px solid rgba(212,182,122,0.30);
+        border-top: none;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        overflow: hidden;
+      }
+      .ls-disclosure-body > section {
+        padding-top: 22px !important;
+        padding-bottom: 22px !important;
+        min-height: 0;
+      }
       .ls-chart-form .ls-gold-button {
         white-space: nowrap;
       }
