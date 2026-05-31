@@ -165,6 +165,8 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
+      <BirthChartPreviewSection />
+      <AuthoritySection />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -172,8 +174,6 @@ export function ReadingsLanding() {
       />
       <QuietMomentSection />
       <FaqSection />
-      <BirthChartPreviewSection />
-      <AuthoritySection />
     </main>
   );
 }
@@ -331,55 +331,19 @@ function BirthChartPreviewSection() {
 
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
-        <div>
+      <div className="mx-auto max-w-3xl">
+        <div className="text-center">
           <p style={eyebrowStyle(C.gold)}>Free mini reading</p>
           <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
             Free mini reading calculations.
           </h2>
-          <p className="mt-6 text-pretty" style={sectionBodyStyle}>
+          <p className="mx-auto mt-6 max-w-xl text-pretty" style={sectionBodyStyle}>
             Enter their birth or adoption date and watch their real planets light up —
             the same sky engine behind the full reading.
           </p>
-          <form className="ls-lead-form mt-8" onSubmit={handlePreview}>
-            <div className="ls-lead-field">
-              <label htmlFor="chart-pet-name">Their name (optional)</label>
-              <input
-                id="chart-pet-name"
-                type="text"
-                value={petName}
-                maxLength={40}
-                onChange={(event) => setPetName(event.target.value)}
-                placeholder="e.g. Bella"
-              />
-            </div>
-            <div className="ls-lead-field">
-              <label htmlFor="birth-chart-date">Birth or adoption date</label>
-              <input
-                id="birth-chart-date"
-                type="date"
-                value={date}
-                onChange={(event) => {
-                  setDate(event.target.value);
-                  if (status === "error") {
-                    setStatus("idle");
-                    setMessage("");
-                  }
-                }}
-                max="2030-12-31"
-              />
-            </div>
-            <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
-              {status === "loading" ? "Reading Their Sky..." : "Reveal Their Birth Sky"}
-              {status !== "loading" && <ArrowRight size={17} />}
-            </button>
-            {message && status === "error" && (
-              <p className="ls-chart-message is-error">{message}</p>
-            )}
-          </form>
         </div>
 
-        <div className="ls-chart-shell">
+        <div className="ls-chart-shell mt-10">
           <div className="ls-chart-orb" aria-hidden="true">
             <span />
             <span />
@@ -471,6 +435,43 @@ function BirthChartPreviewSection() {
             )}
           </div>
         </div>
+
+        <form className="ls-lead-form ls-lead-form--wide mt-8" onSubmit={handlePreview}>
+          <div className="ls-lead-field">
+            <label htmlFor="chart-pet-name">Their name (optional)</label>
+            <input
+              id="chart-pet-name"
+              type="text"
+              value={petName}
+              maxLength={40}
+              onChange={(event) => setPetName(event.target.value)}
+              placeholder="e.g. Bella"
+            />
+          </div>
+          <div className="ls-lead-field">
+            <label htmlFor="birth-chart-date">Birth or adoption date</label>
+            <input
+              id="birth-chart-date"
+              type="date"
+              value={date}
+              onChange={(event) => {
+                setDate(event.target.value);
+                if (status === "error") {
+                  setStatus("idle");
+                  setMessage("");
+                }
+              }}
+              max="2030-12-31"
+            />
+          </div>
+          <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
+            {status === "loading" ? "Reading Their Sky..." : "Reveal Their Birth Sky"}
+            {status !== "loading" && <ArrowRight size={17} />}
+          </button>
+          {message && status === "error" && (
+            <p className="ls-chart-message is-error">{message}</p>
+          )}
+        </form>
       </div>
     </section>
   );
@@ -852,6 +853,7 @@ function CosmicStyles() {
         color-scheme: dark;
       }
       .ls-lead-form { display: grid; gap: 16px; max-width: 460px; }
+      .ls-lead-form--wide { max-width: 560px; margin-left: auto; margin-right: auto; }
       .ls-lead-field { display: grid; gap: 6px; }
       .ls-lead-form .ls-gold-button { justify-content: center; }
 
