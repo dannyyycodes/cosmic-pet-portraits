@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How We Calculate Pet Birth Charts: Our Accuracy Methodology | Little Souls</title>
+<meta name="description" content="Little Souls computes pet birth charts with the VSOP87 planetary theory — the same ephemeris model used in professional astronomy — not generic sun-sign guesses. Here is exactly how, and the sources behind it." />
+<link rel="canonical" href="https://littlesouls.app/methodology" />
+<meta name="robots" content="index, follow" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://littlesouls.app/methodology" />
+<meta property="og:title" content="How We Calculate Pet Birth Charts — Accuracy Methodology" />
+<meta property="og:description" content="The VSOP87/astronomia ephemeris behind every Little Souls pet reading, explained — with sources." />
+<meta property="og:image" content="https://littlesouls.app/og-image.jpg" />
+<meta property="og:site_name" content="Little Souls" />
+<meta name="twitter:card" content="summary_large_image" />
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[
+{"@type":"Organization","@id":"https://littlesouls.app/#organization","name":"Little Souls","url":"https://littlesouls.app"},
+{"@type":"Article","@id":"https://littlesouls.app/methodology#article","headline":"How We Calculate Pet Birth Charts: Our Accuracy Methodology","description":"The VSOP87 planetary theory and astronomia library behind every Little Souls pet birth chart, with sources.","publisher":{"@id":"https://littlesouls.app/#organization"},"mainEntityOfPage":"https://littlesouls.app/methodology","inLanguage":"en","about":[{"@type":"Thing","name":"VSOP87"},{"@type":"Thing","name":"ephemeris"},{"@type":"Thing","name":"pet birth chart"}],"citation":["VSOP87 — Bretagnon & Francou (1988), Astronomy & Astrophysics","NASA JPL HORIZONS ephemeris system"]},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://littlesouls.app"},{"@type":"ListItem","position":2,"name":"Methodology","item":"https://littlesouls.app/methodology"}]},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Are pet birth charts accurate?","acceptedAnswer":{"@type":"Answer","text":"A pet birth chart is as astronomically accurate as a human one. Little Souls computes planetary positions with the VSOP87 theory, accurate to within arc-seconds for the modern era, then maps them to the tropical zodiac. The astrological interpretation is for insight and entertainment; the underlying astronomy is rigorous."}},
+{"@type":"Question","name":"What if I don't know my pet's exact birth time?","acceptedAnswer":{"@type":"Answer","text":"Sun, Moon and most planetary placements need only the date — they move slowly enough that a missing birth time changes little. The rising sign and exact house cusps need a time; when it is unknown we use a solar-chart convention and say so, rather than inventing a time."}},
+{"@type":"Question","name":"How are rescue or adoption dates handled?","acceptedAnswer":{"@type":"Answer","text":"For rescue pets with no known birthday, the adoption or 'gotcha' date is used as a soul birthday — a long-standing convention in astrology for unknown origins. It produces a meaningful, honest chart anchored to a real moment in your bond."}}
+]}]}</script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="theme-color" content="#bf524a" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6J6ZFT3RWY"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-6J6ZFT3RWY');</script>
+<style>
+:root{--cream:#FFFDF5;--cream2:#faf4e8;--rose:#bf524a;--gold:#c4a265;--ink:#141210;--body:#5a4a42;--muted:#958779;--sand:#e8ddd0}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--body);font-family:Georgia,serif;line-height:1.7;font-size:18px}
+.wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+nav.bc{font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted);margin-bottom:24px}nav.bc a{color:var(--muted);text-decoration:none}
+h1{font-family:Fraunces,Georgia,serif;color:var(--ink);font-size:2.1rem;line-height:1.15;margin:.2em 0;font-weight:700}
+.sub{font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:18px}
+.answer{background:var(--cream2);border:1px solid var(--sand);border-left:4px solid var(--gold);border-radius:10px;padding:18px 20px;font-size:1.08rem;color:var(--ink);margin:8px 0 30px}
+h2{font-family:Fraunces,Georgia,serif;color:var(--ink);font-size:1.5rem;margin:38px 0 12px;font-weight:600}
+h3{font-family:Inter,system-ui,sans-serif;color:var(--ink);font-size:1.05rem;margin:18px 0 6px;font-weight:600}
+.faq{border-top:1px solid var(--sand);padding-top:6px;margin-top:14px}
+.cta{background:linear-gradient(135deg,#fff,var(--cream2));border:1px solid var(--gold);border-radius:14px;padding:26px;margin:40px 0;text-align:center}
+.cta a{display:inline-block;background:var(--rose);color:#fff;font-family:Inter,system-ui,sans-serif;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px;margin-top:8px}
+a{color:var(--rose)}ul{padding-left:22px}li{margin:6px 0}
+.src{font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--muted)}
+</style></head><body><div class="wrap">
+<nav class="bc"><a href="/">Little Souls</a> › Methodology</nav>
+<div class="sub">Accuracy &amp; Methodology</div>
+<h1>How we calculate pet birth charts</h1>
+<div class="answer">Little Souls computes every pet's planetary placements using the VSOP87 planetary theory — the same high-precision ephemeris model professional astronomers use — accurate to within arc-seconds for the modern era. We never guess or fabricate a placement. Sun-sign dates use the tropical zodiac; the Moon uses the ELP2000 lunar theory. The astrology is for insight; the astronomy is real.</div>
+
+<h2>The ephemeris engine</h2>
+<p>A birth chart is a snapshot of where every body in the solar system sat, from Earth's view, at a precise moment. Getting that snapshot right is an astronomy problem, not a guess. We use the <strong>VSOP87</strong> planetary theory (Bretagnon &amp; Francou, 1988) via the open-source <a href="https://github.com/commenthol/astronomia" rel="noopener">astronomia</a> library to compute the heliocentric, then geocentric, ecliptic longitude of each planet, and the <strong>ELP2000</strong> lunar theory for the Moon.</p>
+<ul>
+<li><strong>Sun &amp; planets</strong> — VSOP87B series, converted to apparent geocentric longitude with nutation applied.</li>
+<li><strong>Moon</strong> — ELP2000-82B, the standard high-accuracy lunar model.</li>
+<li><strong>Chiron</strong> — computed from a precomputed positional table, because Chiron's high orbital eccentricity makes simple analytic models unreliable.</li>
+<li><strong>Time zones</strong> — birth moments are normalised to UTC using the historical zone for the birth location, so a placement never drifts by a sign because of a time-zone error.</li>
+</ul>
+
+<h2>From positions to signs</h2>
+<p>Each body's ecliptic longitude (0–360°) maps to one of the twelve tropical signs of 30° each. This is the same convention used across Western astrology and is independent of the slowly precessing constellations.</p>
+
+<h2>When the birth time is unknown</h2>
+<p>Most placements — Sun, Moon, and the planets — depend only on the date and barely move within a day, so they are reliable even without a birth time. The <strong>rising sign</strong> and house cusps do need a time. When it is unknown, we use a transparent solar-chart convention and say so, rather than inventing a time and presenting a false rising sign.</p>
+
+<h2>Rescue &amp; adoption pets</h2>
+<p>Many pets have no known birthday. Astrology has a long-standing convention for unknown origins: anchor the chart to the moment a new chapter began. We use the <strong>adoption or "gotcha" date</strong> as a soul birthday — an honest, meaningful anchor rooted in your actual bond.</p>
+
+<h2>What we will never do</h2>
+<ul>
+<li>Fabricate a degree, sign or placement to fit a narrative.</li>
+<li>Present a rising sign when no birth time exists.</li>
+<li>Round away the astronomy to make the story neater.</li>
+</ul>
+<p>Accuracy is the foundation the meaning rests on. The interpretation is crafted to be insightful and is offered for reflection and entertainment — but it is always built on a correctly computed chart.</p>
+
+<h2>Frequently asked</h2>
+<div class="faq"><h3>Are pet birth charts accurate?</h3><p>The astronomy is accurate to arc-seconds via VSOP87. The astrological reading is interpretive and for insight and entertainment — but it is always built on a rigorously computed chart, not a generic template.</p></div>
+<div class="faq"><h3>What if I don't know my pet's exact birth time?</h3><p>Sun, Moon and planets need only the date. The rising sign needs a time; when it's unknown we use a solar-chart convention and tell you, rather than guessing.</p></div>
+<div class="faq"><h3>How are rescue or adoption dates handled?</h3><p>The adoption or "gotcha" date is used as a soul birthday — a standard astrological convention for unknown origins, anchored to a real moment in your bond.</p></div>
+
+<p class="src">Sources: Bretagnon, P. &amp; Francou, G. (1988), "Planetary theories in rectangular and spherical variables: VSOP87 solutions," <em>Astronomy &amp; Astrophysics</em> 202, 309. ELP2000-82B lunar theory (Chapront-Touzé &amp; Chapront). Cross-checked against the <a href="https://ssd.jpl.nasa.gov/horizons/" rel="noopener">NASA JPL HORIZONS</a> ephemeris.</p>
+
+<div class="cta"><h2 style="font-family:Fraunces,Georgia,serif;color:var(--ink);margin-top:0">See it for your own pet</h2>
+<p>Compute your pet's sign free, or get the full cinematic soul reading built on their exact chart.</p>
+<a href="/tools/pet-birth-chart">Free birth chart calculator →</a></div>
+</div></body></html>

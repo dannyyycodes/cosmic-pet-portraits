@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Free Pet Birth Chart Calculator: Find Your Dog or Cat's Zodiac Sign | Little Souls</title>
+<meta name="description" content="Free pet birth chart calculator. Enter your dog or cat's birth (or adoption) date to instantly find their zodiac sign, element, ruling planet and personality — computed, not guessed. Then reveal their full soul chart." />
+<link rel="canonical" href="https://littlesouls.app/tools/pet-birth-chart" />
+<meta name="robots" content="index, follow" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://littlesouls.app/tools/pet-birth-chart" />
+<meta property="og:title" content="Free Pet Birth Chart Calculator — Find Your Pet's Zodiac Sign" />
+<meta property="og:description" content="Enter your pet's birth or adoption date to find their zodiac sign, element and ruling planet instantly. Free." />
+<meta property="og:image" content="https://littlesouls.app/og-image.jpg" />
+<meta property="og:site_name" content="Little Souls" />
+<meta name="twitter:card" content="summary_large_image" />
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[
+{"@type":"Organization","@id":"https://littlesouls.app/#organization","name":"Little Souls","url":"https://littlesouls.app"},
+{"@type":"WebApplication","@id":"https://littlesouls.app/tools/pet-birth-chart#app","name":"Pet Birth Chart Calculator","applicationCategory":"LifestyleApplication","operatingSystem":"Web","url":"https://littlesouls.app/tools/pet-birth-chart","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free tool that computes a pet's zodiac sign, element and ruling planet from their birth or adoption date using the tropical zodiac."},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://littlesouls.app"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://littlesouls.app/tools/pet-birth-chart"},{"@type":"ListItem","position":3,"name":"Pet Birth Chart Calculator","item":"https://littlesouls.app/tools/pet-birth-chart"}]},
+{"@type":"HowTo","name":"How to find your pet's zodiac sign","step":[{"@type":"HowToStep","name":"Enter the date","text":"Enter your pet's date of birth, or their adoption date if their birthday is unknown."},{"@type":"HowToStep","name":"Choose the species","text":"Select dog or cat for a tailored personality profile."},{"@type":"HowToStep","name":"Read the result","text":"See your pet's sun sign, element, ruling planet and core personality instantly."}]},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I find my pet's zodiac sign?","acceptedAnswer":{"@type":"Answer","text":"Take your pet's date of birth (or adoption date if unknown) and match it to the tropical zodiac date ranges. A pet born between March 21 and April 19 is an Aries; April 20 to May 20 is a Taurus, and so on. This free calculator does it for you instantly."}},
+{"@type":"Question","name":"Is this pet birth chart calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes. Finding your pet's sun sign, element and ruling planet is completely free. A full soul reading — adding their moon, rising and every planet, with a personalised interpretation — is a paid Little Souls reading."}},
+{"@type":"Question","name":"Can I calculate a birth chart for a rescue pet with no birthday?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use your pet's adoption or 'gotcha' date as a soul birthday — a standard astrological convention for unknown origins. It produces a meaningful chart anchored to a real moment in your bond."}}
+]}]}</script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="theme-color" content="#bf524a" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6J6ZFT3RWY"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-6J6ZFT3RWY');</script>
+<style>
+:root{--cream:#FFFDF5;--cream2:#faf4e8;--rose:#bf524a;--gold:#c4a265;--ink:#141210;--body:#5a4a42;--muted:#958779;--sand:#e8ddd0}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--body);font-family:Georgia,serif;line-height:1.7;font-size:18px}
+.wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+nav.bc{font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted);margin-bottom:24px}nav.bc a{color:var(--muted);text-decoration:none}
+h1{font-family:Fraunces,Georgia,serif;color:var(--ink);font-size:2.1rem;line-height:1.15;margin:.2em 0;font-weight:700}
+.sub{font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:18px}
+.answer{background:var(--cream2);border:1px solid var(--sand);border-left:4px solid var(--gold);border-radius:10px;padding:18px 20px;font-size:1.08rem;color:var(--ink);margin:8px 0 26px}
+.tool{background:#fff;border:1px solid var(--gold);border-radius:16px;padding:24px;margin:0 0 30px}
+.tool label{font-family:Inter,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink);display:block;margin:0 0 6px}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>div{flex:1;min-width:160px}
+.tool input,.tool select{width:100%;font-family:Inter,system-ui,sans-serif;font-size:16px;padding:11px 12px;border:1px solid var(--sand);border-radius:10px;background:var(--cream)}
+.tool button{margin-top:16px;width:100%;background:var(--rose);color:#fff;font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:16px;border:none;padding:14px;border-radius:999px;cursor:pointer}
+#result{display:none;margin-top:22px;border-top:1px solid var(--sand);padding-top:20px}
+#result .symbol{font-size:3rem;line-height:1}
+#result .signname{font-family:Fraunces,Georgia,serif;font-size:1.8rem;color:var(--ink);font-weight:700;margin:4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;font-family:Inter,system-ui,sans-serif;font-size:13px;margin:8px 0 14px}
+.chips span{background:var(--cream2);border:1px solid var(--sand);border-radius:999px;padding:5px 12px;color:var(--ink)}
+h2{font-family:Fraunces,Georgia,serif;color:var(--ink);font-size:1.5rem;margin:38px 0 12px;font-weight:600}
+h3{font-family:Inter,system-ui,sans-serif;color:var(--ink);font-size:1.05rem;margin:18px 0 6px;font-weight:600}
+.faq{border-top:1px solid var(--sand);padding-top:6px;margin-top:14px}
+.cta{background:linear-gradient(135deg,#fff,var(--cream2));border:1px solid var(--gold);border-radius:14px;padding:26px;margin:34px 0;text-align:center}
+.cta a{display:inline-block;background:var(--rose);color:#fff;font-family:Inter,system-ui,sans-serif;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px;margin-top:8px}
+a{color:var(--rose)}ul{padding-left:22px}li{margin:6px 0}
+.method{font-family:Inter,system-ui,sans-serif;font-size:13px;color:var(--muted);border-top:1px solid var(--sand);padding-top:14px;margin-top:30px}
+</style></head><body><div class="wrap">
+<nav class="bc"><a href="/">Little Souls</a> › Pet Birth Chart Calculator</nav>
+<div class="sub">Free Tool · Pet Astrology</div>
+<h1>Free Pet Birth Chart Calculator</h1>
+<div class="answer">Enter your pet's birth date — or their adoption date if their birthday is unknown — to instantly find their zodiac sign, element and ruling planet. Sun-sign date ranges follow the tropical zodiac. For the full picture (their moon, rising and every planet), a Little Souls soul reading computes their exact chart with the VSOP87 ephemeris.</div>
+
+<div class="tool">
+<div class="row">
+<div><label for="dob">Your pet's birth or adoption date</label><input type="date" id="dob" max="2030-12-31"></div>
+<div><label for="species">Species</label><select id="species"><option value="dog">Dog</option><option value="cat">Cat</option></select></div>
+</div>
+<button id="go" type="button">Reveal my pet's sign →</button>
+<div id="result" aria-live="polite"></div>
+</div>
+
+<h2>What is a pet birth chart?</h2>
+<p>A pet birth chart is a map of where the Sun, Moon and planets sat at the exact moment your pet was born, seen from Earth — the same kind of chart cast for a person. Their <strong>sun sign</strong> (the one this calculator finds) is their core temperament. Their <strong>moon sign</strong> shapes their emotional world and how they seek comfort. Their <strong>rising sign</strong> is how they meet new people, places and other animals.</p>
+
+<h2>How to use this calculator</h2>
+<ul>
+<li><strong>Know the birthday?</strong> Enter it. You'll get their sun sign instantly.</li>
+<li><strong>Rescue or shelter pet?</strong> Use the adoption or "gotcha" date — a standard convention for unknown origins.</li>
+<li><strong>Want the full chart?</strong> Sun sign is chapter one. The full reading adds moon, rising and every planet, interpreted as a portrait of who they are.</li>
+</ul>
+
+<div class="cta"><h2 style="font-family:Fraunces,Georgia,serif;color:var(--ink);margin-top:0">Reveal their whole soul, not just their sun sign</h2>
+<p>A Little Souls reading computes your pet's exact birth chart and turns it into a cinematic portrait — how they love, what they fear, and the soul they came here to be.</p>
+<a href="/intake">Get the full soul reading →</a></div>
+
+<h2>Pet birth charts — common questions</h2>
+<div class="faq"><h3>How do I find my pet's zodiac sign?</h3><p>Match your pet's birth (or adoption) date to the tropical zodiac ranges — or just use the calculator above. A pet born March 21–April 19 is an Aries, April 20–May 20 a Taurus, and so on.</p></div>
+<div class="faq"><h3>Is this calculator free?</h3><p>Yes — finding your pet's sun sign, element and ruling planet is free. The full soul reading, with their moon, rising and personalised interpretation, is a paid Little Souls reading.</p></div>
+<div class="faq"><h3>Can I do this for a rescue pet with no birthday?</h3><p>Yes. Use the adoption or "gotcha" date as a soul birthday. It produces a meaningful chart anchored to a real moment in your bond.</p></div>
+
+<div class="method"><strong>How we calculate this.</strong> Sun-sign dates use the tropical zodiac. Full readings use the VSOP87 planetary theory — the same model professional astronomers use. <a href="/methodology">Read our accuracy methodology →</a> · <a href="/zodiac/dog">All dog signs →</a> · <a href="/zodiac/cat">All cat signs →</a></div>
+</div>
+
+<script>
+var SIGNS=[
+{k:"capricorn",n:"Capricorn",sym:"♑",el:"Earth",mod:"Cardinal",pl:"Saturn",t:"The Old Soul",to:[12,22],from:[1,1]},
+{k:"aquarius",n:"Aquarius",sym:"♒",el:"Air",mod:"Fixed",pl:"Uranus",t:"The Loveable Weirdo",from:[1,20],to:[2,18]},
+{k:"pisces",n:"Pisces",sym:"♓",el:"Water",mod:"Mutable",pl:"Neptune",t:"The Gentle Dreamer",from:[2,19],to:[3,20]},
+{k:"aries",n:"Aries",sym:"♈",el:"Fire",mod:"Cardinal",pl:"Mars",t:"The Fearless Fireball",from:[3,21],to:[4,19]},
+{k:"taurus",n:"Taurus",sym:"♉",el:"Earth",mod:"Fixed",pl:"Venus",t:"The Royal Couch Potato",from:[4,20],to:[5,20]},
+{k:"gemini",n:"Gemini",sym:"♊",el:"Air",mod:"Mutable",pl:"Mercury",t:"The Chaos Communicator",from:[5,21],to:[6,20]},
+{k:"cancer",n:"Cancer",sym:"♋",el:"Water",mod:"Cardinal",pl:"Moon",t:"The Emotional Bodyguard",from:[6,21],to:[7,22]},
+{k:"leo",n:"Leo",sym:"♌",el:"Fire",mod:"Fixed",pl:"Sun",t:"The Main Character",from:[7,23],to:[8,22]},
+{k:"virgo",n:"Virgo",sym:"♍",el:"Earth",mod:"Mutable",pl:"Mercury",t:"The Perfectionist Angel",from:[8,23],to:[9,22]},
+{k:"libra",n:"Libra",sym:"♎",el:"Air",mod:"Cardinal",pl:"Venus",t:"The Social Diplomat",from:[9,23],to:[10,22]},
+{k:"scorpio",n:"Scorpio",sym:"♏",el:"Water",mod:"Fixed",pl:"Pluto",t:"The Intense One",from:[10,23],to:[11,21]},
+{k:"sagittarius",n:"Sagittarius",sym:"♐",el:"Fire",mod:"Mutable",pl:"Jupiter",t:"The Happy Wanderer",from:[11,22],to:[12,21]}
+];
+function signFor(m,d){
+ for(var i=0;i<SIGNS.length;i++){var s=SIGNS[i];
+  if(s.k==="capricorn"){ if((m===12&&d>=22)||(m===1&&d<=19)) return s; continue; }
+  var f=s.from,t=s.to; if((m===f[0]&&d>=f[1])||(m===t[0]&&d<=t[1])) return s;
+ }
+ return SIGNS[0];
+}
+document.getElementById("go").addEventListener("click",function(){
+ var v=document.getElementById("dob").value; var sp=document.getElementById("species").value;
+ var r=document.getElementById("result");
+ if(!v){ r.style.display="block"; r.innerHTML="<p>Please enter your pet's date first.</p>"; return; }
+ var parts=v.split("-"); var m=parseInt(parts[1],10), d=parseInt(parts[2],10);
+ var s=signFor(m,d); var spLabel=sp.charAt(0).toUpperCase()+sp.slice(1);
+ r.style.display="block";
+ r.innerHTML='<div class="symbol">'+s.sym+'</div>'+
+  '<div class="signname">'+s.n+' '+spLabel+'</div>'+
+  '<div class="chips"><span>'+s.el+'</span><span>'+s.mod+'</span><span>Ruled by '+s.pl+'</span></div>'+
+  '<p><em>'+s.t+'.</em> Your '+sp+' carries the '+s.el.toLowerCase()+' element and is ruled by '+s.pl+'. '+
+  'That is their sun sign — the core of who they are.</p>'+
+  '<p><a href="/zodiac/'+sp+'/'+s.k+'"><strong>Read the full '+s.n+' '+spLabel+' profile →</strong></a></p>';
+ if(window.gtag){gtag('event','birth_chart_calc',{sign:s.k,species:sp});}
+});
+</script>
+</body></html>
