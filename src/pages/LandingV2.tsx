@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
-import { Navbar } from "@/components/Navbar";
-import { FunnelV2 } from "@/components/funnel-v2/FunnelV2";
+import { ReadingsNav } from "@/components/ReadingsNav";
+import ReadingsLanding from "@/components/funnel-v2/ReadingsLanding";
 
 const LandingV2 = () => {
   usePageAnalytics("/v2");
@@ -13,8 +13,8 @@ const LandingV2 = () => {
 
   return (
     <main className="min-h-screen bg-[var(--cream,#FFFDF5)]">
-      <Navbar />
-      <FunnelV2 />
+      <ReadingsNav />
+      <ReadingsLanding />
     </main>
   );
 };

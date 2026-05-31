@@ -119,6 +119,9 @@ interface InlineCheckoutProps {
    * — new-pet owners see an arrival-framed heading, discover readers
    * see the default, memorial is handled separately by memorialOnly. */
   path?: "new" | "discover" | "memorial";
+  /** Optional visual shell for the new readings landing page. Keeps checkout
+   *  state + Stripe handoff intact while avoiding the legacy cream sales-card UI. */
+  visualMode?: "classic" | "cosmic";
 }
 
 // Volume discount mirrors create-checkout server-side rates for per-pet bundles.
@@ -132,7 +135,7 @@ function getVolumeDiscount(petCount: number): number {
 
 const MAX_PETS = 10;
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false, memorialOnly = false, path = "discover" }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false, memorialOnly = false, path = "discover", visualMode = "classic" }, forwardedRef) => {
   // Detect memorial-intent URL params up-front so the cart + pill open to the
   // right state. Supported signals: ?occasion=memorial or ?memorial=1. Also
   // covers the case where a user clicks a memorial-specific CTA that routes
@@ -466,6 +469,36 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       changeTierQty(tier, 1);
     }
     trackFunnelEvent("v2_tier_selected", { tier, qty: tierQty(tier) });
+  };
+
+  const setCosmicTierQty = (id: TierId, quantity: number) => {
+    const next = Math.max(1, Math.min(MAX_PETS, quantity));
+    const nextBasic = id === "basic" ? next : 0;
+    const nextPremium = id === "premium" ? next : 0;
+    const nextMemorial = id === "memorial" ? next : 0;
+
+    setBasicQty(nextBasic);
+    setPremiumQty(nextPremium);
+    setMemorialQty(nextMemorial);
+
+    const nextSubtotal =
+      nextBasic * basicPrice + nextPremium * premiumPrice + nextMemorial * memorialPrice;
+    const nextDiscount = getVolumeDiscount(next);
+    onSelectedPriceChange?.(Math.max(0, nextSubtotal * (1 - nextDiscount)));
+    trackFunnelEvent("v2_cosmic_tier_qty_changed", { tier: id, qty: next, petCount: next });
+  };
+
+  const activateCosmicTier = (id: TierId) => {
+    const current = tierQty(id);
+    setCosmicTierQty(id, current > 0 ? current : 1);
+    trackFunnelEvent("v2_cosmic_tier_selected", { tier: id, qty: Math.max(1, current) });
+  };
+
+  const changeCosmicTierQty = (id: TierId, delta: number) => {
+    const current = tierQty(id);
+    const next = current > 0 ? current + delta : 1;
+    if (next < 1) return;
+    setCosmicTierQty(id, next);
   };
 
   // Emit the initial price once on mount so parent CTAs start in sync.
@@ -897,6 +930,717 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       </div>
     );
   };
+
+  const renderCosmicTier = (tier: (typeof TIERS)[number], intent: "core" | "bond") => {
+    const qty = tierQty(tier.id);
+    const isSelected = qty > 0;
+    const price = tier.id === "basic" ? prices.basic : prices.premium;
+    const wasPrice = tier.id === "basic" ? prices.wasBasic : prices.wasPremium;
+    const minusDisabled = qty <= 1;
+    const atMax = qty >= MAX_PETS;
+    const cosmicFeatures = intent === "core"
+      ? ["Birth sky + 30+ sections", "Emotional blueprint", "SoulSpeak included"]
+      : ["Your chart beside theirs", "Where you mirror", "Why you found each other"];
+
+    return (
+      <article
+        key={tier.id}
+        className={`cosmic-tier ${isSelected ? "is-selected" : ""}`}
+        onClick={() => activateCosmicTier(tier.id)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activateCosmicTier(tier.id); } }}
+        role="button"
+        tabIndex={0}
+        aria-pressed={isSelected}
+      >
+        {tier.badge && <span className="cosmic-tier-badge">{tier.badge}</span>}
+        <div className="cosmic-tier-head">
+          <span className="cosmic-radio" aria-hidden="true" />
+          <div>
+            <h3>{tier.name}</h3>
+            <p>{intent === "core" ? "For understanding the little soul in front of you." : "For the deeper story between the two of you."}</p>
+          </div>
+        </div>
+
+        <div className="cosmic-tier-price">
+          <strong>{fmt(price)}</strong>
+          <span>{fmt(wasPrice)}</span>
+        </div>
+
+        <ul className="cosmic-feature-list">
+          {cosmicFeatures.map((feature) => (
+            <li key={`${tier.id}-${feature}`}>
+              <span aria-hidden="true">✓</span>
+              <p>{feature}</p>
+            </li>
+          ))}
+        </ul>
+
+        <div className="cosmic-stepper" onClick={(e) => e.stopPropagation()}>
+          <span>Readings</span>
+          <div>
+            <button
+              type="button"
+              disabled={minusDisabled}
+              aria-label={`Remove one ${tier.name}`}
+              onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, -1); }}
+            >
+              -
+            </button>
+            <b>{qty}</b>
+            <button
+              type="button"
+              disabled={atMax}
+              aria-label={`Add one ${tier.name}`}
+              onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, 1); }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
+  if (visualMode === "cosmic") {
+    return (
+      <section ref={sectionRef} id="checkout" className="cosmic-checkout">
+        <style>{`
+          .cosmic-checkout {
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            background: transparent;
+            color: #f5efe6;
+            scroll-margin-top: 96px;
+          }
+          .cosmic-checkout::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+              radial-gradient(ellipse at 76% 6%, rgba(212,182,122,0.16), transparent 34%),
+              radial-gradient(ellipse at 12% 96%, rgba(94,70,122,0.22), transparent 38%);
+            pointer-events: none;
+          }
+          .cosmic-checkout-shell {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.82fr);
+            gap: clamp(18px, 3vw, 30px);
+            border: 1px solid rgba(212,182,122,0.34);
+            border-top-color: rgba(212,182,122,0.64);
+            border-radius: 8px;
+            background:
+              linear-gradient(110deg, rgba(245,239,230,0.074), rgba(245,239,230,0.032)),
+              rgba(13,10,20,0.84);
+            box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.30);
+            padding: clamp(18px, 3.5vw, 36px);
+          }
+          .cosmic-checkout-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+          }
+          .cosmic-checkout-kicker,
+          .cosmic-mini-label {
+            color: #d4b67a;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+          }
+          .cosmic-checkout-title {
+            max-width: 520px;
+            margin: 0;
+            color: #f5efe6;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(2.25rem, 4.6vw, 3.75rem);
+            font-weight: 500;
+            line-height: 0.98;
+          }
+          .cosmic-checkout-body {
+            max-width: 600px;
+            margin: 0;
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 1rem;
+            line-height: 1.72;
+          }
+          .cosmic-tier-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 8px;
+          }
+          .cosmic-tier {
+            position: relative;
+            min-height: 330px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid rgba(245,239,230,0.12);
+            border-radius: 8px;
+            background:
+              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.10), transparent 44%),
+              linear-gradient(180deg, rgba(5,4,7,0.42), rgba(5,4,7,0.18));
+            padding: 22px;
+            cursor: pointer;
+          }
+          .cosmic-tier.is-selected {
+            border-color: rgba(212,182,122,0.72);
+            box-shadow: 0 0 0 1px rgba(212,182,122,0.16), 0 18px 48px rgba(0,0,0,0.24);
+          }
+          .cosmic-tier-badge {
+            position: absolute;
+            top: -11px;
+            right: 18px;
+            border-radius: 999px;
+            background: #d4b67a;
+            color: #141210;
+            padding: 4px 10px;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+          }
+          .cosmic-tier-head {
+            display: grid;
+            grid-template-columns: 22px 1fr;
+            gap: 12px;
+            align-items: start;
+          }
+          .cosmic-radio {
+            width: 18px;
+            height: 18px;
+            margin-top: 6px;
+            border: 2px solid rgba(212,182,122,0.55);
+            border-radius: 999px;
+          }
+          .cosmic-tier.is-selected .cosmic-radio {
+            box-shadow: inset 0 0 0 4px #15101c;
+            background: #d4b67a;
+          }
+          .cosmic-tier h3 {
+            margin: 0;
+            color: #f5efe6;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.62rem;
+            line-height: 1.06;
+            font-weight: 500;
+          }
+          .cosmic-tier p {
+            margin: 8px 0 0;
+            color: #9d8d7f;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.88rem;
+            line-height: 1.48;
+          }
+          .cosmic-tier-price strong {
+            color: #f5efe6;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 2.2rem;
+            font-weight: 500;
+          }
+          .cosmic-tier-price span {
+            margin-left: 8px;
+            color: rgba(207,193,177,0.55);
+            text-decoration: line-through;
+          }
+          .cosmic-feature-list {
+            display: grid;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+          }
+          .cosmic-feature-list li {
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 10px;
+            align-items: start;
+            border-top: 0;
+            padding-top: 0;
+          }
+          .cosmic-feature-list li > span {
+            color: #66bd7a;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.82rem;
+            line-height: 1.45;
+          }
+          .cosmic-feature-list p,
+          .cosmic-feature-list button {
+            margin: 0;
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.86rem;
+            font-weight: 600;
+            line-height: 1.45;
+          }
+          .cosmic-feature-list button {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 0;
+            background: none;
+            padding: 0;
+            text-align: left;
+            cursor: pointer;
+          }
+          .cosmic-feature-list small {
+            flex-shrink: 0;
+            border: 1px solid rgba(212,182,122,0.30);
+            border-radius: 999px;
+            color: #f0d99f;
+            padding: 3px 7px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+          }
+          .cosmic-stepper {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(212,182,122,0.22);
+            border-radius: 8px;
+            background: rgba(5,4,7,0.48);
+            padding: 10px 12px;
+          }
+          .cosmic-included-strip {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            border: 1px solid rgba(212,182,122,0.22);
+            border-radius: 8px;
+            background: rgba(5,4,7,0.35);
+            padding: 14px;
+          }
+          .cosmic-included-strip p {
+            margin: 0;
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.86rem;
+            line-height: 1.48;
+          }
+          .cosmic-preview-link {
+            min-height: 36px;
+            border: 1px solid rgba(212,182,122,0.32);
+            border-radius: 999px;
+            background: rgba(212,182,122,0.08);
+            color: #f0d99f;
+            padding: 0 12px;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+          .cosmic-stepper > span {
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.82rem;
+          }
+          .cosmic-stepper div {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .cosmic-stepper button {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(212,182,122,0.34);
+            border-radius: 999px;
+            background: rgba(245,239,230,0.06);
+            color: #f0d99f;
+            font: 700 18px/1 Lato, system-ui, sans-serif;
+          }
+          .cosmic-stepper button:disabled {
+            opacity: 0.35;
+          }
+          .cosmic-stepper b {
+            min-width: 20px;
+            color: #f5efe6;
+            text-align: center;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.2rem;
+          }
+          .cosmic-order-panel {
+            align-self: start;
+            position: sticky;
+            top: 92px;
+            border: 1px solid rgba(212,182,122,0.30);
+            border-radius: 8px;
+            background:
+              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.14), transparent 38%),
+              rgba(5,4,7,0.58);
+            padding: clamp(18px, 2.6vw, 26px);
+          }
+          .cosmic-order-row,
+          .cosmic-total-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid rgba(245,239,230,0.08);
+            padding: 12px 0;
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.92rem;
+          }
+          .cosmic-total-row {
+            border-bottom: 0;
+            color: #f5efe6;
+            font-size: 1.05rem;
+          }
+          .cosmic-total-row strong {
+            color: #f0d99f;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.8rem;
+            font-weight: 500;
+          }
+          .cosmic-code-button {
+            width: 100%;
+            border: 0;
+            background: none;
+            color: #d4b67a;
+            padding: 10px 0;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.84rem;
+            font-weight: 700;
+          }
+          .cosmic-code-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            margin: 12px 0;
+          }
+          .cosmic-order-panel input {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid rgba(212,182,122,0.34);
+            border-radius: 8px;
+            background: rgba(5,4,7,0.76);
+            color: #f5efe6;
+            padding: 0 14px;
+            font-family: Lato, system-ui, sans-serif;
+          }
+          .cosmic-order-panel label {
+            display: block;
+            margin: 14px 0 7px;
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.84rem;
+            font-weight: 700;
+          }
+          .cosmic-primary-button,
+          .cosmic-apply-button {
+            min-height: 50px;
+            border: 1px solid #f0d99f;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #f0d99f, #d4b67a);
+            color: #141210;
+            font-family: Lato, system-ui, sans-serif;
+            font-weight: 800;
+          }
+          .cosmic-primary-button {
+            width: 100%;
+            margin-top: 14px;
+          }
+          .cosmic-gift-link {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+            color: #f0d99f;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.88rem;
+            text-decoration: none;
+          }
+          .cosmic-proof {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 18px 0;
+          }
+          .cosmic-proof span {
+            color: #cfc1b1;
+            text-align: center;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.74rem;
+            line-height: 1.35;
+          }
+          .cosmic-refund {
+            color: #cfc1b1;
+            text-align: center;
+            font-family: Cormorant, Georgia, serif;
+            font-size: 1.08rem;
+            font-style: italic;
+            line-height: 1.4;
+          }
+          .cosmic-checkout .flex[role="radiogroup"] button {
+            min-width: 112px;
+          }
+          .cosmic-checkout [role="radio"] img {
+            display: none !important;
+          }
+          .cosmic-checkout [role="radio"]::after {
+            content: attr(aria-label);
+            color: #141210;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+          .cosmic-preview-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: grid;
+            place-items: center;
+            background: rgba(5,4,7,0.68);
+            padding: 22px;
+          }
+          .cosmic-preview-panel {
+            width: min(520px, 94vw);
+            border: 1px solid rgba(212,182,122,0.38);
+            border-radius: 8px;
+            background:
+              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.14), transparent 38%),
+              linear-gradient(180deg, #17111e, #0d0a14);
+            box-shadow: 0 28px 90px rgba(0,0,0,0.48);
+            padding: clamp(22px, 4vw, 34px);
+          }
+          .cosmic-preview-panel h3 {
+            margin: 0;
+            color: #f5efe6;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 500;
+            line-height: 1;
+          }
+          .cosmic-preview-panel p {
+            margin: 16px 0 0;
+            color: #cfc1b1;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 1rem;
+            line-height: 1.68;
+          }
+          .cosmic-preview-panel button {
+            margin-top: 24px;
+            min-height: 46px;
+            border: 1px solid rgba(212,182,122,0.40);
+            border-radius: 8px;
+            background: rgba(212,182,122,0.10);
+            color: #f0d99f;
+            padding: 0 18px;
+            font-family: Lato, system-ui, sans-serif;
+            font-weight: 800;
+          }
+          @media (max-width: 900px) {
+            .cosmic-checkout-shell {
+              grid-template-columns: 1fr;
+              padding: 18px;
+            }
+            .cosmic-tier-grid {
+              grid-template-columns: 1fr;
+            }
+            .cosmic-tier {
+              min-height: 0;
+            }
+            .cosmic-included-strip {
+              grid-template-columns: 1fr;
+            }
+            .cosmic-preview-link {
+              width: 100%;
+            }
+            .cosmic-order-panel {
+              position: relative;
+              top: auto;
+            }
+          }
+          @media (max-width: 520px) {
+            .cosmic-checkout-title {
+              font-size: clamp(2.2rem, 13vw, 3.2rem);
+            }
+            .cosmic-proof {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
+
+        <div className="cosmic-checkout-shell">
+          <div className="cosmic-checkout-copy">
+            <p className="cosmic-checkout-kicker">Choose the depth</p>
+            <h2 className="cosmic-checkout-title">A private reading for the soul you already know.</h2>
+            <p className="cosmic-checkout-body">
+              Start with their own birth sky, or add the bond layer to see how
+              your chart and theirs speak to each other. You can add more than
+              one pet without leaving this page.
+            </p>
+            <div className="cosmic-tier-grid">
+              {renderCosmicTier(TIERS.find((t) => t.id === "basic")!, "core")}
+              {renderCosmicTier(TIERS.find((t) => t.id === "premium")!, "bond")}
+            </div>
+            <div className="cosmic-included-strip">
+              <p>
+                Included: birth chart, photo, 30+ reading sections, SoulSpeak,
+                weekly horoscopes for one month, and lifetime access.
+              </p>
+              <button type="button" className="cosmic-preview-link" onClick={openSoulSpeak}>
+                SoulSpeak
+              </button>
+              <button type="button" className="cosmic-preview-link" onClick={openHoroscope}>
+                Horoscope
+              </button>
+            </div>
+            {!memorialOnly && (
+              <p className="cosmic-checkout-body" style={{ fontSize: "0.9rem", marginTop: 0 }}>
+                {petCount >= 2
+                  ? `${Math.round(discountRate * 100)}% multi-pet saving applied for ${petCount} readings.`
+                  : "Use the + buttons if more than one little soul belongs in this reading."}
+              </p>
+            )}
+          </div>
+
+          <aside className="cosmic-order-panel" aria-label="Order summary">
+            <p className="cosmic-mini-label">Your reading</p>
+            {basicQty > 0 && (
+              <div className="cosmic-order-row">
+                <span>Soul Reading x {basicQty}</span>
+                <strong>{fmt(basicQty * basicPrice)}</strong>
+              </div>
+            )}
+            {premiumQty > 0 && (
+              <div className="cosmic-order-row">
+                <span>Soul Bond x {premiumQty}</span>
+                <strong>{fmt(premiumQty * premiumPrice)}</strong>
+              </div>
+            )}
+            {discountRate > 0 && (
+              <div className="cosmic-order-row">
+                <span>Multi-pet saving</span>
+                <strong>-{fmt(volumeDiscountAmount)}</strong>
+              </div>
+            )}
+            {appliedCoupon && (
+              <div className="cosmic-order-row">
+                <span>Code {appliedCoupon.code}</span>
+                <strong>-{fmt(couponDiscountAmount)}</strong>
+              </div>
+            )}
+            <div className="cosmic-total-row">
+              <span>Total today</span>
+              <strong>{fmt(finalPrice + charityBonus * 100)}</strong>
+            </div>
+
+            {!codeOpen && !appliedCoupon && (
+              <button type="button" className="cosmic-code-button" onClick={() => setCodeOpen(true)}>
+                Have a promo or gift code?
+              </button>
+            )}
+            {codeOpen && !appliedCoupon && (
+              <div className="cosmic-code-row">
+                <input
+                  type="text"
+                  value={codeInput}
+                  onChange={(e) => { setCodeInput(e.target.value); setCodeError(""); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApplyCode(); } }}
+                  placeholder="Enter code"
+                  aria-label="Promo or gift code"
+                />
+                <button type="button" className="cosmic-apply-button" onClick={handleApplyCode} disabled={codeStatus === "checking" || !codeInput.trim()}>
+                  {codeStatus === "checking" ? "Checking" : "Apply"}
+                </button>
+              </div>
+            )}
+            {codeError && <p style={{ color: "#f0d99f", fontSize: 12, margin: "4px 0 0" }}>{codeError}</p>}
+
+            <label htmlFor="v2-email">Email for access to their reading</label>
+            <input
+              id="v2-email"
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              placeholder="you@example.com"
+            />
+            {error && <p style={{ color: "#f0d99f", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
+
+            <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
+              {isLoading ? "Opening secure checkout..." : `${ctaLabel} - ${fmt(finalPrice + charityBonus * 100)}`}
+            </button>
+            <a href="/gift" className="cosmic-gift-link" onClick={() => trackFunnelEvent("v2_gift_link_clicked", { path })}>
+              Or gift this reading
+            </a>
+
+            {isLocalized && (
+              <p style={{ color: "#9d8d7f", textAlign: "center", fontSize: 12, margin: "10px 0 0" }}>
+                Shown in {currencyCode}. Billed in USD at today's rate.
+              </p>
+            )}
+
+            <div className="cosmic-proof" aria-label="Checkout reassurance">
+              <span>Secure checkout</span>
+              <span>Ready in minutes</span>
+              <span>Full refund guarantee</span>
+            </div>
+            <p className="cosmic-refund">
+              If the reading does not feel like them, we refund every cent.
+            </p>
+            <PaymentBrandLogos />
+            <div style={{ marginTop: 18 }}>
+              <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
+            </div>
+          </aside>
+        </div>
+
+        {(soulSpeakOpen || horoscopeOpen) && (
+          <div
+            className="cosmic-preview-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cosmic-preview-title"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                closeSoulSpeak();
+                closeHoroscope();
+              }
+            }}
+          >
+            <div className="cosmic-preview-panel">
+              <p className="cosmic-mini-label">
+                {soulSpeakOpen ? "SoulSpeak preview" : "Weekly horoscope preview"}
+              </p>
+              <h3 id="cosmic-preview-title">
+                {soulSpeakOpen ? "Keep speaking from inside their reading." : "A weekly note from their sky."}
+              </h3>
+              <p>
+                {soulSpeakOpen
+                  ? "After the reading opens, SoulSpeak lets you ask from the same world of their chart, personality and bond. It is there for the questions that only make sense between you and them."
+                  : "Their weekly horoscope gives the paid reading a living rhythm: what may soothe them, what may stir them, and how to meet their energy with more care."}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  closeSoulSpeak();
+                  closeHoroscope();
+                }}
+              >
+                Close preview
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+    );
+  }
 
   return (
     <section
