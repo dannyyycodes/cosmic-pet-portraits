@@ -501,12 +501,14 @@ function PlanetCard({
   );
 }
 
+// Real-ish relative orbital periods; start angles staggered so the planets
+// never line up (classroom orrery, not a conjunction).
 const SOLAR_ORBITS = [
-  { planet: "mercury", size: 11, dur: 20, ring: 30 },
-  { planet: "venus", size: 17, dur: 32, ring: 46 },
-  { planet: "mars", size: 13, dur: 44, ring: 62 },
-  { planet: "jupiter", size: 30, dur: 64, ring: 78 },
-  { planet: "saturn", size: 40, dur: 88, ring: 94 },
+  { planet: "mercury", size: 11, dur: 18, ring: 30, start: 35 },
+  { planet: "venus", size: 17, dur: 29, ring: 46, start: 160 },
+  { planet: "mars", size: 13, dur: 41, ring: 62, start: 255 },
+  { planet: "jupiter", size: 30, dur: 67, ring: 78, start: 100 },
+  { planet: "saturn", size: 40, dur: 97, ring: 94, start: 300 },
 ] as const;
 
 function SolarSystemBackdrop() {
@@ -517,7 +519,11 @@ function SolarSystemBackdrop() {
           <div
             key={o.planet}
             className="ls-solar-ring"
-            style={{ width: `${o.ring}%`, animationDuration: `${o.dur}s` }}
+            style={{
+              width: `${o.ring}%`,
+              animationDuration: `${o.dur}s`,
+              animationDelay: `${-(o.start / 360) * o.dur}s`,
+            }}
           >
             <img
               src={PLANET_META[o.planet].img}
@@ -804,8 +810,7 @@ function CosmicStyles() {
         inset: 0;
         overflow: hidden;
         pointer-events: none;
-        opacity: 0.32;
-        filter: blur(0.4px);
+        opacity: 0.3;
       }
       .ls-solar-stage {
         position: absolute;
