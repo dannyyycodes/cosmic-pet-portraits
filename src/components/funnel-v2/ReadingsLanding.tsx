@@ -56,26 +56,36 @@ const AUTHORITY_ITEMS = [
   {
     stat: "VSOP87",
     label: "Ephemeris model",
-    body: "The same planetary theory observatories run, resolved to the arcsecond.",
+    body: "The semi-analytic planetary theory observatories run, resolved to the arcsecond.",
   },
   {
     stat: "13",
     label: "Celestial bodies",
-    body: "Sun through Pluto, plus Chiron, the Lunar Node and Lilith, read as one chart.",
+    body: "Sun through Pluto, plus Chiron, the Lunar Node and Black Moon Lilith.",
   },
   {
-    stat: "3",
-    label: "Coordinates fixed",
-    body: "Birth date, time and place pin the exact sky standing over them that moment.",
+    stat: "J2000",
+    label: "Reference epoch",
+    body: "Positions tied to the standard astronomical epoch, then carried to their date.",
+  },
+  {
+    stat: "< 0.01°",
+    label: "Geometric precision",
+    body: "True longitudes computed, not rounded into twelve sun-sign buckets.",
+  },
+  {
+    stat: "True",
+    label: "Geocentric sky",
+    body: "The real sky as it stood over Earth that moment, retrogrades and all.",
   },
   {
     stat: "0",
     label: "Templates used",
-    body: "Every placement is computed from their own chart. No generic sun-sign filler.",
+    body: "Every placement is computed from their own chart. No generic filler.",
   },
 ];
 
-const PLANET_META = {
+const PLANET_META: Record<string, { glyph: string; label: string; line: string; img?: string }> = {
   sun: { glyph: "☉", label: "Sun", line: "Who they are at their core.", img: "/readings/planets/sun.png" },
   moon: { glyph: "☽", label: "Moon", line: "How they feel, and what soothes them.", img: "/readings/planets/moon.png" },
   mercury: { glyph: "☿", label: "Mercury", line: "How they read you and answer back.", img: "/readings/planets/mercury.png" },
@@ -83,9 +93,18 @@ const PLANET_META = {
   mars: { glyph: "♂", label: "Mars", line: "Their drive, courage and play.", img: "/readings/planets/mars.png" },
   jupiter: { glyph: "♃", label: "Jupiter", line: "Where they trust enough to open up.", img: "/readings/planets/jupiter.png" },
   saturn: { glyph: "♄", label: "Saturn", line: "What steadies them and holds them.", img: "/readings/planets/saturn.png" },
-} as const;
+  uranus: { glyph: "♅", label: "Uranus", line: "Where they break their own pattern.", img: "/readings/planets/uranus.png" },
+  neptune: { glyph: "♆", label: "Neptune", line: "Their dreaming, their softness, their fog.", img: "/readings/planets/neptune.png" },
+  pluto: { glyph: "♇", label: "Pluto", line: "What they carry deep and rarely show.", img: "/readings/planets/pluto.png" },
+  chiron: { glyph: "⚷", label: "Chiron", line: "The old hurt they are quietly healing." },
+  northNode: { glyph: "☊", label: "North Node", line: "The direction their soul is growing." },
+  lilith: { glyph: "⚸", label: "Lilith", line: "Their untamed, instinctive edge." },
+};
 
-const PLANET_ORDER = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"] as const;
+const PLANET_ORDER = [
+  "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
+  "uranus", "neptune", "pluto", "chiron", "northNode", "lilith",
+] as const;
 
 // Sun + Moon revealed free; the rest unlock behind the email gate.
 const FREE_BODIES = 2;
@@ -491,7 +510,11 @@ function PlanetCard({
   const degree = typeof body?.degree === "number" ? `${Math.round(body.degree)}° ` : "";
   return (
     <article className={`ls-planet-card ${locked ? "is-locked" : ""}`}>
-      <img className="ls-planet-orb" src={meta.img} alt={meta.label} loading="lazy" width={56} height={56} />
+      {meta.img ? (
+        <img className="ls-planet-orb" src={meta.img} alt={meta.label} loading="lazy" width={56} height={56} />
+      ) : (
+        <span className="ls-planet-orb ls-glyph-orb" aria-hidden="true">{meta.glyph}</span>
+      )}
       <div className="ls-planet-body">
         <span className="ls-planet-head">
           <i className="ls-planet-glyph" aria-hidden="true">{meta.glyph}</i>
@@ -564,9 +587,14 @@ function CalcDropdown({ open, onToggle }: { open: boolean; onToggle: () => void 
       </button>
       {open && (
         <div className="ls-calc-body">
+          <figure className="ls-calc-figure">
+            <img src="/readings/planets/star-chart.jpg" alt="Antique Copernican planisphere" loading="lazy" />
+            <figcaption>Planisphærium Copernicanum — the geometry our engine computes, by hand four centuries ago.</figcaption>
+          </figure>
           <p className="ls-calc-lead">
             The feeling is yours. The sky beneath it is measured. Every placement here is
-            computed from their own chart with observatory-grade ephemeris.
+            computed from their own chart with observatory-grade ephemeris — the same maths
+            that lands probes on other worlds, pointed at the moment they arrived.
           </p>
           <div className="ls-calc-grid">
             {AUTHORITY_ITEMS.map(({ stat, label, body }) => (
@@ -1047,7 +1075,8 @@ function CosmicStyles() {
         object-fit: contain;
         filter: drop-shadow(0 0 10px rgba(212,182,122,0.26));
       }
-      .ls-element-orb {
+      .ls-element-orb,
+      .ls-glyph-orb {
         display: grid;
         place-items: center;
         color: ${C.gold};
@@ -1055,6 +1084,35 @@ function CosmicStyles() {
         border: 1px solid rgba(212,182,122,0.42);
         border-radius: 50%;
         filter: none;
+      }
+      .ls-glyph-orb {
+        font-size: 1.5rem;
+        background: rgba(212,182,122,0.06);
+      }
+      .ls-calc-figure {
+        margin: 0 0 18px;
+        border: 1px solid rgba(212,182,122,0.2);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #0d0a14;
+      }
+      .ls-calc-figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+        object-fit: cover;
+        object-position: center 42%;
+        opacity: 0.92;
+      }
+      .ls-calc-figure figcaption {
+        padding: 10px 14px;
+        color: ${C.muted};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.72rem;
+        line-height: 1.4;
+        letter-spacing: 0.03em;
+        border-top: 1px solid rgba(212,182,122,0.14);
       }
       .ls-planet-body { display: grid; gap: 3px; min-width: 0; }
       .ls-planet-head {
