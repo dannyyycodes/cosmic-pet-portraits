@@ -156,12 +156,12 @@ export function ReadingsLanding() {
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
       <BirthChartPreviewSection />
+      <QuietMomentSection />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
         onSelectedPriceChange={setSelectedPrice}
       />
-      <QuietMomentSection />
       <FaqSection />
     </main>
   );
@@ -410,9 +410,16 @@ function BirthChartPreviewSection() {
                 </div>
 
                 {unlocked && (
-                  <a href="#begin" className="ls-gold-button ls-sky-cta">
-                    Get {name || "their"} full soul reading <ArrowRight size={17} />
-                  </a>
+                  <div className="ls-sky-bridge">
+                    <p className="ls-sky-bridge-lead">
+                      That&apos;s the surface of {themName} sky. The full reading walks every
+                      placement — how {name || "they"} love, what steadies them, why they chose
+                      you — in their own voice.
+                    </p>
+                    <a href="#begin" className="ls-gold-button ls-sky-cta">
+                      Read {name || "their"} full soul reading <ArrowRight size={17} />
+                    </a>
+                  </div>
                 )}
               </div>
             )}
@@ -1100,6 +1107,15 @@ function CosmicStyles() {
         color: ${C.cream};
         padding: 0 14px;
         font-family: Lato, system-ui, sans-serif;
+      }
+      .ls-sky-bridge { margin-top: 22px; text-align: center; }
+      .ls-sky-bridge-lead {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+        line-height: 1.45;
+        max-width: 560px;
+        margin: 0 auto;
       }
       .ls-sky-cta { margin-top: 18px; width: 100%; justify-content: center; }
 

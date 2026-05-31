@@ -260,7 +260,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   useEffect(() => {
     // Mount: email prefill + one-shot read of any pre-existing prize.
     try {
-      const fallback = sessionStorage.getItem("ls_wheel_email");
+      const fallback = sessionStorage.getItem("ls_wheel_email") || sessionStorage.getItem("ls_chart_email");
       if (fallback && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(fallback)) {
         setEmail((current) => current || fallback);
       }
