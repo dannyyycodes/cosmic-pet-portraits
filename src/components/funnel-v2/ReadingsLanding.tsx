@@ -319,151 +319,158 @@ function BirthChartPreviewSection() {
 
   const themName = name || "their";
 
+  const scrollToCheckout = () =>
+    document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto max-w-3xl">
-        <div className="text-center">
-          <p style={eyebrowStyle(C.gold)}>Free mini reading</p>
-          <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-            Free mini reading calculations.
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl text-pretty" style={sectionBodyStyle}>
-            Enter their birth or adoption date and watch their real planets light up.
-            The same sky engine behind the full reading.
-          </p>
-        </div>
+      <div className="mx-auto max-w-3xl text-center">
+        <p style={eyebrowStyle(C.gold)}>Free mini reading</p>
+        <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
+          Free mini reading calculations.
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-pretty" style={sectionBodyStyle}>
+          Enter their birth or adoption date and watch their real planets light up.
+          The same sky engine behind the full reading.
+        </p>
+      </div>
 
-        <div className="ls-chart-shell mt-10">
-          <SolarSystemBackdrop />
-          <div className="relative z-10">
-            <div>
-              <p style={eyebrowStyle(C.gold)}>Computed sky</p>
-              <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-                {status === "ready" ? `${name || "Their"} birth sky` : "Their birth sky preview"}
-              </h3>
-            </div>
+      <div className="ls-chart-shell mx-auto mt-10 max-w-3xl">
+        <SolarSystemBackdrop />
+        <div className="relative z-10">
+          <div>
+            <p style={eyebrowStyle(C.gold)}>Computed sky</p>
+            <h3 className="mt-4 text-balance" style={chartTitleStyle}>
+              {status === "ready" ? `${name || "Their"} birth sky` : "Their birth sky preview"}
+            </h3>
+          </div>
 
-            {status !== "ready" ? (
-              <div className="ls-sky-teaser">
-                <div className="ls-sky-grid ls-sky-preview" aria-hidden="true">
-                  {PLANET_ORDER.map((key) => (
-                    <PlanetCard key={key} planet={key} />
-                  ))}
-                </div>
-                <p className="ls-chart-message">
-                  {status === "loading"
-                    ? "Reading their sky..."
-                    : "Enter their date to light up their real planets. Sun, Moon and the placements that make them, them."}
-                </p>
+          <form className="ls-lead-form ls-lead-form--card mt-7" onSubmit={handlePreview}>
+            <div className="ls-lead-row">
+              <div className="ls-lead-field">
+                <label htmlFor="chart-pet-name">Their name (optional)</label>
+                <input
+                  id="chart-pet-name"
+                  type="text"
+                  value={petName}
+                  maxLength={40}
+                  onChange={(event) => setPetName(event.target.value)}
+                  placeholder="e.g. Bella"
+                />
               </div>
-            ) : (
-              <div className="mt-8">
-                <div className="ls-sky-grid">
-                  {PLANET_ORDER.slice(0, FREE_BODIES).map((key) => (
-                    <PlanetCard key={key} planet={key} body={bodyFor(key)} />
+              <div className="ls-lead-field">
+                <label htmlFor="birth-chart-date">Birth or adoption date</label>
+                <input
+                  id="birth-chart-date"
+                  type="date"
+                  value={date}
+                  onChange={(event) => {
+                    setDate(event.target.value);
+                    if (status === "error") {
+                      setStatus("idle");
+                      setMessage("");
+                    }
+                  }}
+                  max="2030-12-31"
+                />
+              </div>
+            </div>
+            <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
+              {status === "loading"
+                ? "Reading Their Sky..."
+                : status === "ready"
+                ? "Recalculate"
+                : "Reveal Their Birth Sky"}
+              {status !== "loading" && <ArrowRight size={17} />}
+            </button>
+            {message && status === "error" && (
+              <p className="ls-chart-message is-error">{message}</p>
+            )}
+          </form>
+
+          {status === "ready" ? (
+            <div className="mt-8">
+              <div className="ls-sky-grid">
+                {PLANET_ORDER.slice(0, FREE_BODIES).map((key) => (
+                  <PlanetCard key={key} planet={key} body={bodyFor(key)} />
+                ))}
+              </div>
+
+              <div className={`ls-sky-locked ${unlocked ? "is-open" : ""}`}>
+                <div className="ls-sky-grid ls-sky-rest">
+                  {PLANET_ORDER.slice(FREE_BODIES).map((key) => (
+                    <PlanetCard key={key} planet={key} body={bodyFor(key)} locked={!unlocked} />
                   ))}
-                </div>
-
-                <div className={`ls-sky-locked ${unlocked ? "is-open" : ""}`}>
-                  <div className="ls-sky-grid ls-sky-rest">
-                    {PLANET_ORDER.slice(FREE_BODIES).map((key) => (
-                      <PlanetCard key={key} planet={key} body={bodyFor(key)} locked={!unlocked} />
-                    ))}
-                    {unlocked && (
-                      <article className="ls-planet-card ls-element-card">
-                        <span className="ls-planet-orb ls-element-orb" aria-hidden="true">✦</span>
-                        <div className="ls-planet-body">
-                          <span className="ls-planet-head">Dominant</span>
-                          <strong className="ls-planet-sign">
-                            {chart?.dominantElement ? `${chart.dominantElement} element` : "Calculated pattern"}
-                          </strong>
-                          <small>The thread running through all of it.</small>
-                        </div>
-                      </article>
-                    )}
-                  </div>
-
-                  {!unlocked && (
-                    <div className="ls-sky-gate">
-                      <Stars size={22} style={{ color: C.gold }} />
-                      <p>See {themName} whole sky.</p>
-                      <small>The rest of their placements now, and we&apos;ll send their chart to your inbox.</small>
-                      <form onSubmit={handleUnlock}>
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(event) => {
-                            setEmail(event.target.value);
-                            if (gateError) setGateError("");
-                          }}
-                          placeholder="your@email.com"
-                          aria-label="Your email"
-                          autoComplete="email"
-                        />
-                        <button type="submit" className="ls-gold-button" disabled={gateStatus === "loading"}>
-                          {gateStatus === "loading" ? "Opening..." : "Reveal the full sky"}
-                        </button>
-                      </form>
-                      {gateError && <p className="ls-chart-message is-error">{gateError}</p>}
-                    </div>
+                  {unlocked && (
+                    <article className="ls-planet-card ls-element-card">
+                      <span className="ls-planet-orb ls-element-orb" aria-hidden="true">✦</span>
+                      <div className="ls-planet-body">
+                        <span className="ls-planet-head">Dominant</span>
+                        <strong className="ls-planet-sign">
+                          {chart?.dominantElement ? `${chart.dominantElement} element` : "Calculated pattern"}
+                        </strong>
+                        <small>The thread running through all of it.</small>
+                      </div>
+                    </article>
                   )}
                 </div>
 
-                {unlocked && (
-                  <div className="ls-sky-bridge">
-                    <p className="ls-sky-bridge-lead">
-                      That&apos;s the surface of {themName} sky. The full reading walks every
-                      placement — how {name || "they"} love, what steadies them, why they chose
-                      you — in their own voice.
-                    </p>
-                    <a href="#begin" className="ls-gold-button ls-sky-cta">
-                      Read {name || "their"} full soul reading <ArrowRight size={17} />
-                    </a>
+                {!unlocked && (
+                  <div className="ls-sky-gate">
+                    <Stars size={22} style={{ color: C.gold }} />
+                    <p>See {themName} whole sky.</p>
+                    <small>The rest of their placements now, and we&apos;ll send their chart to your inbox.</small>
+                    <form onSubmit={handleUnlock}>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => {
+                          setEmail(event.target.value);
+                          if (gateError) setGateError("");
+                        }}
+                        placeholder="your@email.com"
+                        aria-label="Your email"
+                        autoComplete="email"
+                      />
+                      <button type="submit" className="ls-gold-button" disabled={gateStatus === "loading"}>
+                        {gateStatus === "loading" ? "Opening..." : "Reveal the full sky"}
+                      </button>
+                    </form>
+                    {gateError && <p className="ls-chart-message is-error">{gateError}</p>}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
 
-        <CalcDropdown open={calcOpen} onToggle={() => setCalcOpen((v) => !v)} />
-
-        <form className="ls-lead-form ls-lead-form--wide mt-8" onSubmit={handlePreview}>
-          <div className="ls-lead-field">
-            <label htmlFor="chart-pet-name">Their name (optional)</label>
-            <input
-              id="chart-pet-name"
-              type="text"
-              value={petName}
-              maxLength={40}
-              onChange={(event) => setPetName(event.target.value)}
-              placeholder="e.g. Bella"
-            />
-          </div>
-          <div className="ls-lead-field">
-            <label htmlFor="birth-chart-date">Birth or adoption date</label>
-            <input
-              id="birth-chart-date"
-              type="date"
-              value={date}
-              onChange={(event) => {
-                setDate(event.target.value);
-                if (status === "error") {
-                  setStatus("idle");
-                  setMessage("");
-                }
-              }}
-              max="2030-12-31"
-            />
-          </div>
-          <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
-            {status === "loading" ? "Reading Their Sky..." : "Reveal Their Birth Sky"}
-            {status !== "loading" && <ArrowRight size={17} />}
-          </button>
-          {message && status === "error" && (
-            <p className="ls-chart-message is-error">{message}</p>
+              {unlocked && (
+                <div className="ls-sky-bridge">
+                  <p className="ls-sky-bridge-lead">
+                    That&apos;s the surface of {themName} sky. The full reading walks every
+                    placement: how {name || "they"} love, what steadies them, why they chose
+                    you, in their own voice.
+                  </p>
+                  <button type="button" onClick={scrollToCheckout} className="ls-gold-button ls-sky-cta">
+                    Read {name || "their"} full soul reading <ArrowRight size={17} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="ls-sky-teaser mt-8">
+              <div className="ls-sky-grid ls-sky-preview" aria-hidden="true">
+                {PLANET_ORDER.map((key) => (
+                  <PlanetCard key={key} planet={key} />
+                ))}
+              </div>
+              <p className="ls-chart-message">
+                {status === "loading"
+                  ? "Reading their sky..."
+                  : "Enter their date to light up their real planets. Sun, Moon and the placements that make them, them."}
+              </p>
+            </div>
           )}
-        </form>
+
+          <CalcDropdown open={calcOpen} onToggle={() => setCalcOpen((v) => !v)} />
+        </div>
       </div>
     </section>
   );
@@ -548,9 +555,12 @@ function CalcDropdown({ open, onToggle }: { open: boolean; onToggle: () => void 
       >
         <span className="ls-calc-head">
           <span style={eyebrowStyle(C.gold)}>The calculation underneath</span>
-          <span className="ls-calc-title">Real astronomy, not a sun-sign guess.</span>
+          <span className="ls-calc-title">VSOP87 · 13 celestial bodies</span>
         </span>
-        <ChevronDown className="ls-calc-chevron" size={26} strokeWidth={2.25} aria-hidden="true" />
+        <span className="ls-calc-toggle-hint">
+          {open ? "Less" : "More"}
+          <ChevronDown className="ls-calc-chevron" size={20} strokeWidth={2.25} aria-hidden="true" />
+        </span>
       </button>
       {open && (
         <div className="ls-calc-body">
@@ -996,6 +1006,20 @@ function CosmicStyles() {
       }
       .ls-lead-form { display: grid; gap: 16px; max-width: 460px; }
       .ls-lead-form--wide { max-width: 560px; margin-left: auto; margin-right: auto; }
+      .ls-lead-form--card { max-width: none; }
+      .ls-lead-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .ls-calc-toggle-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: none;
+        color: ${C.gold};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
       .ls-lead-field { display: grid; gap: 6px; }
       .ls-lead-form .ls-gold-button { justify-content: center; }
 
@@ -1394,6 +1418,7 @@ function CosmicStyles() {
         .ls-lead-form { max-width: none; }
         .ls-sky-grid { grid-template-columns: 1fr; gap: 10px; }
         .ls-calc-grid { grid-template-columns: 1fr; }
+        .ls-lead-row { grid-template-columns: 1fr; }
         .ls-planet-card { min-height: 0; padding: 11px; gap: 12px; }
         .ls-planet-orb { width: 42px; height: 42px; }
         .ls-planet-sign { font-size: 1.05rem; }
