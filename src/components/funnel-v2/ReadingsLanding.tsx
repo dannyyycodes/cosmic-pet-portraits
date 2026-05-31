@@ -462,9 +462,9 @@ function BirthChartPreviewSection() {
 
             {status !== "ready" ? (
               <div className="ls-sky-teaser">
-                <div className="ls-teaser-orbs" aria-hidden="true">
+                <div className="ls-sky-grid ls-sky-preview" aria-hidden="true">
                   {PLANET_ORDER.map((key) => (
-                    <img key={key} src={PLANET_META[key].img} alt="" loading="lazy" />
+                    <PlanetCard key={key} planet={key} />
                   ))}
                 </div>
                 <p className="ls-chart-message">
@@ -988,20 +988,7 @@ function CosmicStyles() {
       .ls-lead-form .ls-gold-button { justify-content: center; }
 
       .ls-sky-teaser { margin-top: 30px; }
-      .ls-teaser-orbs {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 18px;
-      }
-      .ls-teaser-orbs img {
-        width: 100%;
-        aspect-ratio: 1;
-        object-fit: contain;
-        filter: drop-shadow(0 0 9px rgba(212,182,122,0.20));
-        opacity: 0.9;
-      }
+      .ls-sky-preview { opacity: 0.72; margin-bottom: 16px; }
       .ls-sky-grid {
         display: grid;
         gap: 12px;
@@ -1333,7 +1320,6 @@ function CosmicStyles() {
         }
         .ls-lead-form { max-width: none; }
         .ls-sky-grid { grid-template-columns: 1fr; }
-        .ls-teaser-orbs { grid-template-columns: repeat(4, 1fr); }
         .ls-sky-gate { padding: 18px 14px; }
         .ls-sky-gate form { grid-template-columns: 1fr; }
         .ls-sky-gate .ls-gold-button { width: 100%; }
