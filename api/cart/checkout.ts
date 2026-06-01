@@ -339,24 +339,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!it.variantId || typeof it.variantId !== "number") {
         return res.status(400).json({ error: `items[${i}]: gift-card requires variantId` });
       }
+      // Gift model (2026-05-12, confirmed 2026-06-01): the BUYER receives the
+      // code from Shopify and shares it themselves — so we do NOT require a
+      // recipient name/email. Requiring them 400'd the whole cart whenever a
+      // gift card was added (the upsell stopped collecting them). Only an
+      // optional note-to-self rides along.
       const props = it.properties ?? {};
-      const recipientName = (props.recipient_name ?? "").toString().trim();
-      const recipientEmail = (props.recipient_email ?? "").toString().trim();
-      const giftMessage = (props.message ?? "").toString().trim();
-      if (!recipientName) {
-        return res.status(400).json({ error: `items[${i}]: gift-card requires properties.recipient_name` });
-      }
-      if (!recipientEmail || !/^\S+@\S+\.\S+$/.test(recipientEmail)) {
-        return res.status(400).json({ error: `items[${i}]: gift-card requires a valid properties.recipient_email` });
-      }
+      const giftMessage = (props._gift_message ?? props.message ?? "").toString().trim();
 
       const giftLine: DraftOrderLineItem = {
         variantId: it.variantId,
         quantity: 1,
         properties: [
-          { name: "recipient_name", value: recipientName },
-          { name: "recipient_email", value: recipientEmail },
-          ...(giftMessage ? [{ name: "message", value: giftMessage }] : []),
+          ...(giftMessage ? [{ name: "_gift_note", value: giftMessage }] : []),
           // Hidden audit trail — useful for analytics on which gift channel converts.
           { name: "_line_kind", value: "gift-card" },
         ],
@@ -380,7 +375,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         giftLine.properties.push({ name: "_discount_pct", value: String(giftDiscountPct) });
       }
       lineItems.push(giftLine);
-      noteSummary.push(`Gift card · ${recipientName} <${recipientEmail}>`);
+      noteSummary.push(it.packName || "Gift card");
       continue;
     }
 
