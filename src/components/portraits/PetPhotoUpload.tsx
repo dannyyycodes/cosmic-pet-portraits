@@ -1,14 +1,20 @@
 /**
- * PetPhotoUpload — drag/drop photo capture for /portraits Upload Studio.
+ * PetPhotoUpload — drag/drop + tap photo capture for /portraits Upload Studio.
  *
- * Flow: drag/drop → validate format/size → HEIC→JPEG (if needed) →
+ * Flow: pick/drop → validate format/size → HEIC→JPEG (if needed) →
  *       check min-resolution → compress → Supabase Storage → return public URL
  *       to parent for the live cinematic preview step.
  *
- * Uses react-dropzone per locked build plan (2026-05-02).
- * Uses existing `pet-photos` bucket for Phase 1; production target per
- * architecture is `pet-portraits/raw/{orderId}/...` — migrate when order
- * tracking lands in Phase 2.
+ * CROSS-BROWSER / IN-APP-WEBVIEW (2026-06-01):
+ *   The previous build used react-dropzone, which opens the file picker by
+ *   programmatically clicking a hidden <input>. In-app browsers (TikTok,
+ *   Instagram, Facebook, some Android WebViews) BLOCK that synthetic click —
+ *   it isn't a "trusted" user gesture once it's forwarded from the wrapper
+ *   div — so tapping the dropzone did NOTHING and customers from TikTok could
+ *   never upload. Fixed by wrapping the zone in a real <label> tied to a real
+ *   <input type="file">: a tap on the label opens the native picker directly
+ *   (trusted gesture) in EVERY browser, including in-app webviews. Drag-drop is
+ *   kept for desktop via manual dragover/drop handlers — no library.
  *
  * Validation spec (2026-05-07, see src/lib/imageValidation.ts):
  *  - JPEG / PNG / WebP / HEIC / HEIF only (with iPhone MIME fallback)
@@ -17,8 +23,7 @@
  *  - HEIC/HEIF converted client-side to JPEG (q=0.92) before upload because
  *    fal.ai / OpenAI image endpoints can't fetch+decode HEIC.
  */
-import { useCallback, useState } from "react";
-import { useDropzone, type FileRejection } from "react-dropzone";
+import { useCallback, useId, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import imageCompression from "browser-image-compression";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,16 +50,14 @@ interface PetPhotoUploadProps {
 export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "default" }: PetPhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<string>("");
+  const [isDragActive, setIsDragActive] = useState(false);
   const compact = variant === "compact";
+  const inputId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const onDrop = useCallback(
-    async (accepted: File[], rejected: FileRejection[]) => {
-      if (rejected.length) {
-        // react-dropzone's own filter caught it — message points at our locked spec.
-        toast.error("Please drop a single photo (JPG, PNG, HEIC, or WebP, under 25 MB).");
-        return;
-      }
-      const original = accepted[0];
+  // Process a single chosen/dropped file through the full pipeline.
+  const processFile = useCallback(
+    async (original: File | undefined | null) => {
       if (!original) return;
 
       // ── 1. Surface validation (format + size) ──────────────────────────
@@ -70,8 +73,6 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
 
       try {
         // ── 2. HEIC → JPEG (client-side) ─────────────────────────────────
-        // fal.ai + OpenAI image endpoints fetch the public URL and decode it
-        // server-side; HEIC fails there. Convert before upload.
         let workingFile = original;
         if (isHeic(original)) {
           setProgress("Converting HEIC photo…");
@@ -79,8 +80,6 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
         }
 
         // ── 3. Min-resolution gate ───────────────────────────────────────
-        // gpt-image-2 needs >=600 px on the long edge to anchor identity.
-        // Probe dimensions client-side; reject before burning a Supabase upload.
         setProgress("Checking photo…");
         const dims = await readImageDimensions(workingFile);
         const dimErr = validateDimensions(dims.width, dims.height);
@@ -97,9 +96,7 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
           maxSizeMB: 2,
           // 3000px long edge: AI (gpt-image-2) needs detail to anchor identity,
           // AND the "use my photo" as-is path prints the upload directly — at
-          // 1600px it couldn't clear the 100-PPI print floor above ~12×16, so
-          // 16×20+ got refused server-side. 3000px lets the common canvas sizes
-          // print sharply while staying small on disk. (Danny 2026-06-01)
+          // 1600px it couldn't clear the 100-PPI print floor above ~12×16.
           maxWidthOrHeight: 3000,
           useWebWorker: true,
           fileType: "image/jpeg",
@@ -124,28 +121,34 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
         toast.success("Photo ready — pick a character world.");
       } catch (err) {
         console.error("[PortraitsUpload]", err);
-        // convertHeicToJpeg / readImageDimensions throw friendly Error messages
-        // we can surface verbatim. Anything else gets a generic fallback.
         const msg = err instanceof Error && err.message ? err.message : "Upload failed. Please try a different photo.";
         toast.error(msg);
       } finally {
         setIsUploading(false);
         setProgress("");
+        // Reset the input so re-selecting the SAME file fires onChange again.
+        if (inputRef.current) inputRef.current.value = "";
       }
     },
     [onUploaded],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    // react-dropzone format gate — note we keep .heic/.heif here so the OS
-    // file picker on iPhone shows them. Real validation runs in onDrop.
-    accept: {
-      "image/*": [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"],
+  const onInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      processFile(e.target.files?.[0]);
     },
-    multiple: false,
-    disabled: isUploading || !!photoUrl,
-  });
+    [processFile],
+  );
+
+  const onDropFiles = useCallback(
+    (e: React.DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      setIsDragActive(false);
+      if (isUploading || photoUrl) return;
+      processFile(e.dataTransfer.files?.[0]);
+    },
+    [processFile, isUploading, photoUrl],
+  );
 
   return (
     <AnimatePresence mode="wait">
@@ -185,12 +188,16 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
           </button>
         </motion.div>
       ) : (
-        // Plain div (not motion.div) — react-dropzone's onDrag handler conflicts
-        // with framer-motion's drag prop type. Crossfade lives on AnimatePresence.
-        <div
+        // <label> + real <input>: a tap opens the native picker DIRECTLY (a
+        // trusted user gesture) in every browser, including TikTok/IG/FB in-app
+        // webviews where a programmatic .click() is silently ignored.
+        <label
           key="dropzone"
-          {...getRootProps()}
-          className={`ls-upload-zone cursor-pointer rounded-lg transition-all relative overflow-hidden ${compact ? "p-4 mx-auto" : "p-12 md:p-16"}`}
+          htmlFor={inputId}
+          onDragOver={(e) => { e.preventDefault(); if (!isUploading && !photoUrl) setIsDragActive(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDragActive(false); }}
+          onDrop={onDropFiles}
+          className={`ls-upload-zone cursor-pointer rounded-lg transition-all relative overflow-hidden block ${compact ? "p-4 mx-auto" : "p-12 md:p-16"}`}
           style={{
             background: isDragActive ? "#faf6ef" : "#FFFDF5",
             border: isDragActive ? "1px dashed #bf524a" : "1px dashed #c4a265",
@@ -198,14 +205,36 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
             transform: isDragActive ? "scale(1.01)" : "scale(1)",
             width: compact ? 128 : undefined,
             minHeight: compact ? 128 : undefined,
-            display: compact ? "flex" : undefined,
+            display: compact ? "flex" : "block",
             alignItems: compact ? "center" : undefined,
             justifyContent: compact ? "center" : undefined,
+            // iOS Safari sometimes ignores taps on a label whose control is
+            // display:none — keep the input in-flow but visually hidden.
+            WebkitTapHighlightColor: "transparent",
           }}
-          aria-label="Drop your pet photo here, or click to browse"
+          aria-label="Add your pet photo — tap to choose or drop a file"
         >
-          <input {...getInputProps()} />
-          <div className="text-center">
+          {/* Real, directly-tappable file input. Visually hidden but NOT
+              display:none (some webviews won't activate a display:none input
+              via its label). accept lists explicit extensions because some
+              in-app browsers show nothing for a bare image/* on iOS. */}
+          <input
+            ref={inputRef}
+            id={inputId}
+            type="file"
+            accept="image/*,image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+            onChange={onInputChange}
+            disabled={isUploading}
+            style={{
+              position: "absolute",
+              width: 1,
+              height: 1,
+              opacity: 0,
+              overflow: "hidden",
+              pointerEvents: "none",
+            }}
+          />
+          <div className="text-center pointer-events-none">
             {isUploading ? (
               <>
                 <motion.div
@@ -237,17 +266,17 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
                 </p>
                 {compact ? (
                   <p className="mt-1" style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: "11px", color: "#8b7a6a" }}>
-                    click or drop
+                    tap or drop
                   </p>
                 ) : (
                   <p className="mt-3 font-cormorant italic" style={{ fontSize: "17px", color: "#5a4a42" }}>
-                    or click to choose · JPG, PNG, HEIC, WebP — up to 25 MB
+                    or tap to choose · JPG, PNG, HEIC, WebP — up to 25 MB
                   </p>
                 )}
               </>
             )}
           </div>
-        </div>
+        </label>
       )}
     </AnimatePresence>
   );
