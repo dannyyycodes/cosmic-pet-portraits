@@ -94,11 +94,16 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
         // ── 4. Compress + upload ─────────────────────────────────────────
         setProgress("Optimising photo…");
         const compressed = await imageCompression(workingFile, {
-          maxSizeMB: 0.8,
-          maxWidthOrHeight: 1600, // higher than report flow — kontext needs the detail
+          maxSizeMB: 2,
+          // 3000px long edge: AI (gpt-image-2) needs detail to anchor identity,
+          // AND the "use my photo" as-is path prints the upload directly — at
+          // 1600px it couldn't clear the 100-PPI print floor above ~12×16, so
+          // 16×20+ got refused server-side. 3000px lets the common canvas sizes
+          // print sharply while staying small on disk. (Danny 2026-06-01)
+          maxWidthOrHeight: 3000,
           useWebWorker: true,
           fileType: "image/jpeg",
-          initialQuality: 0.88,
+          initialQuality: 0.9,
         });
 
         setProgress("Uploading to your private gallery…");

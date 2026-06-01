@@ -953,8 +953,14 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   const canGenerate = mode === "asis"
     ? uploadedPets.length >= 1 && !generating
     : uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating && hasCredits;
+  // As-is: block add if the *selected* size can't print at the uploaded photo's
+  // true resolution (< ASIS_PPI_HIDE). Stops the server 422 round-trip when the
+  // size-gate hasn't snapped the default 16×20 down yet. Only enforced once the
+  // dims are known (null dims = optimistic, server still guards).
+  const asisSizeBlocked =
+    mode === "asis" && !!asisSrcDims && (asisSizePpi(activeSizeMeta) ?? 0) < ASIS_PPI_HIDE;
   const canAdd =
-    approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster;
+    approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster && !asisSizeBlocked;
 
   // As-is: read the natural pixel dims of the first uploaded photo so we can
   // gate canvas sizes by real resolution. Re-runs when the photo or mode
@@ -985,6 +991,14 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     if (largest) setSizeKeyRaw(largest.uid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, asisSrcDims, sizesForPicker.length, sizeKey]);
+
+  // As-is mode never offers a digital download — printing a customer's own
+  // upload as a £19 "digital" makes no sense (Danny 2026-06-01). Force physical
+  // whenever as-is is active; also covers restored-state where a prior digital
+  // pick was sticky in localStorage.
+  useEffect(() => {
+    if (mode === "asis" && deliveryType === "digital") setDeliveryType("physical");
+  }, [mode, deliveryType]);
 
   // As-is: fetch the REAL crop the customer will get for the selected size, so
   // they see it before adding to cart. Debounced; re-fetches on size change.
@@ -1339,6 +1353,8 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     setVariants([]);
     setSelectedVariantUrl(null);
     setApproved(false);
+    // As-is never sells a digital download (see force-physical effect below).
+    if (next === "asis") setDeliveryType("physical");
   }
 
   async function handleAdd() {
@@ -1389,10 +1405,22 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         });
         const data = await res.json().catch(() => ({}));
         if (res.status === 422 && data?.error === "source_too_low_res") {
-          toast.error(
-            `This photo isn't high-resolution enough for ${activeSizeMeta.label}. ${data.largestUsableSize ? `Try ${data.largestUsableSize}″ or smaller` : "Upload a sharper photo"} for a crisp canvas.`,
-            { duration: 9000 },
-          );
+          // Self-heal: snap to the largest size this photo CAN print sharply and
+          // ask the customer to confirm, instead of dead-ending them.
+          const largest = typeof data.largestUsableSize === "string" ? data.largestUsableSize : null;
+          const largestMeta = largest ? CANVAS_SIZES.find((s) => s.uid === largest) : null;
+          if (largest && largest !== sizeKey) {
+            setSizeKeyRaw(largest);
+            toast.error(
+              `This photo isn't sharp enough for ${activeSizeMeta.label}. We switched you to ${largestMeta?.label ?? `${largest}″`} — the largest it prints crisply. Tap Add to cart again.`,
+              { duration: 9000 },
+            );
+          } else {
+            toast.error(
+              `This photo is too low-resolution to print sharply. Upload a larger, clearer photo for a crisp canvas.`,
+              { duration: 9000 },
+            );
+          }
           setPreparingPrintMaster(false);
           return;
         }
@@ -2426,7 +2454,10 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                       transition={{ duration: 0.28, ease: EASE.out }}
                       style={{ overflow: "hidden" }}
                     >
-                      {/* Delivery type toggle — Physical (canvas) vs Digital (download). */}
+                      {/* Delivery type toggle — Physical (canvas) vs Digital (download).
+                          Hidden in "Use my photo" (as-is) mode: a digital download of
+                          the customer's own upload makes no sense (Danny 2026-06-01). */}
+                      {mode !== "asis" && (
                       <div className="mt-3">
                         <p
                           className="mb-2"
@@ -2499,6 +2530,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                           })}
                         </div>
                       </div>
+                      )}
 
                       {/* As-is: live "what will print" crop preview for the selected size. */}
                       {mode === "asis" && deliveryType === "physical" && (

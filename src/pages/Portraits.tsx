@@ -845,9 +845,12 @@ const Portraits = () => {
     } catch (err) {
       console.error("[Portraits] emitCartChanged threw", err);
     }
-    // Briefly open the cart so the customer sees the item land
+    // Open the cart and KEEP it open so the customer lands in the basket ready
+    // to checkout. Previously it auto-closed after 1.8s, which dumped the
+    // customer back on the page scrolled down at the top-up plans ("Need more
+    // generations?") — they read it as "add to cart sent me to the wrong
+    // place". Add-to-cart must take them to the cart. (Danny 2026-06-01)
     setCartOpen(true);
-    window.setTimeout(() => setCartOpen(false), 1800);
   };
 
   const handleRemoveFromCart = (id: string) => {
