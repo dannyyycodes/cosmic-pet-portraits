@@ -94,7 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Land the customer back where they started (default: the studio gate)
     // so the OAuth round-trip is invisible. The `link-user-reports` hook in
     // onAuthStateChange attaches any guest purchases on return.
-    const redirectTo = `${window.location.origin}${returnTo ?? '/pawtraits#studio'}`;
+    // CRITICAL: the redirect URL must NOT contain a hash. Supabase returns the
+    // OAuth session in the URL fragment (`#access_token=…`); a pre-existing
+    // `#studio` collides with it, the token never parses, and sign-in loops
+    // forever. Strip the hash. (Danny 2026-06-01)
+    const cleanPath = (returnTo ?? '/pawtraits').split('#')[0] || '/pawtraits';
+    const redirectTo = `${window.location.origin}${cleanPath}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
