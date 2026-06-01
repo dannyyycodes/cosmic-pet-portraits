@@ -17,7 +17,6 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { CANVAS_SIZES, FRAME_UPGRADE_GBP } from "./gelatoFramedCanvas";
 import { PALETTE, tabularPrice } from "./tokens";
-import frameHero from "@/assets/frames/frame-hero.webp";
 
 // Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
@@ -93,44 +92,8 @@ export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
       aria-labelledby="frame-sizes-heading"
     >
       <div className="mx-auto" style={{ maxWidth: 1120 }}>
-        {/* ── Hero band: framed canvas photo | size list ─────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.04fr_1fr] gap-10 lg:gap-16 items-center">
-          {/* Framed-canvas-on-wall hero */}
-          <figure className="relative m-0">
-            <div
-              aria-hidden
-              className="absolute inset-x-6 -bottom-3 h-10 rounded-full"
-              style={{ background: "rgba(20,18,16,0.10)", filter: "blur(22px)" }}
-            />
-            <img
-              src={frameHero}
-              width={1280}
-              height={1600}
-              alt="A hand-finished pet portrait canvas in a real wood frame, hung on a warm wall."
-              loading="lazy"
-              decoding="async"
-              className="relative block w-full"
-              style={{
-                borderRadius: 16,
-                boxShadow:
-                  "0 1px 2px rgba(20,18,16,0.05), 0 24px 60px -18px rgba(20,18,16,0.30)",
-                aspectRatio: "4 / 5",
-                objectFit: "cover",
-              }}
-            />
-            <figcaption
-              className="text-center mt-5"
-              style={{
-                fontFamily: "Cormorant Garamond, Georgia, serif",
-                fontStyle: "italic",
-                fontSize: 15,
-                color: PALETTE.earthMuted,
-              }}
-            >
-              Hand-finished canvas — made to live on a wall, not in a drawer.
-            </figcaption>
-          </figure>
-
+        {/* ── Size list (centered, single column) ───────────────────── */}
+        <div className="mx-auto" style={{ maxWidth: 560 }}>
           {/* Size list column */}
           <div>
             <p
