@@ -1105,8 +1105,13 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       setSelectedVariantUrl(photo);
       setApproved(true);
       setCartAddCount(0);
+      // Frame the studio from its TOP (photo + size picker + Add to cart all fit
+      // in one viewport). Scrolling to variantsRef instead landed the short
+      // as-is card's marker at the top, dragging the "Need more generations?"
+      // top-up section into view — read as "confirm jumped me to top-up".
+      // (Danny 2026-06-01)
       requestAnimationFrame(() =>
-        smoothScrollStudio(variantsRef.current),
+        smoothScrollStudio(stageRef.current),
       );
       return;
     }
