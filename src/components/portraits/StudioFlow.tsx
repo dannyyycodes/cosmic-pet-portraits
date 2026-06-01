@@ -75,6 +75,7 @@ import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/
 import { SplitWords } from "@/components/portraits/SplitWords";
 import { StudioBackdrop } from "@/components/portraits/StudioBackdrop";
 import { GenerationCanvas } from "@/components/portraits/studio/GenerationCanvas";
+import { FramedCanvasPreview } from "@/components/portraits/FramedCanvasPreview";
 
 // Multi-pet hard cap. Per Crown & Paw's model + research above, 4 is the
 // composition ceiling — beyond that per-pet recognition drops sharply.
@@ -811,7 +812,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // shows a one-line summary by default; pickerExpanded toggles the full
   // grid in/out on demand.
   const [frameDeferred, setFrameDeferred] = useState<boolean>(restoredState?.frameDeferred ?? true);
-  const [pickerExpanded, setPickerExpanded] = useState<boolean>(false);
+  const [pickerExpanded, setPickerExpanded] = useState<boolean>(true);
   const setSizeKey = (next: string) => {
     setSizeKeyRaw(next);
     setFrameDeferred(false);
@@ -2371,12 +2372,18 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   compact
                 />
 
-                {/* Preview-on-wall mockups removed 2026-05-12 per Danny —
-                    Printful endpoint was hanging on "Hanging it on a wall…"
-                    for the default frame color, and the CSS fallback added
-                    visual noise without value. The variant gallery above
-                    already shows the portrait at full clarity; the cart
-                    drawer's lightbox handles full-size inspection. */}
+                {/* Framed canvas preview — the tangible "canvas in the flow".
+                    Shows the chosen portrait on a real framed canvas at the
+                    selected size + frame, live. Physical only. (2026-06-01) */}
+                {deliveryType === "physical" && selectedVariantUrl && (
+                  <div className="mt-4">
+                    <FramedCanvasPreview
+                      imageUrl={selectedVariantUrl}
+                      sizeKey={sizeKey}
+                      frameColor={frameColor}
+                    />
+                  </div>
+                )}
 
                 <div
                   className="my-4"
@@ -2440,7 +2447,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                     >
                       {deliveryType === "digital"
                         ? "Digital download · instant email"
-                        : `${activeSizeMeta.label} canvas · frame optional at checkout`}
+                        : `${activeSizeMeta.label} · ${activeFrameMeta?.label ?? "Unframed"}`}
                     </span>
                     <span
                       className="tabular-nums"
@@ -2723,11 +2730,10 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                           </p>
                         )}
 
-                        {/* Frame choice MOVED to the cart/checkout flow
-                            (Danny 2026-06-01) — the studio picks size only;
-                            customers add a real wood frame per-item in the cart.
-                            Block kept (false-gated) for quick revert. */}
-                        {false && (
+                        {/* Frame swatches — live-update the framed preview above.
+                            Frame is ALSO editable in the cart (Redesign B); this
+                            in-studio picker makes the canvas tangible. (2026-06-01) */}
+                        {true && (
                         <div className="flex flex-wrap gap-2.5">
                           {/* Unframed = first option, default. Slim stretched canvas, no frame upcharge. */}
                           {(() => {

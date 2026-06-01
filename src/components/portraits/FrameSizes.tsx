@@ -14,8 +14,7 @@
  * checkout. Pricing source: gelatoFramedCanvas.ts (CANVAS_SIZES).
  */
 import { useState } from "react";
-import { Check } from "lucide-react";
-import { CANVAS_SIZES, FRAME_UPGRADE_GBP } from "./gelatoFramedCanvas";
+import { CANVAS_SIZES } from "./gelatoFramedCanvas";
 import { PALETTE, tabularPrice } from "./tokens";
 
 // Re-exports for backward compat with any other imports.
@@ -48,15 +47,6 @@ const TIER_NAME: Record<string, string> = {
   "20x30": "Statement",
 };
 
-const FRAME_UPGRADE = FRAME_UPGRADE_GBP["8x10"] ?? 45;
-
-const TRUST_BADGES = [
-  "Approve it before you pay",
-  "Arrives in 3–5 days",
-  "Ships UK, Europe & USA",
-  "Not right? We'll make it right.",
-];
-
 interface FrameSizesProps {
   currency: Currency;
   onPickSize?: (size: SizeKey) => void;
@@ -83,8 +73,8 @@ export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
       className="relative px-5 md:px-10"
       style={{
         background: PALETTE.cream,
-        paddingTop: "clamp(72px, 9vh, 116px)",
-        paddingBottom: "clamp(72px, 9vh, 116px)",
+        paddingTop: "clamp(40px, 5vh, 64px)",
+        paddingBottom: "clamp(40px, 5vh, 64px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
       aria-labelledby="frame-sizes-heading"
@@ -94,44 +84,19 @@ export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
         <div className="mx-auto" style={{ maxWidth: 560 }}>
           {/* Size list column */}
           <div>
-            <p
-              style={{
-                fontFamily: "Asap, system-ui, sans-serif",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: PALETTE.goldDeep,
-                margin: 0,
-              }}
-            >
-              Sizes &amp; pricing
-            </p>
             <h2
               id="frame-sizes-heading"
               style={{
                 fontFamily: "Cormorant Garamond, Georgia, serif",
-                fontSize: "clamp(30px, 4vw, 44px)",
+                fontSize: "clamp(26px, 4vw, 38px)",
                 fontWeight: 500,
                 color: PALETTE.ink,
                 letterSpacing: "-0.01em",
-                margin: "10px 0 0",
+                margin: "0 0 18px",
               }}
             >
-              Pick a size
+              Sizes &amp; pricing
             </h2>
-            <p
-              style={{
-                fontFamily: "Assistant, system-ui, sans-serif",
-                fontSize: 15,
-                lineHeight: 1.6,
-                color: PALETTE.earth,
-                margin: "12px 0 22px",
-                maxWidth: 420,
-              }}
-            >
-              Every size is the same hand-finished canvas. Tap one to set it up in the studio.
-            </p>
 
             {/* Minimal featured list — label + price only, no silhouettes. */}
             <ul className="m-0 p-0" style={{ listStyle: "none" }}>
@@ -191,26 +156,6 @@ export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
               })}
             </ul>
 
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => setShowAll((v) => !v)}
-                style={{
-                  fontFamily: "Asap, system-ui, sans-serif",
-                  fontSize: 14,
-                  color: PALETTE.rose,
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "6px 0",
-                  fontWeight: 600,
-                }}
-                aria-expanded={showAll}
-              >
-                {showAll ? "Hide other sizes ▴" : `See all ${CANVAS_SIZES.length} sizes ▾`}
-              </button>
-            </div>
-
             {showAll && (
               <ul className="m-0 p-0 mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2" style={{ listStyle: "none" }}>
                 {rest.map((s) => (
@@ -246,45 +191,26 @@ export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
               </ul>
             )}
 
-            {/* Frame note — choice happens at checkout, not here. */}
-            <p
-              className="mt-6"
-              style={{
-                fontFamily: "Assistant, system-ui, sans-serif",
-                fontSize: 13.5,
-                lineHeight: 1.5,
-                color: PALETTE.earthMuted,
-              }}
-            >
-              Want a real wood frame? Add one for +{symbol}{FRAME_UPGRADE} at checkout — black, natural, or dark wood.
-            </p>
-          </div>
-        </div>
-
-        {/* ── Trust badges — hairline-separated, refined ─────────────── */}
-        <div className="flex flex-wrap items-center justify-center mt-16 text-center" style={{ gap: "10px 0" }}>
-          {TRUST_BADGES.map((line, i) => (
-            <span key={line} className="inline-flex items-center">
-              {i > 0 && (
-                <span
-                  aria-hidden
-                  className="hidden sm:inline-block"
-                  style={{ width: 1, height: 13, background: PALETTE.sandDeep, margin: "0 18px" }}
-                />
-              )}
-              <span
-                className="inline-flex items-center gap-2 px-3 sm:px-0"
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
                 style={{
-                  fontFamily: "Assistant, system-ui, sans-serif",
+                  fontFamily: "Asap, system-ui, sans-serif",
                   fontSize: 14,
-                  color: PALETTE.earth,
+                  color: PALETTE.rose,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "6px 0",
+                  fontWeight: 600,
                 }}
+                aria-expanded={showAll}
               >
-                <Check className="w-4 h-4 shrink-0" style={{ color: PALETTE.rose }} />
-                {line}
-              </span>
-            </span>
-          ))}
+                {showAll ? "Hide other sizes ▴" : `See all ${CANVAS_SIZES.length} sizes ▾`}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
