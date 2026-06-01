@@ -913,7 +913,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // mirroring the server gate in api/portraits.ts (handlePrintMasterAsis).
   // Keep these two numbers in lock-step with the server constants (api/portraits.ts).
   const ASIS_PPI_CLEAN = 150;
-  const ASIS_PPI_HIDE = 100;
+  const ASIS_PPI_HIDE = 50; // lock-step with api/portraits.ts (lowered 100→50)
   /** True-detail PPI the current upload yields at a given canvas size, or null
    *  if dims unknown. Computed from the EXACT inch ratio (×1000) so it matches
    *  the server (api/portraits.ts asisDetailPpi) — no rounded print table. */

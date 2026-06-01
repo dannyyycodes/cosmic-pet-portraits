@@ -3694,7 +3694,12 @@ async function handlePrintMasterStatus(req: VercelRequest, res: VercelResponse) 
 //   < ASIS_PPI_HIDE    → refused (422 source_too_low_res) / hidden in the picker
 // Both numbers are single constants — keep in lock-step with StudioFlow.tsx.
 const ASIS_PPI_CLEAN = 150;
-const ASIS_PPI_HIDE = 100;
+// Lowered 100→50 (Danny 2026-06-01): a photo that clears the 600px upload gate
+// is ~60 PPI at 8×10 — printable for a casual "your photo" canvas (downstream
+// upscaler + viewing distance). 100 dead-ended every phone/social photo with
+// "too low-res". 50 guarantees 8×10 is always usable; bigger sizes still gate
+// and the client auto-snaps down. Keep in lock-step with StudioFlow.tsx.
+const ASIS_PPI_HIDE = 50;
 // Cap the master long edge so the print pipeline's AuraSR 4× lands at a sane
 // size (~8192). We crop at native res then downscale ONLY if above this — never
 // upscale here (AuraSR does any upscaling, once, downstream).
