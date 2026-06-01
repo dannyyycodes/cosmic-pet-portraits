@@ -120,7 +120,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
               color: PALETTE.ink,
             }}
           >
-            Send a portrait to a friend
+Gift a portrait — get a code to share
           </span>
         </span>
         <ChevronDown

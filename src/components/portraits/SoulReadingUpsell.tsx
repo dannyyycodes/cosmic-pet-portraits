@@ -27,6 +27,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sparkles, Check, X } from "lucide-react";
+import { toast } from "sonner";
 import { PALETTE, EASE } from "./tokens";
 import type { CartItem } from "./cart";
 import {
@@ -386,17 +387,13 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
                 e.preventDefault();
                 e.stopPropagation();
                 try {
-                  const item = buildSoulReadingCartItemQuickAdd(canvasRef);
+                  const item = buildSoulReadingCartItemQuickAdd(canvasRef, prefillName);
                   console.log("[SoulReading Quick-add] dispatching item", item.id, item.productType);
                   onAdd(item);
                   setConfirmation(true);
                 } catch (err) {
                   console.error("[SoulReading Quick-add] failed", err);
-                  // Don't let the error bubble to the React error boundary —
-                  // log + show a friendly toast instead.
-                  if (typeof window !== "undefined") {
-                    alert(`Could not add Soul Reading: ${(err as Error).message ?? "unknown error"}. Check console for details.`);
-                  }
+                  toast.error("We couldn't add the Soul Reading just now — please try again.");
                 }
               }}
               className="w-full transition-transform hover:scale-[1.005] active:scale-[0.997]"

@@ -111,16 +111,16 @@ export function CanvasConfigurator({
       <button
         type="button"
         onClick={onStartOver}
-        className="inline-flex items-center gap-1.5 mb-3 transition-colors hover:opacity-80"
+        className="inline-flex items-center gap-1.5 mb-4 rounded-full transition-colors hover:opacity-80"
         style={{
-          background: "transparent",
-          border: "none",
-          padding: 0,
+          background: PALETTE.cream2,
+          border: `1px solid ${PALETTE.sand}`,
+          padding: "7px 14px",
           cursor: "pointer",
           fontFamily: "Asap, system-ui, sans-serif",
           fontSize: 13,
           fontWeight: 600,
-          color: PALETTE.earthMuted,
+          color: PALETTE.earth,
         }}
       >
         <ArrowLeft className="w-4 h-4" strokeWidth={2.2} />
@@ -138,7 +138,7 @@ export function CanvasConfigurator({
       {mode !== "asis" && (
         <div className="grid grid-cols-2 gap-2 mb-4">
           {([
-            { uid: "physical" as const, label: "Canvas", sub: "Printed & framed" },
+            { uid: "physical" as const, label: "Canvas", sub: "Printed on canvas" },
             { uid: "digital" as const, label: "Digital", sub: `£${DIGITAL_VARIANT.priceMajor} · download` },
           ]).map((d) => {
             const active = deliveryType === d.uid;
@@ -321,7 +321,7 @@ export function CanvasConfigurator({
         <div className="rounded-xl mt-3 px-4 py-4" aria-live="polite" style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}>
           <div className="flex items-center gap-3 mb-1.5">
             <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" strokeWidth={2.4} style={{ color: PALETTE.rose }} />
-            <p style={{ fontFamily: "Cormorant Garamond, Georgia, serif", fontSize: 16, fontStyle: "italic", color: PALETTE.ink, lineHeight: 1.3, margin: 0 }}>
+            <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 14, fontWeight: 600, color: PALETTE.ink, lineHeight: 1.3, margin: 0 }}>
               {preparingText}…
             </p>
           </div>

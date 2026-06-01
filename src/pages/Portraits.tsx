@@ -925,7 +925,23 @@ const Portraits = () => {
       if (!res.ok || !data.invoiceUrl) throw new Error(data.error || "Checkout failed");
       window.location.href = data.invoiceUrl;
     } catch (err) {
-      setCheckoutError((err as Error).message);
+      // Never show the customer raw API gibberish (`items[3]: …`, `properties.…`).
+      // Map to plain, actionable English; log the real error for us. (2026-06-01)
+      const raw = (err as Error).message || "";
+      console.error("[checkout] raw error:", raw);
+      let friendly = "Something went wrong at checkout. Your basket is saved — please try again. If it keeps happening, email hello@littlesouls.app.";
+      if (/print master|print-ready|not.*ready/i.test(raw)) {
+        friendly = "One of your canvases isn't quite ready yet. Remove it and add it again from the studio, then check out.";
+      } else if (/consent|canvasPersonalised|readingImmediate/i.test(raw)) {
+        friendly = "Please tick the agreement box just above the checkout button to continue.";
+      } else if (/gift-card|gift card/i.test(raw)) {
+        friendly = "There's a problem with the gift card — please remove it and add it again.";
+      } else if (/_pet_|Soul Reading/i.test(raw)) {
+        friendly = "Your Soul Reading needs a few details — open it in your basket to finish, or remove it.";
+      } else if (/max 20|at least 1|items\[\]/i.test(raw)) {
+        friendly = "Please add between 1 and 20 items to your basket.";
+      }
+      setCheckoutError(friendly);
       setCheckoutBusy(false);
     }
   };

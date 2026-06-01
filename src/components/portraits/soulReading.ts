@@ -53,9 +53,9 @@ export interface SoulReadingFormValues {
  *  /reading/intake/<token>. Variant + price are the same as the full-intake
  *  version. The webhook detects empty intake fields, inserts the job with
  *  status='intake_pending' and fires the intake-request email. */
-export function buildSoulReadingCartItemQuickAdd(canvasOrderRef: string): CartItem {
+export function buildSoulReadingCartItemQuickAdd(canvasOrderRef: string, petName = ""): CartItem {
   return buildSoulReadingCartItem({
-    petName: "",
+    petName: petName.trim(),
     petDob: "",
     petBirthLocation: "",
     canvasOrderRef,

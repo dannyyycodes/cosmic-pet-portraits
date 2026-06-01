@@ -174,7 +174,7 @@ export function CartDrawer({
         {/* ── Items list ──────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto">
           {isEmpty ? (
-            <EmptyState />
+            <EmptyState onClose={() => onOpenChange(false)} />
           ) : (
             <>
               <ul className="px-6 py-4 space-y-4">
@@ -263,6 +263,20 @@ export function CartDrawer({
               </span>
             </div>
 
+            {!consentState.allRequiredChecked && !checkoutBusy && (
+              <p
+                className="text-center"
+                style={{
+                  fontFamily: "Assistant, system-ui, sans-serif",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: PALETTE.rose,
+                  margin: "0 0 10px",
+                }}
+              >
+                ↑ Tick the box above to continue
+              </p>
+            )}
             <button
               type="button"
               onClick={() => onCheckout(consentState.snapshot)}
@@ -807,7 +821,7 @@ function SoulReadingLine({ item, onRemove }: { item: CartItem; onRemove: (id: st
 }
 
 /* ─── Empty state ─────────────────────────────────────────────────── */
-function EmptyState() {
+function EmptyState({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center text-center px-8 py-16">
       <div
@@ -838,9 +852,30 @@ function EmptyState() {
           textWrap: "pretty",
         }}
       >
-        Nothing in your cart yet.<br />
-        Configure their pawtrait in the studio and add it here.
+        Nothing in your basket yet.<br />
+        Make your pet's pawtrait in the studio, then it lands here.
       </p>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-6 rounded-full transition-transform hover:scale-[1.02] active:scale-[0.99]"
+          style={{
+            background: PALETTE.rose,
+            color: PALETTE.cream,
+            fontFamily: "Asap, system-ui, sans-serif",
+            fontWeight: 700,
+            fontSize: 14,
+            letterSpacing: "0.02em",
+            padding: "12px 22px",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 8px 22px rgba(191,82,74,0.28)",
+          }}
+        >
+          Start your pawtrait ↑
+        </button>
+      )}
     </div>
   );
 }

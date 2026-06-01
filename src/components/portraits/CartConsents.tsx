@@ -100,13 +100,10 @@ export function CartConsents({ items, onChange }: CartConsentsProps) {
     if (hasSoulReading) setReadingAt(now);
   };
 
-  // Bare-minimum default label. The full plain-English sentence
-  // ("I'm ready to receive my reading immediately and understand my canvas
-  // can't be returned…") only appears when the customer opens "Read the small
-  // print" — keeps the cart visually quiet for the 95% who don't want legalese.
-  const friendlyLabel = "I agree to the terms";
-
-  // Longer plain-English statement, shown inside the disclosure panel.
+  // Plain-English agreement shown INLINE on the checkbox (2026-06-01) — a bare
+  // "I agree to the terms" with the meaning hidden behind a tiny link read as a
+  // broken/suspicious gate to non-technical buyers. Legal CCR detail stays in
+  // the "Read the small print" disclosure.
   const fullStatement = hasCanvas && hasSoulReading
     ? "I'm ready to receive my reading immediately and understand my canvas can't be returned (it's made just for me)."
     : hasCanvas
@@ -141,12 +138,12 @@ export function CartConsents({ items, onChange }: CartConsentsProps) {
         <span
           style={{
             fontFamily: "Assistant, system-ui, sans-serif",
-            fontSize: 12.5,
+            fontSize: 13.5,
             lineHeight: 1.5,
             color: PALETTE.earth,
           }}
         >
-          {friendlyLabel}
+          {fullStatement}
         </span>
       </label>
       <div className="flex items-center gap-3 ml-7 mt-1">
