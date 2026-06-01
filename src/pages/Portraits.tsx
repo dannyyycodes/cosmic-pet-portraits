@@ -46,6 +46,11 @@ import {
   saveCart,
   cartCount as countCart,
 } from "@/components/portraits/cart";
+import {
+  resolveUnframedCanvasVariant,
+  resolveFramedCanvasVariant,
+  type FrameColor,
+} from "@/components/portraits/gelatoFramedCanvas";
 import { isSoulReadingItem } from "@/components/portraits/soulReading";
 import { HowItWorks } from "@/components/portraits/HowItWorks";
 import { StudioFlow, type StudioPhase } from "@/components/portraits/StudioFlow";
@@ -858,6 +863,37 @@ const Portraits = () => {
     emitCartChanged();
   };
 
+  // Frame choice now happens in the cart (moved off the studio/landing,
+  // Danny 2026-06-01). Re-resolve the Gelato/Shopify variant + price for the
+  // chosen frame on the matching canvas line item. null = unframed canvas.
+  const handleUpdateCartFrame = (id: string, frameColor: FrameColor | null) => {
+    setCart((prev) =>
+      prev.map((it) => {
+        if (it.id !== id) return it;
+        if (it.productType !== "canvas" && it.productType !== "framed-canvas") return it;
+        const sizeUid = it.sizeKey as string;
+        const resolved =
+          frameColor === null
+            ? resolveUnframedCanvasVariant(sizeUid)
+            : resolveFramedCanvasVariant(sizeUid, frameColor);
+        if (!resolved) return it;
+        const productType: ProductTypeKey = frameColor === null ? "canvas" : "framed-canvas";
+        const product = PRODUCTS[productType];
+        return {
+          ...it,
+          productType,
+          frameColor: frameColor ?? undefined,
+          variantId: resolved.variantId,
+          priceMajor: resolved.priceMajor,
+          sizeLabel: resolved.sizeLabel,
+          productLabel: `Cosmic Pet Portrait — ${product.label}`,
+          productShortLabel: product.shortLabel,
+        };
+      }),
+    );
+    emitCartChanged();
+  };
+
   const handleCheckoutAll = async (consent?: {
     canvasPersonalisedAt: string | null;
     readingImmediateAt: string | null;
@@ -989,6 +1025,7 @@ const Portraits = () => {
         items={cart}
         onRemove={handleRemoveFromCart}
         onAddItem={handleAddToCart}
+        onUpdateFrame={handleUpdateCartFrame}
         onCheckout={handleCheckoutAll}
         checkoutBusy={checkoutBusy}
         checkoutError={checkoutError}

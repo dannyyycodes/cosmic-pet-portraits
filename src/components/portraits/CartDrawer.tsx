@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { PALETTE, cormorantItalic, EASE } from "./tokens";
 import { type CartItem, cartSubtotalMajor, itemTotalMajor } from "./cart";
+import { FRAME_COLORS, FRAME_UPGRADE_GBP, type FrameColor } from "./gelatoFramedCanvas";
 import { isSoulReadingItem } from "./soulReading";
 import { SoulReadingUpsell } from "./SoulReadingUpsell";
 import { CartGiftUpsell } from "./CartGiftUpsell";
@@ -79,6 +80,8 @@ interface CartDrawerProps {
   onRemove: (id: string) => void;
   /** Adds a new line (used by the in-drawer Soul Reading upsell). */
   onAddItem?: (item: CartItem) => void;
+  /** Per-item frame change (frame choice moved here from the studio). null = unframed. */
+  onUpdateFrame?: (id: string, frameColor: FrameColor | null) => void;
   /** Fired when the customer clicks Checkout. Receives the consent snapshot
    *  (timestamps) so the parent can pass it to /api/cart/checkout for
    *  metafield persistence. Existing callers that ignore the arg keep
@@ -94,6 +97,7 @@ export function CartDrawer({
   items,
   onRemove,
   onAddItem,
+  onUpdateFrame,
   onCheckout,
   checkoutBusy,
   checkoutError,
@@ -191,7 +195,7 @@ export function CartDrawer({
                         {isSoulReadingItem(item) ? (
                           <SoulReadingLine item={item} onRemove={onRemove} />
                         ) : (
-                          <CartLine item={item} onRemove={onRemove} />
+                          <CartLine item={item} onRemove={onRemove} onUpdateFrame={onUpdateFrame} />
                         )}
                       </CartLineErrorBoundary>
                     </motion.li>
@@ -303,8 +307,21 @@ export function CartDrawer({
 }
 
 /* ─── Item row ────────────────────────────────────────────────────── */
-function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) => void }) {
+function CartLine({
+  item,
+  onRemove,
+  onUpdateFrame,
+}: {
+  item: CartItem;
+  onRemove: (id: string) => void;
+  onUpdateFrame?: (id: string, frameColor: FrameColor | null) => void;
+}) {
   const total = itemTotalMajor(item);
+  // Frame picker shows only for physical canvas lines (not digital/mug/etc.).
+  const canFrame =
+    !!onUpdateFrame && (item.productType === "canvas" || item.productType === "framed-canvas");
+  const frameUpgrade = FRAME_UPGRADE_GBP[item.sizeKey as string] ?? 0;
+  const currentFrame: FrameColor | null = item.frameColor ?? null;
   const [zoomOpen, setZoomOpen] = useState(false);
   const hasPreview = !!item.previewUrl && item.previewUrl.length > 0;
   const lightboxCloseRef = useRef<HTMLButtonElement>(null);
@@ -591,6 +608,78 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
             : (item.style === "illustrated" ? "Illustrated" : "Photographic")}
           {item.soulEdition ? " · + Soul Edition" : ""}
         </p>
+
+        {/* Frame picker — moved here from the studio (Danny 2026-06-01).
+            Changing it re-resolves the variant + price via onUpdateFrame. */}
+        {canFrame && (
+          <div className="mt-2.5">
+            <p
+              style={{
+                fontFamily: "Asap, system-ui, sans-serif",
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: PALETTE.earthMuted,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                marginBottom: 6,
+              }}
+            >
+              Frame
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => onUpdateFrame!(item.id, null)}
+                aria-pressed={currentFrame === null}
+                aria-label="Unframed canvas"
+                className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-all"
+                style={{
+                  background: currentFrame === null ? PALETTE.roseSoft : PALETTE.cream,
+                  border: currentFrame === null ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sand}`,
+                  minHeight: 36,
+                }}
+              >
+                <span
+                  style={{ width: 16, height: 16, borderRadius: 999, border: `1.5px dashed ${PALETTE.sandDeep}`, display: "inline-block" }}
+                  aria-hidden
+                />
+                <span style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 12, fontWeight: currentFrame === null ? 700 : 500, color: currentFrame === null ? PALETTE.rose : PALETTE.earth }}>
+                  Unframed
+                </span>
+              </button>
+              {FRAME_COLORS.map((c) => {
+                const active = currentFrame === c.uid;
+                return (
+                  <button
+                    key={c.uid}
+                    type="button"
+                    onClick={() => onUpdateFrame!(item.id, c.uid)}
+                    aria-pressed={active}
+                    title={`${c.label} frame (+£${frameUpgrade})`}
+                    aria-label={`${c.label} frame, plus £${frameUpgrade}`}
+                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-all"
+                    style={{
+                      background: active ? PALETTE.roseSoft : PALETTE.cream,
+                      border: active ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sand}`,
+                      minHeight: 36,
+                    }}
+                  >
+                    <span
+                      style={{ width: 16, height: 16, borderRadius: 999, background: c.swatchHex, border: `1.5px solid ${PALETTE.sandDeep}` }}
+                      aria-hidden
+                    />
+                    <span style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 12, fontWeight: active ? 700 : 500, color: active ? PALETTE.rose : PALETTE.earth }}>
+                      {c.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 11, color: PALETTE.earthMuted, marginTop: 5 }}>
+              Real wood frame +£{frameUpgrade} · or keep it unframed.
+            </p>
+          </div>
+        )}
 
         <div className="flex items-baseline justify-between mt-2">
           <button

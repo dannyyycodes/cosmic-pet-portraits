@@ -2440,7 +2440,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                     >
                       {deliveryType === "digital"
                         ? "Digital download · instant email"
-                        : `${activeSizeMeta.label} · ${activeFrameMeta?.label ?? "Unframed"}`}
+                        : `${activeSizeMeta.label} canvas · frame optional at checkout`}
                     </span>
                     <span
                       className="tabular-nums"
@@ -2723,19 +2723,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                           </p>
                         )}
 
-                        <p
-                          className="mt-4 mb-2"
-                          style={{
-                            fontFamily: 'Asap, system-ui, sans-serif',
-                            fontSize: 10.5,
-                            fontWeight: 700,
-                            color: PALETTE.earthMuted,
-                            letterSpacing: "0.14em",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Frame
-                        </p>
+                        {/* Frame choice MOVED to the cart/checkout flow
+                            (Danny 2026-06-01) — the studio picks size only;
+                            customers add a real wood frame per-item in the cart.
+                            Block kept (false-gated) for quick revert. */}
+                        {false && (
                         <div className="flex flex-wrap gap-2.5">
                           {/* Unframed = first option, default. Slim stretched canvas, no frame upcharge. */}
                           {(() => {
@@ -2832,6 +2824,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                             );
                           })}
                         </div>
+                        )}
                       </div>
                       )}
 
