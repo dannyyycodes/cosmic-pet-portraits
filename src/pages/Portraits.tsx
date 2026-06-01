@@ -909,6 +909,11 @@ const Portraits = () => {
       duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     });
+    // Expose the instance so child components (StudioFlow) can scroll THROUGH
+    // Lenis. Native el.scrollIntoView({behavior:"smooth"}) desyncs from Lenis
+    // and overshoots — on confirm it flung the customer past the compact studio
+    // into the "Need more generations?" top-up section. (Danny 2026-06-01)
+    (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
     let raf = 0;
     const tick = (time: number) => {
       lenis.raf(time);
@@ -918,6 +923,7 @@ const Portraits = () => {
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
+      delete (window as unknown as { __lenis?: Lenis }).__lenis;
     };
   }, []);
 

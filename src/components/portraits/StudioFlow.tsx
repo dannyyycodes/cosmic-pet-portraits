@@ -89,6 +89,25 @@ function newPetId(): string {
   return `pet_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/** Smooth-scroll an element into view that COOPERATES with the page's Lenis
+ *  smooth-scroll instance (Portraits.tsx exposes it on window.__lenis). Native
+ *  el.scrollIntoView({behavior:"smooth"}) desyncs from Lenis and OVERSHOOTS —
+ *  on /pawtraits that flung the customer past the compact studio straight into
+ *  the "Need more generations?" top-up section the moment they confirmed a
+ *  photo. Route through Lenis when present; fall back to native. (2026-06-01) */
+function smoothScrollStudio(el: HTMLElement | null): void {
+  if (!el) return;
+  const lenis =
+    typeof window !== "undefined"
+      ? (window as unknown as { __lenis?: { scrollTo: (t: HTMLElement, o?: { offset?: number }) => void } }).__lenis
+      : undefined;
+  if (lenis && typeof lenis.scrollTo === "function") {
+    lenis.scrollTo(el, { offset: -80 });
+  } else {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
 /**
  * Studio phase — what the customer is currently doing inside the studio.
  *
@@ -1087,7 +1106,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       setApproved(true);
       setCartAddCount(0);
       requestAnimationFrame(() =>
-        variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        smoothScrollStudio(variantsRef.current),
       );
       return;
     }
@@ -1197,7 +1216,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         setApproved(true);
         refreshCredits();
         requestAnimationFrame(() =>
-          variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+          smoothScrollStudio(variantsRef.current),
         );
         setGenerating(false);
       }
@@ -1265,7 +1284,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           setApproved(true);
           refreshCredits();
           requestAnimationFrame(() =>
-            variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            smoothScrollStudio(variantsRef.current),
           );
           setPendingJobId(null);
           setGenerating(false);
