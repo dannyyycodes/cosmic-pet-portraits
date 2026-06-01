@@ -51,8 +51,6 @@ const TIER_NAME: Record<string, string> = {
 const FRAME_UPGRADE = FRAME_UPGRADE_GBP["8x10"] ?? 45;
 
 const TRUST_BADGES = [
-  "Canvas from £39 · digital from £19",
-  "Real wood frame, optional (+£45)",
   "Approve it before you pay",
   "Arrives in 3–5 days",
   "Ships UK, Europe & USA",
@@ -107,7 +105,7 @@ export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
                 margin: 0,
               }}
             >
-              The gallery
+              Sizes &amp; pricing
             </p>
             <h2
               id="frame-sizes-heading"
