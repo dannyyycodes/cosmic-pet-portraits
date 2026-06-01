@@ -926,12 +926,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   };
   // Sizes shown in the picker. AI path = all purchasable. As-is with a known
   // upload = only sizes the photo can render at >= ASIS_PPI_HIDE.
-  const sizesForPicker = (mode === "asis" && asisSrcDims)
-    ? PURCHASABLE_SIZES.filter((s) => {
-        const ppi = asisSizePpi(s);
-        return ppi === null || ppi >= ASIS_PPI_HIDE;
-      })
-    : PURCHASABLE_SIZES;
+  // Show ALL purchasable sizes always — even in as-is. The per-size quality
+  // badge (Sharp/Good/Soft) guides the choice, and the server auto-snaps to the
+  // largest sharp size on a too-small add. Filtering left low-res photos with a
+  // single size, which read as "size selection is broken". (Danny 2026-06-01)
+  const sizesForPicker = PURCHASABLE_SIZES;
 
   // Persist state on every meaningful change so a tab close mid-generation
   // doesn't lose work + the credit it burned. Cleared on cart-add success
@@ -973,14 +972,10 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   const canGenerate = mode === "asis"
     ? uploadedPets.length >= 1 && !generating
     : uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating && hasCredits;
-  // As-is: block add if the *selected* size can't print at the uploaded photo's
-  // true resolution (< ASIS_PPI_HIDE). Stops the server 422 round-trip when the
-  // size-gate hasn't snapped the default 16×20 down yet. Only enforced once the
-  // dims are known (null dims = optimistic, server still guards).
-  const asisSizeBlocked =
-    mode === "asis" && !!asisSrcDims && (asisSizePpi(activeSizeMeta) ?? 0) < ASIS_PPI_HIDE;
+  // Add is allowed for any selected size; if an as-is photo is too small for the
+  // chosen size the server 422s and we auto-snap to the largest sharp size.
   const canAdd =
-    approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster && !asisSizeBlocked;
+    approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster;
 
   // As-is: read the natural pixel dims of the first uploaded photo so we can
   // gate canvas sizes by real resolution. Re-runs when the photo or mode
@@ -1364,9 +1359,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   function handleApprove() {
     setApproved(true);
     setCartAddCount(0);
-    requestAnimationFrame(() =>
-      variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-    );
+    requestAnimationFrame(() => smoothScrollStudio(variantsRef.current));
   }
 
   /** "Add another" — drop back to compose (photo kept) so the customer can
@@ -2390,6 +2383,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                 onCancelPreparing={() => setPreparingPrintMaster(false)}
                 cartAddCount={cartAddCount}
                 onAddAnother={handleAddAnother}
+                onStartOver={handleAddAnother}
               />
             </motion.div>
           )}

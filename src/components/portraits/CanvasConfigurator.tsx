@@ -9,9 +9,8 @@
  *
  * All state lives in StudioFlow; this is a presentational step UI.
  */
-import { Loader2, Check, Plus } from "lucide-react";
+import { Loader2, Check, Plus, ArrowLeft } from "lucide-react";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
-import { FramedCanvasPreview } from "@/components/portraits/FramedCanvasPreview";
 import {
   FRAME_COLORS,
   FRAME_UPGRADE_GBP,
@@ -56,6 +55,8 @@ interface CanvasConfiguratorProps {
   onCancelPreparing: () => void;
   cartAddCount: number;
   onAddAnother: () => void;
+  /** Back to compose (change photo / switch to AI portraits). */
+  onStartOver: () => void;
 }
 
 const STEP_LABEL: React.CSSProperties = {
@@ -91,6 +92,7 @@ export function CanvasConfigurator({
   onCancelPreparing,
   cartAddCount,
   onAddAnother,
+  onStartOver,
 }: CanvasConfiguratorProps) {
   const physical = deliveryType === "physical";
   const frameUpgrade = FRAME_UPGRADE_GBP[sizeKey] ?? 0;
@@ -105,6 +107,26 @@ export function CanvasConfigurator({
         boxShadow: "0 24px 48px rgba(20, 18, 16, 0.06), 0 4px 12px rgba(20, 18, 16, 0.03)",
       }}
     >
+      {/* Back to compose — change photo or switch to AI portraits. */}
+      <button
+        type="button"
+        onClick={onStartOver}
+        className="inline-flex items-center gap-1.5 mb-3 transition-colors hover:opacity-80"
+        style={{
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "Asap, system-ui, sans-serif",
+          fontSize: 13,
+          fontWeight: 600,
+          color: PALETTE.earthMuted,
+        }}
+      >
+        <ArrowLeft className="w-4 h-4" strokeWidth={2.2} />
+        Start over · change photo or style
+      </button>
+
       {/* AI variants: pick which generated portrait (skip for single/as-is). */}
       {variants.length > 1 && (
         <div className="mb-4">
@@ -146,10 +168,15 @@ export function CanvasConfigurator({
 
       {physical ? (
         <>
-          {/* Framed canvas preview — their art, on a real canvas, live. */}
+          {/* Your photo — plain (the framed mockup was removed per Danny 2026-06-01). */}
           {imageUrl && (
-            <div className="mb-5">
-              <FramedCanvasPreview imageUrl={imageUrl} sizeKey={sizeKey} frameColor={frameColor} />
+            <div className="mb-5 mx-auto" style={{ maxWidth: 280 }}>
+              <img
+                src={imageUrl}
+                alt="Your pawtrait"
+                className="block w-full rounded-xl"
+                style={{ border: `1px solid ${PALETTE.sandDeep}`, boxShadow: "0 10px 28px -12px rgba(20,18,16,0.35)" }}
+              />
             </div>
           )}
 
@@ -159,7 +186,7 @@ export function CanvasConfigurator({
             {sizes.map((s) => {
               const active = sizeKey === s.uid;
               const ppi = mode === "asis" ? asisSizePpi(s) : null;
-              const soft = ppi !== null && ppi < asisPpiClean;
+              const tier = ppi === null ? null : ppi >= asisPpiClean ? "Sharp" : ppi >= 100 ? "Good" : "Soft";
               return (
                 <button
                   key={s.uid}
@@ -187,9 +214,9 @@ export function CanvasConfigurator({
                   </div>
                   <div className="tabular-nums" style={{ fontSize: 12.5, marginTop: 1, color: active ? "rgba(255,253,245,0.9)" : PALETTE.earthMuted }}>
                     £{s.priceGBP}
-                    {ppi !== null && (
-                      <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "rgba(255,253,245,0.95)" : soft ? PALETTE.goldDeep : "#1f7a3d" }}>
-                        {soft ? "Good" : "Sharp"}
+                    {tier && (
+                      <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "rgba(255,253,245,0.95)" : tier === "Sharp" ? "#1f7a3d" : tier === "Good" ? PALETTE.goldDeep : PALETTE.earthMuted }}>
+                        {tier}
                       </span>
                     )}
                   </div>
