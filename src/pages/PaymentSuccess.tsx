@@ -588,6 +588,7 @@ export default function PaymentSuccess() {
         giftedInfo={giftedInfo}
         horoscopeInfo={horoscopeInfo}
         purchaseEmail={allReports[0]?.email}
+        isMemorial={allReports.some(r => r.occasionMode === 'memorial')}
       />
     );
   }
