@@ -203,11 +203,13 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
             border: isDragActive ? "1px dashed #bf524a" : "1px dashed #c4a265",
             color: "#5a4a42",
             transform: isDragActive ? "scale(1.01)" : "scale(1)",
-            width: compact ? 128 : undefined,
-            minHeight: compact ? 128 : undefined,
+            width: compact ? 140 : undefined,
+            minHeight: compact ? 140 : undefined,
             display: compact ? "flex" : "block",
             alignItems: compact ? "center" : undefined,
             justifyContent: compact ? "center" : undefined,
+            opacity: isUploading ? 0.6 : 1,
+            cursor: isUploading ? "wait" : "pointer",
             // iOS Safari sometimes ignores taps on a label whose control is
             // display:none — keep the input in-flow but visually hidden.
             WebkitTapHighlightColor: "transparent",

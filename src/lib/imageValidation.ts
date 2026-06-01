@@ -172,7 +172,7 @@ export function readImageDimensions(file: File): Promise<{ width: number; height
 export function validateDimensions(width: number, height: number): string | null {
   const longEdge = Math.max(width, height);
   if (longEdge < MIN_DIMENSION_PX) {
-    return `This photo is too small (${width}×${height}px). Please upload a photo at least ${MIN_DIMENSION_PX}×${MIN_DIMENSION_PX} pixels — your phone's full-resolution photos work great.`;
+    return `This photo is too small (${width}×${height}px). Please upload a photo where the longest edge is at least ${MIN_DIMENSION_PX}px — your phone's full-resolution photos work great.`;
   }
   return null;
 }

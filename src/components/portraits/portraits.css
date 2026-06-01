@@ -503,6 +503,13 @@
   50%      { background-position: 100% 50%; opacity: 0.7; }
 }
 
+/* Keyboard focus ring — the upload zone is a <label> wrapping a visually
+   hidden file input; surface focus so keyboard users see the target. */
+.ls-upload-zone:focus-within {
+  outline: 2px solid #bf524a;
+  outline-offset: 2px;
+}
+
 /* Slow diagonal shimmer sweeping across the photo upload zone —
    says "drop something here" without a label change. */
 .ls-upload-zone::after {

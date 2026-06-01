@@ -264,6 +264,9 @@ export function FloatingCartPill({ onOpen, drawerOpen = false }: FloatingCartPil
             paddingLeft: expanded ? 20 : 0,
             paddingRight: expanded ? 20 : 0,
             width: expanded ? "auto" : 56,
+            // Never let the expanded pill run off a narrow phone screen.
+            maxWidth: "calc(100vw - 32px)",
+            overflow: "hidden",
             minWidth: 56,
             borderRadius: 9999,
             fontFamily: "Asap, system-ui, sans-serif",

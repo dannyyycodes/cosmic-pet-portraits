@@ -308,7 +308,7 @@ function SignInDialog({
       <DialogContent
         className="
           w-[calc(100vw-1.5rem)] max-w-[400px] p-0 overflow-hidden border-0
-          max-h-[90vh] overflow-y-auto
+          max-h-[min(90vh,calc(100vh-140px))] md:max-h-[90vh] overflow-y-auto
           top-[max(5vh,env(safe-area-inset-top))] !translate-y-0
           sm:top-[50%] sm:!translate-y-[-50%]
           rounded-2xl sm:rounded-3xl
@@ -1091,7 +1091,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     if (!promptRef.current) return;
     tweakFocusPendingRef.current = false;
     promptRef.current.focus();
-    promptRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    smoothScrollStudio(promptRef.current);
   }, [studioPhase]);
 
   async function handleGenerate() {

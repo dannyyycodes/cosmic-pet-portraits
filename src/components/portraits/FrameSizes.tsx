@@ -1,54 +1,42 @@
 /**
- * FrameSizes — premium "Pick a size" gallery band shown below the studio.
+ * FrameSizes — "Pick a size" gallery band shown below the studio.
+ *
+ * Minimal-list redesign (2026-06-01, Danny): NO size silhouettes/visuals at
+ * rest — just a clean list of size label + entry price. The real "what it
+ * looks like" preview happens in the studio when a size is actually selected.
+ * Frame choice is NOT made here any more — it moved into the checkout flow —
+ * so this section only teaches that frames exist and points to checkout.
  *
  * Left: a hero framed-canvas-on-wall photo so the visitor SEES the physical
- * product (Crown & Paw / West & Willow standard). Right: heading + lede +
- * true-proportion size tiles (each tile shows a scaled rectangle at the real
- * aspect ratio so Statement visibly dwarfs Small).
+ * product. Right: heading + lede + a minimal size+price list.
  *
- * Below: photoreal wood-frame swatches (Unframed / Natural / Black / Dark) as
- * real corner-crop photos — not flat colour dots. Selecting one is purely a
- * delight interaction (the real frame pick happens in the studio above).
- *
- * Prices = entry / unframed canvas. Frame is a separate +£X upgrade.
- * Pricing locked: src/components/portraits/gelatoFramedCanvas.ts (CANVAS_SIZES).
+ * Prices = entry / unframed canvas. Frame is a separate +£X upgrade chosen at
+ * checkout. Pricing source: gelatoFramedCanvas.ts (CANVAS_SIZES).
  */
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { CANVAS_SIZES, FRAME_COLORS, FRAME_UPGRADE_GBP } from "./gelatoFramedCanvas";
+import { CANVAS_SIZES, FRAME_UPGRADE_GBP } from "./gelatoFramedCanvas";
 import { PALETTE, tabularPrice } from "./tokens";
 import frameHero from "@/assets/frames/frame-hero.webp";
-import frameUnframed from "@/assets/frames/frame-unframed.webp";
-import frameBlack from "@/assets/frames/frame-black.webp";
-import frameNatural from "@/assets/frames/frame-natural.webp";
-import frameDark from "@/assets/frames/frame-dark.webp";
 
 // Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
 export type SizeKey = string;
 
-interface SizePricing {
-  size: string;
-  retail: number;
-  label: string;
-  hero?: boolean;
-  caption: string;
-}
+export const SIZE_KEYS: SizeKey[] = CANVAS_SIZES.map((s) => s.uid);
 
-// Compatibility shim — old code paths read PRICING and SIZE_KEYS. The studio
-// uses gelatoFramedCanvas.ts directly, so this is just for shared add-on prices.
+// Shared add-on prices — consumed by SoulEditionUpsell + Portraits. Kept here
+// for back-compat after the size-list redesign removed the old PRICING table.
 export const PRICING = {
   GBP: {
     digital:     { retail: 19, label: "£19" },
     soulEdition: { retail: 40, label: "+£40" },
-  } as Record<string, SizePricing | { retail: number; label: string }>,
+  },
   USD: {
     digital:     { retail: 25, label: "$25" },
     soulEdition: { retail: 50, label: "+$50" },
-  } as Record<string, SizePricing | { retail: number; label: string }>,
+  },
 };
-
-export const SIZE_KEYS: SizeKey[] = CANVAS_SIZES.map((s) => s.uid);
 
 // Featured tiers — chosen for clear price gaps. Old buyers facing 11 sizes
 // freeze; 4 lets them decide in seconds.
@@ -59,15 +47,6 @@ const TIER_NAME: Record<string, string> = {
   "12x16": "Medium",
   "16x20": "Large",
   "20x30": "Statement",
-};
-
-// Photoreal swatch art per frame uid. Unframed is prepended; the rest follow
-// FRAME_COLORS' canonical order/labels.
-const FRAME_IMG: Record<string, string> = {
-  unframed: frameUnframed,
-  "black": frameBlack,
-  "natural-wood": frameNatural,
-  "dark-wood": frameDark,
 };
 
 const FRAME_UPGRADE = FRAME_UPGRADE_GBP["8x10"] ?? 45;
@@ -81,49 +60,25 @@ const TRUST_BADGES = [
   "Not right? We'll make it right.",
 ];
 
-// Largest longest-side across ALL sizes — anchors the true-proportion scale so
-// every silhouette is drawn relative to the biggest canvas we sell.
-const MAX_LONG = Math.max(
-  ...CANVAS_SIZES.map((s) => {
-    const [w, h] = s.uid.split("x").map(Number);
-    return Math.max(w || 0, h || 0);
-  }),
-);
-
-/** Pixel dimensions for a size's proportion silhouette, scaled to `cap` px on
- *  its longest side relative to the biggest canvas. */
-function silhouette(uid: string, cap: number) {
-  const [w, h] = uid.split("x").map(Number);
-  if (!w || !h) return { width: cap, height: cap };
-  const long = Math.max(w, h);
-  const scale = (long / MAX_LONG) * cap;
-  return {
-    width: Math.round((w / long) * scale),
-    height: Math.round((h / long) * scale),
-  };
-}
-
 interface FrameSizesProps {
   currency: Currency;
   onPickSize?: (size: SizeKey) => void;
 }
 
-export function FrameSizes({ currency }: FrameSizesProps) {
+export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
   const symbol = currency === "GBP" ? "£" : "$";
   const usdMul = 1.3; // rough conversion for display only
   const formatPrice = (gbp: number) =>
     currency === "GBP" ? `${symbol}${gbp}` : `${symbol}${Math.round(gbp * usdMul)}`;
 
   const [showAll, setShowAll] = useState(false);
-  const [activeFrame, setActiveFrame] = useState<string>("natural-wood");
 
-  const featured = FEATURED_UIDS.map((uid) => CANVAS_SIZES.find((s) => s.uid === uid)).filter(Boolean) as typeof CANVAS_SIZES;
-  const rest = CANVAS_SIZES.filter((s) => !FEATURED_UIDS.includes(s.uid as typeof FEATURED_UIDS[number]));
-
-  const frameOpts = [
-    { uid: "unframed", label: "Unframed", note: "Included" },
-    ...FRAME_COLORS.map((c) => ({ uid: c.uid, label: c.label, note: `+${symbol}${FRAME_UPGRADE}` })),
-  ];
+  const featured = FEATURED_UIDS
+    .map((uid) => CANVAS_SIZES.find((s) => s.uid === uid))
+    .filter(Boolean) as typeof CANVAS_SIZES;
+  const rest = CANVAS_SIZES.filter(
+    (s) => !FEATURED_UIDS.includes(s.uid as typeof FEATURED_UIDS[number]),
+  );
 
   return (
     <section
@@ -138,7 +93,7 @@ export function FrameSizes({ currency }: FrameSizesProps) {
       aria-labelledby="frame-sizes-heading"
     >
       <div className="mx-auto" style={{ maxWidth: 1120 }}>
-        {/* ── Hero band: framed canvas photo | sizing ────────────────── */}
+        {/* ── Hero band: framed canvas photo | size list ─────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.04fr_1fr] gap-10 lg:gap-16 items-center">
           {/* Framed-canvas-on-wall hero */}
           <figure className="relative m-0">
@@ -176,7 +131,7 @@ export function FrameSizes({ currency }: FrameSizesProps) {
             </figcaption>
           </figure>
 
-          {/* Sizing column */}
+          {/* Size list column */}
           <div>
             <p
               style={{
@@ -210,106 +165,72 @@ export function FrameSizes({ currency }: FrameSizesProps) {
                 fontSize: 15,
                 lineHeight: 1.6,
                 color: PALETTE.earth,
-                margin: "12px 0 26px",
+                margin: "12px 0 22px",
                 maxWidth: 420,
               }}
             >
-              Every size is the same hand-finished canvas. Shapes shown to scale.
+              Every size is the same hand-finished canvas. Tap one to set it up in the studio.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {/* Minimal featured list — label + price only, no silhouettes. */}
+            <ul className="m-0 p-0" style={{ listStyle: "none" }}>
               {featured.map((s) => {
                 const isPopular = s.uid === POPULAR_UID;
-                const dim = silhouette(s.uid, 60);
                 return (
-                  <div
-                    key={s.uid}
-                    className="rounded-xl px-4 py-5 relative"
-                    style={{
-                      background: PALETTE.cream2,
-                      border: `1px solid ${isPopular ? PALETTE.gold : PALETTE.sand}`,
-                      boxShadow: isPopular
-                        ? "0 6px 20px -6px rgba(196,162,101,0.30)"
-                        : "0 1px 3px rgba(20,18,16,0.04)",
-                      transform: isPopular ? "translateY(-2px)" : undefined,
-                    }}
-                  >
-                    {isPopular && (
-                      <div
-                        className="absolute left-1/2 -translate-x-1/2"
-                        style={{
-                          top: -12,
-                          background: PALETTE.gold,
-                          color: "#fff",
-                          fontFamily: "Asap, system-ui, sans-serif",
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          letterSpacing: "0.09em",
-                          textTransform: "uppercase",
-                          padding: "4px 12px",
-                          borderRadius: 999,
-                          whiteSpace: "nowrap",
-                        }}
+                  <li key={s.uid} style={{ marginBottom: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => onPickSize?.(s.uid)}
+                      className="w-full flex items-center justify-between rounded-xl px-4 py-3.5 transition-all hover:translate-x-[2px]"
+                      style={{
+                        background: PALETTE.cream2,
+                        border: `1px solid ${isPopular ? PALETTE.gold : PALETTE.sand}`,
+                        boxShadow: isPopular
+                          ? "0 6px 18px -8px rgba(196,162,101,0.32)"
+                          : "0 1px 3px rgba(20,18,16,0.04)",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      <span className="flex items-baseline gap-3 min-w-0">
+                        <span
+                          style={{
+                            fontFamily: "Cormorant Garamond, Georgia, serif",
+                            fontSize: 21,
+                            fontWeight: 500,
+                            color: PALETTE.ink,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {s.label}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "Asap, system-ui, sans-serif",
+                            fontSize: 11.5,
+                            fontWeight: 600,
+                            color: PALETTE.earthMuted,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.08em",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {TIER_NAME[s.uid]}
+                          {isPopular ? " · ★ Most loved" : ""}
+                        </span>
+                      </span>
+                      <span
+                        style={{ ...tabularPrice("20px"), color: PALETTE.ink, whiteSpace: "nowrap" }}
                       >
-                        ★ Most loved
-                      </div>
-                    )}
-
-                    {/* True-proportion silhouette */}
-                    <div
-                      className="flex items-end justify-center"
-                      style={{ height: 64, marginBottom: 10 }}
-                      aria-hidden
-                    >
-                      <div
-                        style={{
-                          width: dim.width,
-                          height: dim.height,
-                          background: "#fff",
-                          border: `1px solid ${PALETTE.sandDeep}`,
-                          boxShadow: "0 2px 5px rgba(20,18,16,0.10)",
-                          borderRadius: 2,
-                        }}
-                      />
-                    </div>
-
-                    <div
-                      className="text-center"
-                      style={{
-                        fontFamily: "Asap, system-ui, sans-serif",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: PALETTE.earthMuted,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                      }}
-                    >
-                      {TIER_NAME[s.uid]}
-                    </div>
-                    <div
-                      className="text-center"
-                      style={{
-                        fontFamily: "Cormorant Garamond, Georgia, serif",
-                        fontSize: 21,
-                        fontWeight: 500,
-                        color: PALETTE.ink,
-                        marginTop: 4,
-                      }}
-                    >
-                      {s.label}
-                    </div>
-                    <div
-                      className="text-center"
-                      style={{ ...tabularPrice("22px"), marginTop: 4, color: PALETTE.ink }}
-                    >
-                      {formatPrice(s.priceGBP)}
-                    </div>
-                  </div>
+                        {formatPrice(s.priceGBP)}
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
 
-            <div className="mt-5">
+            <div className="mt-3">
               <button
                 type="button"
                 onClick={() => setShowAll((v) => !v)}
@@ -330,131 +251,52 @@ export function FrameSizes({ currency }: FrameSizesProps) {
             </div>
 
             {showAll && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mt-3">
-                {rest.map((s) => {
-                  const dim = silhouette(s.uid, 38);
-                  return (
-                    <div
-                      key={s.uid}
-                      className="rounded-lg px-3 py-3 flex flex-col items-center"
+              <ul className="m-0 p-0 mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2" style={{ listStyle: "none" }}>
+                {rest.map((s) => (
+                  <li key={s.uid}>
+                    <button
+                      type="button"
+                      onClick={() => onPickSize?.(s.uid)}
+                      className="w-full flex items-center justify-between rounded-lg px-3 py-2.5 transition-all"
                       style={{
                         background: PALETTE.cream2,
                         border: `1px solid ${PALETTE.sand}`,
+                        cursor: "pointer",
+                        textAlign: "left",
                       }}
                     >
-                      <div
-                        className="flex items-end justify-center"
-                        style={{ height: 40, marginBottom: 6 }}
-                        aria-hidden
-                      >
-                        <div
-                          style={{
-                            width: dim.width,
-                            height: dim.height,
-                            background: "#fff",
-                            border: `1px solid ${PALETTE.sandDeep}`,
-                            borderRadius: 1.5,
-                          }}
-                        />
-                      </div>
-                      <div
+                      <span
                         style={{
                           fontFamily: "Asap, system-ui, sans-serif",
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: 600,
                           color: PALETTE.ink,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {s.label}
-                      </div>
-                      <div style={{ ...tabularPrice("14px"), marginTop: 2, color: PALETTE.earth }}>
+                      </span>
+                      <span style={{ ...tabularPrice("13px"), color: PALETTE.earth, whiteSpace: "nowrap" }}>
                         {formatPrice(s.priceGBP)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
-        </div>
 
-        {/* ── Frame swatches — photoreal corner crops ────────────────── */}
-        <div className="mt-16 lg:mt-20">
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "Asap, system-ui, sans-serif",
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              color: PALETTE.earthMuted,
-              marginBottom: 20,
-            }}
-          >
-            Choose a frame — unframed included, real wood from +{symbol}{FRAME_UPGRADE}
-          </p>
-          <div className="flex items-start justify-center gap-5 sm:gap-8 flex-wrap">
-            {frameOpts.map((f) => {
-              const selected = activeFrame === f.uid;
-              return (
-                <button
-                  key={f.uid}
-                  type="button"
-                  onClick={() => setActiveFrame(f.uid)}
-                  className="flex flex-col items-center gap-2.5 bg-transparent border-0 cursor-pointer p-0"
-                  aria-pressed={selected}
-                  style={{ width: 92 }}
-                >
-                  <span
-                    className="block overflow-hidden"
-                    style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: 14,
-                      boxShadow: selected
-                        ? `0 0 0 2px ${PALETTE.cream}, 0 0 0 4px ${PALETTE.gold}, 0 10px 22px -8px rgba(20,18,16,0.35)`
-                        : "0 2px 8px rgba(20,18,16,0.12)",
-                      transition: "box-shadow 200ms ease, transform 200ms ease",
-                      transform: selected ? "translateY(-2px)" : undefined,
-                    }}
-                  >
-                    <img
-                      src={FRAME_IMG[f.uid]}
-                      alt={`${f.label} frame`}
-                      width={168}
-                      height={168}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full"
-                      style={{ objectFit: "cover", display: "block" }}
-                    />
-                  </span>
-                  <span
-                    className="inline-flex items-center gap-1.5"
-                    style={{
-                      fontFamily: "Asap, system-ui, sans-serif",
-                      fontSize: 13.5,
-                      fontWeight: 600,
-                      color: selected ? PALETTE.rose : PALETTE.earth,
-                    }}
-                  >
-                    {selected && <Check className="w-3.5 h-3.5 shrink-0" />}
-                    {f.label}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "Assistant, system-ui, sans-serif",
-                      fontSize: 12,
-                      color: PALETTE.earthMuted,
-                      marginTop: -4,
-                    }}
-                  >
-                    {f.note}
-                  </span>
-                </button>
-              );
-            })}
+            {/* Frame note — choice happens at checkout, not here. */}
+            <p
+              className="mt-6"
+              style={{
+                fontFamily: "Assistant, system-ui, sans-serif",
+                fontSize: 13.5,
+                lineHeight: 1.5,
+                color: PALETTE.earthMuted,
+              }}
+            >
+              Want a real wood frame? Add one for +{symbol}{FRAME_UPGRADE} at checkout — black, natural, or dark wood.
+            </p>
           </div>
         </div>
 

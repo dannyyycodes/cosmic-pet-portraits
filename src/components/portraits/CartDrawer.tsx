@@ -265,12 +265,13 @@ export function CartDrawer({
               disabled={checkoutDisabled}
               title={checkoutTooltip}
               aria-disabled={checkoutDisabled}
-              className="w-full px-6 py-4 rounded-full transition-all hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed"
+              className="w-full px-4 sm:px-6 py-4 rounded-full transition-all hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed"
               style={{
                 background: PALETTE.rose,
                 color: PALETTE.cream,
                 fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: "16px",
+                fontSize: "clamp(14px, 4vw, 16px)",
+                whiteSpace: "nowrap",
                 fontWeight: 700,
                 letterSpacing: "0.01em",
                 boxShadow: checkoutDisabled
