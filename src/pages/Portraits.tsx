@@ -967,6 +967,18 @@ const Portraits = () => {
     };
   }, []);
 
+  // Pause Lenis while the cart drawer is open — otherwise Lenis keeps
+  // hijacking wheel/touch and scrolls the LANDING page behind the drawer
+  // instead of the drawer's own content (couldn't reach the gift upsell /
+  // small print). Native scroll inside the Sheet works once Lenis is stopped.
+  // (Danny 2026-06-01)
+  useEffect(() => {
+    const lenis = (window as unknown as { __lenis?: { stop: () => void; start: () => void } }).__lenis;
+    if (!lenis) return;
+    if (cartOpen) lenis.stop();
+    else lenis.start();
+  }, [cartOpen]);
+
   const scrollToUpload = () => {
     uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };

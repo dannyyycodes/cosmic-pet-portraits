@@ -442,13 +442,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // ALL underscore-prefixed → Shopify HIDES these from the customer at
+    // checkout + on the order page (they were showing raw URLs / "Pack id" /
+    // "Source photo" which looked broken). They stay in the order data for
+    // fulfilment + admin. (Danny 2026-06-01)
     const properties = [
-      { name: "Product", value: PRODUCT_LABELS[productKey] },
-      { name: isTemplate ? "Template" : "Character pack", value: it.packName },
-      ...(isTemplate ? [] : [{ name: "Style", value: styleLabel }]),
-      { name: isTemplate ? "Template id" : "Pack id", value: it.packId },
-      { name: "Source photo", value: it.sourcePhotoUrl },
-      { name: "Preview portrait", value: it.previewUrl },
+      { name: "_Product", value: PRODUCT_LABELS[productKey] },
+      { name: isTemplate ? "_Template" : "_Character pack", value: it.packName },
+      ...(isTemplate ? [] : [{ name: "_Style", value: styleLabel }]),
+      { name: isTemplate ? "_Template id" : "_Pack id", value: it.packId },
+      { name: "_Source photo", value: it.sourcePhotoUrl },
+      { name: "_Preview portrait", value: it.previewUrl },
       // Print master — UNDERSCORE-prefixed property is HIDDEN from the customer
       // order page (Shopify convention). New secure path goes here; URL kept as
       // legacy fallback for in-flight carts. Both never visible to customer.
