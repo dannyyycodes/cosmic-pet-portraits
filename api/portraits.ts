@@ -3781,19 +3781,27 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
   const ssrf = validateImageUrlOrigin(imageUrl);
   if (ssrf) return res.status(400).json({ error: 'invalid_image_url', message: `Image URL rejected (${ssrf}).` });
 
-  // Auth — Bearer JWT required (cart item belongs to a signed-in user)
-  const auth = req.headers.authorization;
-  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Sign in to prepare your photo' });
-  const token = auth.slice('Bearer '.length);
+  // Auth OPTIONAL — "use my photo" is a no-AI sharp crop, so buying a canvas
+  // must work signed-out (account is only for AI generations). If a token is
+  // present we use the user id for rate-limiting; otherwise we fall back to the
+  // client IP so anonymous use is still throttled. (Danny 2026-06-01)
   const supabase = getSupabaseAdmin();
-  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
-  if (userErr || !userRes.user) return res.status(401).json({ error: 'Invalid token' });
-  const userId = userRes.user.id;
+  let rlKey = "anon";
+  const auth = req.headers.authorization;
+  if (auth?.startsWith('Bearer ')) {
+    const token = auth.slice('Bearer '.length);
+    const { data: userRes } = await supabase.auth.getUser(token);
+    if (userRes?.user) rlKey = userRes.user.id;
+  }
+  if (rlKey === "anon") {
+    const ip = (req.headers['x-forwarded-for']?.toString().split(',')[0] || req.headers['x-real-ip']?.toString() || 'anon').trim();
+    rlKey = `ip:${ip}`;
+  }
 
   const rl = await checkUserRateLimit(
     supabase,
     'printMaster_asis',
-    userId,
+    rlKey,
     PRINT_MASTER_SUBMIT_RATE_LIMIT_PER_HOUR,
     60 * 60 * 1000,
   );

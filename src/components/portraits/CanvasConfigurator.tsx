@@ -185,8 +185,6 @@ export function CanvasConfigurator({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
             {sizes.map((s) => {
               const active = sizeKey === s.uid;
-              const ppi = mode === "asis" ? asisSizePpi(s) : null;
-              const tier = ppi === null ? null : ppi >= asisPpiClean ? "Sharp" : ppi >= 100 ? "Good" : "Soft";
               return (
                 <button
                   key={s.uid}
@@ -214,11 +212,6 @@ export function CanvasConfigurator({
                   </div>
                   <div className="tabular-nums" style={{ fontSize: 12.5, marginTop: 1, color: active ? "rgba(255,253,245,0.9)" : PALETTE.earthMuted }}>
                     £{s.priceGBP}
-                    {tier && (
-                      <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "rgba(255,253,245,0.95)" : tier === "Sharp" ? "#1f7a3d" : tier === "Good" ? PALETTE.goldDeep : PALETTE.earthMuted }}>
-                        {tier}
-                      </span>
-                    )}
                   </div>
                 </button>
               );

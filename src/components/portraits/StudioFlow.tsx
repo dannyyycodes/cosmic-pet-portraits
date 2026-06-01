@@ -1393,7 +1393,10 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     if (preparingPrintMaster) return;
     if (!selectedVariantUrl || !variant) return;
     if (uploadedPets.length === 0) return;
-    if (!session?.access_token) {
+    // Sign-in is ONLY for AI generations (credits). Buying a canvas — especially
+    // the "use my photo" path — must NOT require an account; that was killing
+    // conversion at the cart. (Danny 2026-06-01)
+    if (mode !== "asis" && !session?.access_token) {
       setSignInOpen(true);
       return;
     }
@@ -1426,7 +1429,8 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
+            // Auth optional — as-is canvas purchase works signed-out.
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
           },
           body: JSON.stringify({ imageUrl: uploadedPets[0].photoUrl, sizeKey }),
           signal: AbortSignal.timeout(60_000),

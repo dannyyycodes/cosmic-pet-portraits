@@ -786,7 +786,11 @@ const Portraits = () => {
   // dim during the high-attention phases (generating + reveal). This is the
   // "single focal area" experience: the customer's eye stays on the canvas.
   const [studioPhase, setStudioPhase] = useState<StudioPhase>("compose");
-  const studioFocused = studioPhase === "generating" || studioPhase === "reveal";
+  // Dimming DISABLED (Danny 2026-06-01): the opacity-0.18 + `inert` focus
+  // effect washed the whole page white and made it un-clickable when the studio
+  // sat in a reveal/generating phase. Not worth the breakage — always full.
+  const studioFocused = false;
+  void studioPhase; void setStudioPhase;
 
   // ─── Cart state — accumulates configured portraits across surfaces ──
   const [cart, setCart] = useState<CartItem[]>([]);
