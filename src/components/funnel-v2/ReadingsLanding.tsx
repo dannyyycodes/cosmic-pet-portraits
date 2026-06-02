@@ -633,53 +633,99 @@ function CheckoutSection({
 
 function QuietMomentSection() {
   return (
-    <section className="ls-keepsake-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
-      <img
-        className="ls-keepsake-cat-bg"
-        src="/readings/hero/black-cat-galaxy-eye.webp"
-        alt=""
-        loading="lazy"
-        width={1672}
-        height={941}
-        aria-hidden="true"
-      />
-
-      <div className="ls-keepsake-inner mx-auto max-w-6xl">
-        <div className="ls-keepsake-copy">
-          <p style={eyebrowStyle(C.gold)}>The keepsake</p>
-          <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-            Made for the quiet moments.
-          </h2>
-          <p className="mt-6 text-pretty" style={sectionBodyStyle}>
-            Open it when they are beside you, when you miss them, or when you
-            want to remember exactly who they are to you.
-          </p>
-          <div className="mt-9 border-l pl-6" style={{ borderColor: C.gold }}>
-            <p style={quoteStyle}>
-              "I knew that look meant something. I just never had words for it before."
+    <section className="ls-story-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
+      <div className="ls-story-inner mx-auto max-w-6xl">
+        <div className="ls-story-hero">
+          <div className="ls-story-copy">
+            <p style={eyebrowStyle(C.gold)}>The full reading</p>
+            <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
+              Turn their birth sky into the story of who they are.
+            </h2>
+            <p className="mt-6 text-pretty" style={sectionBodyStyle}>
+              The free mini reading opens the door. The full reading goes deeper:
+              how they love, what steadies them, what they carry quietly, and why
+              the bond between you feels the way it does.
             </p>
+            <div className="ls-story-quote mt-9 border-l pl-6" style={{ borderColor: C.gold }}>
+              <p style={quoteStyle}>
+                "I knew that look meant something. I just never had words for it before."
+              </p>
+            </div>
           </div>
+
+          <figure className="ls-story-cat">
+            <img
+              src="/readings/hero/black-cat-galaxy-eye.webp"
+              alt="Black cat with a faint galaxy reflected in one eye"
+              loading="lazy"
+              width={1672}
+              height={941}
+            />
+          </figure>
         </div>
 
-        <div className="ls-keepsake-gallery" aria-label="Little Souls keepsake moments">
-          <figure className="ls-keepsake-photo ls-keepsake-photo--wide">
-            <img
-              src="/readings/hero/cockapoo-reading-tablet.webp"
-              alt="Cockapoo beside a human holding a glowing celestial reading"
-              loading="lazy"
-              width={1672}
-              height={942}
-            />
-          </figure>
-          <figure className="ls-keepsake-photo ls-keepsake-photo--small">
-            <img
-              src="/readings/hero/doberman-puppy-star-map.webp"
-              alt="Doberman puppy touching a softly glowing star map"
-              loading="lazy"
-              width={1672}
-              height={942}
-            />
-          </figure>
+        <div className="ls-story-moments">
+          <article className="ls-story-moment ls-story-moment--wide">
+            <figure>
+              <img
+                src="/readings/hero/cockapoo-reading-tablet.webp"
+                alt="Cockapoo beside a human holding a glowing celestial reading"
+                loading="lazy"
+                width={1672}
+                height={942}
+              />
+            </figure>
+            <div>
+              <p style={eyebrowStyle(C.gold)}>A reading you sit with</p>
+              <h3>Made to be opened again.</h3>
+              <p>
+                Read it when they are beside you, when you miss them, or when you
+                want to remember the small truths only you noticed.
+              </p>
+            </div>
+          </article>
+
+          <article className="ls-story-moment">
+            <figure>
+              <img
+                src="/readings/hero/doberman-puppy-star-map.webp"
+                alt="Doberman puppy touching a softly glowing star map"
+                loading="lazy"
+                width={1672}
+                height={942}
+              />
+            </figure>
+            <div>
+              <p style={eyebrowStyle(C.gold)}>Their hidden pattern</p>
+              <h3>Softness, courage, instinct.</h3>
+              <p>
+                The reading turns their placements into a portrait of their nature:
+                what soothes them, what drives them, and how they ask for love.
+              </p>
+            </div>
+          </article>
+        </div>
+
+        <div className="ls-receive-panel">
+          <div>
+            <p style={eyebrowStyle(C.gold)}>What you receive</p>
+            <h2 className="mt-4 text-balance" style={sectionTitleStyle}>
+              A keepsake with depth, not filler.
+            </h2>
+          </div>
+          <div className="ls-receive-grid">
+            {[
+              ["Birth sky placements", "Sun, Moon and the chart patterns that make them, them."],
+              ["Emotional blueprint", "How they bond, soften, protect, play and ask to be understood."],
+              ["SoulSpeak included", "A gentler voice for the things you always felt from them."],
+              ["Horoscope included", "A living follow-on for their current sky, not just the day they arrived."],
+            ].map(([title, body]) => (
+              <article key={title} className="ls-receive-item">
+                <strong>{title}</strong>
+                <p>{body}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -1261,79 +1307,125 @@ function CosmicStyles() {
         margin: 0 auto;
       }
       .ls-sky-cta { margin-top: 18px; width: 100%; justify-content: center; }
-      .ls-keepsake-section {
-        min-height: 1180px;
+      .ls-story-section {
+        background:
+          radial-gradient(ellipse at 78% 18%, rgba(94,70,122,0.22), transparent 34%),
+          radial-gradient(ellipse at 10% 62%, rgba(212,182,122,0.08), transparent 28%);
       }
-      .ls-keepsake-cat-bg {
-        position: absolute;
-        z-index: 0;
-        right: max(-170px, -9vw);
-        top: clamp(160px, 17vw, 260px);
-        width: min(58vw, 820px);
-        height: auto;
-        opacity: 0.52;
-        object-fit: cover;
-        object-position: 78% center;
-        pointer-events: none;
-        filter: saturate(1.04) contrast(1.08);
-        -webkit-mask-image:
-          linear-gradient(90deg, transparent 0%, #000 20%, #000 76%, transparent 100%),
-          linear-gradient(180deg, transparent 0%, #000 18%, #000 74%, transparent 100%);
-        -webkit-mask-composite: source-in;
-        mask-image:
-          linear-gradient(90deg, transparent 0%, #000 20%, #000 76%, transparent 100%),
-          linear-gradient(180deg, transparent 0%, #000 18%, #000 74%, transparent 100%);
-        mask-composite: intersect;
-      }
-      .ls-keepsake-inner {
+      .ls-story-inner,
+      .ls-story-hero,
+      .ls-story-moments,
+      .ls-receive-panel {
         position: relative;
         z-index: 1;
       }
-      .ls-keepsake-copy {
+      .ls-story-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.82fr);
+        align-items: center;
+        gap: clamp(34px, 5vw, 82px);
+      }
+      .ls-story-copy {
         max-width: 620px;
       }
-      .ls-keepsake-gallery {
-        display: grid;
-        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-        align-items: end;
-        gap: clamp(18px, 3vw, 34px);
-        margin-top: clamp(38px, 6vw, 76px);
-      }
-      .ls-keepsake-photo {
+      .ls-story-cat {
         position: relative;
         overflow: hidden;
+        aspect-ratio: 4 / 5;
         margin: 0;
         border-radius: 8px;
-        background: rgba(3,3,5,0.52);
-        box-shadow: 0 28px 90px rgba(0,0,0,0.34);
+        background: #030305;
+        box-shadow: 0 32px 110px rgba(0,0,0,0.42);
       }
-      .ls-keepsake-photo::after {
+      .ls-story-cat::before {
         content: "";
         position: absolute;
         inset: 0;
+        z-index: 1;
         background:
-          linear-gradient(180deg, rgba(3,3,5,0.06), rgba(3,3,5,0.18)),
-          radial-gradient(circle at 76% 18%, rgba(212,182,122,0.08), transparent 28%);
+          linear-gradient(90deg, rgba(3,3,5,0.54), transparent 40%),
+          radial-gradient(circle at 76% 46%, rgba(106,156,255,0.14), transparent 24%);
         pointer-events: none;
       }
-      .ls-keepsake-photo img {
+      .ls-story-cat img,
+      .ls-story-moment img {
         display: block;
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
-      .ls-keepsake-photo--wide {
+      .ls-story-cat img {
+        object-position: 82% center;
+        transform: scale(1.18);
+        transform-origin: 82% center;
+      }
+      .ls-story-moments {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: clamp(22px, 3vw, 38px);
+        align-items: stretch;
+        margin-top: clamp(54px, 7vw, 92px);
+      }
+      .ls-story-moment {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 18px;
+      }
+      .ls-story-moment figure {
+        overflow: hidden;
+        margin: 0;
+        border-radius: 8px;
+        background: #030305;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.32);
+      }
+      .ls-story-moment--wide figure {
         aspect-ratio: 16 / 9;
       }
-      .ls-keepsake-photo--wide img {
+      .ls-story-moment:not(.ls-story-moment--wide) figure {
+        aspect-ratio: 4 / 5;
+      }
+      .ls-story-moment--wide img {
         object-position: 38% center;
       }
-      .ls-keepsake-photo--small {
-        aspect-ratio: 4 / 5;
-        transform: translateY(54px);
-      }
-      .ls-keepsake-photo--small img {
+      .ls-story-moment:not(.ls-story-moment--wide) img {
         object-position: 67% center;
+      }
+      .ls-story-moment h3,
+      .ls-receive-item strong {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+        font-weight: 500;
+        line-height: 1.08;
+      }
+      .ls-story-moment p:not(:first-child),
+      .ls-receive-item p {
+        margin-top: 10px;
+        color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.98rem;
+        line-height: 1.65;
+      }
+      .ls-receive-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: clamp(28px, 5vw, 68px);
+        align-items: start;
+        margin-top: clamp(62px, 8vw, 106px);
+        padding-top: clamp(34px, 5vw, 58px);
+        border-top: 1px solid rgba(212,182,122,0.22);
+      }
+      .ls-receive-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .ls-receive-item {
+        min-height: 168px;
+        border: 1px solid rgba(212,182,122,0.24);
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(245,239,230,0.055), rgba(245,239,230,0.018));
+        padding: clamp(18px, 2.5vw, 24px);
       }
 
       .ls-disclosure {
@@ -1677,44 +1769,43 @@ function CosmicStyles() {
           max-width: none;
           text-align: center;
         }
-        .ls-keepsake-section {
-          min-height: 0;
-        }
-        .ls-keepsake-cat-bg {
-          right: 50%;
-          top: 124px;
-          width: min(132vw, 620px);
-          max-width: none;
-          opacity: 0.24;
-          transform: translateX(62%);
-          object-position: 80% center;
-          -webkit-mask-image:
-            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
-            linear-gradient(180deg, transparent 0%, #000 14%, #000 64%, transparent 100%);
-          mask-image:
-            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
-            linear-gradient(180deg, transparent 0%, #000 14%, #000 64%, transparent 100%);
-        }
-        .ls-keepsake-copy {
-          max-width: none;
-        }
-        .ls-keepsake-gallery {
+        .ls-story-hero,
+        .ls-story-moments,
+        .ls-receive-panel {
           grid-template-columns: 1fr;
-          gap: 16px;
-          margin-top: 34px;
         }
-        .ls-keepsake-photo--wide {
+        .ls-story-copy {
+          max-width: none;
+        }
+        .ls-story-cat {
           aspect-ratio: 4 / 3;
         }
-        .ls-keepsake-photo--wide img {
+        .ls-story-cat img {
+          object-position: 80% center;
+          transform: scale(1.1);
+        }
+        .ls-story-moments {
+          margin-top: 42px;
+        }
+        .ls-story-moment--wide figure,
+        .ls-story-moment:not(.ls-story-moment--wide) figure {
+          aspect-ratio: 4 / 3;
+        }
+        .ls-story-moment--wide img {
           object-position: 34% center;
         }
-        .ls-keepsake-photo--small {
-          aspect-ratio: 4 / 3;
-          transform: none;
-        }
-        .ls-keepsake-photo--small img {
+        .ls-story-moment:not(.ls-story-moment--wide) img {
           object-position: 68% center;
+        }
+        .ls-receive-panel {
+          margin-top: 46px;
+          padding-top: 34px;
+        }
+        .ls-receive-grid {
+          grid-template-columns: 1fr;
+        }
+        .ls-receive-item {
+          min-height: 0;
         }
         .ls-hero-orbit {
           display: grid;
