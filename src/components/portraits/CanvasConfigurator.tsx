@@ -101,6 +101,20 @@ export function CanvasConfigurator({
   const frameUpgrade = FRAME_UPGRADE_GBP[sizeKey] ?? 0;
   const price = variant?.priceMajor ?? 0;
 
+  // As-is mode: a printed-as-uploaded photo can only go so big before it looks
+  // soft. A size "fits" when the upload has enough pixels to print it sharply
+  // (PPI >= the print floor). AI mode renders at print resolution, so every
+  // size always fits (asisSizePpi returns null).
+  const asis = mode === "asis";
+  const sizeFits = (s: CanvasSizeMeta) => {
+    const p = asis ? asisSizePpi(s) : null;
+    return p === null || p >= asisPpiFloor;
+  };
+  // Never grey out EVERY size — if even the smallest doesn't fit, show them all
+  // and let the upload/server gate handle the genuinely-too-small photo.
+  const anySizeFits = sizes.some(sizeFits);
+  const someSizesTooSmall = asis && anySizeFits && sizes.some((s) => !sizeFits(s));
+
   return (
     <div
       className="rounded-2xl p-4 md:p-5"
@@ -185,40 +199,20 @@ export function CanvasConfigurator({
 
           {/* ── STEP 1 · SIZE ─────────────────────────────────────────── */}
           <p style={STEP_LABEL}>Step 1 · Choose your size</p>
-          {mode === "asis" && (
-            <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 12, color: PALETTE.earthMuted, margin: "-4px 0 10px", lineHeight: 1.4 }}>
-              Badges show how your photo prints at each size. Pick anything — we
-              always print the sharpest version your photo allows.
-            </p>
-          )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
             {sizes.map((s) => {
               const active = sizeKey === s.uid;
-              // As-is quality tier for THIS upload at THIS size (null in AI mode
-              // or before the upload's pixel dims are read). Sharp ≥ clean,
-              // Good ≥ floor, Soft below the print floor (server will snap down).
-              const ppi = mode === "asis" ? asisSizePpi(s) : null;
-              const tier = ppi === null
-                ? null
-                : ppi >= asisPpiClean ? "sharp"
-                : ppi >= asisPpiFloor ? "good"
-                : "soft";
-              const soft = tier === "soft";
+              // Grey out (and block) sizes the uploaded photo can't print sharply.
+              const blocked = someSizesTooSmall && !sizeFits(s);
               // Step-1 price reflects the CURRENT frame choice so it matches the
               // Add-to-cart total (base + frame upgrade when a frame is picked).
               const displayPrice = s.priceGBP + (frameColor !== null ? (FRAME_UPGRADE_GBP[s.uid] ?? 0) : 0);
-              const badge = tier === "sharp"
-                ? { label: "Sharp", bg: "rgba(74,143,96,0.14)", fg: "#3f7a52" }
-                : tier === "good"
-                ? { label: "Good", bg: "rgba(196,162,101,0.18)", fg: "#9a7b35" }
-                : tier === "soft"
-                ? { label: "Soft at this size", bg: "rgba(191,82,74,0.12)", fg: PALETTE.rose }
-                : null;
               return (
                 <button
                   key={s.uid}
                   type="button"
-                  onClick={() => onSizeChange(s.uid)}
+                  onClick={() => { if (!blocked) onSizeChange(s.uid); }}
+                  disabled={blocked}
                   aria-pressed={active}
                   className="relative rounded-xl px-3 py-3 text-left transition-all"
                   style={{
@@ -226,7 +220,8 @@ export function CanvasConfigurator({
                     border: active ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sandDeep}`,
                     boxShadow: active ? "0 10px 24px rgba(191,82,74,0.30)" : "0 1px 3px rgba(20,18,16,0.04)",
                     minHeight: 60,
-                    opacity: soft && !active ? 0.62 : 1,
+                    opacity: blocked ? 0.4 : 1,
+                    cursor: blocked ? "not-allowed" : "pointer",
                   }}
                 >
                   {active && (
@@ -241,28 +236,18 @@ export function CanvasConfigurator({
                     {s.label}
                   </div>
                   <div className="tabular-nums" style={{ fontSize: 12.5, marginTop: 1, color: active ? "rgba(255,253,245,0.9)" : PALETTE.earthMuted }}>
-                    £{displayPrice}
+                    {blocked ? "Too big for this photo" : `£${displayPrice}`}
                   </div>
-                  {badge && (
-                    <span
-                      className="inline-block mt-1.5 rounded-full"
-                      style={{
-                        fontFamily: "Asap, system-ui, sans-serif",
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        letterSpacing: "0.02em",
-                        padding: "2px 7px",
-                        background: active ? "rgba(255,253,245,0.22)" : badge.bg,
-                        color: active ? PALETTE.cream : badge.fg,
-                      }}
-                    >
-                      {badge.label}
-                    </span>
-                  )}
                 </button>
               );
             })}
           </div>
+          {someSizesTooSmall && (
+            <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 12, color: PALETTE.earthMuted, margin: "0 0 16px", lineHeight: 1.45 }}>
+              Greyed-out sizes need a higher-resolution photo to print sharply.
+              Upload a larger, clearer photo to unlock them.
+            </p>
+          )}
 
           {/* ── STEP 2 · CANVAS (frame, with real frame photos) ───────── */}
           <p style={STEP_LABEL}>Step 2 · Choose your canvas</p>

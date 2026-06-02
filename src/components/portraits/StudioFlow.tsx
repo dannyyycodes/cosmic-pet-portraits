@@ -994,18 +994,27 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     return () => { cancelled = true; };
   }, [mode, firstPhotoUrl]);
 
-  // As-is: if the currently-selected size got filtered out by the resolution
-  // gate, snap to the largest still-available size (best value that still
-  // prints sharply). Runs whenever the available set changes.
+  // As-is: keep the SELECTED size one the photo can actually print sharply.
+  // The picker greys out sizes below the print floor; this makes sure the
+  // pre-selected size (e.g. the 16×20 default) is itself a fitting one, so the
+  // customer never lands on a greyed/blocked size or gets a change at checkout.
+  // Snaps to the LARGEST size that fits. Runs once the upload's dims are known.
   useEffect(() => {
     if (mode !== "asis" || !asisSrcDims) return;
-    if (sizesForPicker.some((s) => s.uid === sizeKey)) return;
-    const largest = [...sizesForPicker].sort(
+    const fits = (s: typeof CANVAS_SIZES[number]) => {
+      const p = asisSizePpi(s);
+      return p !== null && p >= ASIS_PPI_HIDE;
+    };
+    const current = PURCHASABLE_SIZES.find((s) => s.uid === sizeKey);
+    if (current && fits(current)) return; // already on a printable size
+    const fitting = PURCHASABLE_SIZES.filter(fits);
+    if (fitting.length === 0) return; // nothing fits — let upload/server gate handle it
+    const largestFitting = [...fitting].sort(
       (a, b) => b.inches.w * b.inches.h - a.inches.w * a.inches.h,
     )[0];
-    if (largest) setSizeKeyRaw(largest.uid);
+    setSizeKeyRaw(largestFitting.uid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, asisSrcDims, sizesForPicker.length, sizeKey]);
+  }, [mode, asisSrcDims, sizeKey]);
 
   // As-is mode never offers a digital download — printing a customer's own
   // upload as a £19 "digital" makes no sense (Danny 2026-06-01). Force physical
@@ -1424,90 +1433,49 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
 
     // ── As-is path: crop the uploaded photo to canvas server-side (no AI) ──
     // One synchronous call to printMaster_asis (sharp is fast, no fal queue).
-    // 422 source_too_low_res = the photo can't print sharply at this size; we
-    // tell the customer the largest size it CAN do instead of shipping a soft
-    // canvas.
+    // The size picker already greys out + blocks any size the photo can't print
+    // sharply, and the selected size is auto-kept to a fitting one — so a 422
+    // here is an unreachable edge. If it ever fires we show a clear, honest
+    // error (pick a smaller size) rather than silently changing their choice.
     if (mode === "asis") {
       const sourceUrl = uploadedPets[0].photoUrl as string;
-      const requestedMeta = CANVAS_SIZES.find((s) => s.uid === sizeKey) ?? activeSizeMeta;
-      let effectiveSizeKey = sizeKey;
       let asisPath: string | null = null;
-      let snapped = false;
-
-      // ── One-click self-heal loop ──────────────────────────────────────
-      // If the photo is too low-res for the chosen size, the server returns the
-      // largest size it CAN print crisply. We snap to it and RE-SUBMIT in the
-      // same click instead of dead-ending the customer with "tap Add again"
-      // (Danny 2026-06-02). Capped at 2 attempts — the snapped size is
-      // guaranteed printable (asisLargestUsableSize uses the same gate), so the
-      // 2nd attempt always succeeds; the cap is a belt-and-braces stop.
-      for (let attempt = 0; attempt < 2 && !asisPath; attempt++) {
-        let data: { error?: string; message?: string; status?: string; printMasterPath?: string; largestUsableSize?: string } = {};
-        try {
-          const res = await fetch("/api/portraits?action=printMaster_asis", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              // Auth optional — as-is canvas purchase works signed-out.
-              ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-            },
-            body: JSON.stringify({ imageUrl: sourceUrl, sizeKey: effectiveSizeKey }),
-            signal: AbortSignal.timeout(60_000),
-          });
-          data = await res.json().catch(() => ({}));
-          if (res.status === 422 && data?.error === "source_too_low_res") {
-            const largest = typeof data.largestUsableSize === "string" ? data.largestUsableSize : null;
-            if (largest && largest !== effectiveSizeKey) {
-              // Snap down and loop — re-submit at the largest crisp size.
-              effectiveSizeKey = largest;
-              setSizeKeyRaw(largest);
-              snapped = true;
-              continue;
-            }
-            // Even the smallest canvas can't print this photo sharply.
-            toast.error(
-              `This photo is too low-resolution to print sharply. Upload a larger, clearer photo for a crisp canvas.`,
-              { duration: 9000 },
-            );
-            setPreparingPrintMaster(false);
-            return;
-          }
-          if (!res.ok || data?.status !== "completed" || !data?.printMasterPath) {
-            throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
-          }
-          asisPath = data.printMasterPath as string;
-        } catch (e) {
-          const m = (e as Error).message ?? "";
-          toast.error(`Couldn't prepare your photo: ${m.slice(0, 120) || "unknown error"}. Try again.`, { duration: 8000 });
+      try {
+        const res = await fetch("/api/portraits?action=printMaster_asis", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Auth optional — as-is canvas purchase works signed-out.
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ imageUrl: sourceUrl, sizeKey }),
+          signal: AbortSignal.timeout(60_000),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 422 && data?.error === "source_too_low_res") {
+          const largestMeta = typeof data.largestUsableSize === "string"
+            ? CANVAS_SIZES.find((s) => s.uid === data.largestUsableSize)
+            : null;
+          toast.error(
+            largestMeta
+              ? `This photo can only print sharply up to ${largestMeta.label}. Pick that size or smaller, or upload a higher-resolution photo.`
+              : `This photo is too low-resolution to print sharply. Upload a larger, clearer photo.`,
+            { duration: 9000 },
+          );
           setPreparingPrintMaster(false);
           return;
         }
-      }
-
-      if (!asisPath) {
-        toast.error(`Couldn't prepare your photo at a printable size. Please try a larger, clearer photo.`, { duration: 8000 });
+        if (!res.ok || data?.status !== "completed" || !data?.printMasterPath) {
+          throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
+        }
+        asisPath = data.printMasterPath as string;
+      } catch (e) {
+        const m = (e as Error).message ?? "";
+        toast.error(`Couldn't prepare your photo: ${m.slice(0, 120) || "unknown error"}. Try again.`, { duration: 8000 });
         setPreparingPrintMaster(false);
         return;
       }
       setPreparingPrintMaster(false);
-
-      // Recompute the variant for the (possibly snapped) size — the closure's
-      // `variant` still reflects the pre-snap sizeKey until React re-renders.
-      const asisVariant = frameColor === null
-        ? resolveUnframedCanvasVariant(effectiveSizeKey)
-        : resolveFramedCanvasVariant(effectiveSizeKey, frameColor);
-      if (!asisVariant) {
-        toast.error("That size isn't available right now — pick another size and try again.", { duration: 8000 });
-        return;
-      }
-
-      if (snapped) {
-        const snappedMeta = CANVAS_SIZES.find((s) => s.uid === effectiveSizeKey);
-        toast.success(
-          `Added at ${snappedMeta?.label ?? `${effectiveSizeKey}″`} — the largest size your photo prints crisply (${requestedMeta?.label ?? "your pick"} would have looked soft).`,
-          { duration: 8000 },
-        );
-      }
 
       const asisNames = trimmedNames.filter((n) => n.length > 0);
       const asisProps: Record<string, string> = { _print_mode: "photo-as-is" };
@@ -1517,7 +1485,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       const asisItem = buildCartItem({
         kind: "ai",
         productType,
-        sizeKey: effectiveSizeKey as AnySizeKey,
+        sizeKey: sizeKey as AnySizeKey,
         frameColor: frameColor ?? undefined,
         packId: "photo-as-is",
         packName: "Your photo",
@@ -1527,7 +1495,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         printMasterPath: asisPath,
         soulEdition: false,
         soulEditionPriceMajor: 40,
-        variant: { variantId: asisVariant.variantId, priceMajor: asisVariant.priceMajor, sizeLabel: asisVariant.sizeLabel },
+        variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
         id: newPetId(),
         properties: asisProps,
       });
