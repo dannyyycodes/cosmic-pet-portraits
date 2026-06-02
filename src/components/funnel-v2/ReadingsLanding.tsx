@@ -347,7 +347,7 @@ function BirthChartPreviewSection() {
           <div>
             <p style={eyebrowStyle(C.gold)}>Computed sky</p>
             <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-              {status === "ready" ? `${name || "Their"} birth sky` : "Their birth sky preview"}
+              {status === "ready" ? `${name || "Their"} birth sky` : "Free mini reading"}
             </h3>
           </div>
 
