@@ -225,9 +225,9 @@ function useCosmicParallax(pageRef: RefObject<HTMLElement>) {
 
 function HeroSection({ onBegin }: { onBegin: () => void }) {
   return (
-    <section className="ls-parallax-band relative isolate min-h-[860px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_8%,rgba(212,182,122,0.20),transparent_30%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.20),transparent_28%),linear-gradient(140deg,#21152b_0%,#0d0a14_48%,#08060b_100%)]" />
-      <ShootingStar />
+    <section className="ls-hero-section ls-parallax-band relative isolate min-h-[860px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
+      <HeroBackdropVideo />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_8%,rgba(212,182,122,0.10),transparent_30%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.18),transparent_28%),linear-gradient(140deg,rgba(33,21,43,0.34)_0%,rgba(13,10,20,0.58)_48%,rgba(8,6,11,0.82)_100%)]" />
 
       <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.86fr_1.14fr]">
         <div className="max-w-2xl">
@@ -248,13 +248,9 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
         </div>
 
         <div className="ls-hero-orbit">
-          <PlaceholderFrame item={PLACEHOLDERS[0]} className="ls-orbit-card ls-orbit-a aspect-[4/5]" />
-          <PlaceholderFrame item={PLACEHOLDERS[1]} className="ls-orbit-card ls-orbit-b aspect-square" />
-          <PlaceholderFrame item={PLACEHOLDERS[2]} className="ls-orbit-card ls-orbit-c aspect-[16/9]" />
-          <div className="ls-video-seed">
-            <span>Future hero motion slot</span>
-            <strong>Cat watching a shooting star</strong>
-          </div>
+          <CosmicImage item={PLACEHOLDERS[0]} className="ls-orbit-card ls-orbit-a aspect-[4/5]" />
+          <CosmicImage item={PLACEHOLDERS[1]} className="ls-orbit-card ls-orbit-b aspect-square" />
+          <CosmicImage item={PLACEHOLDERS[2]} className="ls-orbit-card ls-orbit-c aspect-[16/9]" />
         </div>
       </div>
     </section>
@@ -663,10 +659,10 @@ function QuietMomentSection() {
             </p>
           </div>
         </div>
-        <PlaceholderFrame item={PLACEHOLDERS[4]} className="aspect-[16/10]" />
+        <CosmicImage item={PLACEHOLDERS[4]} className="aspect-[16/10]" />
       </div>
       <div className="mx-auto mt-10 max-w-6xl">
-        <PlaceholderFrame item={PLACEHOLDERS[5]} className="aspect-[16/7]" />
+        <CosmicImage item={PLACEHOLDERS[5]} className="aspect-[16/7]" />
       </div>
     </section>
   );
@@ -738,6 +734,49 @@ function PlaceholderFrame({
   );
 }
 
+// Real hero/keepsake image. Loads /readings/hero/<key>; if the file isn't there
+// yet (or fails), it falls back to the styled placeholder so the page never breaks.
+function CosmicImage({
+  item,
+  className = "",
+}: {
+  item: (typeof PLACEHOLDERS)[number];
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <PlaceholderFrame item={item} className={className} />;
+  return (
+    <figure className={`ls-hero-img relative overflow-hidden ${className}`}>
+      <img
+        src={`/readings/hero/${item.key}`}
+        alt={item.title}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    </figure>
+  );
+}
+
+function HeroBackdropVideo() {
+  return (
+    <div className="ls-hero-backdrop" aria-hidden="true">
+      <video
+        className="ls-hero-backdrop-video"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster="/readings/hero/hero-motion-husky-shooting-star-poster.jpg"
+      >
+        <source src="/readings/hero/hero-motion-husky-shooting-star.webm" type="video/webm" />
+        <source src="/readings/hero/hero-motion-husky-shooting-star.mp4" type="video/mp4" />
+      </video>
+    </div>
+  );
+}
+
 function CosmicBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
@@ -761,10 +800,6 @@ function CosmicBackdrop() {
       </svg>
     </div>
   );
-}
-
-function ShootingStar() {
-  return <span className="ls-shooting-star" aria-hidden="true" />;
 }
 
 function CosmicStyles() {
@@ -1318,6 +1353,35 @@ function CosmicStyles() {
         border-color: rgba(212,182,122,0.56);
         background: rgba(245,239,230,0.04);
       }
+      .ls-hero-section {
+        background:
+          linear-gradient(140deg, rgba(13,10,20,0.92), rgba(8,6,11,0.78)),
+          url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") 62% center / cover no-repeat;
+      }
+      .ls-hero-backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: -10;
+        overflow: hidden;
+        background: url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") 62% center / cover no-repeat;
+      }
+      .ls-hero-backdrop::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgba(8,6,11,0.78) 0%, rgba(8,6,11,0.48) 35%, rgba(8,6,11,0.18) 68%, rgba(8,6,11,0.34) 100%),
+          linear-gradient(180deg, rgba(8,6,11,0.40) 0%, rgba(8,6,11,0.08) 42%, rgba(8,6,11,0.82) 100%);
+        pointer-events: none;
+      }
+      .ls-hero-backdrop-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 62% center;
+        opacity: 0.82;
+        filter: saturate(1.05) contrast(1.05);
+      }
       .ls-hero-orbit {
         position: relative;
         min-height: 610px;
@@ -1359,6 +1423,52 @@ function CosmicStyles() {
         font-size: 12px;
       }
       .ls-video-seed strong {
+        display: block;
+        color: ${C.cream};
+        font-family: "Cormorant", Georgia, serif;
+        font-size: 1.25rem;
+        font-weight: 400;
+        font-style: italic;
+        line-height: 1.18;
+        margin-top: 6px;
+      }
+      .ls-hero-img {
+        border: 1px solid rgba(212,182,122,0.34);
+        border-radius: 8px;
+        background: #050407;
+        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 20px 60px rgba(0,0,0,0.32);
+      }
+      .ls-hero-img img { display: block; }
+      .ls-video-slot {
+        border-left: none;
+        padding-left: 0;
+        min-height: 0;
+        aspect-ratio: 1 / 1;
+        border: 1px solid rgba(212,182,122,0.34);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #050407;
+      }
+      .ls-hero-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 320ms ease;
+      }
+      .ls-video-fallback {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        align-content: center;
+        gap: 6px;
+        padding: 16px;
+        color: ${C.muted};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 12px;
+      }
+      .ls-video-fallback strong {
         display: block;
         color: ${C.cream};
         font-family: "Cormorant", Georgia, serif;
@@ -1430,6 +1540,22 @@ function CosmicStyles() {
       @keyframes lsFloatB { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(12px); } }
       @keyframes lsFloatC { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-10px); } }
       @media (max-width: 899px) {
+        .ls-hero-section {
+          min-height: 790px;
+          background-position: 70% center;
+        }
+        .ls-hero-backdrop {
+          background-position: 70% center;
+        }
+        .ls-hero-backdrop::after {
+          background:
+            linear-gradient(180deg, rgba(8,6,11,0.72) 0%, rgba(8,6,11,0.42) 36%, rgba(8,6,11,0.76) 100%),
+            linear-gradient(90deg, rgba(8,6,11,0.44), rgba(8,6,11,0.12));
+        }
+        .ls-hero-backdrop-video {
+          object-position: 70% center;
+          opacity: 0.72;
+        }
         .ls-parallax-band::before {
           opacity: 0.42;
           transform: translate3d(0, calc(var(--ls-scroll-y) * -0.004px), 0);
@@ -1486,6 +1612,9 @@ function CosmicStyles() {
         .ls-sky-gate .ls-gold-button { width: 100%; }
       }
       @media (prefers-reduced-motion: reduce) {
+        .ls-hero-backdrop-video {
+          display: none;
+        }
         .ls-parallax-band::before,
         .ls-hero-orbit,
         .ls-placeholder-core {
