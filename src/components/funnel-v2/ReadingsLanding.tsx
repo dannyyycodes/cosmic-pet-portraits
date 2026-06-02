@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, RefObject } from "react";
-import { ArrowRight, ChevronDown, Stars } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -105,9 +105,6 @@ const PLANET_ORDER = [
   "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
   "uranus", "neptune", "pluto", "chiron", "northNode", "lilith",
 ] as const;
-
-// Sun + Moon revealed free; the rest unlock behind the email gate.
-const FREE_BODIES = 2;
 
 const SIGN_GLYPHS: Record<string, string> = {
   Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
@@ -258,9 +255,6 @@ function BirthChartPreviewSection() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
-  const [gateStatus, setGateStatus] = useState<"idle" | "loading">("idle");
-  const [gateError, setGateError] = useState("");
   const [calcOpen, setCalcOpen] = useState(false);
 
   const name = petName.trim();
@@ -274,11 +268,35 @@ function BirthChartPreviewSection() {
       setMessage("Choose their birth date or adoption date first.");
       return;
     }
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(cleanEmail)) {
+      setStatus("error");
+      setMessage("Enter your email to calculate their free chart.");
+      return;
+    }
 
     setStatus("loading");
     setMessage("");
-    setUnlocked(false);
     try {
+      try {
+        await supabase.functions.invoke("track-subscriber", {
+          body: {
+            email: cleanEmail,
+            event: "birth_chart_lead",
+            petName: name || null,
+            source: "birth_chart_preview",
+          },
+        });
+      } catch (error) {
+        // Lead capture is best-effort; never block the chart on a hiccup.
+        console.warn("[Little Souls] lead capture failed", error);
+      }
+      try {
+        sessionStorage.setItem("ls_chart_email", cleanEmail);
+      } catch {
+        /* ignore */
+      }
+
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Birth chart request failed: ${response.status}`);
@@ -295,59 +313,18 @@ function BirthChartPreviewSection() {
     }
   };
 
-  const handleUnlock = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const clean = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(clean)) {
-      setGateError("Enter a valid email.");
-      return;
-    }
-    setGateError("");
-    setGateStatus("loading");
-    try {
-      await supabase.functions.invoke("track-subscriber", {
-        body: {
-          email: clean,
-          event: "birth_chart_lead",
-          petName: name || null,
-          source: "birth_chart_preview",
-        },
-      });
-    } catch (error) {
-      // Lead capture is best-effort — never block the reveal on a hiccup.
-      console.warn("[Little Souls] lead capture failed", error);
-    }
-    try {
-      sessionStorage.setItem("ls_chart_email", clean);
-    } catch {
-      /* ignore */
-    }
-    setGateStatus("idle");
-    setUnlocked(true);
-  };
-
-  const themName = name || "their";
-
   const scrollToCheckout = () =>
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="ls-birth-intro mx-auto max-w-6xl">
-        <div className="ls-birth-copy">
-          <h2 className="text-balance" style={sectionTitleStyle}>
-            Free mini reading calculations.
-          </h2>
-        </div>
-      </div>
-
-      <div className="ls-chart-shell mx-auto mt-10 max-w-3xl">
+      <div className="ls-chart-shell mx-auto max-w-3xl">
         <SolarSystemBackdrop />
         <div className="relative z-10">
           <div>
             <p style={eyebrowStyle(C.gold)}>Computed sky</p>
             <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-              {status === "ready" ? `${name || "Their"} birth sky` : "Free mini reading"}
+              Free mini reading
             </h3>
           </div>
 
@@ -380,6 +357,24 @@ function BirthChartPreviewSection() {
                   max="2030-12-31"
                 />
               </div>
+              <div className="ls-lead-field">
+                <label htmlFor="birth-chart-email">Your email</label>
+                <input
+                  id="birth-chart-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (status === "error") {
+                      setStatus("idle");
+                      setMessage("");
+                    }
+                  }}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                />
+              </div>
             </div>
             <button type="submit" className="ls-gold-button" disabled={status === "loading"}>
               {status === "loading"
@@ -397,17 +392,9 @@ function BirthChartPreviewSection() {
           {status === "ready" ? (
             <div className="mt-8">
               <div className="ls-sky-grid">
-                {PLANET_ORDER.slice(0, FREE_BODIES).map((key) => (
+                {PLANET_ORDER.map((key) => (
                   <PlanetCard key={key} planet={key} body={bodyFor(key)} />
                 ))}
-              </div>
-
-              <div className={`ls-sky-locked ${unlocked ? "is-open" : ""}`}>
-                <div className="ls-sky-grid ls-sky-rest">
-                  {PLANET_ORDER.slice(FREE_BODIES).map((key) => (
-                    <PlanetCard key={key} planet={key} body={bodyFor(key)} locked={!unlocked} />
-                  ))}
-                  {unlocked && (
                     <article className="ls-planet-card ls-element-card">
                       <span className="ls-planet-orb ls-element-orb" aria-hidden="true">✦</span>
                       <div className="ls-planet-body">
@@ -418,47 +405,17 @@ function BirthChartPreviewSection() {
                         <small>The thread running through all of it.</small>
                       </div>
                     </article>
-                  )}
                 </div>
 
-                {!unlocked && (
-                  <div className="ls-sky-gate">
-                    <Stars size={22} style={{ color: C.gold }} />
-                    <p>See {themName} whole sky.</p>
-                    <small>The rest of their placements now, and we&apos;ll send their chart to your inbox.</small>
-                    <form onSubmit={handleUnlock}>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(event) => {
-                          setEmail(event.target.value);
-                          if (gateError) setGateError("");
-                        }}
-                        placeholder="your@email.com"
-                        aria-label="Your email"
-                        autoComplete="email"
-                      />
-                      <button type="submit" className="ls-gold-button" disabled={gateStatus === "loading"}>
-                        {gateStatus === "loading" ? "Opening..." : "Reveal the full sky"}
-                      </button>
-                    </form>
-                    {gateError && <p className="ls-chart-message is-error">{gateError}</p>}
-                  </div>
-                )}
+              <div className="ls-sky-bridge">
+                <p className="ls-sky-bridge-lead">
+                  That&apos;s their free sky. The full reading turns it into the story of how
+                  {name ? ` ${name}` : " they"} love, what steadies them, and why they feel like home.
+                </p>
+                <button type="button" onClick={scrollToCheckout} className="ls-gold-button ls-sky-cta">
+                  Read {name || "their"} full soul reading <ArrowRight size={17} />
+                </button>
               </div>
-
-              {unlocked && (
-                <div className="ls-sky-bridge">
-                  <p className="ls-sky-bridge-lead">
-                    That&apos;s the surface of {themName} sky. The full reading walks every
-                    placement: how {name || "they"} love, what steadies them, why they chose
-                    you, in their own voice.
-                  </p>
-                  <button type="button" onClick={scrollToCheckout} className="ls-gold-button ls-sky-cta">
-                    Read {name || "their"} full soul reading <ArrowRight size={17} />
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
             <div className="ls-sky-teaser mt-8">
@@ -1139,7 +1096,7 @@ function CosmicStyles() {
       .ls-lead-form { display: grid; gap: 16px; max-width: 460px; }
       .ls-lead-form--wide { max-width: 560px; margin-left: auto; margin-right: auto; }
       .ls-lead-form--card { max-width: none; }
-      .ls-lead-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .ls-lead-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
       .ls-calc-toggle-hint {
         display: flex;
         align-items: center;
