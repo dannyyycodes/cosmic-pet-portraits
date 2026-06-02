@@ -939,7 +939,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     const minusDisabled = qty <= 1;
     const atMax = qty >= MAX_PETS;
     const cosmicFeatures = intent === "core"
-      ? ["Birth sky + 30+ sections", "Emotional blueprint", "SoulSpeak included"]
+      ? ["Birth sky, 30+ sections", "Their emotional blueprint", "SoulSpeak included"]
       : ["Your chart beside theirs", "Where you mirror", "Why you found each other"];
 
     return (
@@ -957,7 +957,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           <span className="cosmic-radio" aria-hidden="true" />
           <div>
             <h3>{tier.name}</h3>
-            <p>{intent === "core" ? "For understanding the little soul in front of you." : "For the deeper story between the two of you."}</p>
+            <p>{intent === "core" ? "For the little soul in front of you." : "For the story between the two of you."}</p>
           </div>
         </div>
 
@@ -1485,8 +1485,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             </div>
             <div className="cosmic-included-strip">
               <p>
-                Included: birth chart, photo, 30+ reading sections, SoulSpeak,
-                weekly horoscopes for one month, and lifetime access.
+                Included: their birth chart, their photo, 30+ sections, SoulSpeak,
+                a month of weekly skies, and lifetime access.
               </p>
               <button type="button" className="cosmic-preview-link" onClick={openSoulSpeak}>
                 SoulSpeak
@@ -1499,7 +1499,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               <p className="cosmic-checkout-body" style={{ fontSize: "0.9rem", marginTop: 0 }}>
                 {petCount >= 2
                   ? `${Math.round(discountRate * 100)}% multi-pet saving applied for ${petCount} readings.`
-                  : "Use the + buttons if more than one little soul belongs in this reading."}
+                  : "More than one little soul? Add them with the + buttons."}
               </p>
             )}
           </div>
@@ -1557,7 +1557,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             )}
             {codeError && <p style={{ color: "#f0d99f", fontSize: 12, margin: "4px 0 0" }}>{codeError}</p>}
 
-            <label htmlFor="v2-email">Email for access to their reading</label>
+            <label htmlFor="v2-email">Where their reading opens</label>
             <input
               id="v2-email"
               type="email"
@@ -1568,7 +1568,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             {error && <p style={{ color: "#f0d99f", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
 
             <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
-              {isLoading ? "Opening secure checkout..." : `${ctaLabel} - ${fmt(finalPrice + charityBonus * 100)}`}
+              {isLoading ? "Opening secure checkout..." : `${ctaLabel} — ${fmt(finalPrice + charityBonus * 100)}`}
             </button>
             <a href="/gift" className="cosmic-gift-link" onClick={() => trackFunnelEvent("v2_gift_link_clicked", { path })}>
               Or gift this reading
@@ -1583,7 +1583,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             <div className="cosmic-proof" aria-label="Checkout reassurance">
               <span>Secure checkout</span>
               <span>Ready in minutes</span>
-              <span>Full refund guarantee</span>
+              <span>Full refund</span>
             </div>
             <p className="cosmic-refund">
               If the reading does not feel like them, we refund every cent.
@@ -2556,7 +2556,7 @@ const CHARITY_BRAND_META: Record<CharitySlug, { label: string; tagline: string }
   },
   "eden-reforestation": {
     label: "Eden Reforestation",
-    tagline: "planting trees and restoring forests worldwide.",
+    tagline: "planting trees, restoring forests, worldwide.",
   },
 };
 

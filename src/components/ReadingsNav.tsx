@@ -157,7 +157,7 @@ export function ReadingsNav() {
             onMouseLeave={(e) => (e.currentTarget.style.background = C.goldLight)}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Get Reading
+            Begin Their Reading
           </a>
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -231,7 +231,7 @@ export function ReadingsNav() {
                       }}
                     >
                       <Sparkles className="h-4 w-4" />
-                      Get Reading
+                      Begin Their Reading
                     </a>
                   </SheetClose>
                 </div>

@@ -88,14 +88,14 @@ const AUTHORITY_ITEMS = [
 const PLANET_META: Record<string, { glyph: string; label: string; line: string; img?: string }> = {
   sun: { glyph: "☉", label: "Sun", line: "Who they are at their core.", img: "/readings/planets/sun.png" },
   moon: { glyph: "☽", label: "Moon", line: "How they feel, and what soothes them.", img: "/readings/planets/moon.png" },
-  mercury: { glyph: "☿", label: "Mercury", line: "How they read you and answer back.", img: "/readings/planets/mercury.png" },
+  mercury: { glyph: "☿", label: "Mercury", line: "How they read you, and answer back.", img: "/readings/planets/mercury.png" },
   venus: { glyph: "♀", label: "Venus", line: "How they give, and ask for, love.", img: "/readings/planets/venus.png" },
-  mars: { glyph: "♂", label: "Mars", line: "Their drive, courage and play.", img: "/readings/planets/mars.png" },
-  jupiter: { glyph: "♃", label: "Jupiter", line: "Where they trust enough to open up.", img: "/readings/planets/jupiter.png" },
-  saturn: { glyph: "♄", label: "Saturn", line: "What steadies them and holds them.", img: "/readings/planets/saturn.png" },
+  mars: { glyph: "♂", label: "Mars", line: "Their drive, their courage, their play.", img: "/readings/planets/mars.png" },
+  jupiter: { glyph: "♃", label: "Jupiter", line: "Where they trust enough to open.", img: "/readings/planets/jupiter.png" },
+  saturn: { glyph: "♄", label: "Saturn", line: "What steadies them, and holds them.", img: "/readings/planets/saturn.png" },
   uranus: { glyph: "♅", label: "Uranus", line: "Where they break their own pattern.", img: "/readings/planets/uranus.png" },
   neptune: { glyph: "♆", label: "Neptune", line: "Their dreaming, their softness, their fog.", img: "/readings/planets/neptune.png" },
-  pluto: { glyph: "♇", label: "Pluto", line: "What they carry deep and rarely show.", img: "/readings/planets/pluto.png" },
+  pluto: { glyph: "♇", label: "Pluto", line: "What they carry deep, and rarely show.", img: "/readings/planets/pluto.png" },
   chiron: { glyph: "⚷", label: "Chiron", line: "The old hurt they are quietly healing." },
   northNode: { glyph: "☊", label: "North Node", line: "The direction their soul is growing." },
   lilith: { glyph: "⚸", label: "Lilith", line: "Their untamed, instinctive edge." },
@@ -143,16 +143,16 @@ const BIRTH_CHART_ENDPOINT = "https://aduibsyrnenzobuyetmn.supabase.co/functions
 
 const FAQ = [
   {
-    q: "What if I do not know their exact birthday?",
-    a: "Use the closest date you have. Rescue and adopted pets are welcome. The reading works with honest uncertainty and keeps the astrology grounded.",
+    q: "What if I don't know their exact birthday?",
+    a: "Use the closest date you have. Rescue and adopted little souls are welcome. The reading works with honest uncertainty, and keeps the astrology grounded.",
   },
   {
     q: "Is this only for dogs and cats?",
-    a: "No. Dogs and cats are common, but any beloved pet can have a reading when you can share their story and the details you know.",
+    a: "No. Dogs and cats are common — but any beloved soul can have a reading, once you can share their story.",
   },
   {
     q: "Is this separate from Pawtraits?",
-    a: "Yes. Pawtraits are the portrait studio. This page is for the soul reading: the emotional, astrological story behind who they are.",
+    a: "Yes. Pawtraits is the portrait studio. This is the soul behind the picture.",
   },
 ];
 
@@ -236,11 +236,11 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
               Begin Their Reading <ArrowRight size={17} />
             </button>
             <a href="#how-it-works" className="ls-ghost-button">
-              See how it works
+              Look closer
             </a>
           </div>
           <p className="mt-8 max-w-lg text-pretty" style={whisperStyle}>
-            For the look you never needed translated until now.
+            You already know them. You never had the words.
           </p>
         </div>
       </div>
@@ -427,7 +427,7 @@ function BirthChartPreviewSection() {
               <p className="ls-chart-message">
                 {status === "loading"
                   ? "Reading their sky..."
-                  : "Enter their date to light up their real planets. Sun, Moon and the placements that make them, them."}
+                  : "Enter their date. Watch their real planets wake — the placements that make them, them."}
               </p>
             </div>
           )}
@@ -599,7 +599,7 @@ function QuietMomentSection() {
               Finally, words for the bond you feel.
             </h2>
             <p className="mt-6 text-pretty" style={sectionBodyStyle}>
-              Their sky becomes a keepsake: how they love, what they need, and
+              Their whole sky, in words. How they love, what they need,
               why they feel like home.
             </p>
             <div className="ls-story-quote mt-9 border-l pl-6" style={{ borderColor: C.gold }}>
@@ -635,7 +635,7 @@ function QuietMomentSection() {
               <p style={eyebrowStyle(C.gold)}>Keep it close</p>
               <h3>Open it when you miss them.</h3>
               <p>
-                A quiet reading to return to, not a one-time scroll.
+                A reading to return to. Not a one-time scroll.
               </p>
             </div>
           </article>
@@ -654,7 +654,7 @@ function QuietMomentSection() {
               <p style={eyebrowStyle(C.gold)}>See their nature</p>
               <h3>What they need. How they love.</h3>
               <p>
-                Their softness, courage and little patterns, written back to you.
+                Their softness, their courage, their quiet habits — written back to you.
               </p>
             </div>
           </article>
@@ -670,9 +670,9 @@ function QuietMomentSection() {
           <div className="ls-receive-grid">
             {[
               ["Their sky", "The real placements that shaped them."],
-              ["Love language", "How they ask for comfort, trust and attention."],
-              ["SoulSpeak", "The message you wish they could say."],
-              ["Horoscope", "Their current sky, gently translated."],
+              ["Love language", "How they ask for comfort, for trust, for closeness."],
+              ["SoulSpeak", "The words you've waited their whole life to hear."],
+              ["Horoscope", "Their sky now, gently translated."],
             ].map(([title, body]) => (
               <article key={title} className="ls-receive-item">
                 <strong>{title}</strong>
@@ -693,7 +693,7 @@ function FaqSection() {
         <SectionIntro
           eyebrow="Questions"
           title="Before you begin."
-          body="A few honest answers before you open their reading."
+          body="A few honest answers first."
           centered
         />
         <div className="mt-12 divide-y" style={{ borderColor: C.line }}>
