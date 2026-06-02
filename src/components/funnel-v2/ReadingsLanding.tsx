@@ -225,12 +225,12 @@ function useCosmicParallax(pageRef: RefObject<HTMLElement>) {
 
 function HeroSection({ onBegin }: { onBegin: () => void }) {
   return (
-    <section className="ls-hero-section ls-parallax-band relative isolate min-h-[860px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
+    <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_8%,rgba(212,182,122,0.10),transparent_30%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.18),transparent_28%),linear-gradient(140deg,rgba(33,21,43,0.34)_0%,rgba(13,10,20,0.58)_48%,rgba(8,6,11,0.82)_100%)]" />
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(212,182,122,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.86fr_1.14fr]">
-        <div className="max-w-2xl">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
+        <div className="ls-hero-copy max-w-2xl">
           <h1 className="mt-6 text-balance" style={heroTitleStyle}>
             Read the soul behind those eyes.
           </h1>
@@ -245,12 +245,6 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
           <p className="mt-8 max-w-lg text-pretty" style={whisperStyle}>
             For the look you never needed translated until now.
           </p>
-        </div>
-
-        <div className="ls-hero-orbit">
-          <CosmicImage item={PLACEHOLDERS[0]} className="ls-orbit-card ls-orbit-a aspect-[4/5]" />
-          <CosmicImage item={PLACEHOLDERS[1]} className="ls-orbit-card ls-orbit-b aspect-square" />
-          <CosmicImage item={PLACEHOLDERS[2]} className="ls-orbit-card ls-orbit-c aspect-[16/9]" />
         </div>
       </div>
     </section>
@@ -1355,32 +1349,35 @@ function CosmicStyles() {
       }
       .ls-hero-section {
         background:
-          linear-gradient(140deg, rgba(13,10,20,0.92), rgba(8,6,11,0.78)),
-          url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") 62% center / cover no-repeat;
+          linear-gradient(100deg, rgba(8,6,11,0.74), rgba(8,6,11,0.16)),
+          url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") 68% center / cover no-repeat;
       }
       .ls-hero-backdrop {
         position: absolute;
         inset: 0;
-        z-index: -10;
+        z-index: -30;
         overflow: hidden;
-        background: url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") 62% center / cover no-repeat;
+        background: url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") 68% center / cover no-repeat;
       }
       .ls-hero-backdrop::after {
         content: "";
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(90deg, rgba(8,6,11,0.78) 0%, rgba(8,6,11,0.48) 35%, rgba(8,6,11,0.18) 68%, rgba(8,6,11,0.34) 100%),
-          linear-gradient(180deg, rgba(8,6,11,0.40) 0%, rgba(8,6,11,0.08) 42%, rgba(8,6,11,0.82) 100%);
+          linear-gradient(90deg, rgba(8,6,11,0.74) 0%, rgba(8,6,11,0.42) 32%, rgba(8,6,11,0.04) 66%, rgba(8,6,11,0.08) 100%),
+          linear-gradient(180deg, rgba(8,6,11,0.30) 0%, rgba(8,6,11,0.00) 42%, rgba(8,6,11,0.64) 100%);
         pointer-events: none;
       }
       .ls-hero-backdrop-video {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: 62% center;
-        opacity: 0.82;
-        filter: saturate(1.05) contrast(1.05);
+        object-position: 68% center;
+        opacity: 1;
+        filter: saturate(1.12) contrast(1.08) brightness(1.08);
+      }
+      .ls-hero-copy {
+        text-shadow: 0 2px 18px rgba(0,0,0,0.72), 0 8px 46px rgba(0,0,0,0.62);
       }
       .ls-hero-orbit {
         position: relative;
@@ -1542,19 +1539,19 @@ function CosmicStyles() {
       @media (max-width: 899px) {
         .ls-hero-section {
           min-height: 790px;
-          background-position: 70% center;
+          background-position: 72% center;
         }
         .ls-hero-backdrop {
-          background-position: 70% center;
+          background-position: 72% center;
         }
         .ls-hero-backdrop::after {
           background:
-            linear-gradient(180deg, rgba(8,6,11,0.72) 0%, rgba(8,6,11,0.42) 36%, rgba(8,6,11,0.76) 100%),
-            linear-gradient(90deg, rgba(8,6,11,0.44), rgba(8,6,11,0.12));
+            linear-gradient(180deg, rgba(8,6,11,0.66) 0%, rgba(8,6,11,0.18) 38%, rgba(8,6,11,0.68) 100%),
+            linear-gradient(90deg, rgba(8,6,11,0.50), rgba(8,6,11,0.04));
         }
         .ls-hero-backdrop-video {
-          object-position: 70% center;
-          opacity: 0.72;
+          object-position: 72% center;
+          opacity: 0.94;
         }
         .ls-parallax-band::before {
           opacity: 0.42;
