@@ -333,15 +333,21 @@ function BirthChartPreviewSection() {
 
   return (
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto max-w-3xl text-center">
-        <p style={eyebrowStyle(C.gold)}>Free mini reading</p>
-        <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-          Free mini reading calculations.
-        </h2>
-        <p className="mx-auto mt-6 max-w-xl text-pretty" style={sectionBodyStyle}>
-          Enter their birth or adoption date and watch their real planets light up.
-          The same sky engine behind the full reading.
-        </p>
+      <div className="ls-birth-intro mx-auto max-w-6xl">
+        <div className="ls-birth-copy">
+          <h2 className="text-balance" style={sectionTitleStyle}>
+            Free mini reading calculations.
+          </h2>
+        </div>
+        <figure className="ls-cat-eye-visual" aria-label="Black cat eye reflecting a faint galaxy">
+          <img
+            src="/readings/hero/black-cat-galaxy-eye.webp"
+            alt="Black cat with a faint swirling galaxy reflected in one eye"
+            loading="lazy"
+            width={1672}
+            height={941}
+          />
+        </figure>
       </div>
 
       <div className="ls-chart-shell mx-auto mt-10 max-w-3xl">
@@ -947,6 +953,41 @@ function CosmicStyles() {
         font-family: Lato, system-ui, sans-serif;
         font-size: 0.84rem;
         line-height: 1.5;
+      }
+      .ls-birth-intro {
+        display: grid;
+        grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1fr);
+        align-items: center;
+        gap: clamp(24px, 4vw, 56px);
+      }
+      .ls-birth-copy {
+        max-width: 520px;
+      }
+      .ls-cat-eye-visual {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+        margin: 0;
+        border: 1px solid rgba(212,182,122,0.24);
+        border-radius: 8px;
+        background: #030305;
+        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 24px 80px rgba(0,0,0,0.34);
+      }
+      .ls-cat-eye-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgba(13,10,20,0.12), transparent 44%),
+          radial-gradient(circle at 82% 46%, rgba(120,170,255,0.10), transparent 20%);
+        pointer-events: none;
+      }
+      .ls-cat-eye-visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 72% center;
       }
       .ls-chart-shell {
         position: relative;
@@ -1563,6 +1604,20 @@ function CosmicStyles() {
         .ls-parallax-band::before {
           opacity: 0.42;
           transform: translate3d(0, calc(var(--ls-scroll-y) * -0.004px), 0);
+        }
+        .ls-birth-intro {
+          grid-template-columns: 1fr;
+          gap: 22px;
+        }
+        .ls-birth-copy {
+          max-width: none;
+          text-align: center;
+        }
+        .ls-cat-eye-visual {
+          aspect-ratio: 4 / 3;
+        }
+        .ls-cat-eye-visual img {
+          object-position: 78% center;
         }
         .ls-hero-orbit {
           display: grid;
