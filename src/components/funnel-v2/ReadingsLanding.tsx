@@ -639,16 +639,15 @@ function QuietMomentSection() {
           <div className="ls-story-copy">
             <p style={eyebrowStyle(C.gold)}>The full reading</p>
             <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-              Turn their birth sky into the story of who they are.
+              Finally, words for the bond you feel.
             </h2>
             <p className="mt-6 text-pretty" style={sectionBodyStyle}>
-              The free mini reading opens the door. The full reading goes deeper:
-              how they love, what steadies them, what they carry quietly, and why
-              the bond between you feels the way it does.
+              Their sky becomes a keepsake: how they love, what they need, and
+              why they feel like home.
             </p>
             <div className="ls-story-quote mt-9 border-l pl-6" style={{ borderColor: C.gold }}>
               <p style={quoteStyle}>
-                "I knew that look meant something. I just never had words for it before."
+                "That look had a language."
               </p>
             </div>
           </div>
@@ -676,11 +675,10 @@ function QuietMomentSection() {
               />
             </figure>
             <div>
-              <p style={eyebrowStyle(C.gold)}>A reading you sit with</p>
-              <h3>Made to be opened again.</h3>
+              <p style={eyebrowStyle(C.gold)}>Keep it close</p>
+              <h3>Open it when you miss them.</h3>
               <p>
-                Read it when they are beside you, when you miss them, or when you
-                want to remember the small truths only you noticed.
+                A quiet reading to return to, not a one-time scroll.
               </p>
             </div>
           </article>
@@ -696,11 +694,10 @@ function QuietMomentSection() {
               />
             </figure>
             <div>
-              <p style={eyebrowStyle(C.gold)}>Their hidden pattern</p>
-              <h3>Softness, courage, instinct.</h3>
+              <p style={eyebrowStyle(C.gold)}>See their nature</p>
+              <h3>What they need. How they love.</h3>
               <p>
-                The reading turns their placements into a portrait of their nature:
-                what soothes them, what drives them, and how they ask for love.
+                Their softness, courage and little patterns, written back to you.
               </p>
             </div>
           </article>
@@ -708,17 +705,17 @@ function QuietMomentSection() {
 
         <div className="ls-receive-panel">
           <div>
-            <p style={eyebrowStyle(C.gold)}>What you receive</p>
+            <p style={eyebrowStyle(C.gold)}>Inside</p>
             <h2 className="mt-4 text-balance" style={sectionTitleStyle}>
-              A keepsake with depth, not filler.
+              Everything you need to feel closer.
             </h2>
           </div>
           <div className="ls-receive-grid">
             {[
-              ["Birth sky placements", "Sun, Moon and the chart patterns that make them, them."],
-              ["Emotional blueprint", "How they bond, soften, protect, play and ask to be understood."],
-              ["SoulSpeak included", "A gentler voice for the things you always felt from them."],
-              ["Horoscope included", "A living follow-on for their current sky, not just the day they arrived."],
+              ["Their sky", "The real placements that shaped them."],
+              ["Love language", "How they ask for comfort, trust and attention."],
+              ["SoulSpeak", "The message you wish they could say."],
+              ["Horoscope", "Their current sky, gently translated."],
             ].map(([title, body]) => (
               <article key={title} className="ls-receive-item">
                 <strong>{title}</strong>
