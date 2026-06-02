@@ -332,17 +332,7 @@ function BirthChartPreviewSection() {
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <section className="ls-birth-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
-      <img
-        className="ls-birth-cat-bg"
-        src="/readings/hero/black-cat-galaxy-eye.webp"
-        alt=""
-        loading="lazy"
-        width={1672}
-        height={941}
-        aria-hidden="true"
-      />
-
+    <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
       <div className="ls-birth-intro mx-auto max-w-6xl">
         <div className="ls-birth-copy">
           <h2 className="text-balance" style={sectionTitleStyle}>
@@ -643,9 +633,19 @@ function CheckoutSection({
 
 function QuietMomentSection() {
   return (
-    <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.02fr_0.98fr]">
-        <div>
+    <section className="ls-keepsake-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
+      <img
+        className="ls-keepsake-cat-bg"
+        src="/readings/hero/black-cat-galaxy-eye.webp"
+        alt=""
+        loading="lazy"
+        width={1672}
+        height={941}
+        aria-hidden="true"
+      />
+
+      <div className="ls-keepsake-inner mx-auto max-w-6xl">
+        <div className="ls-keepsake-copy">
           <p style={eyebrowStyle(C.gold)}>The keepsake</p>
           <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
             Made for the quiet moments.
@@ -660,10 +660,27 @@ function QuietMomentSection() {
             </p>
           </div>
         </div>
-        <CosmicImage item={PLACEHOLDERS[4]} className="aspect-[16/10]" />
-      </div>
-      <div className="mx-auto mt-10 max-w-6xl">
-        <CosmicImage item={PLACEHOLDERS[5]} className="aspect-[16/7]" />
+
+        <div className="ls-keepsake-gallery" aria-label="Little Souls keepsake moments">
+          <figure className="ls-keepsake-photo ls-keepsake-photo--wide">
+            <img
+              src="/readings/hero/cockapoo-reading-tablet.webp"
+              alt="Cockapoo beside a human holding a glowing celestial reading"
+              loading="lazy"
+              width={1672}
+              height={942}
+            />
+          </figure>
+          <figure className="ls-keepsake-photo ls-keepsake-photo--small">
+            <img
+              src="/readings/hero/doberman-puppy-star-map.webp"
+              alt="Doberman puppy touching a softly glowing star map"
+              loading="lazy"
+              width={1672}
+              height={942}
+            />
+          </figure>
+        </div>
       </div>
     </section>
   );
@@ -955,30 +972,6 @@ function CosmicStyles() {
         font-size: 0.84rem;
         line-height: 1.5;
       }
-      .ls-birth-section {
-        min-height: 960px;
-      }
-      .ls-birth-cat-bg {
-        position: absolute;
-        z-index: 0;
-        right: max(-120px, -7vw);
-        top: clamp(300px, 38vw, 430px);
-        width: min(54vw, 780px);
-        height: auto;
-        opacity: 0.68;
-        object-fit: cover;
-        object-position: 78% center;
-        pointer-events: none;
-        filter: saturate(1.04) contrast(1.06);
-        -webkit-mask-image:
-          linear-gradient(90deg, transparent 0%, #000 18%, #000 78%, transparent 100%),
-          linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
-        -webkit-mask-composite: source-in;
-        mask-image:
-          linear-gradient(90deg, transparent 0%, #000 18%, #000 78%, transparent 100%),
-          linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
-        mask-composite: intersect;
-      }
       .ls-birth-intro {
         position: relative;
         z-index: 1;
@@ -1268,6 +1261,80 @@ function CosmicStyles() {
         margin: 0 auto;
       }
       .ls-sky-cta { margin-top: 18px; width: 100%; justify-content: center; }
+      .ls-keepsake-section {
+        min-height: 1180px;
+      }
+      .ls-keepsake-cat-bg {
+        position: absolute;
+        z-index: 0;
+        right: max(-170px, -9vw);
+        top: clamp(160px, 17vw, 260px);
+        width: min(58vw, 820px);
+        height: auto;
+        opacity: 0.52;
+        object-fit: cover;
+        object-position: 78% center;
+        pointer-events: none;
+        filter: saturate(1.04) contrast(1.08);
+        -webkit-mask-image:
+          linear-gradient(90deg, transparent 0%, #000 20%, #000 76%, transparent 100%),
+          linear-gradient(180deg, transparent 0%, #000 18%, #000 74%, transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+          linear-gradient(90deg, transparent 0%, #000 20%, #000 76%, transparent 100%),
+          linear-gradient(180deg, transparent 0%, #000 18%, #000 74%, transparent 100%);
+        mask-composite: intersect;
+      }
+      .ls-keepsake-inner {
+        position: relative;
+        z-index: 1;
+      }
+      .ls-keepsake-copy {
+        max-width: 620px;
+      }
+      .ls-keepsake-gallery {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+        align-items: end;
+        gap: clamp(18px, 3vw, 34px);
+        margin-top: clamp(38px, 6vw, 76px);
+      }
+      .ls-keepsake-photo {
+        position: relative;
+        overflow: hidden;
+        margin: 0;
+        border-radius: 8px;
+        background: rgba(3,3,5,0.52);
+        box-shadow: 0 28px 90px rgba(0,0,0,0.34);
+      }
+      .ls-keepsake-photo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(3,3,5,0.06), rgba(3,3,5,0.18)),
+          radial-gradient(circle at 76% 18%, rgba(212,182,122,0.08), transparent 28%);
+        pointer-events: none;
+      }
+      .ls-keepsake-photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .ls-keepsake-photo--wide {
+        aspect-ratio: 16 / 9;
+      }
+      .ls-keepsake-photo--wide img {
+        object-position: 38% center;
+      }
+      .ls-keepsake-photo--small {
+        aspect-ratio: 4 / 5;
+        transform: translateY(54px);
+      }
+      .ls-keepsake-photo--small img {
+        object-position: 67% center;
+      }
 
       .ls-disclosure {
         display: flex;
@@ -1603,31 +1670,51 @@ function CosmicStyles() {
           opacity: 0.42;
           transform: translate3d(0, calc(var(--ls-scroll-y) * -0.004px), 0);
         }
-        .ls-birth-section {
-          min-height: 900px;
-        }
-        .ls-birth-cat-bg {
-          top: auto;
-          right: 50%;
-          bottom: 34px;
-          width: min(132vw, 620px);
-          max-width: none;
-          opacity: 0.36;
-          transform: translateX(62%);
-          object-position: 80% center;
-          -webkit-mask-image:
-            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
-            linear-gradient(180deg, transparent 0%, #000 16%, #000 70%, transparent 100%);
-          mask-image:
-            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
-            linear-gradient(180deg, transparent 0%, #000 16%, #000 70%, transparent 100%);
-        }
         .ls-birth-intro {
           max-width: 36rem;
         }
         .ls-birth-copy {
           max-width: none;
           text-align: center;
+        }
+        .ls-keepsake-section {
+          min-height: 0;
+        }
+        .ls-keepsake-cat-bg {
+          right: 50%;
+          top: 124px;
+          width: min(132vw, 620px);
+          max-width: none;
+          opacity: 0.24;
+          transform: translateX(62%);
+          object-position: 80% center;
+          -webkit-mask-image:
+            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
+            linear-gradient(180deg, transparent 0%, #000 14%, #000 64%, transparent 100%);
+          mask-image:
+            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
+            linear-gradient(180deg, transparent 0%, #000 14%, #000 64%, transparent 100%);
+        }
+        .ls-keepsake-copy {
+          max-width: none;
+        }
+        .ls-keepsake-gallery {
+          grid-template-columns: 1fr;
+          gap: 16px;
+          margin-top: 34px;
+        }
+        .ls-keepsake-photo--wide {
+          aspect-ratio: 4 / 3;
+        }
+        .ls-keepsake-photo--wide img {
+          object-position: 34% center;
+        }
+        .ls-keepsake-photo--small {
+          aspect-ratio: 4 / 3;
+          transform: none;
+        }
+        .ls-keepsake-photo--small img {
+          object-position: 68% center;
         }
         .ls-hero-orbit {
           display: grid;
