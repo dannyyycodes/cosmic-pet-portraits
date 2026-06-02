@@ -332,22 +332,23 @@ function BirthChartPreviewSection() {
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
+    <section className="ls-birth-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
+      <img
+        className="ls-birth-cat-bg"
+        src="/readings/hero/black-cat-galaxy-eye.webp"
+        alt=""
+        loading="lazy"
+        width={1672}
+        height={941}
+        aria-hidden="true"
+      />
+
       <div className="ls-birth-intro mx-auto max-w-6xl">
         <div className="ls-birth-copy">
           <h2 className="text-balance" style={sectionTitleStyle}>
             Free mini reading calculations.
           </h2>
         </div>
-        <figure className="ls-cat-eye-visual" aria-label="Black cat eye reflecting a faint galaxy">
-          <img
-            src="/readings/hero/black-cat-galaxy-eye.webp"
-            alt="Black cat with a faint swirling galaxy reflected in one eye"
-            loading="lazy"
-            width={1672}
-            height={941}
-          />
-        </figure>
       </div>
 
       <div className="ls-chart-shell mx-auto mt-10 max-w-3xl">
@@ -954,43 +955,40 @@ function CosmicStyles() {
         font-size: 0.84rem;
         line-height: 1.5;
       }
+      .ls-birth-section {
+        min-height: 960px;
+      }
+      .ls-birth-cat-bg {
+        position: absolute;
+        z-index: 0;
+        right: max(-120px, -7vw);
+        top: clamp(300px, 38vw, 430px);
+        width: min(54vw, 780px);
+        height: auto;
+        opacity: 0.68;
+        object-fit: cover;
+        object-position: 78% center;
+        pointer-events: none;
+        filter: saturate(1.04) contrast(1.06);
+        -webkit-mask-image:
+          linear-gradient(90deg, transparent 0%, #000 18%, #000 78%, transparent 100%),
+          linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+          linear-gradient(90deg, transparent 0%, #000 18%, #000 78%, transparent 100%),
+          linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+        mask-composite: intersect;
+      }
       .ls-birth-intro {
-        display: grid;
-        grid-template-columns: minmax(0, 0.72fr) minmax(360px, 1fr);
-        align-items: center;
-        gap: clamp(24px, 4vw, 56px);
+        position: relative;
+        z-index: 1;
       }
       .ls-birth-copy {
         max-width: 520px;
       }
-      .ls-cat-eye-visual {
-        position: relative;
-        overflow: hidden;
-        aspect-ratio: 16 / 9;
-        margin: 0;
-        border: 1px solid rgba(212,182,122,0.24);
-        border-radius: 8px;
-        background: #030305;
-        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 24px 80px rgba(0,0,0,0.34);
-      }
-      .ls-cat-eye-visual::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-          linear-gradient(90deg, rgba(13,10,20,0.12), transparent 44%),
-          radial-gradient(circle at 82% 46%, rgba(120,170,255,0.10), transparent 20%);
-        pointer-events: none;
-      }
-      .ls-cat-eye-visual img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: 72% center;
-      }
       .ls-chart-shell {
         position: relative;
+        z-index: 1;
         overflow: hidden;
         min-height: 560px;
         border: 1px solid rgba(212,182,122,0.34);
@@ -1605,19 +1603,31 @@ function CosmicStyles() {
           opacity: 0.42;
           transform: translate3d(0, calc(var(--ls-scroll-y) * -0.004px), 0);
         }
+        .ls-birth-section {
+          min-height: 900px;
+        }
+        .ls-birth-cat-bg {
+          top: auto;
+          right: 50%;
+          bottom: 34px;
+          width: min(132vw, 620px);
+          max-width: none;
+          opacity: 0.36;
+          transform: translateX(62%);
+          object-position: 80% center;
+          -webkit-mask-image:
+            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
+            linear-gradient(180deg, transparent 0%, #000 16%, #000 70%, transparent 100%);
+          mask-image:
+            linear-gradient(90deg, transparent 0%, #000 24%, #000 76%, transparent 100%),
+            linear-gradient(180deg, transparent 0%, #000 16%, #000 70%, transparent 100%);
+        }
         .ls-birth-intro {
-          grid-template-columns: 1fr;
-          gap: 22px;
+          max-width: 36rem;
         }
         .ls-birth-copy {
           max-width: none;
           text-align: center;
-        }
-        .ls-cat-eye-visual {
-          aspect-ratio: 4 / 3;
-        }
-        .ls-cat-eye-visual img {
-          object-position: 78% center;
         }
         .ls-hero-orbit {
           display: grid;
