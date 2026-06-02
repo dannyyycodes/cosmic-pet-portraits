@@ -46,6 +46,8 @@ interface CanvasConfiguratorProps {
   onFrameChange: (f: FrameColor | null) => void;
   asisSizePpi: (s: CanvasSizeMeta) => number | null;
   asisPpiClean: number;
+  /** Below this PPI the server refuses the size (as-is). Lock-step ASIS_PPI_HIDE. */
+  asisPpiFloor: number;
   variant: { priceMajor: number } | null;
   canAdd: boolean;
   onAdd: () => void;
@@ -83,6 +85,7 @@ export function CanvasConfigurator({
   onFrameChange,
   asisSizePpi,
   asisPpiClean,
+  asisPpiFloor,
   variant,
   canAdd,
   onAdd,
@@ -182,9 +185,35 @@ export function CanvasConfigurator({
 
           {/* ── STEP 1 · SIZE ─────────────────────────────────────────── */}
           <p style={STEP_LABEL}>Step 1 · Choose your size</p>
+          {mode === "asis" && (
+            <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 12, color: PALETTE.earthMuted, margin: "-4px 0 10px", lineHeight: 1.4 }}>
+              Badges show how your photo prints at each size. Pick anything — we
+              always print the sharpest version your photo allows.
+            </p>
+          )}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
             {sizes.map((s) => {
               const active = sizeKey === s.uid;
+              // As-is quality tier for THIS upload at THIS size (null in AI mode
+              // or before the upload's pixel dims are read). Sharp ≥ clean,
+              // Good ≥ floor, Soft below the print floor (server will snap down).
+              const ppi = mode === "asis" ? asisSizePpi(s) : null;
+              const tier = ppi === null
+                ? null
+                : ppi >= asisPpiClean ? "sharp"
+                : ppi >= asisPpiFloor ? "good"
+                : "soft";
+              const soft = tier === "soft";
+              // Step-1 price reflects the CURRENT frame choice so it matches the
+              // Add-to-cart total (base + frame upgrade when a frame is picked).
+              const displayPrice = s.priceGBP + (frameColor !== null ? (FRAME_UPGRADE_GBP[s.uid] ?? 0) : 0);
+              const badge = tier === "sharp"
+                ? { label: "Sharp", bg: "rgba(74,143,96,0.14)", fg: "#3f7a52" }
+                : tier === "good"
+                ? { label: "Good", bg: "rgba(196,162,101,0.18)", fg: "#9a7b35" }
+                : tier === "soft"
+                ? { label: "Soft at this size", bg: "rgba(191,82,74,0.12)", fg: PALETTE.rose }
+                : null;
               return (
                 <button
                   key={s.uid}
@@ -197,6 +226,7 @@ export function CanvasConfigurator({
                     border: active ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sandDeep}`,
                     boxShadow: active ? "0 10px 24px rgba(191,82,74,0.30)" : "0 1px 3px rgba(20,18,16,0.04)",
                     minHeight: 60,
+                    opacity: soft && !active ? 0.62 : 1,
                   }}
                 >
                   {active && (
@@ -211,8 +241,24 @@ export function CanvasConfigurator({
                     {s.label}
                   </div>
                   <div className="tabular-nums" style={{ fontSize: 12.5, marginTop: 1, color: active ? "rgba(255,253,245,0.9)" : PALETTE.earthMuted }}>
-                    £{s.priceGBP}
+                    £{displayPrice}
                   </div>
+                  {badge && (
+                    <span
+                      className="inline-block mt-1.5 rounded-full"
+                      style={{
+                        fontFamily: "Asap, system-ui, sans-serif",
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: "0.02em",
+                        padding: "2px 7px",
+                        background: active ? "rgba(255,253,245,0.22)" : badge.bg,
+                        color: active ? PALETTE.cream : badge.fg,
+                      }}
+                    >
+                      {badge.label}
+                    </span>
+                  )}
                 </button>
               );
             })}

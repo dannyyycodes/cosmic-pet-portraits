@@ -93,15 +93,40 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "defau
         // ── 4. Compress + upload ─────────────────────────────────────────
         setProgress("Optimising photo…");
         const compressed = await imageCompression(workingFile, {
-          maxSizeMB: 2,
+          // 8 MB ceiling (NOT 2): browser-image-compression hits maxSizeMB by
+          // first dropping quality, THEN shrinking dimensions. A 2 MB cap forced
+          // detailed 3000px photos down to ~2000px, which silently starved the
+          // "use my photo" as-is print path (ASIS_PPI_HIDE = 50 → a 24" edge
+          // needs ≥1200px; large sizes were dead-ending). 8 MB keeps the full
+          // 3000px long edge for real photos while still bounding the upload.
+          maxSizeMB: 8,
           // 3000px long edge: AI (gpt-image-2) needs detail to anchor identity,
-          // AND the "use my photo" as-is path prints the upload directly — at
-          // 1600px it couldn't clear the 100-PPI print floor above ~12×16.
+          // AND the as-is path prints the upload directly — the bigger the
+          // source, the more canvas sizes print crisply (50-PPI floor).
           maxWidthOrHeight: 3000,
           useWebWorker: true,
           fileType: "image/jpeg",
           initialQuality: 0.9,
         });
+
+        // Re-validate AFTER compression — if the encoder still had to shrink the
+        // image below the floor, tell the customer now instead of letting them
+        // hit a confusing size-bounce at "Add to cart" (Danny 2026-06-02).
+        try {
+          const compDims = await readImageDimensions(
+            new File([compressed], "compressed.jpg", { type: "image/jpeg" }),
+          );
+          const compErr = validateDimensions(compDims.width, compDims.height);
+          if (compErr) {
+            toast.error(compErr);
+            setIsUploading(false);
+            setProgress("");
+            return;
+          }
+        } catch {
+          // Non-fatal: if we can't re-measure, fall through and let the upload +
+          // server-side gate handle it rather than blocking a valid photo.
+        }
 
         setProgress("Uploading to your private gallery…");
         const filename = `portraits/${crypto.randomUUID()}.jpg`;

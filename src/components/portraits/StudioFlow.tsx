@@ -1220,6 +1220,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           smoothScrollStudio(variantsRef.current),
         );
         setGenerating(false);
+      } else {
+        // 2xx OK but neither the async (202 + job_id) nor legacy-sync (variants)
+        // shape — surface it instead of leaving `generating=true` forever
+        // (otherwise the customer stares at the cinematic overlay indefinitely).
+        throw new Error("Unexpected response from the studio — please try again.");
       }
     } catch (e) {
       const err = e as Error;
@@ -1252,7 +1257,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   useEffect(() => {
     if (!pendingJobId || !session?.access_token) return;
     let attempts = 0;
-    const MAX_POLLS = 120; // 5 min @ 2.5s
+    const MAX_POLLS = 240; // 10 min @ 2.5s — covers fal queue backlogs (was 120)
     const POLL_INTERVAL_MS = 2500;
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     let pollCtrl: AbortController | null = null;
@@ -1423,50 +1428,86 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     // tell the customer the largest size it CAN do instead of shipping a soft
     // canvas.
     if (mode === "asis") {
+      const sourceUrl = uploadedPets[0].photoUrl as string;
+      const requestedMeta = CANVAS_SIZES.find((s) => s.uid === sizeKey) ?? activeSizeMeta;
+      let effectiveSizeKey = sizeKey;
       let asisPath: string | null = null;
-      try {
-        const res = await fetch("/api/portraits?action=printMaster_asis", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Auth optional — as-is canvas purchase works signed-out.
-            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-          },
-          body: JSON.stringify({ imageUrl: uploadedPets[0].photoUrl, sizeKey }),
-          signal: AbortSignal.timeout(60_000),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.status === 422 && data?.error === "source_too_low_res") {
-          // Self-heal: snap to the largest size this photo CAN print sharply and
-          // ask the customer to confirm, instead of dead-ending them.
-          const largest = typeof data.largestUsableSize === "string" ? data.largestUsableSize : null;
-          const largestMeta = largest ? CANVAS_SIZES.find((s) => s.uid === largest) : null;
-          if (largest && largest !== sizeKey) {
-            setSizeKeyRaw(largest);
-            toast.error(
-              `This photo isn't sharp enough for ${activeSizeMeta.label}. We switched you to ${largestMeta?.label ?? `${largest}″`} — the largest it prints crisply. Tap Add to cart again.`,
-              { duration: 9000 },
-            );
-          } else {
+      let snapped = false;
+
+      // ── One-click self-heal loop ──────────────────────────────────────
+      // If the photo is too low-res for the chosen size, the server returns the
+      // largest size it CAN print crisply. We snap to it and RE-SUBMIT in the
+      // same click instead of dead-ending the customer with "tap Add again"
+      // (Danny 2026-06-02). Capped at 2 attempts — the snapped size is
+      // guaranteed printable (asisLargestUsableSize uses the same gate), so the
+      // 2nd attempt always succeeds; the cap is a belt-and-braces stop.
+      for (let attempt = 0; attempt < 2 && !asisPath; attempt++) {
+        let data: { error?: string; message?: string; status?: string; printMasterPath?: string; largestUsableSize?: string } = {};
+        try {
+          const res = await fetch("/api/portraits?action=printMaster_asis", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Auth optional — as-is canvas purchase works signed-out.
+              ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+            },
+            body: JSON.stringify({ imageUrl: sourceUrl, sizeKey: effectiveSizeKey }),
+            signal: AbortSignal.timeout(60_000),
+          });
+          data = await res.json().catch(() => ({}));
+          if (res.status === 422 && data?.error === "source_too_low_res") {
+            const largest = typeof data.largestUsableSize === "string" ? data.largestUsableSize : null;
+            if (largest && largest !== effectiveSizeKey) {
+              // Snap down and loop — re-submit at the largest crisp size.
+              effectiveSizeKey = largest;
+              setSizeKeyRaw(largest);
+              snapped = true;
+              continue;
+            }
+            // Even the smallest canvas can't print this photo sharply.
             toast.error(
               `This photo is too low-resolution to print sharply. Upload a larger, clearer photo for a crisp canvas.`,
               { duration: 9000 },
             );
+            setPreparingPrintMaster(false);
+            return;
           }
+          if (!res.ok || data?.status !== "completed" || !data?.printMasterPath) {
+            throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
+          }
+          asisPath = data.printMasterPath as string;
+        } catch (e) {
+          const m = (e as Error).message ?? "";
+          toast.error(`Couldn't prepare your photo: ${m.slice(0, 120) || "unknown error"}. Try again.`, { duration: 8000 });
           setPreparingPrintMaster(false);
           return;
         }
-        if (!res.ok || data?.status !== "completed" || !data?.printMasterPath) {
-          throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
-        }
-        asisPath = data.printMasterPath as string;
-      } catch (e) {
-        const m = (e as Error).message ?? "";
-        toast.error(`Couldn't prepare your photo: ${m.slice(0, 120) || "unknown error"}. Try again.`, { duration: 8000 });
+      }
+
+      if (!asisPath) {
+        toast.error(`Couldn't prepare your photo at a printable size. Please try a larger, clearer photo.`, { duration: 8000 });
         setPreparingPrintMaster(false);
         return;
       }
       setPreparingPrintMaster(false);
+
+      // Recompute the variant for the (possibly snapped) size — the closure's
+      // `variant` still reflects the pre-snap sizeKey until React re-renders.
+      const asisVariant = frameColor === null
+        ? resolveUnframedCanvasVariant(effectiveSizeKey)
+        : resolveFramedCanvasVariant(effectiveSizeKey, frameColor);
+      if (!asisVariant) {
+        toast.error("That size isn't available right now — pick another size and try again.", { duration: 8000 });
+        return;
+      }
+
+      if (snapped) {
+        const snappedMeta = CANVAS_SIZES.find((s) => s.uid === effectiveSizeKey);
+        toast.success(
+          `Added at ${snappedMeta?.label ?? `${effectiveSizeKey}″`} — the largest size your photo prints crisply (${requestedMeta?.label ?? "your pick"} would have looked soft).`,
+          { duration: 8000 },
+        );
+      }
 
       const asisNames = trimmedNames.filter((n) => n.length > 0);
       const asisProps: Record<string, string> = { _print_mode: "photo-as-is" };
@@ -1476,17 +1517,17 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       const asisItem = buildCartItem({
         kind: "ai",
         productType,
-        sizeKey: (deliveryType === "digital" ? "default" : sizeKey) as AnySizeKey,
-        frameColor: deliveryType === "digital" ? undefined : (frameColor ?? undefined),
+        sizeKey: effectiveSizeKey as AnySizeKey,
+        frameColor: frameColor ?? undefined,
         packId: "photo-as-is",
         packName: "Your photo",
         style: "photographic",
-        sourcePhotoUrl: uploadedPets[0].photoUrl as string,
-        previewUrl: uploadedPets[0].photoUrl as string,
+        sourcePhotoUrl: sourceUrl,
+        previewUrl: sourceUrl,
         printMasterPath: asisPath,
         soulEdition: false,
         soulEditionPriceMajor: 40,
-        variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
+        variant: { variantId: asisVariant.variantId, priceMajor: asisVariant.priceMajor, sizeLabel: asisVariant.sizeLabel },
         id: newPetId(),
         properties: asisProps,
       });
@@ -2378,6 +2419,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                 onFrameChange={setFrameColor}
                 asisSizePpi={asisSizePpi}
                 asisPpiClean={ASIS_PPI_CLEAN}
+                asisPpiFloor={ASIS_PPI_HIDE}
                 variant={variant}
                 canAdd={canAdd}
                 onAdd={handleAdd}

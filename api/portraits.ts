@@ -3744,7 +3744,12 @@ function asisLargestUsableSize(sourceW: number, sourceH: number): string | null 
     const asp = ASPECTS.find((a) => a.key === aspKey);
     const inch = SKU_INCHES[sku];
     if (!asp || !inch) continue;
-    const ppi = asisDetailPpi(sourceW, sourceH, asp.print.width, asp.print.height, inch.w, inch.h);
+    // Use the EXACT same print dims as the live gate (inch*1000), NOT asp.print,
+    // so the size we recommend is guaranteed to pass the gate on re-submit. (They
+    // are mathematically equal because asp.print preserves the inch ratio, but
+    // keying off the gate's dims removes any rounding drift and any future
+    // divergence in ASPECTS.)
+    const ppi = asisDetailPpi(sourceW, sourceH, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
     if (ppi >= ASIS_PPI_HIDE) {
       const area = inch.w * inch.h;
       if (area > bestArea) { bestArea = area; best = sku; }
