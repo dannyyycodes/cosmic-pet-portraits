@@ -1369,12 +1369,16 @@ function CosmicStyles() {
         pointer-events: none;
       }
       .ls-hero-backdrop-video {
+        position: absolute;
+        left: 0;
+        top: -96px;
         width: 100%;
-        height: 100%;
+        height: calc(100% + 192px);
         object-fit: cover;
         object-position: 68% center;
         opacity: 1;
         filter: saturate(1.12) contrast(1.08) brightness(1.08);
+        transform: translateY(74px);
       }
       .ls-hero-copy {
         text-shadow: 0 2px 18px rgba(0,0,0,0.72), 0 8px 46px rgba(0,0,0,0.62);
@@ -1552,6 +1556,9 @@ function CosmicStyles() {
         .ls-hero-backdrop-video {
           object-position: 72% center;
           opacity: 0.94;
+          top: -72px;
+          height: calc(100% + 144px);
+          transform: translateY(50px);
         }
         .ls-parallax-band::before {
           opacity: 0.42;
