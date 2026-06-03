@@ -9,13 +9,15 @@ const C = {
   cream: "#f5efe6",
   creamDim: "#cfc1b1",
   muted: "#9d8d7f",
-  gold: "#b08ee6",
-  goldSoft: "#d8c5f5",
-  goldDeep: "#6a4ba0",
+  gold: "#d4b67a",
+  goldSoft: "#f0d99f",
+  goldDeep: "#8b6f3a",
+  violet: "#7c5cd6",
+  violetSoft: "#9a7ee6",
   cosmos: "#0d0a14",
   cosmos2: "#15101c",
   cosmos3: "#201722",
-  line: "rgba(176, 142, 230, 0.22)",
+  line: "rgba(212, 182, 122, 0.22)",
   lineSoft: "rgba(245, 239, 230, 0.10)",
 };
 
@@ -255,7 +257,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(176,142,230,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(212,182,122,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
@@ -840,9 +842,9 @@ function HeroBackdropVideo() {
 function CosmicBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(65,47,88,0.55),transparent_42%),radial-gradient(ellipse_at_88%_18%,rgba(176,142,230,0.12),transparent_26%),radial-gradient(ellipse_at_10%_70%,rgba(94,70,122,0.16),transparent_32%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(65,47,88,0.55),transparent_42%),radial-gradient(ellipse_at_88%_18%,rgba(212,182,122,0.12),transparent_26%),radial-gradient(ellipse_at_10%_70%,rgba(94,70,122,0.16),transparent_32%)]" />
       <svg className="absolute inset-0 h-full w-full opacity-50" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
-        <g stroke="rgba(176,142,230,0.15)" strokeWidth="1" fill="none">
+        <g stroke="rgba(212,182,122,0.15)" strokeWidth="1" fill="none">
           <path d="M110 220 188 174 275 238 360 188" />
           <path d="M810 126 902 196 1010 156 1078 245" />
           <path d="M704 662 780 602 856 678 942 624" />
@@ -907,7 +909,7 @@ function CosmicStyles() {
         inset: -18% -10%;
         pointer-events: none;
         background:
-          radial-gradient(circle at 22% 28%, rgba(176,142,230,0.055), transparent 18%),
+          radial-gradient(circle at 22% 28%, rgba(212,182,122,0.055), transparent 18%),
           radial-gradient(circle at 78% 62%, rgba(94,70,122,0.12), transparent 22%);
         opacity: 0.72;
         transform:
@@ -947,7 +949,7 @@ function CosmicStyles() {
       .ls-authority-stage {
         padding: clamp(28px, 5vw, 56px);
         background:
-          radial-gradient(ellipse at 18% 0%, rgba(176,142,230,0.14), transparent 34%),
+          radial-gradient(ellipse at 18% 0%, rgba(212,182,122,0.14), transparent 34%),
           linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.025));
       }
       .ls-calc-toggle {
@@ -957,14 +959,14 @@ function CosmicStyles() {
         gap: 16px;
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(176,142,230,0.26);
+        border: 1px solid rgba(212,182,122,0.26);
         border-radius: 10px;
         background: rgba(5,4,7,0.4);
         padding: 16px 18px;
         cursor: pointer;
         transition: border-color 0.2s ease;
       }
-      .ls-calc-toggle:hover { border-color: rgba(176,142,230,0.5); }
+      .ls-calc-toggle:hover { border-color: rgba(212,182,122,0.5); }
       .ls-calc-toggle.is-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -984,12 +986,12 @@ function CosmicStyles() {
       }
       .ls-calc-toggle.is-open .ls-calc-chevron { transform: rotate(180deg); }
       .ls-calc-body {
-        border: 1px solid rgba(176,142,230,0.26);
+        border: 1px solid rgba(212,182,122,0.26);
         border-top: none;
         border-radius: 0 0 10px 10px;
         padding: clamp(18px, 3vw, 28px);
         background:
-          radial-gradient(ellipse at 0% 0%, rgba(176,142,230,0.10), transparent 46%),
+          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 46%),
           linear-gradient(180deg, rgba(5,4,7,0.32), rgba(5,4,7,0.12));
       }
       .ls-calc-lead {
@@ -1003,8 +1005,8 @@ function CosmicStyles() {
         margin-top: 22px;
         display: grid;
         gap: 1px;
-        background: rgba(176,142,230,0.16);
-        border: 1px solid rgba(176,142,230,0.16);
+        background: rgba(212,182,122,0.16);
+        border: 1px solid rgba(212,182,122,0.16);
         border-radius: 10px;
         overflow: hidden;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1049,12 +1051,12 @@ function CosmicStyles() {
         z-index: 1;
         overflow: hidden;
         min-height: 560px;
-        border: 1px solid rgba(176,142,230,0.34);
-        border-top-color: rgba(176,142,230,0.62);
+        border: 1px solid rgba(212,182,122,0.34);
+        border-top-color: rgba(212,182,122,0.62);
         border-radius: 8px;
         padding: clamp(24px, 4vw, 42px);
         background:
-          radial-gradient(ellipse at 50% -12%, rgba(176,142,230,0.18), transparent 42%),
+          radial-gradient(ellipse at 50% -12%, rgba(212,182,122,0.18), transparent 42%),
           radial-gradient(ellipse at 18% 82%, rgba(94,70,122,0.28), transparent 34%),
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
         box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.28);
@@ -1088,7 +1090,7 @@ function CosmicStyles() {
         inset: 0;
         margin: auto;
         aspect-ratio: 1;
-        border: 1px solid rgba(176,142,230,0.10);
+        border: 1px solid rgba(212,182,122,0.10);
         border-radius: 50%;
         animation: ls-orbit linear infinite;
         will-change: transform;
@@ -1099,7 +1101,7 @@ function CosmicStyles() {
         left: 50%;
         transform: translate(-50%, -50%);
         object-fit: contain;
-        filter: drop-shadow(0 0 6px rgba(176,142,230,0.4));
+        filter: drop-shadow(0 0 6px rgba(212,182,122,0.4));
       }
       @keyframes ls-orbit {
         from { transform: rotate(0deg); }
@@ -1150,7 +1152,7 @@ function CosmicStyles() {
       .ls-lead-form input {
         min-height: 48px;
         width: 100%;
-        border: 1px solid rgba(176,142,230,0.34);
+        border: 1px solid rgba(212,182,122,0.34);
         border-radius: 8px;
         background: rgba(5,4,7,0.62);
         color: ${C.cream};
@@ -1199,7 +1201,7 @@ function CosmicStyles() {
         height: 54px;
         flex: none;
         object-fit: contain;
-        filter: drop-shadow(0 0 10px rgba(176,142,230,0.26));
+        filter: drop-shadow(0 0 10px rgba(212,182,122,0.26));
       }
       .ls-element-orb,
       .ls-glyph-orb {
@@ -1207,17 +1209,17 @@ function CosmicStyles() {
         place-items: center;
         color: ${C.gold};
         font-size: 1.7rem;
-        border: 1px solid rgba(176,142,230,0.42);
+        border: 1px solid rgba(212,182,122,0.42);
         border-radius: 50%;
         filter: none;
       }
       .ls-glyph-orb {
         font-size: 1.5rem;
-        background: rgba(176,142,230,0.06);
+        background: rgba(212,182,122,0.06);
       }
       .ls-calc-figure {
         margin: 0 0 18px;
-        border: 1px solid rgba(176,142,230,0.2);
+        border: 1px solid rgba(212,182,122,0.2);
         border-radius: 10px;
         overflow: hidden;
         background: #0d0a14;
@@ -1238,7 +1240,7 @@ function CosmicStyles() {
         font-size: 0.72rem;
         line-height: 1.4;
         letter-spacing: 0.03em;
-        border-top: 1px solid rgba(176,142,230,0.14);
+        border-top: 1px solid rgba(212,182,122,0.14);
       }
       .ls-planet-body { display: grid; gap: 3px; min-width: 0; }
       .ls-planet-head {
@@ -1309,7 +1311,7 @@ function CosmicStyles() {
       .ls-sky-gate input {
         min-height: 48px;
         width: 100%;
-        border: 1px solid rgba(176,142,230,0.34);
+        border: 1px solid rgba(212,182,122,0.34);
         border-radius: 8px;
         background: rgba(5,4,7,0.72);
         color: ${C.cream};
@@ -1329,7 +1331,7 @@ function CosmicStyles() {
       .ls-story-section {
         background:
           radial-gradient(ellipse at 78% 18%, rgba(94,70,122,0.22), transparent 34%),
-          radial-gradient(ellipse at 10% 62%, rgba(176,142,230,0.08), transparent 28%);
+          radial-gradient(ellipse at 10% 62%, rgba(212,182,122,0.08), transparent 28%);
       }
       .ls-story-inner,
       .ls-story-hero,
@@ -1432,7 +1434,7 @@ function CosmicStyles() {
         align-items: start;
         margin-top: clamp(62px, 8vw, 106px);
         padding-top: clamp(34px, 5vw, 58px);
-        border-top: 1px solid rgba(176,142,230,0.22);
+        border-top: 1px solid rgba(212,182,122,0.22);
       }
       .ls-receive-grid {
         display: grid;
@@ -1441,7 +1443,7 @@ function CosmicStyles() {
       }
       .ls-receive-item {
         min-height: 168px;
-        border: 1px solid rgba(176,142,230,0.24);
+        border: 1px solid rgba(212,182,122,0.24);
         border-radius: 8px;
         background: linear-gradient(180deg, rgba(245,239,230,0.055), rgba(245,239,230,0.018));
         padding: clamp(18px, 2.5vw, 24px);
@@ -1454,14 +1456,14 @@ function CosmicStyles() {
         gap: 18px;
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(176,142,230,0.30);
+        border: 1px solid rgba(212,182,122,0.30);
         border-radius: 12px;
         background: linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.02));
         padding: 20px 22px;
         cursor: pointer;
         transition: border-color 0.2s ease, background 0.2s ease;
       }
-      .ls-disclosure:hover { border-color: rgba(176,142,230,0.52); }
+      .ls-disclosure:hover { border-color: rgba(212,182,122,0.52); }
       .ls-disclosure.is-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -1481,13 +1483,13 @@ function CosmicStyles() {
         width: 42px;
         height: 42px;
         border-radius: 50%;
-        border: 1px solid rgba(176,142,230,0.4);
+        border: 1px solid rgba(212,182,122,0.4);
         color: ${C.gold};
         font-size: 1.6rem;
         line-height: 1;
       }
       .ls-disclosure-body {
-        border: 1px solid rgba(176,142,230,0.30);
+        border: 1px solid rgba(212,182,122,0.30);
         border-top: none;
         border-bottom-left-radius: 12px;
         border-bottom-right-radius: 12px;
@@ -1513,9 +1515,9 @@ function CosmicStyles() {
       }
       .ls-checkout-shell {
         background:
-          radial-gradient(ellipse at 50% 0%, rgba(176,142,230,0.13), transparent 40%),
+          radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.13), transparent 40%),
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
-        border-top: 1px solid rgba(176,142,230,0.46);
+        border-top: 1px solid rgba(212,182,122,0.46);
       }
       .ls-checkout-vars {
         --black: ${C.cream};
@@ -1524,8 +1526,8 @@ function CosmicStyles() {
         --muted: ${C.muted};
         --cream: transparent;
         --cream2: rgba(245,239,230,0.06);
-        --cream3: rgba(176,142,230,0.22);
-        --sand: rgba(176,142,230,0.30);
+        --cream3: rgba(212,182,122,0.22);
+        --sand: rgba(212,182,122,0.30);
         --rose: ${C.gold};
         --rose-hover: ${C.goldSoft};
         --gold: ${C.gold};
@@ -1545,12 +1547,12 @@ function CosmicStyles() {
         transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
       }
       .ls-gold-button {
-        background: ${C.gold};
-        color: ${C.ink};
-        border: 1px solid ${C.goldSoft};
+        background: ${C.violet};
+        color: ${C.cream};
+        border: 1px solid ${C.violetSoft};
       }
       .ls-gold-button:hover {
-        background: ${C.goldSoft};
+        background: ${C.violetSoft};
       }
       .ls-gold-button:disabled {
         cursor: default;
@@ -1561,7 +1563,7 @@ function CosmicStyles() {
         border: 1px solid ${C.line};
       }
       .ls-ghost-button:hover {
-        border-color: rgba(176,142,230,0.56);
+        border-color: rgba(212,182,122,0.56);
         background: rgba(245,239,230,0.04);
       }
       .ls-hero-section {
@@ -1634,7 +1636,7 @@ function CosmicStyles() {
         top: 0;
         width: 33%;
         min-height: 92px;
-        border-left: 1px solid rgba(176,142,230,0.34);
+        border-left: 1px solid rgba(212,182,122,0.34);
         padding-left: 16px;
         color: ${C.muted};
         font-family: Lato, system-ui, sans-serif;
@@ -1651,7 +1653,7 @@ function CosmicStyles() {
         margin-top: 6px;
       }
       .ls-hero-img {
-        border: 1px solid rgba(176,142,230,0.34);
+        border: 1px solid rgba(212,182,122,0.34);
         border-radius: 8px;
         background: #050407;
         box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 20px 60px rgba(0,0,0,0.32);
@@ -1662,7 +1664,7 @@ function CosmicStyles() {
         padding-left: 0;
         min-height: 0;
         aspect-ratio: 1 / 1;
-        border: 1px solid rgba(176,142,230,0.34);
+        border: 1px solid rgba(212,182,122,0.34);
         border-radius: 8px;
         overflow: hidden;
         background: #050407;
@@ -1698,7 +1700,7 @@ function CosmicStyles() {
       }
       .ls-placeholder {
         background: #050407;
-        border: 1px solid rgba(176,142,230,0.34);
+        border: 1px solid rgba(212,182,122,0.34);
         border-radius: 8px;
       }
       .ls-placeholder::before {
@@ -1711,7 +1713,7 @@ function CosmicStyles() {
         position: absolute;
         inset: 0;
         background:
-          radial-gradient(circle at 50% 42%, rgba(176,142,230,0.20), transparent 22%),
+          radial-gradient(circle at 50% 42%, rgba(212,182,122,0.20), transparent 22%),
           radial-gradient(circle at 50% 42%, rgba(94,70,122,0.14), transparent 34%);
         opacity: 0.72;
         transform: translate3d(
@@ -1742,7 +1744,7 @@ function CosmicStyles() {
         z-index: 0;
         width: 180px;
         height: 1px;
-        background: linear-gradient(90deg, rgba(245,239,230,0), rgba(245,239,230,0.86), rgba(176,142,230,0));
+        background: linear-gradient(90deg, rgba(245,239,230,0), rgba(245,239,230,0.86), rgba(212,182,122,0));
         transform: rotate(-28deg);
         opacity: 0.7;
       }
