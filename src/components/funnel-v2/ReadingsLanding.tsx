@@ -766,6 +766,24 @@ function BirthSkyJourney() {
 // One body in the persistent system. Sits at its fixed orbit slot; its scale
 // bumps 1 -> big -> 1 across its own scroll segment (grows as you reach it, then
 // recedes as the next takes over). Glow fades in/out with it.
+// Real NASA SDO solar-flare footage (171A, public domain), graded to deep orange
+// with a pulsing aura. Falls back to the poster frame under reduced-motion.
+function SunMedia() {
+  const reduce = useReducedMotion();
+  return (
+    <span className="ls-sun-media">
+      {reduce ? (
+        <img className="ls-sun-video" src="/readings/sun/sun-poster.jpg" alt="" />
+      ) : (
+        <video className="ls-sun-video" autoPlay muted loop playsInline preload="auto" poster="/readings/sun/sun-poster.jpg">
+          <source src="/readings/sun/sun.webm" type="video/webm" />
+          <source src="/readings/sun/sun.mp4" type="video/mp4" />
+        </video>
+      )}
+    </span>
+  );
+}
+
 // Live WebGL Sun: domain-warped FBM plasma surface + flaring corona, animated by
 // a time uniform. One full-screen-triangle fragment shader, capped DPR, paused
 // under reduced-motion. No external library.
@@ -873,7 +891,7 @@ function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string
       onClick={clickable ? () => onJump(journeyIndex) : undefined}
     >
       {isSun ? (
-        <span className="ls-sys-sun"><SunCanvas /></span>
+        <span className="ls-sys-sun"><SunMedia /></span>
       ) : bodyKey === "earth" ? (
         <span className="ls-sys-earth" />
       ) : meta?.img ? (
@@ -1609,12 +1627,33 @@ function CosmicStyles() {
         aspect-ratio: 1;
         overflow: visible;
       }
-      .ls-sun-canvas {
+      .ls-sun-media { position: relative; display: block; width: 100%; aspect-ratio: 1; }
+      .ls-sun-media::before {
+        content: "";
         position: absolute;
-        inset: 0;
+        left: 50%;
+        top: 50%;
+        width: 120%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,120,24,0.62) 30%, rgba(255,78,12,0.3) 46%, transparent 66%);
+        animation: ls-sun-aura 6s ease-in-out infinite;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .ls-sun-video {
+        position: relative;
+        z-index: 1;
         width: 100%;
         height: 100%;
-        display: block;
+        object-fit: cover;
+        border-radius: 50%;
+        filter: sepia(0.55) saturate(2) hue-rotate(-12deg) brightness(1.05) contrast(1.05);
+      }
+      @keyframes ls-sun-aura {
+        0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
       }
       @keyframes ls-sun-spin { to { transform: rotate(360deg); } }
       @keyframes ls-sun-pulse {
