@@ -150,7 +150,7 @@ const FAQ = [
   },
   {
     q: "Is this only for dogs and cats?",
-    a: "No. Dogs and cats are common — but any beloved soul can have a reading, once you can share their story.",
+    a: "No. Dogs and cats are common, but any beloved soul can have a reading, once you can share their story.",
   },
   {
     q: "Is this separate from Pawtraits?",
@@ -269,7 +269,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
               Begin Their Reading <ArrowRight size={17} />
             </button>
             <a href="#computed-sky" className="ls-ghost-button">
-              Compute their sky — free
+              Compute their sky, free
             </a>
           </div>
         </div>
@@ -352,12 +352,12 @@ function BirthChartPreviewSection() {
         <SolarSystemBackdrop />
         <div className="relative z-10">
           <div className="ls-reveal">
-            <p style={eyebrowStyle(C.gold)}>Computed sky · free</p>
+            <p style={eyebrowStyle(C.cream)}>Computed sky · <span style={{ color: C.gold }}>free</span></p>
             <h3 className="mt-4 text-balance" style={chartTitleStyle}>
               Finally understand them
             </h3>
             <p className="mt-4 max-w-xl text-pretty" style={sectionBodyStyle}>
-              The day they arrived, the sky was holding a chart. Their nature, their quirks, the odd little things — all written there. Enter their date. Meet who they really are.
+              The day they arrived, the sky was holding a chart. Their nature, their quirks, the odd little things, all written there. Enter their date. Meet who they really are.
             </p>
           </div>
 
@@ -457,11 +457,9 @@ function BirthChartPreviewSection() {
                   <PlanetCard key={key} planet={key} />
                 ))}
               </div>
-              <p className="ls-chart-message">
-                {status === "loading"
-                  ? "Reading their sky..."
-                  : "Enter their date. Watch their real planets wake — the placements that make them, them."}
-              </p>
+              {status === "loading" && (
+                <p className="ls-chart-message">Reading their sky...</p>
+              )}
             </div>
           )}
 
@@ -568,11 +566,11 @@ function CalcDropdown({ open, onToggle }: { open: boolean; onToggle: () => void 
         <div className="ls-calc-body">
           <figure className="ls-calc-figure">
             <img src="/readings/planets/star-chart.jpg" alt="Antique Copernican planisphere" loading="lazy" />
-            <figcaption>Planisphærium Copernicanum — the geometry our engine computes, by hand four centuries ago.</figcaption>
+            <figcaption>Planisphærium Copernicanum. The geometry our engine computes, by hand four centuries ago.</figcaption>
           </figure>
           <p className="ls-calc-lead">
             The feeling is yours. The sky beneath it is measured. Every placement here is
-            computed from their own chart with observatory-grade ephemeris — the same maths
+            computed from their own chart with observatory-grade ephemeris, the same maths
             that lands probes on other worlds, pointed at the moment they arrived.
           </p>
           <div className="ls-calc-grid">
@@ -623,99 +621,46 @@ function CheckoutSection({
   );
 }
 
+// Image-led gallery. Each shot drifts within its frame on scroll (native
+// scroll-driven parallax via animation-timeline: view(), GPU, mobile + desktop,
+// with a static fallback and a reduced-motion guard). Words stay minimal — the
+// cat opens the series; the rest let the images talk. Captions added per-shot.
+const GALLERY_SHOTS = [
+  {
+    src: "/readings/hero/black-cat-galaxy-eye.webp",
+    alt: "Black cat with a faint galaxy reflected in one eye",
+    caption: "Discover the soul behind those eyes.",
+    width: 1672,
+    height: 941,
+  },
+  {
+    src: "/readings/hero/cockapoo-reading-tablet.webp",
+    alt: "Cockapoo beside a human holding a glowing celestial reading",
+    width: 1672,
+    height: 942,
+  },
+  {
+    src: "/readings/hero/doberman-puppy-star-map.webp",
+    alt: "Doberman puppy touching a softly glowing star map",
+    width: 1672,
+    height: 942,
+  },
+] as const;
+
 function QuietMomentSection() {
   return (
     <section className="ls-story-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
-      <div className="ls-story-inner mx-auto max-w-6xl">
-        <div className="ls-story-hero">
-          <div className="ls-story-copy ls-reveal">
-            <p style={eyebrowStyle(C.gold)}>The full reading</p>
-            <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-              Discover the soul behind those eyes.
-            </h2>
-            <p className="mt-6 text-pretty" style={sectionBodyStyle}>
-              Their whole sky, in words. How they love, what they need,
-              why they feel like home.
-            </p>
-            <div className="ls-story-quote mt-9 border-l pl-6" style={{ borderColor: C.gold }}>
-              <p style={quoteStyle}>
-                "That look had a language."
-              </p>
-            </div>
-          </div>
-
-          <figure className="ls-story-cat ls-reveal" style={revealDelay(0.12)}>
-            <img
-              src="/readings/hero/black-cat-galaxy-eye.webp"
-              alt="Black cat with a faint galaxy reflected in one eye"
-              loading="lazy"
-              width={1672}
-              height={941}
-            />
+      <div className="ls-gallery mx-auto max-w-5xl">
+        {GALLERY_SHOTS.map((shot, i) => (
+          <figure key={shot.src} className="ls-gallery-item ls-reveal" style={revealDelay(i * 0.05)}>
+            <img src={shot.src} alt={shot.alt} loading="lazy" width={shot.width} height={shot.height} />
+            {"caption" in shot && shot.caption && (
+              <figcaption className="ls-gallery-caption" style={galleryCaptionStyle}>
+                {shot.caption}
+              </figcaption>
+            )}
           </figure>
-        </div>
-
-        <div className="ls-story-moments">
-          <article className="ls-story-moment ls-story-moment--wide ls-reveal" style={revealDelay(0)}>
-            <figure>
-              <img
-                src="/readings/hero/cockapoo-reading-tablet.webp"
-                alt="Cockapoo beside a human holding a glowing celestial reading"
-                loading="lazy"
-                width={1672}
-                height={942}
-              />
-            </figure>
-            <div>
-              <p style={eyebrowStyle(C.gold)}>Keep it close</p>
-              <h3>Open it when you miss them.</h3>
-              <p>
-                A reading to return to. Not a one-time scroll.
-              </p>
-            </div>
-          </article>
-
-          <article className="ls-story-moment ls-reveal" style={revealDelay(0.1)}>
-            <figure>
-              <img
-                src="/readings/hero/doberman-puppy-star-map.webp"
-                alt="Doberman puppy touching a softly glowing star map"
-                loading="lazy"
-                width={1672}
-                height={942}
-              />
-            </figure>
-            <div>
-              <p style={eyebrowStyle(C.gold)}>See their nature</p>
-              <h3>What they need. How they love.</h3>
-              <p>
-                Their softness, their courage, their quiet habits — written back to you.
-              </p>
-            </div>
-          </article>
-        </div>
-
-        <div className="ls-receive-panel">
-          <div className="ls-reveal">
-            <p style={eyebrowStyle(C.gold)}>Inside</p>
-            <h2 className="mt-4 text-balance" style={sectionTitleStyle}>
-              Everything you need to feel closer.
-            </h2>
-          </div>
-          <div className="ls-receive-grid">
-            {[
-              ["Their sky", "The real placements that shaped them."],
-              ["Love language", "How they ask for comfort, for trust, for closeness."],
-              ["SoulSpeak", "The words you've waited their whole life to hear."],
-              ["Horoscope", "Their sky now, gently translated."],
-            ].map(([title, body], i) => (
-              <article key={title} className="ls-receive-item ls-reveal" style={revealDelay(i * 0.08)}>
-                <strong>{title}</strong>
-                <p>{body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </section>
   );
@@ -893,6 +838,61 @@ function CosmicStyles() {
         from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.985); }
         to { opacity: 1; transform: none; }
       }
+      .ls-gallery {
+        display: grid;
+        gap: clamp(26px, 5vw, 72px);
+      }
+      .ls-gallery-item {
+        position: relative;
+        margin: 0;
+        overflow: hidden;
+        border-radius: 12px;
+        aspect-ratio: 16 / 10;
+        background: #030305;
+        box-shadow: 0 34px 100px rgba(0,0,0,0.46);
+      }
+      .ls-gallery-item::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(5,4,8,0) 36%, rgba(5,4,8,0.66) 100%);
+      }
+      .ls-gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scale(1.14);
+        will-change: transform;
+        animation: ls-gallery-drift linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+      @keyframes ls-gallery-drift {
+        from { transform: scale(1.14) translate3d(0, -3.4%, 0); }
+        to { transform: scale(1.14) translate3d(0, 3.4%, 0); }
+      }
+      @supports not (animation-timeline: view()) {
+        .ls-gallery-item img { transform: scale(1.06); animation: none; }
+      }
+      .ls-gallery-caption {
+        position: absolute;
+        left: clamp(18px, 4vw, 46px);
+        right: clamp(18px, 4vw, 46px);
+        bottom: clamp(18px, 4vw, 42px);
+        z-index: 2;
+        margin: 0;
+        max-width: 16ch;
+        text-shadow: 0 2px 22px rgba(0,0,0,0.82), 0 8px 50px rgba(0,0,0,0.6);
+      }
+      @media (max-width: 899px) {
+        .ls-gallery-item { aspect-ratio: 4 / 5; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-gallery-item img { animation: none; transform: scale(1.04); }
+      }
       .ls-parallax-band::before {
         content: "";
         position: absolute;
@@ -1047,7 +1047,7 @@ function CosmicStyles() {
         border-radius: 8px;
         padding: clamp(24px, 4vw, 42px);
         background:
-          radial-gradient(ellipse at 50% -12%, rgba(212,182,122,0.18), transparent 42%),
+          radial-gradient(ellipse at 50% -12%, rgba(124,92,214,0.16), transparent 42%),
           radial-gradient(ellipse at 18% 82%, rgba(94,70,122,0.28), transparent 34%),
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
         box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.28);
@@ -1917,6 +1917,15 @@ const heroLeadStyle = {
   fontSize: "clamp(1.05rem, 2.1vw, 1.3rem)",
   fontWeight: 400,
   lineHeight: 1.5,
+} as const;
+
+const galleryCaptionStyle = {
+  color: C.cream,
+  fontFamily: '"Playfair Display", Georgia, serif',
+  fontSize: "clamp(1.8rem, 4.6vw, 3.4rem)",
+  fontWeight: 500,
+  lineHeight: 1.04,
+  letterSpacing: "-0.015em",
 } as const;
 
 const heroTitleStyle = {
