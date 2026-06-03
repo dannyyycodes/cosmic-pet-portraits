@@ -131,6 +131,12 @@ export function CartDrawer({
       <SheetContent
         side="right"
         className="w-full sm:max-w-md flex flex-col p-0"
+        // data-lenis-prevent: the page runs Lenis smooth-scroll, which binds
+        // wheel/touch globally and keeps hijacking them even after lenis.stop().
+        // That made the drawer feel "fidgety" and refuse to scroll. This attr
+        // tells Lenis to ignore every wheel/touch event originating inside the
+        // drawer, handing scroll back to the native overflow container below.
+        data-lenis-prevent
         style={{
           background: PALETTE.cream,
           borderColor: PALETTE.sand,
@@ -172,7 +178,15 @@ export function CartDrawer({
         </SheetHeader>
 
         {/* ── Items list ──────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto">
+        {/* min-h-0 lets this flex child actually scroll within the column
+            (without it the list grows past the drawer and the footer drifts).
+            overscroll-contain stops scroll-chaining to the page; touch styles
+            give native momentum scrolling on mobile. */}
+        <div
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          data-lenis-prevent
+          style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+        >
           {isEmpty ? (
             <EmptyState onClose={() => onOpenChange(false)} />
           ) : (
@@ -182,11 +196,15 @@ export function CartDrawer({
                   {items.map((item) => (
                     <motion.li
                       key={item.id}
-                      layout
-                      initial={{ opacity: 0, x: 20, height: 0 }}
-                      animate={{ opacity: 1, x: 0, height: "auto" }}
+                      // No `layout` and no height-enter animation on purpose:
+                      // framer-motion's layout tracking re-measured rows on every
+                      // scroll reflow, which is what made the list jiggle and clip
+                      // the top row. Enter is a clean fade+slide; height only
+                      // collapses on exit so removing a line still closes its gap.
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
-                      transition={{ duration: 0.32, ease: EASE.out }}
+                      transition={{ duration: 0.28, ease: EASE.out }}
                       className="overflow-hidden"
                     >
                       <CartLineErrorBoundary
