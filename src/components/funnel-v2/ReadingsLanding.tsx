@@ -354,10 +354,10 @@ function BirthChartPreviewSection() {
           <div className="ls-reveal">
             <p style={eyebrowStyle(C.gold)}>Computed sky · free</p>
             <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-              Compute their birth sky
+              Finally understand them
             </h3>
             <p className="mt-4 max-w-xl text-pretty" style={sectionBodyStyle}>
-              Enter their date. Watch their real planets resolve — the same sky their full soul reading is built from.
+              The day they arrived, the sky was holding a chart. Their nature, their quirks, the odd little things — all written there. Enter their date. Meet who they really are.
             </p>
           </div>
 
@@ -414,7 +414,7 @@ function BirthChartPreviewSection() {
                 ? "Reading Their Sky..."
                 : status === "ready"
                 ? "Recalculate"
-                : "Reveal Their Birth Sky"}
+                : "Reveal their sky"}
               {status !== "loading" && <ArrowRight size={17} />}
             </button>
             {message && status === "error" && (
