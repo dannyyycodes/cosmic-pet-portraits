@@ -139,7 +139,7 @@ const REL_SIZE: Record<string, number> = {
   saturn: 0.3,
   uranus: 0.18,
   neptune: 0.17,
-  earth: 0.13,
+  earth: 0.18,
   venus: 0.125,
   mars: 0.08,
   mercury: 0.06,
@@ -557,6 +557,7 @@ function BirthSkyJourney() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [active, setActive] = useState(0);
+  const [isMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 900);
 
   const total = JOURNEY_SEQ.length;
   const steps = total + 1;
@@ -573,7 +574,7 @@ function BirthSkyJourney() {
   // Camera: pan + zoom across the solar system so the active body's region is
   // centred and magnified, gliding from planet to planet as you scroll.
   const seg = 1 / steps;
-  const ZOOM = 1.6;
+  const ZOOM = isMobile ? 2.2 : 1.6;
   const targets = JOURNEY_SEQ.map((key) => {
     if (key === "sun") return { tx: 0, ty: 0 };
     const p = BODY_POS[key];
@@ -594,9 +595,9 @@ function BirthSkyJourney() {
   const zoomOut: number[] = [];
   for (let i = 0; i < total; i++) {
     zoomIn.push(i * seg);
-    zoomOut.push(i === 0 ? 0.92 : 1.15);
+    zoomOut.push(i === 0 ? (isMobile ? 1.15 : 0.92) : isMobile ? 1.4 : 1.15);
     zoomIn.push((i + 0.5) * seg);
-    zoomOut.push(i === 0 ? 0.95 : ZOOM);
+    zoomOut.push(i === 0 ? (isMobile ? 1.25 : 0.95) : ZOOM);
   }
   zoomIn.push(1);
   zoomOut.push(1.4);
@@ -765,11 +766,103 @@ function BirthSkyJourney() {
 // One body in the persistent system. Sits at its fixed orbit slot; its scale
 // bumps 1 -> big -> 1 across its own scroll segment (grows as you reach it, then
 // recedes as the next takes over). Glow fades in/out with it.
+// Live WebGL Sun: domain-warped FBM plasma surface + flaring corona, animated by
+// a time uniform. One full-screen-triangle fragment shader, capped DPR, paused
+// under reduced-motion. No external library.
+function SunCanvas() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const reduce = useReducedMotion();
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || typeof window === "undefined") return;
+    const gl = canvas.getContext("webgl", { premultipliedAlpha: true, antialias: true });
+    if (!gl) return;
+    const vs = "attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }";
+    const fs = [
+      "precision highp float;",
+      "uniform float u_time; uniform vec2 u_res;",
+      "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }",
+      "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
+      "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x), u.y); }",
+      "float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p*=2.03; a*=0.5; } return v; }",
+      "void main(){",
+      "  vec2 uv=(gl_FragCoord.xy/u_res-0.5); uv.x*=u_res.x/u_res.y;",
+      "  float d=length(uv); float t=u_time*0.05;",
+      "  vec2 q=uv*3.2;",
+      "  float w=fbm(q+t+fbm(q-t*1.3)*1.6);",
+      "  float s=fbm(q*1.4+vec2(w*2.0,-t*2.2));",
+      "  vec3 deep=vec3(0.66,0.10,0.0), mid=vec3(1.0,0.46,0.06), hot=vec3(1.0,0.93,0.55);",
+      "  vec3 col=mix(deep,mid,smoothstep(0.18,0.58,s));",
+      "  col=mix(col,hot,smoothstep(0.62,0.98,s+w*0.28));",
+      "  float R=0.36;",
+      "  float disc=smoothstep(R+0.006,R-0.006,d);",
+      "  float ang=atan(uv.y,uv.x);",
+      "  float fl=fbm(vec2(ang*2.6, t*4.0))*fbm(vec2(ang*5.0+t, t*2.0));",
+      "  float corona=smoothstep(R+0.30,R,d)*(0.35+0.9*fl);",
+      "  corona*=smoothstep(R-0.03,R+0.04,d);",
+      "  vec3 cor=mix(vec3(1.0,0.4,0.06),vec3(1.0,0.72,0.22),fl)*corona*1.5;",
+      "  vec3 final=col*disc+cor;",
+      "  float alpha=clamp(max(disc, corona*1.3),0.0,1.0);",
+      "  gl_FragColor=vec4(final*alpha, alpha);",
+      "}",
+    ].join("\n");
+    const compile = (type: number, src: string) => {
+      const sh = gl.createShader(type);
+      if (!sh) return null;
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      return sh;
+    };
+    const vsh = compile(gl.VERTEX_SHADER, vs);
+    const fsh = compile(gl.FRAGMENT_SHADER, fs);
+    const prog = gl.createProgram();
+    if (!prog || !vsh || !fsh) return;
+    gl.attachShader(prog, vsh);
+    gl.attachShader(prog, fsh);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const uT = gl.getUniformLocation(prog, "u_time");
+    const uR = gl.getUniformLocation(prog, "u_res");
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    let raf = 0;
+    const draw = (ms: number) => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const r = canvas.getBoundingClientRect();
+      const w = Math.max(2, Math.round(r.width * dpr));
+      const h = Math.max(2, Math.round(r.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform1f(uT, ms * 0.001);
+      gl.uniform2f(uR, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!reduce) raf = requestAnimationFrame(draw);
+    };
+    if (reduce) draw(1200);
+    else raf = requestAnimationFrame(draw);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [reduce]);
+  return <canvas ref={ref} className="ls-sun-canvas" aria-hidden="true" />;
+}
+
 function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string; journeyIndex: number; active: number; onJump: (i: number) => void }) {
   const pos = BODY_POS[bodyKey];
   const base = REL_SIZE[bodyKey] ?? 0.3;
   const isSun = bodyKey === "sun";
-  const baseDiam = isSun ? 40 : 1 + base * 13;
+  const baseDiam = isSun ? 56 : 1 + base * 13;
   const meta = PLANET_META[bodyKey];
   const clickable = journeyIndex >= 0;
   const isActive = clickable && journeyIndex === active;
@@ -780,7 +873,7 @@ function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string
       onClick={clickable ? () => onJump(journeyIndex) : undefined}
     >
       {isSun ? (
-        <span className="ls-sys-sun"><img src={meta?.img} alt="" /></span>
+        <span className="ls-sys-sun"><SunCanvas /></span>
       ) : bodyKey === "earth" ? (
         <span className="ls-sys-earth" />
       ) : meta?.img ? (
@@ -1514,24 +1607,14 @@ function CosmicStyles() {
         display: block;
         width: 100%;
         aspect-ratio: 1;
+        overflow: visible;
       }
-      .ls-sys-sun img {
+      .ls-sun-canvas {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        animation: ls-sun-spin 120s linear infinite;
-        filter: saturate(1.15) brightness(1.05);
-      }
-      .ls-sys-sun::after {
-        content: "";
-        position: absolute;
-        inset: -16%;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,150,46,0.55), rgba(255,120,30,0.18) 46%, transparent 66%);
-        animation: ls-sun-pulse 5.5s ease-in-out infinite;
-        z-index: -1;
-        pointer-events: none;
+        display: block;
       }
       @keyframes ls-sun-spin { to { transform: rotate(360deg); } }
       @keyframes ls-sun-pulse {
@@ -1558,9 +1641,12 @@ function CosmicStyles() {
         width: 100%;
         aspect-ratio: 1;
         border-radius: 50%;
-        background: radial-gradient(circle at 36% 32%, #6fb1ff 0 20%, #2f6fc4 46%, #143a78 80%);
-        box-shadow: inset -5px -7px 14px rgba(0,0,0,0.5);
-        opacity: 0.92;
+        background:
+          radial-gradient(circle at 62% 58%, rgba(74,178,104,0.85) 0 12%, transparent 20%),
+          radial-gradient(circle at 34% 42%, rgba(86,196,122,0.7) 0 9%, transparent 16%),
+          radial-gradient(circle at 36% 30%, #9fccff 0 16%, #4a90e0 48%, #16498c 82%);
+        box-shadow: inset -3px -5px 10px rgba(0,0,0,0.4), 0 0 12px rgba(110,180,255,0.65);
+        opacity: 1;
       }
       .ls-sys-slot.is-active { z-index: 5; }
       .ls-sys-slot.is-active .ls-sys-orb {
