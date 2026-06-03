@@ -190,7 +190,7 @@ export function ReadingsLanding() {
   };
 
   return (
-    <main ref={pageRef} className="ls-cosmic-page min-h-screen overflow-hidden" style={{ background: C.cosmos, color: C.cream }}>
+    <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
