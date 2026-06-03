@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, RefObject } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -495,6 +496,10 @@ function BirthChartPreviewSection() {
 // lights the bodies one at a time (Sun outward). Next/Prev + dots also navigate.
 // The final step is the existing free-calc form, then a value reveal + hint.
 function BirthSkyJourney() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
   const [email, setEmail] = useState("");
@@ -502,34 +507,34 @@ function BirthSkyJourney() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [active, setActive] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const total = PLANET_ORDER.length;
 
-  useEffect(() => {
-    const root = trackRef.current;
-    if (!root || typeof window === "undefined") return;
-    const steps = Array.from(root.querySelectorAll<HTMLElement>("[data-step]"));
-    if (!steps.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const i = Number((entry.target as HTMLElement).dataset.step);
-            if (!Number.isNaN(i)) setActive(i);
-          }
-        });
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    steps.forEach((step) => io.observe(step));
-    return () => io.disconnect();
-  }, []);
+  const total = PLANET_ORDER.length;
+  const steps = total + 1;
+
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    const idx = Math.min(steps - 1, Math.max(0, Math.floor(p * steps + 0.0001)));
+    setActive((cur) => (cur === idx ? cur : idx));
+  });
+
+  // Parallax layers (slower = deeper) + continuous within-segment camera dwell.
+  const starY = useTransform(scrollYProgress, [0, 1], ["-6%", "-26%"]);
+  const nebulaY = useTransform(scrollYProgress, [0, 1], ["8%", "-48%"]);
+  const ringScale = useTransform(scrollYProgress, [0, 1], [0.82, 1.4]);
+  const ringOpacity = useTransform(scrollYProgress, [0, 0.85, 1], [0.42, 0.42, 0]);
+  const localT = useTransform(scrollYProgress, (p) => {
+    const s = p * steps;
+    return s - Math.floor(s);
+  });
+  const focalScale = useTransform(localT, [0, 1], [0.9, 1.12]);
+  const focalY = useTransform(localT, [0, 1], ["3%", "-5%"]);
 
   const goTo = (i: number) => {
-    const clamped = Math.max(0, Math.min(total, i));
-    trackRef.current
-      ?.querySelector<HTMLElement>(`[data-step="${clamped}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const el = sectionRef.current;
+    if (!el || typeof window === "undefined") return;
+    const clamped = Math.max(0, Math.min(steps - 1, i));
+    const scrollable = Math.max(1, el.offsetHeight - window.innerHeight);
+    const top = el.offsetTop + ((clamped + 0.5) / steps) * scrollable;
+    window.scrollTo({ top, behavior: "smooth" });
   };
 
   const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
@@ -584,104 +589,121 @@ function BirthSkyJourney() {
   const scrollToCheckout = () =>
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
+  const scrollToCheckout = () =>
+    document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   const onForm = active >= total;
   const body = onForm ? null : PLANET_ORDER[active];
   const meta = body ? PLANET_META[body] : null;
   const line = body ? JOURNEY_LINES[body] ?? PLANET_META[body].line : "";
+  const ease = [0.22, 0.7, 0.2, 1] as const;
 
   return (
-    <section id="computed-sky" className="ls-journey ls-parallax-band relative">
+    <section ref={sectionRef} id="computed-sky" className="ls-journey ls-parallax-band">
       <div className="ls-journey-stage">
+        <motion.div className="ls-journey-stars" style={{ y: reduce ? undefined : starY }} aria-hidden="true" />
+        <motion.div className="ls-journey-nebula" style={{ y: reduce ? undefined : nebulaY }} aria-hidden="true" />
+        <motion.div className="ls-journey-rings" style={{ scale: reduce ? 1 : ringScale, opacity: ringOpacity }} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </motion.div>
+
         <p className="ls-journey-eyebrow" style={eyebrowStyle(C.cream)}>
           Computed sky · <span style={{ color: C.gold }}>free</span>
         </p>
 
-        <div className={`ls-journey-orrery ${onForm ? "is-complete" : ""}`} aria-hidden="true">
-          <span className="ls-journey-core">
-            <img src={PLANET_META.sun.img} alt="" />
-          </span>
-          {PLANET_ORDER.slice(1).map((b, i) => {
-            const ringIndex = i + 1;
-            const angle = ringIndex * 49;
-            const isActive = !onForm && ringIndex === active;
-            const reached = onForm || ringIndex <= active;
-            const bm = PLANET_META[b];
-            return (
-              <span
-                key={b}
-                className={`ls-journey-ring ${isActive ? "is-active" : ""} ${reached ? "is-reached" : ""}`}
-                style={{ width: `${16 + ringIndex * 6.6}%`, height: `${16 + ringIndex * 6.6}%`, transform: `rotate(${angle}deg)` }}
+        <div className="ls-journey-viewport">
+          {!onForm && meta ? (
+            <AnimatePresence initial={false}>
+              <motion.div
+                key={body}
+                className="ls-journey-planet-wrap"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 0.5, ease }}
               >
-                <span className="ls-journey-dot">
-                  <em>
-                    {bm.img ? (
-                      <img src={bm.img} alt="" style={{ transform: `rotate(${-angle}deg)` }} />
-                    ) : (
-                      <span className="ls-journey-glyph" style={{ transform: `rotate(${-angle}deg)`, display: "inline-block" }}>
-                        {bm.glyph}
-                      </span>
-                    )}
-                  </em>
-                </span>
-              </span>
-            );
-          })}
+                <motion.div className="ls-journey-planet" style={reduce ? undefined : { scale: focalScale, y: focalY }}>
+                  {meta.img ? (
+                    <img src={meta.img} alt={meta.label} />
+                  ) : (
+                    <span className="ls-journey-bigglyph">{meta.glyph}</span>
+                  )}
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className="ls-journey-formstage">
+              {status !== "ready" ? (
+                <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
+                  <span className="ls-journey-name">Their free sky</span>
+                  <div className="ls-lead-row">
+                    <div className="ls-lead-field">
+                      <label htmlFor="j-name">Their name (optional)</label>
+                      <input id="j-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+                    </div>
+                    <div className="ls-lead-field">
+                      <label htmlFor="j-date">Birth or adoption date</label>
+                      <input id="j-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+                    </div>
+                    <div className="ls-lead-field">
+                      <label htmlFor="j-email">Your email</label>
+                      <input id="j-email" type="email" value={email} autoComplete="email" required placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+                    </div>
+                  </div>
+                  <button type="submit" className="ls-gold-button ls-violet-button" disabled={status === "loading"}>
+                    {status === "loading" ? "Reading their sky..." : "Reveal their sky"}
+                    {status !== "loading" && <ArrowRight size={17} />}
+                  </button>
+                  {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+                </form>
+              ) : (
+                <JourneyReveal chart={chart} name={petName.trim()} onBegin={scrollToCheckout} />
+              )}
+            </div>
+          )}
         </div>
 
-        {!onForm && meta ? (
-          <div key={body} className="ls-journey-focus">
-            <span className="ls-journey-focus-glyph">{meta.glyph}</span>
-            <span className="ls-journey-focus-label">{meta.label}</span>
-            <p className="ls-journey-focus-line">{line}</p>
-            <span className="ls-journey-step-count">{active + 1} / {total}</span>
-          </div>
-        ) : (
-          <div className="ls-journey-focus ls-journey-form-wrap">
-            {status !== "ready" ? (
-              <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
-                <span className="ls-journey-focus-label">Their free sky</span>
-                <div className="ls-lead-row">
-                  <div className="ls-lead-field">
-                    <label htmlFor="j-name">Their name (optional)</label>
-                    <input id="j-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
-                  </div>
-                  <div className="ls-lead-field">
-                    <label htmlFor="j-date">Birth or adoption date</label>
-                    <input id="j-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-                  </div>
-                  <div className="ls-lead-field">
-                    <label htmlFor="j-email">Your email</label>
-                    <input id="j-email" type="email" value={email} autoComplete="email" required placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-                  </div>
-                </div>
-                <button type="submit" className="ls-gold-button ls-violet-button" disabled={status === "loading"}>
-                  {status === "loading" ? "Reading their sky..." : "Reveal their sky"}
-                  {status !== "loading" && <ArrowRight size={17} />}
-                </button>
-                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-              </form>
-            ) : (
-              <JourneyReveal chart={chart} name={petName.trim()} onBegin={scrollToCheckout} />
-            )}
-          </div>
+        {!onForm && meta && (
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={body}
+              className="ls-journey-copy"
+              initial={{ opacity: 0, y: 16, filter: "blur(7px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -12, filter: "blur(7px)" }}
+              transition={{ duration: reduce ? 0 : 0.42, ease }}
+            >
+              <span className="ls-journey-name">{meta.label}</span>
+              <p className="ls-journey-line">{line}</p>
+            </motion.div>
+          </AnimatePresence>
         )}
+
+        <div className="ls-journey-rail">
+          {PLANET_ORDER.map((b, i) => (
+            <button
+              key={b}
+              type="button"
+              className={`ls-journey-tick ${i === active ? "is-active" : ""} ${i < active || onForm ? "is-past" : ""}`}
+              onClick={() => goTo(i)}
+              aria-label={PLANET_META[b].label}
+            />
+          ))}
+        </div>
 
         <nav className="ls-journey-nav" aria-label="Birth sky journey">
           <button type="button" className="ls-journey-arrow" onClick={() => goTo(active - 1)} disabled={active <= 0} aria-label="Previous">‹</button>
-          <div className="ls-journey-dots">
-            {Array.from({ length: total + 1 }).map((_, i) => (
-              <button key={i} type="button" className={`ls-journey-pip ${i === active ? "is-active" : ""}`} onClick={() => goTo(i)} aria-label={`Step ${i + 1}`} />
-            ))}
-          </div>
-          <button type="button" className="ls-journey-arrow" onClick={() => goTo(active + 1)} disabled={active >= total} aria-label="Next">›</button>
+          <span className="ls-journey-count">{onForm ? "Their sky" : `${active + 1} / ${total}`}</span>
+          <button type="button" className="ls-journey-arrow" onClick={() => goTo(active + 1)} disabled={active >= steps - 1} aria-label="Next">›</button>
         </nav>
       </div>
 
-      <div className="ls-journey-track" ref={trackRef}>
-        {PLANET_ORDER.map((b, i) => (
-          <div key={b} data-step={i} className="ls-journey-step" aria-hidden="true" />
+      <div className="ls-journey-track" aria-hidden="true">
+        {Array.from({ length: steps }).map((_, i) => (
+          <div key={i} className={`ls-journey-step ${i === total ? "ls-journey-step--final" : ""}`} />
         ))}
-        <div data-step={total} className="ls-journey-step ls-journey-step--final" aria-hidden="true" />
       </div>
     </section>
   );
@@ -1153,19 +1175,172 @@ function CosmicStyles() {
         position: sticky;
         top: 0;
         height: 100svh;
+        overflow: hidden;
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        grid-template-rows: auto minmax(0, 1fr) auto auto auto;
         align-items: center;
         justify-items: center;
-        gap: clamp(10px, 2.2vh, 22px);
-        padding: clamp(18px, 5vh, 46px) 20px;
+        gap: clamp(10px, 2.4vh, 24px);
+        padding: clamp(18px, 5vh, 46px) 20px clamp(18px, 4vh, 40px);
         text-align: center;
         z-index: 2;
       }
       .ls-journey-eyebrow { margin: 0; }
       .ls-journey-track { position: relative; z-index: 1; pointer-events: none; }
-      .ls-journey-step { height: 66svh; }
+      .ls-journey-step { height: 78svh; }
       .ls-journey-step--final { height: 120svh; }
+      .ls-journey-eyebrow { position: relative; z-index: 3; margin: 0; }
+      .ls-journey-stars {
+        position: absolute;
+        inset: -30% 0;
+        z-index: 0;
+        opacity: 0.55;
+        pointer-events: none;
+        background-image:
+          radial-gradient(1px 1px at 25% 18%, #fff, transparent),
+          radial-gradient(1px 1px at 72% 28%, rgba(255,255,255,0.82), transparent),
+          radial-gradient(1.6px 1.6px at 48% 62%, #fff, transparent),
+          radial-gradient(1px 1px at 16% 78%, rgba(255,255,255,0.7), transparent),
+          radial-gradient(1px 1px at 86% 72%, rgba(255,255,255,0.72), transparent),
+          radial-gradient(1px 1px at 38% 40%, rgba(255,255,255,0.6), transparent),
+          radial-gradient(2px 2px at 62% 88%, #fff, transparent);
+        background-size: 340px 340px;
+        background-repeat: repeat;
+        will-change: transform;
+      }
+      .ls-journey-nebula {
+        position: absolute;
+        inset: -20% -12%;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.85;
+        background:
+          radial-gradient(38% 46% at 28% 32%, rgba(124,92,214,0.26), transparent 70%),
+          radial-gradient(44% 44% at 76% 66%, rgba(94,70,122,0.3), transparent 72%);
+        will-change: transform;
+      }
+      .ls-journey-rings {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: min(120vw, 900px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        z-index: 0;
+        pointer-events: none;
+        will-change: transform;
+      }
+      .ls-journey-rings span {
+        position: absolute;
+        border: 1px solid rgba(124,92,214,0.18);
+        border-radius: 50%;
+      }
+      .ls-journey-rings span:nth-child(1) { width: 38%; height: 38%; }
+      .ls-journey-rings span:nth-child(2) { width: 66%; height: 66%; }
+      .ls-journey-rings span:nth-child(3) { width: 96%; height: 96%; }
+      .ls-journey-viewport {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        min-height: clamp(220px, 46vh, 380px);
+        display: grid;
+        place-items: center;
+        align-self: center;
+      }
+      .ls-journey-planet-wrap {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+      }
+      .ls-journey-planet {
+        width: clamp(168px, 44vw, 320px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        will-change: transform;
+      }
+      .ls-journey-planet img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 42px rgba(124,92,214,0.5)) drop-shadow(0 0 16px rgba(255,255,255,0.16));
+      }
+      .ls-journey-bigglyph {
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(5rem, 22vw, 11rem);
+        line-height: 1;
+        color: ${C.gold};
+        filter: drop-shadow(0 0 28px rgba(212,182,122,0.5));
+      }
+      .ls-journey-copy {
+        position: relative;
+        z-index: 3;
+        display: grid;
+        gap: 10px;
+        justify-items: center;
+        max-width: 20ch;
+      }
+      .ls-journey-name {
+        color: ${C.gold};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+      .ls-journey-line {
+        margin: 0;
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.55rem, 5.2vw, 2.8rem);
+        line-height: 1.08;
+      }
+      .ls-journey-rail {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 320px;
+      }
+      .ls-journey-tick {
+        width: 16px;
+        height: 3px;
+        padding: 0;
+        border: 0;
+        border-radius: 2px;
+        background: rgba(245,239,230,0.2);
+        cursor: pointer;
+        transition: background 0.3s ease, width 0.3s ease;
+      }
+      .ls-journey-tick.is-past { background: rgba(124,92,214,0.55); }
+      .ls-journey-tick.is-active { background: ${C.violet}; width: 30px; }
+      .ls-journey-count {
+        color: ${C.muted};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.74rem;
+        letter-spacing: 0.16em;
+        min-width: 64px;
+      }
+      .ls-journey-formstage {
+        position: relative;
+        z-index: 3;
+        width: min(94vw, 460px);
+      }
+      .ls-journey-formstage .ls-lead-form { width: 100%; gap: 12px; }
+      .ls-journey-formstage .ls-lead-row { grid-template-columns: 1fr; }
+      @media (max-width: 899px) {
+        .ls-journey-tick { width: 12px; }
+        .ls-journey-tick.is-active { width: 22px; }
+        .ls-journey-rail { max-width: 240px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-journey-stars, .ls-journey-nebula, .ls-journey-rings, .ls-journey-planet { transform: none !important; }
+      }
       .ls-journey-orrery {
         position: relative;
         width: min(78vw, 440px);
