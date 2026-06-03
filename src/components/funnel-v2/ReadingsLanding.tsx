@@ -765,7 +765,7 @@ function HeroBackdropVideo() {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         poster="/readings/hero/hero-motion-husky-shooting-star-poster.jpg"
       >
         <source src="/readings/hero/hero-motion-husky-shooting-star.webm" type="video/webm" />
@@ -1760,11 +1760,15 @@ function CosmicStyles() {
       @keyframes lsFloatC { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-10px); } }
       @media (max-width: 899px) {
         .ls-hero-section {
-          min-height: 790px;
-          background-position: 72% center;
+          min-height: 86svh;
+          display: flex;
+          align-items: flex-end;
+          padding-top: 88px;
+          padding-bottom: 52px;
+          background-position: 62% 40%;
         }
         .ls-hero-backdrop {
-          background-position: 72% center;
+          background-position: 62% 40%;
         }
         .ls-hero-backdrop::after {
           background:
@@ -1772,11 +1776,15 @@ function CosmicStyles() {
             linear-gradient(90deg, rgba(8,6,11,0.50), rgba(8,6,11,0.04));
         }
         .ls-hero-backdrop-video {
-          object-position: 72% center;
-          opacity: 0.94;
-          top: -72px;
-          height: calc(100% + 144px);
-          transform: translateY(50px);
+          object-position: 62% 40%;
+          opacity: 0.96;
+          top: 0;
+          height: 100%;
+          transform: none;
+        }
+        .ls-hero-copy .ls-gold-button,
+        .ls-hero-copy .ls-ghost-button {
+          width: 100%;
         }
         .ls-parallax-band::before {
           opacity: 0.42;
@@ -1931,7 +1939,7 @@ const galleryCaptionStyle = {
 const heroTitleStyle = {
   color: C.cream,
   fontFamily: '"Playfair Display", Georgia, serif',
-  fontSize: "clamp(3.4rem, 8vw, 6.35rem)",
+  fontSize: "clamp(2.7rem, 8vw, 6.35rem)",
   fontWeight: 500,
   lineHeight: 0.92,
   letterSpacing: "-0.018em",
