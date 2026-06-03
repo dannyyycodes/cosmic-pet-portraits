@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent, RefObject } from "react";
+import type { CSSProperties, FormEvent, RefObject } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,13 +9,13 @@ const C = {
   cream: "#f5efe6",
   creamDim: "#cfc1b1",
   muted: "#9d8d7f",
-  gold: "#d4b67a",
-  goldSoft: "#f0d99f",
-  goldDeep: "#8b6f3a",
+  gold: "#b08ee6",
+  goldSoft: "#d8c5f5",
+  goldDeep: "#6a4ba0",
   cosmos: "#0d0a14",
   cosmos2: "#15101c",
   cosmos3: "#201722",
-  line: "rgba(212, 182, 122, 0.22)",
+  line: "rgba(176, 142, 230, 0.22)",
   lineSoft: "rgba(245, 239, 230, 0.10)",
 };
 
@@ -161,6 +161,7 @@ export function ReadingsLanding() {
   const checkoutRef = useRef<HTMLDivElement>(null);
   const [selectedPrice, setSelectedPrice] = useState(0);
   useCosmicParallax(pageRef);
+  useScrollReveal(pageRef);
 
   const scrollToCheckout = () => {
     checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -220,26 +221,62 @@ function useCosmicParallax(pageRef: RefObject<HTMLElement>) {
   }, [pageRef]);
 }
 
+// Scroll-reveal: wording rises + fades in as each band enters the viewport, so
+// the copy "pops" instead of sitting flat. Transform/opacity only (GPU), fires
+// once per node, and falls back to instantly-visible under reduced-motion.
+function useScrollReveal(pageRef: RefObject<HTMLElement>) {
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page || typeof window === "undefined") return;
+    const nodes = Array.from(page.querySelectorAll<HTMLElement>(".ls-reveal"));
+    if (!nodes.length) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || !("IntersectionObserver" in window)) {
+      nodes.forEach((node) => node.classList.add("is-in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.12 },
+    );
+    nodes.forEach((node) => io.observe(node));
+    return () => io.disconnect();
+  }, [pageRef]);
+}
+
 function HeroSection({ onBegin }: { onBegin: () => void }) {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(212,182,122,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(176,142,230,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
-          <h1 className="mt-6 text-balance" style={heroTitleStyle}>
-            Read the soul behind those eyes.
+          <p className="ls-reveal ls-hero-eyebrow" style={{ ...eyebrowStyle(C.gold), ...revealDelay(0) }}>
+            Their real birth chart, read as a soul
+          </p>
+          <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
+            Behind every soul, a cosmos.
           </h1>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          <p className="ls-reveal mt-6 max-w-xl text-pretty" style={{ ...heroLeadStyle, ...revealDelay(0.16) }}>
+            The real sky from the day they arrived — every planet, computed — turned into who they are.
+          </p>
+          <div className="ls-reveal mt-9 flex flex-col gap-3 sm:flex-row" style={revealDelay(0.24)}>
             <button onClick={onBegin} className="ls-gold-button">
               Begin Their Reading <ArrowRight size={17} />
             </button>
-            <a href="#how-it-works" className="ls-ghost-button">
-              Look closer
+            <a href="#computed-sky" className="ls-ghost-button">
+              Compute their sky — free
             </a>
           </div>
-          <p className="mt-8 max-w-lg text-pretty" style={whisperStyle}>
+          <p className="ls-reveal mt-8 max-w-lg text-pretty" style={{ ...whisperStyle, ...revealDelay(0.32) }}>
             You already know them. You never had the words.
           </p>
         </div>
@@ -317,18 +354,21 @@ function BirthChartPreviewSection() {
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
+    <section id="computed-sky" className="ls-parallax-band relative px-5 pt-10 pb-18 sm:pt-14 sm:pb-28">
       <div className="ls-chart-shell mx-auto max-w-3xl">
         <SolarSystemBackdrop />
         <div className="relative z-10">
-          <div>
-            <p style={eyebrowStyle(C.gold)}>Computed sky</p>
+          <div className="ls-reveal">
+            <p style={eyebrowStyle(C.gold)}>Computed sky · free</p>
             <h3 className="mt-4 text-balance" style={chartTitleStyle}>
-              Free mini reading
+              Compute their birth sky
             </h3>
+            <p className="mt-4 max-w-xl text-pretty" style={sectionBodyStyle}>
+              Enter their date. Watch their real planets resolve — the same sky their full soul reading is built from.
+            </p>
           </div>
 
-          <form className="ls-lead-form ls-lead-form--card mt-7" onSubmit={handlePreview}>
+          <form className="ls-lead-form ls-lead-form--card ls-reveal mt-7" style={revealDelay(0.08)} onSubmit={handlePreview}>
             <div className="ls-lead-row">
               <div className="ls-lead-field">
                 <label htmlFor="chart-pet-name">Their name (optional)</label>
@@ -391,11 +431,11 @@ function BirthChartPreviewSection() {
 
           {status === "ready" ? (
             <div className="mt-8">
-              <div className="ls-sky-grid">
-                {PLANET_ORDER.map((key) => (
-                  <PlanetCard key={key} planet={key} body={bodyFor(key)} />
+              <div className="ls-sky-grid ls-sky-grid--live">
+                {PLANET_ORDER.map((key, i) => (
+                  <PlanetCard key={key} planet={key} body={bodyFor(key)} index={i} />
                 ))}
-                    <article className="ls-planet-card ls-element-card">
+                    <article className="ls-planet-card ls-element-card" style={revealDelay(0.585)}>
                       <span className="ls-planet-orb ls-element-orb" aria-hidden="true">✦</span>
                       <div className="ls-planet-body">
                         <span className="ls-planet-head">Dominant</span>
@@ -418,7 +458,7 @@ function BirthChartPreviewSection() {
               </div>
             </div>
           ) : (
-            <div className="ls-sky-teaser mt-8">
+            <div className="ls-sky-teaser ls-reveal mt-8">
               <div className="ls-sky-grid ls-sky-preview" aria-hidden="true">
                 {PLANET_ORDER.map((key) => (
                   <PlanetCard key={key} planet={key} />
@@ -443,17 +483,19 @@ function PlanetCard({
   planet,
   body,
   locked = false,
+  index = 0,
 }: {
   planet: keyof typeof PLANET_META;
   body?: ChartBody;
   locked?: boolean;
+  index?: number;
 }) {
   const meta = PLANET_META[planet];
   const sign = body?.sign;
   const signGlyph = sign ? SIGN_GLYPHS[sign] ?? "" : "";
   const degree = typeof body?.degree === "number" ? `${Math.round(body.degree)}° ` : "";
   return (
-    <article className={`ls-planet-card ${locked ? "is-locked" : ""}`}>
+    <article className={`ls-planet-card ${locked ? "is-locked" : ""}`} style={revealDelay(index * 0.045)}>
       {meta.img ? (
         <img className="ls-planet-orb" src={meta.img} alt={meta.label} loading="lazy" width={56} height={56} />
       ) : (
@@ -593,10 +635,10 @@ function QuietMomentSection() {
     <section className="ls-story-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
       <div className="ls-story-inner mx-auto max-w-6xl">
         <div className="ls-story-hero">
-          <div className="ls-story-copy">
+          <div className="ls-story-copy ls-reveal">
             <p style={eyebrowStyle(C.gold)}>The full reading</p>
             <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-              Finally, words for the bond you feel.
+              Discover the soul behind those eyes.
             </h2>
             <p className="mt-6 text-pretty" style={sectionBodyStyle}>
               Their whole sky, in words. How they love, what they need,
@@ -609,7 +651,7 @@ function QuietMomentSection() {
             </div>
           </div>
 
-          <figure className="ls-story-cat">
+          <figure className="ls-story-cat ls-reveal" style={revealDelay(0.12)}>
             <img
               src="/readings/hero/black-cat-galaxy-eye.webp"
               alt="Black cat with a faint galaxy reflected in one eye"
@@ -621,7 +663,7 @@ function QuietMomentSection() {
         </div>
 
         <div className="ls-story-moments">
-          <article className="ls-story-moment ls-story-moment--wide">
+          <article className="ls-story-moment ls-story-moment--wide ls-reveal" style={revealDelay(0)}>
             <figure>
               <img
                 src="/readings/hero/cockapoo-reading-tablet.webp"
@@ -640,7 +682,7 @@ function QuietMomentSection() {
             </div>
           </article>
 
-          <article className="ls-story-moment">
+          <article className="ls-story-moment ls-reveal" style={revealDelay(0.1)}>
             <figure>
               <img
                 src="/readings/hero/doberman-puppy-star-map.webp"
@@ -661,7 +703,7 @@ function QuietMomentSection() {
         </div>
 
         <div className="ls-receive-panel">
-          <div>
+          <div className="ls-reveal">
             <p style={eyebrowStyle(C.gold)}>Inside</p>
             <h2 className="mt-4 text-balance" style={sectionTitleStyle}>
               Everything you need to feel closer.
@@ -673,8 +715,8 @@ function QuietMomentSection() {
               ["Love language", "How they ask for comfort, for trust, for closeness."],
               ["SoulSpeak", "The words you've waited their whole life to hear."],
               ["Horoscope", "Their sky now, gently translated."],
-            ].map(([title, body]) => (
-              <article key={title} className="ls-receive-item">
+            ].map(([title, body], i) => (
+              <article key={title} className="ls-receive-item ls-reveal" style={revealDelay(i * 0.08)}>
                 <strong>{title}</strong>
                 <p>{body}</p>
               </article>
@@ -697,8 +739,8 @@ function FaqSection() {
           centered
         />
         <div className="mt-12 divide-y" style={{ borderColor: C.line }}>
-          {FAQ.map((item) => (
-            <article key={item.q} className="py-8">
+          {FAQ.map((item, i) => (
+            <article key={item.q} className="py-8 ls-reveal" style={revealDelay(i * 0.06)}>
               <h3 style={faqTitleStyle}>{item.q}</h3>
               <p className="mt-4 text-pretty" style={bodyStyle}>{item.a}</p>
             </article>
@@ -798,9 +840,9 @@ function HeroBackdropVideo() {
 function CosmicBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(65,47,88,0.55),transparent_42%),radial-gradient(ellipse_at_88%_18%,rgba(212,182,122,0.12),transparent_26%),radial-gradient(ellipse_at_10%_70%,rgba(94,70,122,0.16),transparent_32%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(65,47,88,0.55),transparent_42%),radial-gradient(ellipse_at_88%_18%,rgba(176,142,230,0.12),transparent_26%),radial-gradient(ellipse_at_10%_70%,rgba(94,70,122,0.16),transparent_32%)]" />
       <svg className="absolute inset-0 h-full w-full opacity-50" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
-        <g stroke="rgba(212,182,122,0.15)" strokeWidth="1" fill="none">
+        <g stroke="rgba(176,142,230,0.15)" strokeWidth="1" fill="none">
           <path d="M110 220 188 174 275 238 360 188" />
           <path d="M810 126 902 196 1010 156 1078 245" />
           <path d="M704 662 780 602 856 678 942 624" />
@@ -835,6 +877,29 @@ function CosmicStyles() {
       .ls-parallax-band {
         isolation: isolate;
       }
+      .ls-reveal {
+        opacity: 0;
+        transform: translate3d(0, 30px, 0);
+        transition:
+          opacity 0.85s cubic-bezier(0.22, 0.7, 0.2, 1),
+          transform 0.85s cubic-bezier(0.22, 0.7, 0.2, 1);
+        transition-delay: var(--ls-delay, 0s);
+        will-change: opacity, transform;
+      }
+      .ls-reveal.is-in {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+      .ls-hero-eyebrow { margin-bottom: 4px; }
+      .ls-sky-grid--live > .ls-planet-card,
+      .ls-sky-grid--live > .ls-element-card {
+        animation: ls-pop-in 0.62s both;
+        animation-delay: var(--ls-delay, 0s);
+      }
+      @keyframes ls-pop-in {
+        from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.985); }
+        to { opacity: 1; transform: none; }
+      }
       .ls-parallax-band::before {
         content: "";
         position: absolute;
@@ -842,7 +907,7 @@ function CosmicStyles() {
         inset: -18% -10%;
         pointer-events: none;
         background:
-          radial-gradient(circle at 22% 28%, rgba(212,182,122,0.055), transparent 18%),
+          radial-gradient(circle at 22% 28%, rgba(176,142,230,0.055), transparent 18%),
           radial-gradient(circle at 78% 62%, rgba(94,70,122,0.12), transparent 22%);
         opacity: 0.72;
         transform:
@@ -882,7 +947,7 @@ function CosmicStyles() {
       .ls-authority-stage {
         padding: clamp(28px, 5vw, 56px);
         background:
-          radial-gradient(ellipse at 18% 0%, rgba(212,182,122,0.14), transparent 34%),
+          radial-gradient(ellipse at 18% 0%, rgba(176,142,230,0.14), transparent 34%),
           linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.025));
       }
       .ls-calc-toggle {
@@ -892,14 +957,14 @@ function CosmicStyles() {
         gap: 16px;
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(212,182,122,0.26);
+        border: 1px solid rgba(176,142,230,0.26);
         border-radius: 10px;
         background: rgba(5,4,7,0.4);
         padding: 16px 18px;
         cursor: pointer;
         transition: border-color 0.2s ease;
       }
-      .ls-calc-toggle:hover { border-color: rgba(212,182,122,0.5); }
+      .ls-calc-toggle:hover { border-color: rgba(176,142,230,0.5); }
       .ls-calc-toggle.is-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -919,12 +984,12 @@ function CosmicStyles() {
       }
       .ls-calc-toggle.is-open .ls-calc-chevron { transform: rotate(180deg); }
       .ls-calc-body {
-        border: 1px solid rgba(212,182,122,0.26);
+        border: 1px solid rgba(176,142,230,0.26);
         border-top: none;
         border-radius: 0 0 10px 10px;
         padding: clamp(18px, 3vw, 28px);
         background:
-          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 46%),
+          radial-gradient(ellipse at 0% 0%, rgba(176,142,230,0.10), transparent 46%),
           linear-gradient(180deg, rgba(5,4,7,0.32), rgba(5,4,7,0.12));
       }
       .ls-calc-lead {
@@ -938,8 +1003,8 @@ function CosmicStyles() {
         margin-top: 22px;
         display: grid;
         gap: 1px;
-        background: rgba(212,182,122,0.16);
-        border: 1px solid rgba(212,182,122,0.16);
+        background: rgba(176,142,230,0.16);
+        border: 1px solid rgba(176,142,230,0.16);
         border-radius: 10px;
         overflow: hidden;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -984,12 +1049,12 @@ function CosmicStyles() {
         z-index: 1;
         overflow: hidden;
         min-height: 560px;
-        border: 1px solid rgba(212,182,122,0.34);
-        border-top-color: rgba(212,182,122,0.62);
+        border: 1px solid rgba(176,142,230,0.34);
+        border-top-color: rgba(176,142,230,0.62);
         border-radius: 8px;
         padding: clamp(24px, 4vw, 42px);
         background:
-          radial-gradient(ellipse at 50% -12%, rgba(212,182,122,0.18), transparent 42%),
+          radial-gradient(ellipse at 50% -12%, rgba(176,142,230,0.18), transparent 42%),
           radial-gradient(ellipse at 18% 82%, rgba(94,70,122,0.28), transparent 34%),
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
         box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.28);
@@ -999,7 +1064,7 @@ function CosmicStyles() {
         inset: 0;
         overflow: hidden;
         pointer-events: none;
-        opacity: 0.3;
+        opacity: 0.4;
       }
       .ls-solar-stage {
         position: absolute;
@@ -1023,7 +1088,7 @@ function CosmicStyles() {
         inset: 0;
         margin: auto;
         aspect-ratio: 1;
-        border: 1px solid rgba(212,182,122,0.10);
+        border: 1px solid rgba(176,142,230,0.10);
         border-radius: 50%;
         animation: ls-orbit linear infinite;
         will-change: transform;
@@ -1034,7 +1099,7 @@ function CosmicStyles() {
         left: 50%;
         transform: translate(-50%, -50%);
         object-fit: contain;
-        filter: drop-shadow(0 0 6px rgba(212,182,122,0.4));
+        filter: drop-shadow(0 0 6px rgba(176,142,230,0.4));
       }
       @keyframes ls-orbit {
         from { transform: rotate(0deg); }
@@ -1085,7 +1150,7 @@ function CosmicStyles() {
       .ls-lead-form input {
         min-height: 48px;
         width: 100%;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(176,142,230,0.34);
         border-radius: 8px;
         background: rgba(5,4,7,0.62);
         color: ${C.cream};
@@ -1134,7 +1199,7 @@ function CosmicStyles() {
         height: 54px;
         flex: none;
         object-fit: contain;
-        filter: drop-shadow(0 0 10px rgba(212,182,122,0.26));
+        filter: drop-shadow(0 0 10px rgba(176,142,230,0.26));
       }
       .ls-element-orb,
       .ls-glyph-orb {
@@ -1142,17 +1207,17 @@ function CosmicStyles() {
         place-items: center;
         color: ${C.gold};
         font-size: 1.7rem;
-        border: 1px solid rgba(212,182,122,0.42);
+        border: 1px solid rgba(176,142,230,0.42);
         border-radius: 50%;
         filter: none;
       }
       .ls-glyph-orb {
         font-size: 1.5rem;
-        background: rgba(212,182,122,0.06);
+        background: rgba(176,142,230,0.06);
       }
       .ls-calc-figure {
         margin: 0 0 18px;
-        border: 1px solid rgba(212,182,122,0.2);
+        border: 1px solid rgba(176,142,230,0.2);
         border-radius: 10px;
         overflow: hidden;
         background: #0d0a14;
@@ -1173,7 +1238,7 @@ function CosmicStyles() {
         font-size: 0.72rem;
         line-height: 1.4;
         letter-spacing: 0.03em;
-        border-top: 1px solid rgba(212,182,122,0.14);
+        border-top: 1px solid rgba(176,142,230,0.14);
       }
       .ls-planet-body { display: grid; gap: 3px; min-width: 0; }
       .ls-planet-head {
@@ -1244,7 +1309,7 @@ function CosmicStyles() {
       .ls-sky-gate input {
         min-height: 48px;
         width: 100%;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(176,142,230,0.34);
         border-radius: 8px;
         background: rgba(5,4,7,0.72);
         color: ${C.cream};
@@ -1264,7 +1329,7 @@ function CosmicStyles() {
       .ls-story-section {
         background:
           radial-gradient(ellipse at 78% 18%, rgba(94,70,122,0.22), transparent 34%),
-          radial-gradient(ellipse at 10% 62%, rgba(212,182,122,0.08), transparent 28%);
+          radial-gradient(ellipse at 10% 62%, rgba(176,142,230,0.08), transparent 28%);
       }
       .ls-story-inner,
       .ls-story-hero,
@@ -1367,7 +1432,7 @@ function CosmicStyles() {
         align-items: start;
         margin-top: clamp(62px, 8vw, 106px);
         padding-top: clamp(34px, 5vw, 58px);
-        border-top: 1px solid rgba(212,182,122,0.22);
+        border-top: 1px solid rgba(176,142,230,0.22);
       }
       .ls-receive-grid {
         display: grid;
@@ -1376,7 +1441,7 @@ function CosmicStyles() {
       }
       .ls-receive-item {
         min-height: 168px;
-        border: 1px solid rgba(212,182,122,0.24);
+        border: 1px solid rgba(176,142,230,0.24);
         border-radius: 8px;
         background: linear-gradient(180deg, rgba(245,239,230,0.055), rgba(245,239,230,0.018));
         padding: clamp(18px, 2.5vw, 24px);
@@ -1389,14 +1454,14 @@ function CosmicStyles() {
         gap: 18px;
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(212,182,122,0.30);
+        border: 1px solid rgba(176,142,230,0.30);
         border-radius: 12px;
         background: linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.02));
         padding: 20px 22px;
         cursor: pointer;
         transition: border-color 0.2s ease, background 0.2s ease;
       }
-      .ls-disclosure:hover { border-color: rgba(212,182,122,0.52); }
+      .ls-disclosure:hover { border-color: rgba(176,142,230,0.52); }
       .ls-disclosure.is-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -1416,13 +1481,13 @@ function CosmicStyles() {
         width: 42px;
         height: 42px;
         border-radius: 50%;
-        border: 1px solid rgba(212,182,122,0.4);
+        border: 1px solid rgba(176,142,230,0.4);
         color: ${C.gold};
         font-size: 1.6rem;
         line-height: 1;
       }
       .ls-disclosure-body {
-        border: 1px solid rgba(212,182,122,0.30);
+        border: 1px solid rgba(176,142,230,0.30);
         border-top: none;
         border-bottom-left-radius: 12px;
         border-bottom-right-radius: 12px;
@@ -1448,9 +1513,9 @@ function CosmicStyles() {
       }
       .ls-checkout-shell {
         background:
-          radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.13), transparent 40%),
+          radial-gradient(ellipse at 50% 0%, rgba(176,142,230,0.13), transparent 40%),
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
-        border-top: 1px solid rgba(212,182,122,0.46);
+        border-top: 1px solid rgba(176,142,230,0.46);
       }
       .ls-checkout-vars {
         --black: ${C.cream};
@@ -1459,8 +1524,8 @@ function CosmicStyles() {
         --muted: ${C.muted};
         --cream: transparent;
         --cream2: rgba(245,239,230,0.06);
-        --cream3: rgba(212,182,122,0.22);
-        --sand: rgba(212,182,122,0.30);
+        --cream3: rgba(176,142,230,0.22);
+        --sand: rgba(176,142,230,0.30);
         --rose: ${C.gold};
         --rose-hover: ${C.goldSoft};
         --gold: ${C.gold};
@@ -1496,7 +1561,7 @@ function CosmicStyles() {
         border: 1px solid ${C.line};
       }
       .ls-ghost-button:hover {
-        border-color: rgba(212,182,122,0.56);
+        border-color: rgba(176,142,230,0.56);
         background: rgba(245,239,230,0.04);
       }
       .ls-hero-section {
@@ -1569,7 +1634,7 @@ function CosmicStyles() {
         top: 0;
         width: 33%;
         min-height: 92px;
-        border-left: 1px solid rgba(212,182,122,0.34);
+        border-left: 1px solid rgba(176,142,230,0.34);
         padding-left: 16px;
         color: ${C.muted};
         font-family: Lato, system-ui, sans-serif;
@@ -1586,7 +1651,7 @@ function CosmicStyles() {
         margin-top: 6px;
       }
       .ls-hero-img {
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(176,142,230,0.34);
         border-radius: 8px;
         background: #050407;
         box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 20px 60px rgba(0,0,0,0.32);
@@ -1597,7 +1662,7 @@ function CosmicStyles() {
         padding-left: 0;
         min-height: 0;
         aspect-ratio: 1 / 1;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(176,142,230,0.34);
         border-radius: 8px;
         overflow: hidden;
         background: #050407;
@@ -1633,7 +1698,7 @@ function CosmicStyles() {
       }
       .ls-placeholder {
         background: #050407;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(176,142,230,0.34);
         border-radius: 8px;
       }
       .ls-placeholder::before {
@@ -1646,7 +1711,7 @@ function CosmicStyles() {
         position: absolute;
         inset: 0;
         background:
-          radial-gradient(circle at 50% 42%, rgba(212,182,122,0.20), transparent 22%),
+          radial-gradient(circle at 50% 42%, rgba(176,142,230,0.20), transparent 22%),
           radial-gradient(circle at 50% 42%, rgba(94,70,122,0.14), transparent 34%);
         opacity: 0.72;
         transform: translate3d(
@@ -1677,7 +1742,7 @@ function CosmicStyles() {
         z-index: 0;
         width: 180px;
         height: 1px;
-        background: linear-gradient(90deg, rgba(245,239,230,0), rgba(245,239,230,0.86), rgba(212,182,122,0));
+        background: linear-gradient(90deg, rgba(245,239,230,0), rgba(245,239,230,0.86), rgba(176,142,230,0));
         transform: rotate(-28deg);
         opacity: 0.7;
       }
@@ -1827,10 +1892,31 @@ function CosmicStyles() {
         .ls-solar-ring {
           animation: none !important;
         }
+        .ls-reveal {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+        }
+        .ls-sky-grid--live > .ls-planet-card,
+        .ls-sky-grid--live > .ls-element-card {
+          animation: none !important;
+        }
       }
     `}</style>
   );
 }
+
+function revealDelay(seconds: number): CSSProperties {
+  return { ["--ls-delay" as string]: `${seconds}s` } as CSSProperties;
+}
+
+const heroLeadStyle = {
+  color: C.cream,
+  fontFamily: "Lato, system-ui, sans-serif",
+  fontSize: "clamp(1.05rem, 2.1vw, 1.3rem)",
+  fontWeight: 400,
+  lineHeight: 1.5,
+} as const;
 
 const heroTitleStyle = {
   color: C.cream,

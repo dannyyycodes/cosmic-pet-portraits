@@ -1018,7 +1018,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             position: absolute;
             inset: 0;
             background:
-              radial-gradient(ellipse at 76% 6%, rgba(212,182,122,0.16), transparent 34%),
+              radial-gradient(ellipse at 76% 6%, rgba(176,142,230,0.16), transparent 34%),
               radial-gradient(ellipse at 12% 96%, rgba(94,70,122,0.22), transparent 38%);
             pointer-events: none;
           }
@@ -1027,8 +1027,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(340px, 0.82fr);
             gap: clamp(18px, 3vw, 30px);
-            border: 1px solid rgba(212,182,122,0.34);
-            border-top-color: rgba(212,182,122,0.64);
+            border: 1px solid rgba(176,142,230,0.34);
+            border-top-color: rgba(176,142,230,0.64);
             border-radius: 8px;
             background:
               linear-gradient(110deg, rgba(245,239,230,0.074), rgba(245,239,230,0.032)),
@@ -1043,7 +1043,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-checkout-kicker,
           .cosmic-mini-label {
-            color: #d4b67a;
+            color: #b08ee6;
             font-family: Lato, system-ui, sans-serif;
             font-size: 12px;
             font-weight: 700;
@@ -1082,21 +1082,21 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border: 1px solid rgba(245,239,230,0.12);
             border-radius: 8px;
             background:
-              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.10), transparent 44%),
+              radial-gradient(ellipse at 50% 0%, rgba(176,142,230,0.10), transparent 44%),
               linear-gradient(180deg, rgba(5,4,7,0.42), rgba(5,4,7,0.18));
             padding: 22px;
             cursor: pointer;
           }
           .cosmic-tier.is-selected {
-            border-color: rgba(212,182,122,0.72);
-            box-shadow: 0 0 0 1px rgba(212,182,122,0.16), 0 18px 48px rgba(0,0,0,0.24);
+            border-color: rgba(176,142,230,0.72);
+            box-shadow: 0 0 0 1px rgba(176,142,230,0.16), 0 18px 48px rgba(0,0,0,0.24);
           }
           .cosmic-tier-badge {
             position: absolute;
             top: -11px;
             right: 18px;
             border-radius: 999px;
-            background: #d4b67a;
+            background: #b08ee6;
             color: #141210;
             padding: 4px 10px;
             font-family: Lato, system-ui, sans-serif;
@@ -1115,12 +1115,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             width: 18px;
             height: 18px;
             margin-top: 6px;
-            border: 2px solid rgba(212,182,122,0.55);
+            border: 2px solid rgba(176,142,230,0.55);
             border-radius: 999px;
           }
           .cosmic-tier.is-selected .cosmic-radio {
             box-shadow: inset 0 0 0 4px #15101c;
-            background: #d4b67a;
+            background: #b08ee6;
           }
           .cosmic-tier h3 {
             margin: 0;
@@ -1192,9 +1192,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-feature-list small {
             flex-shrink: 0;
-            border: 1px solid rgba(212,182,122,0.30);
+            border: 1px solid rgba(176,142,230,0.30);
             border-radius: 999px;
-            color: #f0d99f;
+            color: #d8c5f5;
             padding: 3px 7px;
             font-size: 0.62rem;
             font-weight: 800;
@@ -1207,7 +1207,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            border: 1px solid rgba(212,182,122,0.22);
+            border: 1px solid rgba(176,142,230,0.22);
             border-radius: 8px;
             background: rgba(5,4,7,0.48);
             padding: 10px 12px;
@@ -1217,7 +1217,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             grid-template-columns: 1fr auto auto;
             gap: 12px;
             align-items: center;
-            border: 1px solid rgba(212,182,122,0.22);
+            border: 1px solid rgba(176,142,230,0.22);
             border-radius: 8px;
             background: rgba(5,4,7,0.35);
             padding: 14px;
@@ -1231,10 +1231,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-preview-link {
             min-height: 36px;
-            border: 1px solid rgba(212,182,122,0.32);
+            border: 1px solid rgba(176,142,230,0.32);
             border-radius: 999px;
-            background: rgba(212,182,122,0.08);
-            color: #f0d99f;
+            background: rgba(176,142,230,0.08);
+            color: #d8c5f5;
             padding: 0 12px;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.72rem;
@@ -1256,10 +1256,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-stepper button {
             width: 38px;
             height: 38px;
-            border: 1px solid rgba(212,182,122,0.34);
+            border: 1px solid rgba(176,142,230,0.34);
             border-radius: 999px;
             background: rgba(245,239,230,0.06);
-            color: #f0d99f;
+            color: #d8c5f5;
             font: 700 18px/1 Lato, system-ui, sans-serif;
           }
           .cosmic-stepper button:disabled {
@@ -1276,10 +1276,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             align-self: start;
             position: sticky;
             top: 92px;
-            border: 1px solid rgba(212,182,122,0.30);
+            border: 1px solid rgba(176,142,230,0.30);
             border-radius: 8px;
             background:
-              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.14), transparent 38%),
+              radial-gradient(ellipse at 50% 0%, rgba(176,142,230,0.14), transparent 38%),
               rgba(5,4,7,0.58);
             padding: clamp(18px, 2.6vw, 26px);
           }
@@ -1300,7 +1300,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             font-size: 1.05rem;
           }
           .cosmic-total-row strong {
-            color: #f0d99f;
+            color: #d8c5f5;
             font-family: "Playfair Display", Georgia, serif;
             font-size: 1.8rem;
             font-weight: 500;
@@ -1309,7 +1309,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             width: 100%;
             border: 0;
             background: none;
-            color: #d4b67a;
+            color: #b08ee6;
             padding: 10px 0;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.84rem;
@@ -1324,7 +1324,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-order-panel input {
             width: 100%;
             min-height: 48px;
-            border: 1px solid rgba(212,182,122,0.34);
+            border: 1px solid rgba(176,142,230,0.34);
             border-radius: 8px;
             background: rgba(5,4,7,0.76);
             color: #f5efe6;
@@ -1342,9 +1342,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-primary-button,
           .cosmic-apply-button {
             min-height: 50px;
-            border: 1px solid #f0d99f;
+            border: 1px solid #d8c5f5;
             border-radius: 8px;
-            background: linear-gradient(180deg, #f0d99f, #d4b67a);
+            background: linear-gradient(180deg, #d8c5f5, #b08ee6);
             color: #141210;
             font-family: Lato, system-ui, sans-serif;
             font-weight: 800;
@@ -1357,7 +1357,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: flex;
             justify-content: center;
             margin-top: 12px;
-            color: #f0d99f;
+            color: #d8c5f5;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.88rem;
             text-decoration: none;
@@ -1410,10 +1410,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-preview-panel {
             width: min(520px, 94vw);
-            border: 1px solid rgba(212,182,122,0.38);
+            border: 1px solid rgba(176,142,230,0.38);
             border-radius: 8px;
             background:
-              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.14), transparent 38%),
+              radial-gradient(ellipse at 50% 0%, rgba(176,142,230,0.14), transparent 38%),
               linear-gradient(180deg, #17111e, #0d0a14);
             box-shadow: 0 28px 90px rgba(0,0,0,0.48);
             padding: clamp(22px, 4vw, 34px);
@@ -1436,10 +1436,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-preview-panel button {
             margin-top: 24px;
             min-height: 46px;
-            border: 1px solid rgba(212,182,122,0.40);
+            border: 1px solid rgba(176,142,230,0.40);
             border-radius: 8px;
-            background: rgba(212,182,122,0.10);
-            color: #f0d99f;
+            background: rgba(176,142,230,0.10);
+            color: #d8c5f5;
             padding: 0 18px;
             font-family: Lato, system-ui, sans-serif;
             font-weight: 800;
@@ -1555,7 +1555,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 </button>
               </div>
             )}
-            {codeError && <p style={{ color: "#f0d99f", fontSize: 12, margin: "4px 0 0" }}>{codeError}</p>}
+            {codeError && <p style={{ color: "#d8c5f5", fontSize: 12, margin: "4px 0 0" }}>{codeError}</p>}
 
             <label htmlFor="v2-email">Where their reading opens</label>
             <input
@@ -1565,7 +1565,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               onChange={(e) => { setEmail(e.target.value); setError(""); }}
               placeholder="you@example.com"
             />
-            {error && <p style={{ color: "#f0d99f", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
+            {error && <p style={{ color: "#d8c5f5", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
 
             <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
               {isLoading ? "Opening secure checkout..." : `${ctaLabel} — ${fmt(finalPrice + charityBonus * 100)}`}
