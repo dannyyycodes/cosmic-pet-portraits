@@ -1042,8 +1042,8 @@ function CosmicStyles() {
         z-index: 1;
         overflow: hidden;
         min-height: 560px;
-        border: 1px solid rgba(212,182,122,0.34);
-        border-top-color: rgba(212,182,122,0.62);
+        border: 1px solid rgba(124,92,214,0.5);
+        border-top-color: rgba(124,92,214,0.8);
         border-radius: 8px;
         padding: clamp(24px, 4vw, 42px);
         background:
