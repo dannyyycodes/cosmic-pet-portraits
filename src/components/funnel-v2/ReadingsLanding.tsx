@@ -143,8 +143,8 @@ const REL_SIZE: Record<string, number> = {
   venus: 0.125,
   mars: 0.08,
   mercury: 0.06,
-  moon: 0.05,
-  pluto: 0.045,
+  moon: 0.08,
+  pluto: 0.06,
   chiron: 0.05,
   northNode: 0.06,
   lilith: 0.06,
@@ -165,6 +165,7 @@ const NASA_IMG: Record<string, string> = {
   chiron: "/readings/planets-nasa/chiron.png",
   uranus: "/readings/planets-nasa/uranus.png",
   neptune: "/readings/planets-nasa/neptune.png",
+  pluto: "/readings/planets-nasa/pluto.png",
 };
 
 // Scientifically-ish placed bodies (r = % of half-extent from centre, a = degrees).
@@ -178,9 +179,9 @@ const BODY_POS: Record<string, { x: number; y: number }> = {
   mercury: { x: 26, y: 64 },
   venus: { x: 33, y: 60 },
   earth: { x: 40, y: 56 },
-  moon: { x: 44.5, y: 52 },
-  northNode: { x: 37, y: 59 },
-  lilith: { x: 46.5, y: 49 },
+  moon: { x: 45, y: 51 },
+  northNode: { x: 45, y: 51 },
+  lilith: { x: 45, y: 51 },
   mars: { x: 50, y: 53 },
   jupiter: { x: 60, y: 46 },
   saturn: { x: 71, y: 39 },
@@ -194,7 +195,7 @@ const flattenY = (y: number, mob: boolean) => (mob ? 50 + (y - 50) * 0.5 : y);
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
 const JOURNEY_SEQ = ["sun", "mercury", "venus", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Everything drawn in the system (adds decorative Earth).
-const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Bodies that get a faint orbit ring (real planets only, not the lunar points / chiron).
 const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"] as const;
 
@@ -593,7 +594,7 @@ function BirthSkyJourney() {
   // Camera: pan + zoom across the solar system so the active body's region is
   // centred and magnified, gliding from planet to planet as you scroll.
   const seg = 1 / steps;
-  const ZOOM = isMobile ? 2.2 : 1.6;
+  const ZOOM = isMobile ? 2.7 : 2.5;
   const targets = JOURNEY_SEQ.map((key) => {
     if (key === "sun") return { tx: 0, ty: 0 };
     const p = BODY_POS[key];
@@ -727,11 +728,9 @@ function BirthSkyJourney() {
                 exit={{ opacity: 0, y: -22 }}
                 transition={{ duration: reduce ? 0 : 0.45, ease }}
               >
-                <div className="ls-dock-orb">
-                  {NASA_IMG[body] ? <img src={NASA_IMG[body]} alt={meta.label} /> : meta.img ? <img src={meta.img} alt={meta.label} /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
-                </div>
                 <div className="ls-dock-text">
-                  <span className="ls-journey-name"><i className="ls-readout-glyph">{meta.glyph}</i>{meta.label}</span>
+                  <span className="ls-dock-glyph">{meta.glyph}</span>
+                  <span className="ls-journey-name">{meta.label}</span>
                   <p className="ls-journey-line">{line}</p>
                 </div>
               </motion.div>
@@ -904,21 +903,29 @@ function SystemBody({ bodyKey, journeyIndex, active, onJump, isMobile }: { bodyK
   const baseDiam = isSun ? 56 : (1 + base * 13) * (isMobile ? 1.6 : 1);
   const top = flattenY(pos.y, isMobile);
   const meta = PLANET_META[bodyKey];
-  const clickable = journeyIndex >= 0;
-  const isActive = clickable && journeyIndex === active;
+  const isMoon = bodyKey === "moon";
+  const activeKey = JOURNEY_SEQ[active];
+  // The single Moon serves moon + the two lunar points: full when on Moon, marked
+  // for the North Node, and shadowed (dark Moon) for Lilith.
+  const moonDark = isMoon && activeKey === "lilith";
+  const moonNode = isMoon && activeKey === "northNode";
+  const clickable = journeyIndex >= 0 || isMoon;
+  const isActive = isMoon
+    ? activeKey === "moon" || activeKey === "northNode" || activeKey === "lilith"
+    : clickable && journeyIndex === active;
+  const jumpTo = isMoon ? (JOURNEY_SEQ as readonly string[]).indexOf("moon") : journeyIndex;
   return (
     <div
       className={`ls-sys-slot ${isActive ? "is-active" : ""} ${clickable ? "is-clickable" : ""}`}
       style={{ left: `${pos.x}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: isSun ? 0 : isActive ? 5 : 1 }}
-      onClick={clickable ? () => onJump(journeyIndex) : undefined}
+      onClick={clickable ? () => onJump(jumpTo) : undefined}
     >
       {isSun ? (
         <span className="ls-sys-sun"><SunMedia /></span>
-      ) : bodyKey === "northNode" ? (
-        <span className="ls-sys-node">{PLANET_META.northNode.glyph}</span>
       ) : NASA_IMG[bodyKey] ? (
         <span className="ls-sys-orb2">
-          <img src={NASA_IMG[bodyKey]} alt="" className={bodyKey === "lilith" ? "is-shadowed" : ""} loading="lazy" />
+          <img src={NASA_IMG[bodyKey]} alt="" className={moonDark ? "is-shadowed" : ""} loading="lazy" />
+          {moonNode && <span className="ls-sys-node ls-sys-node--mark">{PLANET_META.northNode.glyph}</span>}
         </span>
       ) : (
         <span className="ls-sys-glyph">{meta?.glyph}</span>
@@ -1655,11 +1662,11 @@ function CosmicStyles() {
         position: absolute;
         left: 50%;
         top: 50%;
-        width: 120%;
+        width: 160%;
         aspect-ratio: 1;
         transform: translate(-50%, -50%);
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,120,24,0.62) 30%, rgba(255,78,12,0.3) 46%, transparent 66%);
+        background: radial-gradient(circle, rgba(255,150,50,0) 22%, rgba(255,140,40,0.6) 29%, rgba(255,95,18,0.34) 40%, transparent 64%);
         animation: ls-sun-aura 6s ease-in-out infinite;
         z-index: 0;
         pointer-events: none;
@@ -1676,9 +1683,8 @@ function CosmicStyles() {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transform: scale(1.04);
-        -webkit-clip-path: circle(49%);
-        clip-path: circle(49%);
+        -webkit-clip-path: circle(45%);
+        clip-path: circle(45%);
         filter: sepia(0.5) saturate(2.05) hue-rotate(-14deg) brightness(1.08) contrast(1.06);
       }
       @keyframes ls-sun-aura {
@@ -1723,8 +1729,9 @@ function CosmicStyles() {
       }
       .ls-sys-slot.is-active .ls-sys-orb img { opacity: 1; }
       .ls-sys-slot.is-active .ls-sys-glyph { color: ${C.violet}; text-shadow: 0 0 12px rgba(124,92,214,0.9); }
-      .ls-sys-orb2 { width: 100%; aspect-ratio: 1; display: grid; place-items: center; }
-      .ls-sys-orb2 img { width: 100%; height: 100%; object-fit: contain; transition: filter 0.4s ease; }
+      .ls-sys-orb2 { position: relative; width: 100%; aspect-ratio: 1; display: grid; place-items: center; }
+      .ls-sys-orb2 img { width: 100%; height: 100%; object-fit: contain; transition: filter 0.6s ease, opacity 0.6s ease; }
+      .ls-sys-node--mark { position: absolute; inset: 0; display: grid; place-items: center; color: ${C.gold}; font-size: clamp(0.9rem, 3.5vw, 1.8rem); text-shadow: 0 0 8px rgba(0,0,0,0.85); }
       .ls-sys-orb2 img.is-shadowed { filter: brightness(0.32) saturate(0.5) contrast(1.05); }
       .ls-sys-node { color: ${C.gold}; font-size: clamp(0.7rem, 2.6vw, 1.5rem); line-height: 1; }
       .ls-sys-slot.is-active .ls-sys-orb2 img { filter: drop-shadow(0 0 14px rgba(124,92,214,0.85)); }
@@ -1757,9 +1764,10 @@ function CosmicStyles() {
       }
       .ls-dock-orb img { width: 100%; height: 100%; object-fit: cover; }
       .ls-dock-orb .ls-sys-glyph { font-size: clamp(2rem, 7vw, 3.2rem); color: ${C.gold}; }
-      .ls-dock-text { display: grid; gap: 8px; min-width: 0; }
-      .ls-dock-text .ls-journey-name { text-align: left; font-size: 0.86rem; }
-      .ls-dock-text .ls-journey-line { text-align: left; font-size: clamp(1.3rem, 4.4vw, 2rem); }
+      .ls-dock-text { display: grid; gap: 6px; justify-items: center; min-width: 0; }
+      .ls-dock-glyph { color: ${C.gold}; font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1; }
+      .ls-dock-text .ls-journey-name { text-align: center; font-size: 0.82rem; }
+      .ls-dock-text .ls-journey-line { text-align: center; font-size: clamp(1.3rem, 4.4vw, 2rem); }
       .ls-journey-orbit {
         position: absolute;
         left: 50%;
