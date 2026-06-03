@@ -108,6 +108,26 @@ const PLANET_ORDER = [
   "uranus", "neptune", "pluto", "chiron", "northNode", "lilith",
 ] as const;
 
+// Punchy per-body lines for the scroll journey (filled from the brand-locked
+// copy workflow). Falls back to the PLANET_META line until populated.
+const JOURNEY_LINES: Record<string, string> = {
+  sun: "Who they truly are underneath.",
+  moon: "What they feel before you do.",
+  mercury: "How they listen, then answer you.",
+  venus: "The way they ask to be loved.",
+  mars: "Their fire, their nerve, their play.",
+  jupiter: "Where they grow brave enough to trust.",
+  saturn: "What steadies them when everything shakes.",
+  uranus: "Where they surprise even themselves.",
+  neptune: "The dreaming softness behind their eyes.",
+  pluto: "What they hold and never show.",
+  chiron: "The old wound slowly mending.",
+  northNode: "Where their soul is quietly headed.",
+  lilith: "The wild they never surrendered.",
+};
+const JOURNEY_HINT = "These thirteen lines only graze the surface of the chart their birth sky drew.";
+const JOURNEY_CTA = "Open Their Reading";
+
 const SIGN_GLYPHS: Record<string, string> = {
   Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
   Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏",
@@ -174,7 +194,7 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
-      <BirthChartPreviewSection />
+      <BirthSkyJourney />
       <QuietMomentSection />
       <CheckoutSection
         checkoutRef={checkoutRef}
@@ -467,6 +487,241 @@ function BirthChartPreviewSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+// Scroll journey through the birth sky. A sticky stage holds the solar system;
+// a tall transparent track of step-triggers drives an IntersectionObserver that
+// lights the bodies one at a time (Sun outward). Next/Prev + dots also navigate.
+// The final step is the existing free-calc form, then a value reveal + hint.
+function BirthSkyJourney() {
+  const [petName, setPetName] = useState("");
+  const [date, setDate] = useState("");
+  const [email, setEmail] = useState("");
+  const [chart, setChart] = useState<PetBirthChart | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const [active, setActive] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const total = PLANET_ORDER.length;
+
+  useEffect(() => {
+    const root = trackRef.current;
+    if (!root || typeof window === "undefined") return;
+    const steps = Array.from(root.querySelectorAll<HTMLElement>("[data-step]"));
+    if (!steps.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const i = Number((entry.target as HTMLElement).dataset.step);
+            if (!Number.isNaN(i)) setActive(i);
+          }
+        });
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+    steps.forEach((step) => io.observe(step));
+    return () => io.disconnect();
+  }, []);
+
+  const goTo = (i: number) => {
+    const clamped = Math.max(0, Math.min(total, i));
+    trackRef.current
+      ?.querySelector<HTMLElement>(`[data-step="${clamped}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!date) {
+      setStatus("error");
+      setMessage("Choose their birth or adoption date first.");
+      return;
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(cleanEmail)) {
+      setStatus("error");
+      setMessage("Enter your email to calculate their free sky.");
+      return;
+    }
+    setStatus("loading");
+    setMessage("");
+    try {
+      try {
+        await supabase.functions.invoke("track-subscriber", {
+          body: {
+            email: cleanEmail,
+            event: "birth_chart_lead",
+            petName: petName.trim() || null,
+            source: "birth_sky_journey",
+          },
+        });
+      } catch (error) {
+        console.warn("[Little Souls] lead capture failed", error);
+      }
+      try {
+        sessionStorage.setItem("ls_chart_email", cleanEmail);
+      } catch {
+        /* ignore */
+      }
+      const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Birth chart request failed: ${response.status}`);
+      const data = (await response.json()) as PetBirthChart;
+      if (!data?.sun) throw new Error("Birth chart response was incomplete.");
+      setChart(data);
+      setStatus("ready");
+      setMessage("");
+    } catch (error) {
+      console.warn("[Little Souls] birth sky journey failed", error);
+      setChart(null);
+      setStatus("error");
+      setMessage("The sky did not open. Please try again in a moment.");
+    }
+  };
+
+  const scrollToCheckout = () =>
+    document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const onForm = active >= total;
+  const body = onForm ? null : PLANET_ORDER[active];
+  const meta = body ? PLANET_META[body] : null;
+  const line = body ? JOURNEY_LINES[body] ?? PLANET_META[body].line : "";
+
+  return (
+    <section id="computed-sky" className="ls-journey ls-parallax-band relative">
+      <div className="ls-journey-stage">
+        <p className="ls-journey-eyebrow" style={eyebrowStyle(C.cream)}>
+          Computed sky · <span style={{ color: C.gold }}>free</span>
+        </p>
+
+        <div className={`ls-journey-orrery ${onForm ? "is-complete" : ""}`} aria-hidden="true">
+          <span className="ls-journey-core">
+            <img src={PLANET_META.sun.img} alt="" />
+          </span>
+          {PLANET_ORDER.slice(1).map((b, i) => {
+            const ringIndex = i + 1;
+            const angle = ringIndex * 49;
+            const isActive = !onForm && ringIndex === active;
+            const reached = onForm || ringIndex <= active;
+            const bm = PLANET_META[b];
+            return (
+              <span
+                key={b}
+                className={`ls-journey-ring ${isActive ? "is-active" : ""} ${reached ? "is-reached" : ""}`}
+                style={{ width: `${16 + ringIndex * 6.6}%`, height: `${16 + ringIndex * 6.6}%`, transform: `rotate(${angle}deg)` }}
+              >
+                <span className="ls-journey-dot">
+                  <em>
+                    {bm.img ? (
+                      <img src={bm.img} alt="" style={{ transform: `rotate(${-angle}deg)` }} />
+                    ) : (
+                      <span className="ls-journey-glyph" style={{ transform: `rotate(${-angle}deg)`, display: "inline-block" }}>
+                        {bm.glyph}
+                      </span>
+                    )}
+                  </em>
+                </span>
+              </span>
+            );
+          })}
+        </div>
+
+        {!onForm && meta ? (
+          <div key={body} className="ls-journey-focus">
+            <span className="ls-journey-focus-glyph">{meta.glyph}</span>
+            <span className="ls-journey-focus-label">{meta.label}</span>
+            <p className="ls-journey-focus-line">{line}</p>
+            <span className="ls-journey-step-count">{active + 1} / {total}</span>
+          </div>
+        ) : (
+          <div className="ls-journey-focus ls-journey-form-wrap">
+            {status !== "ready" ? (
+              <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
+                <span className="ls-journey-focus-label">Their free sky</span>
+                <div className="ls-lead-row">
+                  <div className="ls-lead-field">
+                    <label htmlFor="j-name">Their name (optional)</label>
+                    <input id="j-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+                  </div>
+                  <div className="ls-lead-field">
+                    <label htmlFor="j-date">Birth or adoption date</label>
+                    <input id="j-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+                  </div>
+                  <div className="ls-lead-field">
+                    <label htmlFor="j-email">Your email</label>
+                    <input id="j-email" type="email" value={email} autoComplete="email" required placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+                  </div>
+                </div>
+                <button type="submit" className="ls-gold-button ls-violet-button" disabled={status === "loading"}>
+                  {status === "loading" ? "Reading their sky..." : "Reveal their sky"}
+                  {status !== "loading" && <ArrowRight size={17} />}
+                </button>
+                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+              </form>
+            ) : (
+              <JourneyReveal chart={chart} name={petName.trim()} onBegin={scrollToCheckout} />
+            )}
+          </div>
+        )}
+
+        <nav className="ls-journey-nav" aria-label="Birth sky journey">
+          <button type="button" className="ls-journey-arrow" onClick={() => goTo(active - 1)} disabled={active <= 0} aria-label="Previous">‹</button>
+          <div className="ls-journey-dots">
+            {Array.from({ length: total + 1 }).map((_, i) => (
+              <button key={i} type="button" className={`ls-journey-pip ${i === active ? "is-active" : ""}`} onClick={() => goTo(i)} aria-label={`Step ${i + 1}`} />
+            ))}
+          </div>
+          <button type="button" className="ls-journey-arrow" onClick={() => goTo(active + 1)} disabled={active >= total} aria-label="Next">›</button>
+        </nav>
+      </div>
+
+      <div className="ls-journey-track" ref={trackRef}>
+        {PLANET_ORDER.map((b, i) => (
+          <div key={b} data-step={i} className="ls-journey-step" aria-hidden="true" />
+        ))}
+        <div data-step={total} className="ls-journey-step ls-journey-step--final" aria-hidden="true" />
+      </div>
+    </section>
+  );
+}
+
+function JourneyReveal({ chart, name, onBegin }: { chart: PetBirthChart | null; name: string; onBegin: () => void }) {
+  const sun = chart?.sun;
+  const moon = chart?.moon;
+  const dom = chart?.dominantElement;
+  return (
+    <div className="ls-journey-reveal">
+      <span className="ls-journey-focus-label">{name ? `${name}'s sky` : "Their sky"}</span>
+      <div className="ls-journey-reveal-grid">
+        {sun?.sign && (
+          <div className="ls-journey-reveal-item">
+            <span>☉ Sun</span>
+            <strong>{sun.sign}</strong>
+            <small>{JOURNEY_LINES.sun}</small>
+          </div>
+        )}
+        {moon?.sign && (
+          <div className="ls-journey-reveal-item">
+            <span>☽ Moon</span>
+            <strong>{moon.sign}</strong>
+            <small>{JOURNEY_LINES.moon}</small>
+          </div>
+        )}
+        {dom && (
+          <div className="ls-journey-reveal-item">
+            <span>✦ Dominant</span>
+            <strong>{dom}</strong>
+            <small>The thread running through all of it.</small>
+          </div>
+        )}
+      </div>
+      <p className="ls-journey-hint">{JOURNEY_HINT}</p>
+      <button type="button" className="ls-gold-button ls-violet-button ls-journey-cta" onClick={onBegin}>
+        {JOURNEY_CTA} <ArrowRight size={17} />
+      </button>
+    </div>
   );
 }
 
@@ -892,6 +1147,156 @@ function CosmicStyles() {
       }
       @media (prefers-reduced-motion: reduce) {
         .ls-gallery-item img { animation: none; transform: scale(1.04); }
+      }
+      .ls-journey { position: relative; }
+      .ls-journey-stage {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        align-items: center;
+        justify-items: center;
+        gap: clamp(10px, 2.2vh, 22px);
+        padding: clamp(18px, 5vh, 46px) 20px;
+        text-align: center;
+        z-index: 2;
+      }
+      .ls-journey-eyebrow { margin: 0; }
+      .ls-journey-track { position: relative; z-index: 1; pointer-events: none; }
+      .ls-journey-step { height: 66svh; }
+      .ls-journey-step--final { height: 120svh; }
+      .ls-journey-orrery {
+        position: relative;
+        width: min(78vw, 440px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        align-self: center;
+        transition: opacity 0.6s ease;
+      }
+      .ls-journey-orrery.is-complete { opacity: 0.5; }
+      .ls-journey-core {
+        position: absolute;
+        width: 15%;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        z-index: 2;
+      }
+      .ls-journey-core img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 26px rgba(255,178,88,0.6));
+      }
+      .ls-journey-ring {
+        position: absolute;
+        border: 1px solid rgba(245,239,230,0.08);
+        border-radius: 50%;
+        opacity: 0.16;
+        transition: opacity 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
+      }
+      .ls-journey-ring.is-reached { opacity: 0.4; }
+      .ls-journey-ring.is-active {
+        opacity: 1;
+        border-color: rgba(124,92,214,0.7);
+        box-shadow: 0 0 32px rgba(124,92,214,0.28);
+      }
+      .ls-journey-dot { position: absolute; inset: 0; }
+      .ls-journey-dot em {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 26px;
+        height: 26px;
+        margin: -13px 0 0 -13px;
+        display: grid;
+        place-items: center;
+        transition: transform 0.5s ease, filter 0.5s ease;
+      }
+      .ls-journey-dot img { width: 100%; height: 100%; object-fit: contain; opacity: 0.5; transition: opacity 0.5s ease; }
+      .ls-journey-glyph { color: rgba(212,182,122,0.85); font-size: 1rem; }
+      .ls-journey-ring.is-active .ls-journey-dot img { opacity: 1; }
+      .ls-journey-ring.is-active .ls-journey-dot em {
+        transform: scale(1.7);
+        filter: drop-shadow(0 0 10px rgba(124,92,214,0.85));
+      }
+      .ls-journey-focus {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+        max-width: 32ch;
+        animation: ls-pop-in 0.5s both;
+      }
+      .ls-journey-focus-glyph { color: ${C.gold}; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1; }
+      .ls-journey-focus-label {
+        color: ${C.gold};
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .ls-journey-focus-line {
+        color: ${C.cream};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.55rem, 5vw, 2.7rem);
+        line-height: 1.08;
+        margin: 0;
+      }
+      .ls-journey-step-count { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; letter-spacing: 0.16em; }
+      .ls-journey-nav { display: flex; align-items: center; gap: 14px; }
+      .ls-journey-arrow {
+        flex: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(124,92,214,0.55);
+        background: rgba(124,92,214,0.14);
+        color: ${C.cream};
+        font-size: 1.5rem;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      .ls-journey-arrow:hover:not(:disabled) { background: rgba(124,92,214,0.28); }
+      .ls-journey-arrow:disabled { opacity: 0.3; cursor: default; }
+      .ls-journey-dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 300px; }
+      .ls-journey-pip {
+        width: 8px;
+        height: 8px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(245,239,230,0.22);
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+      .ls-journey-pip.is-active { background: ${C.violet}; transform: scale(1.5); }
+      .ls-journey-reveal { display: grid; gap: 14px; justify-items: center; max-width: 36ch; width: min(92vw, 460px); }
+      .ls-journey-reveal-grid { display: grid; gap: 10px; width: 100%; }
+      .ls-journey-reveal-item {
+        display: grid;
+        gap: 2px;
+        border: 1px solid rgba(124,92,214,0.3);
+        border-radius: 10px;
+        padding: 12px 14px;
+        background: rgba(5,4,8,0.42);
+        text-align: left;
+      }
+      .ls-journey-reveal-item span { color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+      .ls-journey-reveal-item strong { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; }
+      .ls-journey-reveal-item small { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; }
+      .ls-journey-hint { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.22rem; line-height: 1.4; margin: 0; }
+      .ls-journey-cta { width: 100%; justify-content: center; }
+      .ls-journey-form-wrap .ls-lead-form { width: min(92vw, 460px); gap: 12px; }
+      .ls-journey-form-wrap .ls-lead-row { grid-template-columns: 1fr; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-journey-ring, .ls-journey-dot em, .ls-journey-dot img, .ls-journey-orrery { transition: none; }
+        .ls-journey-focus { animation: none; }
       }
       .ls-parallax-band::before {
         content: "";
