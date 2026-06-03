@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, RefObject } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -617,14 +617,36 @@ function BirthSkyJourney() {
 
         <div className="ls-journey-viewport">
           {!onForm ? (
-            <div className="ls-journey-system" aria-hidden="true">
-              {SYSTEM.slice(1).map((b) => (
-                <span key={`orbit-${b.key}`} className="ls-journey-orbit" style={{ width: `${b.r * 2}%`, height: `${b.r * 2}%` }} />
-              ))}
-              {SYSTEM.map((b, i) => (
-                <SystemBody key={b.key} body={b} index={i} steps={steps} active={active} scrollYProgress={scrollYProgress} reduce={reduce} />
-              ))}
-            </div>
+            <>
+              <div className="ls-journey-system" aria-hidden="true">
+                {SYSTEM.slice(1).map((b) => (
+                  <span key={`orbit-${b.key}`} className="ls-journey-orbit" style={{ width: `${b.r * 2}%`, height: `${b.r * 2}%` }} />
+                ))}
+                {SYSTEM.map((b, i) => (
+                  <SystemBody key={b.key} body={b} index={i} active={active} />
+                ))}
+              </div>
+              {meta && body && (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={body}
+                    className="ls-journey-dock"
+                    initial={{ opacity: 0, y: 48, scale: 0.94 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -30, scale: 0.97 }}
+                    transition={{ duration: reduce ? 0 : 0.5, ease }}
+                  >
+                    <div className="ls-dock-orb">
+                      {meta.img ? <img src={meta.img} alt={meta.label} /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
+                    </div>
+                    <div className="ls-dock-text">
+                      <span className="ls-journey-name"><i className="ls-readout-glyph">{meta.glyph}</i>{meta.label}</span>
+                      <p className="ls-journey-line">{line}</p>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </>
           ) : (
             <div className="ls-journey-formstage">
               {status !== "ready" ? (
@@ -657,22 +679,6 @@ function BirthSkyJourney() {
           )}
         </div>
 
-        {!onForm && meta && (
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={body}
-              className="ls-journey-readout"
-              initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
-              transition={{ duration: reduce ? 0 : 0.4, ease }}
-            >
-              <span className="ls-journey-name"><i className="ls-readout-glyph">{meta.glyph}</i>{meta.label}</span>
-              <p className="ls-journey-line">{line}</p>
-            </motion.div>
-          </AnimatePresence>
-        )}
-
         <div className="ls-journey-progress" aria-hidden="true">
           <motion.span style={{ scaleY: scrollYProgress }} />
         </div>
@@ -690,42 +696,18 @@ function BirthSkyJourney() {
 // One body in the persistent system. Sits at its fixed orbit slot; its scale
 // bumps 1 -> big -> 1 across its own scroll segment (grows as you reach it, then
 // recedes as the next takes over). Glow fades in/out with it.
-function SystemBody({
-  body,
-  index,
-  steps,
-  active,
-  scrollYProgress,
-  reduce,
-}: {
-  body: { key: string; r: number; a: number };
-  index: number;
-  steps: number;
-  active: number;
-  scrollYProgress: MotionValue<number>;
-  reduce: boolean | null;
-}) {
-  const seg = 1 / steps;
-  const start = index * seg;
-  const mid = (index + 0.5) * seg;
-  const end = (index + 1) * seg;
+function SystemBody({ body, index, active }: { body: { key: string; r: number; a: number }; index: number; active: number }) {
   const base = REL_SIZE[body.key] ?? 0.3;
-  const baseDiam = 4 + base * 16;
-  const aScale = Math.min(9, 32 / baseDiam);
-  const scale = useTransform(scrollYProgress, [start, mid, end], [1, aScale, 1]);
-  const glow = useTransform(scrollYProgress, [start, mid, end], [0, 0.85, 0]);
+  const baseDiam = 3.5 + base * 10;
   const left = 50 + body.r * Math.cos((body.a * Math.PI) / 180);
   const top = 50 + body.r * Math.sin((body.a * Math.PI) / 180);
   const meta = PLANET_META[body.key];
   return (
     <div
-      className="ls-sys-slot"
-      style={{ left: `${left}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: index === active ? 6 : 1 }}
+      className={`ls-sys-slot ${index === active ? "is-active" : ""}`}
+      style={{ left: `${left}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: index === active ? 5 : 1 }}
     >
-      <motion.div className="ls-sys-body" style={reduce ? undefined : { scale }}>
-        <motion.span className="ls-sys-glow" style={{ opacity: glow }} aria-hidden="true" />
-        {meta.img ? <img src={meta.img} alt="" /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
-      </motion.div>
+      {meta.img ? <img src={meta.img} alt="" /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
     </div>
   );
 }
@@ -1198,7 +1180,7 @@ function CosmicStyles() {
         height: 100svh;
         overflow: hidden;
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr);
         align-items: center;
         justify-items: center;
         gap: clamp(10px, 2.4vh, 24px);
@@ -1208,8 +1190,8 @@ function CosmicStyles() {
       }
       .ls-journey-eyebrow { margin: 0; }
       .ls-journey-track { position: relative; z-index: 1; pointer-events: none; }
-      .ls-journey-step { height: 78svh; }
-      .ls-journey-step--final { height: 120svh; }
+      .ls-journey-step { height: 24svh; }
+      .ls-journey-step--final { height: 64svh; }
       .ls-journey-eyebrow { position: relative; z-index: 3; margin: 0; }
       .ls-journey-stars {
         position: absolute;
@@ -1417,13 +1399,63 @@ function CosmicStyles() {
         .ls-journey-orb { width: clamp(74px, 30vw, 128px); }
         .ls-journey-card { gap: 16px; padding: 16px 18px; }
       }
+      .ls-journey-viewport { position: relative; }
       .ls-journey-system {
-        position: relative;
-        z-index: 2;
-        width: min(84vw, 520px);
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(72vw, 430px);
         aspect-ratio: 1;
-        margin: 0 auto;
+        z-index: 1;
+        opacity: 0.6;
       }
+      .ls-sys-slot img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0.9;
+        transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+      }
+      .ls-sys-slot.is-active { z-index: 5; }
+      .ls-sys-slot.is-active img {
+        opacity: 1;
+        transform: scale(1.25);
+        filter: drop-shadow(0 0 12px rgba(124,92,214,0.95));
+      }
+      .ls-sys-slot.is-active .ls-sys-glyph { color: ${C.violet}; }
+      .ls-journey-dock {
+        position: relative;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        gap: clamp(14px, 3.5vw, 30px);
+        width: min(92vw, 520px);
+        padding: clamp(14px, 2.6vw, 22px) clamp(16px, 3vw, 26px);
+        border: 1px solid rgba(124,92,214,0.32);
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(38,25,64,0.88), rgba(10,8,16,0.84));
+        box-shadow: 0 26px 80px rgba(0,0,0,0.5);
+        backdrop-filter: blur(8px);
+        text-align: left;
+      }
+      .ls-dock-orb {
+        flex: none;
+        width: clamp(80px, 20vw, 140px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+      }
+      .ls-dock-orb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 30px rgba(124,92,214,0.6));
+      }
+      .ls-dock-orb .ls-sys-glyph { font-size: clamp(2.4rem, 9vw, 4rem); color: ${C.gold}; }
+      .ls-dock-text { display: grid; gap: 8px; min-width: 0; }
+      .ls-dock-text .ls-journey-name { text-align: left; font-size: 0.86rem; }
+      .ls-dock-text .ls-journey-line { text-align: left; font-size: clamp(1.3rem, 4.4vw, 2rem); }
       .ls-journey-orbit {
         position: absolute;
         left: 50%;
