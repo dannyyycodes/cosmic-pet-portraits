@@ -137,25 +137,42 @@ const REL_SIZE: Record<string, number> = {
   saturn: 0.74,
   uranus: 0.46,
   neptune: 0.44,
+  earth: 0.3,
   venus: 0.3,
   mars: 0.24,
   mercury: 0.2,
-  moon: 0.18,
+  moon: 0.16,
   pluto: 0.15,
-  chiron: 0.13,
-  northNode: 0.24,
-  lilith: 0.24,
+  chiron: 0.12,
+  northNode: 0.12,
+  lilith: 0.12,
 };
 
-// Fixed positions for the persistent solar-system display. Sun centred; the rest
-// spread by golden angle on widening orbits. r = % of the container's half-extent
-// (0 = centre, ~46 = near the edge); a = angle in degrees.
-const SYSTEM = PLANET_ORDER.map((key, i) => {
-  if (i === 0) return { key, r: 0, a: 0 };
-  const r = 9 + ((i - 1) / 11) * 37;
-  const a = (i * 137.508) % 360;
-  return { key, r, a };
-});
+// Scientifically-ish placed bodies (r = % of half-extent from centre, a = degrees).
+// Earth is decorative; the lunar points (North Node, Lilith — the Moon's apogee)
+// sit beside the Moon; Chiron rides between Saturn and Uranus.
+const BODY_POS: Record<string, { r: number; a: number }> = {
+  sun: { r: 0, a: 0 },
+  mercury: { r: 8, a: 205 },
+  venus: { r: 12.5, a: 325 },
+  earth: { r: 17, a: 58 },
+  moon: { r: 20, a: 66 },
+  northNode: { r: 14.5, a: 72 },
+  lilith: { r: 23, a: 60 },
+  mars: { r: 26, a: 150 },
+  jupiter: { r: 31, a: 255 },
+  saturn: { r: 36, a: 22 },
+  chiron: { r: 39.5, a: 40 },
+  uranus: { r: 42.5, a: 112 },
+  neptune: { r: 45.5, a: 300 },
+  pluto: { r: 48, a: 178 },
+};
+// Order the camera + cards visit (radial, with the Moon cluster grouped).
+const JOURNEY_SEQ = ["sun", "mercury", "venus", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+// Everything drawn in the system (adds decorative Earth).
+const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+// Bodies that get a faint orbit ring (real planets only, not the lunar points / chiron).
+const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"] as const;
 
 const SIGN_GLYPHS: Record<string, string> = {
   Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
@@ -536,7 +553,7 @@ function BirthSkyJourney() {
   const [message, setMessage] = useState("");
   const [active, setActive] = useState(0);
 
-  const total = PLANET_ORDER.length;
+  const total = JOURNEY_SEQ.length;
   const steps = total + 1;
 
   useMotionValueEvent(scrollYProgress, "change", (p) => {
@@ -551,13 +568,14 @@ function BirthSkyJourney() {
   // Camera: pan + zoom across the solar system so the active body's region is
   // centred and magnified, gliding from planet to planet as you scroll.
   const seg = 1 / steps;
-  const ZOOM = 2.3;
-  const targets = SYSTEM.map((b) => {
-    const px = 50 + b.r * Math.cos((b.a * Math.PI) / 180);
-    const py = 50 + b.r * Math.sin((b.a * Math.PI) / 180);
+  const ZOOM = 1.6;
+  const targets = JOURNEY_SEQ.map((key) => {
+    const p = BODY_POS[key];
+    const px = 50 + p.r * Math.cos((p.a * Math.PI) / 180);
+    const py = 50 + p.r * Math.sin((p.a * Math.PI) / 180);
     return { tx: -ZOOM * (px - 50), ty: -ZOOM * (py - 50) };
   });
-  const panIn = [0, ...SYSTEM.map((_, i) => (i + 0.5) * seg), 1];
+  const panIn = [0, ...JOURNEY_SEQ.map((_, i) => (i + 0.5) * seg), 1];
   const camX = useTransform(scrollYProgress, panIn, [
     `${targets[0].tx}%`,
     ...targets.map((t) => `${t.tx}%`),
@@ -572,13 +590,22 @@ function BirthSkyJourney() {
   const zoomOut: number[] = [];
   for (let i = 0; i < total; i++) {
     zoomIn.push(i * seg);
-    zoomOut.push(1.5);
+    zoomOut.push(1.15);
     zoomIn.push((i + 0.5) * seg);
     zoomOut.push(ZOOM);
   }
   zoomIn.push(1);
-  zoomOut.push(2);
+  zoomOut.push(1.4);
   const camScale = useTransform(scrollYProgress, zoomIn, zoomOut);
+
+  const goTo = (i: number) => {
+    const el = sectionRef.current;
+    if (!el || typeof window === "undefined") return;
+    const clamped = Math.max(0, Math.min(total - 1, i));
+    const scrollable = Math.max(1, el.offsetHeight - window.innerHeight);
+    const top = el.offsetTop + ((clamped + 0.5) / steps) * scrollable;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -633,7 +660,7 @@ function BirthSkyJourney() {
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const onForm = active >= total;
-  const body = onForm ? null : PLANET_ORDER[active];
+  const body = onForm ? null : JOURNEY_SEQ[active];
   const meta = body ? PLANET_META[body] : null;
   const line = body ? JOURNEY_LINES[body] ?? PLANET_META[body].line : "";
   const ease = [0.22, 0.7, 0.2, 1] as const;
@@ -650,11 +677,11 @@ function BirthSkyJourney() {
         {!onForm && (
           <div className="ls-journey-system" aria-hidden="true">
             <motion.div className="ls-journey-camera" style={reduce ? undefined : { x: camX, y: camY, scale: camScale }}>
-              {SYSTEM.slice(1).map((b) => (
-                <span key={`orbit-${b.key}`} className="ls-journey-orbit" style={{ width: `${b.r * 2}%`, height: `${b.r * 2}%` }} />
+              {ORBIT_KEYS.map((k) => (
+                <span key={`orbit-${k}`} className="ls-journey-orbit" style={{ width: `${BODY_POS[k].r * 2}%`, height: `${BODY_POS[k].r * 2}%` }} />
               ))}
-              {SYSTEM.map((b, i) => (
-                <SystemBody key={b.key} body={b} index={i} active={active} />
+              {RENDER_ORDER.map((k) => (
+                <SystemBody key={k} bodyKey={k} journeyIndex={(JOURNEY_SEQ as readonly string[]).indexOf(k)} active={active} onJump={goTo} />
               ))}
             </motion.div>
           </div>
@@ -729,18 +756,30 @@ function BirthSkyJourney() {
 // One body in the persistent system. Sits at its fixed orbit slot; its scale
 // bumps 1 -> big -> 1 across its own scroll segment (grows as you reach it, then
 // recedes as the next takes over). Glow fades in/out with it.
-function SystemBody({ body, index, active }: { body: { key: string; r: number; a: number }; index: number; active: number }) {
-  const base = REL_SIZE[body.key] ?? 0.3;
-  const baseDiam = 2.5 + base * 7;
-  const left = 50 + body.r * Math.cos((body.a * Math.PI) / 180);
-  const top = 50 + body.r * Math.sin((body.a * Math.PI) / 180);
-  const meta = PLANET_META[body.key];
+function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string; journeyIndex: number; active: number; onJump: (i: number) => void }) {
+  const pos = BODY_POS[bodyKey];
+  const base = REL_SIZE[bodyKey] ?? 0.3;
+  const baseDiam = 2 + base * 5.5;
+  const left = 50 + pos.r * Math.cos((pos.a * Math.PI) / 180);
+  const top = 50 + pos.r * Math.sin((pos.a * Math.PI) / 180);
+  const meta = PLANET_META[bodyKey];
+  const clickable = journeyIndex >= 0;
+  const isActive = clickable && journeyIndex === active;
   return (
     <div
-      className={`ls-sys-slot ${index === active ? "is-active" : ""}`}
-      style={{ left: `${left}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: index === active ? 5 : 1 }}
+      className={`ls-sys-slot ${isActive ? "is-active" : ""} ${clickable ? "is-clickable" : ""}`}
+      style={{ left: `${left}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: isActive ? 5 : 1 }}
+      onClick={clickable ? () => onJump(journeyIndex) : undefined}
     >
-      {meta.img ? <img src={meta.img} alt="" /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
+      {bodyKey === "earth" ? (
+        <span className="ls-sys-earth" />
+      ) : meta?.img ? (
+        <span className={`ls-sys-orb ${bodyKey === "saturn" ? "ls-sys-orb--free" : ""}`}>
+          <img src={meta.img} alt="" />
+        </span>
+      ) : (
+        <span className="ls-sys-glyph">{meta?.glyph}</span>
+      )}
     </div>
   );
 }
@@ -1446,20 +1485,32 @@ function CosmicStyles() {
         transform-origin: center center;
         will-change: transform;
       }
-      .ls-sys-slot img {
+      .ls-sys-slot.is-clickable { pointer-events: auto; cursor: pointer; }
+      .ls-sys-orb {
         width: 100%;
-        height: 100%;
-        object-fit: contain;
-        opacity: 0.9;
-        transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        overflow: hidden;
+        transition: box-shadow 0.4s ease;
+      }
+      .ls-sys-orb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.92; display: block; }
+      .ls-sys-orb--free { border-radius: 0; overflow: visible; }
+      .ls-sys-orb--free img { object-fit: contain; }
+      .ls-sys-earth {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 36% 32%, #6fb1ff 0 20%, #2f6fc4 46%, #143a78 80%);
+        box-shadow: inset -5px -7px 14px rgba(0,0,0,0.5);
+        opacity: 0.92;
       }
       .ls-sys-slot.is-active { z-index: 5; }
-      .ls-sys-slot.is-active img {
-        opacity: 1;
-        transform: scale(1.25);
-        filter: drop-shadow(0 0 12px rgba(124,92,214,0.95));
+      .ls-sys-slot.is-active .ls-sys-orb {
+        box-shadow: 0 0 0 2px rgba(124,92,214,0.6), 0 0 22px rgba(124,92,214,0.85);
       }
-      .ls-sys-slot.is-active .ls-sys-glyph { color: ${C.violet}; }
+      .ls-sys-slot.is-active .ls-sys-orb img { opacity: 1; }
+      .ls-sys-slot.is-active .ls-sys-glyph { color: ${C.violet}; text-shadow: 0 0 12px rgba(124,92,214,0.9); }
       .ls-journey-dock {
         position: relative;
         z-index: 4;
@@ -1477,18 +1528,16 @@ function CosmicStyles() {
       }
       .ls-dock-orb {
         flex: none;
-        width: clamp(80px, 20vw, 140px);
+        width: clamp(60px, 15vw, 104px);
         aspect-ratio: 1;
         display: grid;
         place-items: center;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 0 26px rgba(124,92,214,0.5);
       }
-      .ls-dock-orb img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        filter: drop-shadow(0 0 30px rgba(124,92,214,0.6));
-      }
-      .ls-dock-orb .ls-sys-glyph { font-size: clamp(2.4rem, 9vw, 4rem); color: ${C.gold}; }
+      .ls-dock-orb img { width: 100%; height: 100%; object-fit: cover; }
+      .ls-dock-orb .ls-sys-glyph { font-size: clamp(2rem, 7vw, 3.2rem); color: ${C.gold}; }
       .ls-dock-text { display: grid; gap: 8px; min-width: 0; }
       .ls-dock-text .ls-journey-name { text-align: left; font-size: 0.86rem; }
       .ls-dock-text .ls-journey-line { text-align: left; font-size: clamp(1.3rem, 4.4vw, 2rem); }
