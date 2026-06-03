@@ -153,21 +153,24 @@ const REL_SIZE: Record<string, number> = {
 // Scientifically-ish placed bodies (r = % of half-extent from centre, a = degrees).
 // Earth is decorative; the lunar points (North Node, Lilith — the Moon's apogee)
 // sit beside the Moon; Chiron rides between Saturn and Uranus.
-const BODY_POS: Record<string, { r: number; a: number }> = {
-  sun: { r: 0, a: 0 },
-  mercury: { r: 8, a: 18 },
-  venus: { r: 12, a: 128 },
-  earth: { r: 16, a: 240 },
-  moon: { r: 18.5, a: 248 },
-  northNode: { r: 14, a: 236 },
-  lilith: { r: 20.5, a: 252 },
-  mars: { r: 21, a: 70 },
-  jupiter: { r: 29, a: 310 },
-  saturn: { r: 35, a: 200 },
-  chiron: { r: 38, a: 150 },
-  uranus: { r: 41, a: 95 },
-  neptune: { r: 44.5, a: 25 },
-  pluto: { r: 47.5, a: 340 },
+// Perspective layout (x, y in % of the scene). Huge Sun anchored left; planets
+// recede up-and-right in order along the sweeping orbit lines. Lunar points sit
+// by the Moon; Chiron between Saturn and Uranus.
+const BODY_POS: Record<string, { x: number; y: number }> = {
+  sun: { x: 3, y: 52 },
+  mercury: { x: 26, y: 64 },
+  venus: { x: 33, y: 60 },
+  earth: { x: 40, y: 56 },
+  moon: { x: 44.5, y: 52 },
+  northNode: { x: 37, y: 59 },
+  lilith: { x: 46.5, y: 49 },
+  mars: { x: 50, y: 53 },
+  jupiter: { x: 60, y: 46 },
+  saturn: { x: 71, y: 39 },
+  chiron: { x: 77, y: 35 },
+  uranus: { x: 83, y: 32 },
+  neptune: { x: 92, y: 26 },
+  pluto: { x: 98, y: 22 },
 };
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
 const JOURNEY_SEQ = ["sun", "mercury", "venus", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
@@ -572,10 +575,9 @@ function BirthSkyJourney() {
   const seg = 1 / steps;
   const ZOOM = 1.6;
   const targets = JOURNEY_SEQ.map((key) => {
+    if (key === "sun") return { tx: 0, ty: 0 };
     const p = BODY_POS[key];
-    const px = 50 + p.r * Math.cos((p.a * Math.PI) / 180);
-    const py = 50 + p.r * Math.sin((p.a * Math.PI) / 180);
-    return { tx: -ZOOM * (px - 50), ty: -ZOOM * (py - 50) };
+    return { tx: -ZOOM * (p.x - 50), ty: -ZOOM * (p.y - 50) };
   });
   const panIn = [0, ...JOURNEY_SEQ.map((_, i) => (i + 0.5) * seg), 1];
   const camX = useTransform(scrollYProgress, panIn, [
@@ -592,9 +594,9 @@ function BirthSkyJourney() {
   const zoomOut: number[] = [];
   for (let i = 0; i < total; i++) {
     zoomIn.push(i * seg);
-    zoomOut.push(1.15);
+    zoomOut.push(i === 0 ? 0.92 : 1.15);
     zoomIn.push((i + 0.5) * seg);
-    zoomOut.push(ZOOM);
+    zoomOut.push(i === 0 ? 0.95 : ZOOM);
   }
   zoomIn.push(1);
   zoomOut.push(1.4);
@@ -679,9 +681,14 @@ function BirthSkyJourney() {
         {!onForm && (
           <div className="ls-journey-system" aria-hidden="true">
             <motion.div className="ls-journey-camera" style={reduce ? undefined : { x: camX, y: camY, scale: camScale }}>
-              {ORBIT_KEYS.map((k) => (
-                <span key={`orbit-${k}`} className="ls-journey-orbit" style={{ width: `${BODY_POS[k].r * 2}%`, height: `${BODY_POS[k].r * 2}%` }} />
-              ))}
+              <svg className="ls-journey-orbits" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <g transform="rotate(-6 3 54)">
+                  {ORBIT_KEYS.map((k) => {
+                    const rx = BODY_POS[k].x - BODY_POS.sun.x;
+                    return <ellipse key={`orbit-${k}`} cx={BODY_POS.sun.x} cy={54} rx={rx} ry={rx * 0.42} />;
+                  })}
+                </g>
+              </svg>
               {RENDER_ORDER.map((k) => (
                 <SystemBody key={k} bodyKey={k} journeyIndex={(JOURNEY_SEQ as readonly string[]).indexOf(k)} active={active} onJump={goTo} />
               ))}
@@ -761,19 +768,20 @@ function BirthSkyJourney() {
 function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string; journeyIndex: number; active: number; onJump: (i: number) => void }) {
   const pos = BODY_POS[bodyKey];
   const base = REL_SIZE[bodyKey] ?? 0.3;
-  const baseDiam = 1 + base * 13;
-  const left = 50 + pos.r * Math.cos((pos.a * Math.PI) / 180);
-  const top = 50 + pos.r * Math.sin((pos.a * Math.PI) / 180);
+  const isSun = bodyKey === "sun";
+  const baseDiam = isSun ? 40 : 1 + base * 13;
   const meta = PLANET_META[bodyKey];
   const clickable = journeyIndex >= 0;
   const isActive = clickable && journeyIndex === active;
   return (
     <div
       className={`ls-sys-slot ${isActive ? "is-active" : ""} ${clickable ? "is-clickable" : ""}`}
-      style={{ left: `${left}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: isActive ? 5 : 1 }}
+      style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: `${baseDiam}%`, zIndex: isSun ? 0 : isActive ? 5 : 1 }}
       onClick={clickable ? () => onJump(journeyIndex) : undefined}
     >
-      {bodyKey === "earth" ? (
+      {isSun ? (
+        <span className="ls-sys-sun"><img src={meta?.img} alt="" /></span>
+      ) : bodyKey === "earth" ? (
         <span className="ls-sys-earth" />
       ) : meta?.img ? (
         <span className={`ls-sys-orb ${bodyKey === "saturn" ? "ls-sys-orb--free" : ""}`}>
@@ -1486,6 +1494,53 @@ function CosmicStyles() {
         inset: 0;
         transform-origin: center center;
         will-change: transform;
+      }
+      .ls-journey-orbits {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .ls-journey-orbits ellipse {
+        fill: none;
+        stroke: rgba(255,255,255,0.14);
+        stroke-width: 0.22;
+      }
+      .ls-sys-sun {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+      }
+      .ls-sys-sun img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        animation: ls-sun-spin 120s linear infinite;
+        filter: saturate(1.15) brightness(1.05);
+      }
+      .ls-sys-sun::after {
+        content: "";
+        position: absolute;
+        inset: -16%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,150,46,0.55), rgba(255,120,30,0.18) 46%, transparent 66%);
+        animation: ls-sun-pulse 5.5s ease-in-out infinite;
+        z-index: -1;
+        pointer-events: none;
+      }
+      @keyframes ls-sun-spin { to { transform: rotate(360deg); } }
+      @keyframes ls-sun-pulse {
+        0%, 100% { opacity: 0.55; transform: scale(1); }
+        50% { opacity: 0.95; transform: scale(1.07); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-sys-sun img { animation: none; }
+        .ls-sys-sun::after { animation: none; }
       }
       .ls-sys-slot.is-clickable { pointer-events: auto; cursor: pointer; }
       .ls-sys-orb {
