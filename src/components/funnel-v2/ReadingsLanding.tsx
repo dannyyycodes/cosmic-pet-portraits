@@ -597,9 +597,6 @@ function BirthSkyJourney() {
   const scrollToCheckout = () =>
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const scrollToCheckout = () =>
-    document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
-
   const onForm = active >= total;
   const body = onForm ? null : PLANET_ORDER[active];
   const meta = body ? PLANET_META[body] : null;
