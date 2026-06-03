@@ -131,21 +131,23 @@ const JOURNEY_CTA = "Open Their Reading";
 
 // Relative scientific size of each body (compressed so the small ones stay
 // visible). Gas giants large, rocky bodies small, abstract points symbolic.
+// Relative diameters, compressed but Sun-dominant (real ratios are far more
+// extreme; Sun stays clearly the biggest, gas giants ~1/3 Sun, rocky bodies small).
 const REL_SIZE: Record<string, number> = {
   sun: 1,
-  jupiter: 0.82,
-  saturn: 0.74,
-  uranus: 0.46,
-  neptune: 0.44,
-  earth: 0.3,
-  venus: 0.3,
-  mars: 0.24,
-  mercury: 0.2,
-  moon: 0.16,
-  pluto: 0.15,
-  chiron: 0.12,
-  northNode: 0.12,
-  lilith: 0.12,
+  jupiter: 0.34,
+  saturn: 0.3,
+  uranus: 0.18,
+  neptune: 0.17,
+  earth: 0.13,
+  venus: 0.125,
+  mars: 0.08,
+  mercury: 0.06,
+  moon: 0.05,
+  pluto: 0.045,
+  chiron: 0.05,
+  northNode: 0.06,
+  lilith: 0.06,
 };
 
 // Scientifically-ish placed bodies (r = % of half-extent from centre, a = degrees).
@@ -153,19 +155,19 @@ const REL_SIZE: Record<string, number> = {
 // sit beside the Moon; Chiron rides between Saturn and Uranus.
 const BODY_POS: Record<string, { r: number; a: number }> = {
   sun: { r: 0, a: 0 },
-  mercury: { r: 8, a: 205 },
-  venus: { r: 12.5, a: 325 },
-  earth: { r: 17, a: 58 },
-  moon: { r: 20, a: 66 },
-  northNode: { r: 14.5, a: 72 },
-  lilith: { r: 23, a: 60 },
-  mars: { r: 26, a: 150 },
-  jupiter: { r: 31, a: 255 },
-  saturn: { r: 36, a: 22 },
-  chiron: { r: 39.5, a: 40 },
-  uranus: { r: 42.5, a: 112 },
-  neptune: { r: 45.5, a: 300 },
-  pluto: { r: 48, a: 178 },
+  mercury: { r: 8, a: 18 },
+  venus: { r: 12, a: 128 },
+  earth: { r: 16, a: 240 },
+  moon: { r: 18.5, a: 248 },
+  northNode: { r: 14, a: 236 },
+  lilith: { r: 20.5, a: 252 },
+  mars: { r: 21, a: 70 },
+  jupiter: { r: 29, a: 310 },
+  saturn: { r: 35, a: 200 },
+  chiron: { r: 38, a: 150 },
+  uranus: { r: 41, a: 95 },
+  neptune: { r: 44.5, a: 25 },
+  pluto: { r: 47.5, a: 340 },
 };
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
 const JOURNEY_SEQ = ["sun", "mercury", "venus", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
@@ -759,7 +761,7 @@ function BirthSkyJourney() {
 function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string; journeyIndex: number; active: number; onJump: (i: number) => void }) {
   const pos = BODY_POS[bodyKey];
   const base = REL_SIZE[bodyKey] ?? 0.3;
-  const baseDiam = 2 + base * 5.5;
+  const baseDiam = 1 + base * 13;
   const left = 50 + pos.r * Math.cos((pos.a * Math.PI) / 180);
   const top = 50 + pos.r * Math.sin((pos.a * Math.PI) / 180);
   const meta = PLANET_META[bodyKey];
