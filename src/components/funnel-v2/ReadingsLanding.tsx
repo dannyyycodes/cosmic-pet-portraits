@@ -129,6 +129,24 @@ const JOURNEY_LINES: Record<string, string> = {
 const JOURNEY_HINT = "These thirteen lines only graze the surface of the chart their birth sky drew.";
 const JOURNEY_CTA = "Open Their Reading";
 
+// Relative scientific size of each body (compressed so the small ones stay
+// visible). Gas giants large, rocky bodies small, abstract points symbolic.
+const REL_SIZE: Record<string, number> = {
+  sun: 1,
+  jupiter: 0.82,
+  saturn: 0.74,
+  uranus: 0.46,
+  neptune: 0.44,
+  venus: 0.3,
+  mars: 0.24,
+  mercury: 0.2,
+  moon: 0.18,
+  pluto: 0.15,
+  chiron: 0.13,
+  northNode: 0.24,
+  lilith: 0.24,
+};
+
 const SIGN_GLYPHS: Record<string, string> = {
   Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
   Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏",
@@ -525,17 +543,7 @@ function BirthSkyJourney() {
     const s = p * steps;
     return s - Math.floor(s);
   });
-  const focalScale = useTransform(localT, [0, 1], [0.9, 1.12]);
-  const focalY = useTransform(localT, [0, 1], ["3%", "-5%"]);
-
-  const goTo = (i: number) => {
-    const el = sectionRef.current;
-    if (!el || typeof window === "undefined") return;
-    const clamped = Math.max(0, Math.min(steps - 1, i));
-    const scrollable = Math.max(1, el.offsetHeight - window.innerHeight);
-    const top = el.offsetTop + ((clamped + 0.5) / steps) * scrollable;
-    window.scrollTo({ top, behavior: "smooth" });
-  };
+  const focalScale = useTransform(localT, [0, 1], [0.86, 1.14]);
 
   const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -614,24 +622,37 @@ function BirthSkyJourney() {
         </p>
 
         <div className="ls-journey-viewport">
-          {!onForm && meta ? (
-            <AnimatePresence initial={false}>
-              <motion.div
+          {!onForm && meta && body ? (
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.article
                 key={body}
-                className="ls-journey-planet-wrap"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reduce ? 0 : 0.5, ease }}
+                className="ls-journey-card"
+                initial={{ opacity: 0, y: 46, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -34, filter: "blur(6px)" }}
+                transition={{ duration: reduce ? 0 : 0.55, ease }}
               >
-                <motion.div className="ls-journey-planet" style={reduce ? undefined : { scale: focalScale, y: focalY }}>
-                  {meta.img ? (
-                    <img src={meta.img} alt={meta.label} />
-                  ) : (
-                    <span className="ls-journey-bigglyph">{meta.glyph}</span>
-                  )}
-                </motion.div>
-              </motion.div>
+                <div className="ls-journey-orb">
+                  <motion.div
+                    className="ls-journey-orb-inner"
+                    style={
+                      reduce
+                        ? { width: `${(REL_SIZE[body] ?? 0.3) * 100}%` }
+                        : { width: `${(REL_SIZE[body] ?? 0.3) * 100}%`, scale: focalScale }
+                    }
+                  >
+                    {meta.img ? (
+                      <img src={meta.img} alt={meta.label} />
+                    ) : (
+                      <span className="ls-journey-bigglyph">{meta.glyph}</span>
+                    )}
+                  </motion.div>
+                </div>
+                <div className="ls-journey-card-text">
+                  <span className="ls-journey-name">{meta.label}</span>
+                  <p className="ls-journey-line">{line}</p>
+                </div>
+              </motion.article>
             </AnimatePresence>
           ) : (
             <div className="ls-journey-formstage">
@@ -665,39 +686,9 @@ function BirthSkyJourney() {
           )}
         </div>
 
-        {!onForm && meta && (
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={body}
-              className="ls-journey-copy"
-              initial={{ opacity: 0, y: 16, filter: "blur(7px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -12, filter: "blur(7px)" }}
-              transition={{ duration: reduce ? 0 : 0.42, ease }}
-            >
-              <span className="ls-journey-name">{meta.label}</span>
-              <p className="ls-journey-line">{line}</p>
-            </motion.div>
-          </AnimatePresence>
-        )}
-
-        <div className="ls-journey-rail">
-          {PLANET_ORDER.map((b, i) => (
-            <button
-              key={b}
-              type="button"
-              className={`ls-journey-tick ${i === active ? "is-active" : ""} ${i < active || onForm ? "is-past" : ""}`}
-              onClick={() => goTo(i)}
-              aria-label={PLANET_META[b].label}
-            />
-          ))}
+        <div className="ls-journey-progress" aria-hidden="true">
+          <motion.span style={{ scaleY: scrollYProgress }} />
         </div>
-
-        <nav className="ls-journey-nav" aria-label="Birth sky journey">
-          <button type="button" className="ls-journey-arrow" onClick={() => goTo(active - 1)} disabled={active <= 0} aria-label="Previous">‹</button>
-          <span className="ls-journey-count">{onForm ? "Their sky" : `${active + 1} / ${total}`}</span>
-          <button type="button" className="ls-journey-arrow" onClick={() => goTo(active + 1)} disabled={active >= steps - 1} aria-label="Next">›</button>
-        </nav>
       </div>
 
       <div className="ls-journey-track" aria-hidden="true">
@@ -1177,7 +1168,7 @@ function CosmicStyles() {
         height: 100svh;
         overflow: hidden;
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+        grid-template-rows: auto minmax(0, 1fr);
         align-items: center;
         justify-items: center;
         gap: clamp(10px, 2.4vh, 24px);
@@ -1333,6 +1324,69 @@ function CosmicStyles() {
       }
       .ls-journey-formstage .ls-lead-form { width: 100%; gap: 12px; }
       .ls-journey-formstage .ls-lead-row { grid-template-columns: 1fr; }
+      .ls-journey-card {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: clamp(16px, 4vw, 38px);
+        width: min(94vw, 600px);
+        padding: clamp(16px, 3vw, 26px) clamp(18px, 3.6vw, 32px);
+        border: 1px solid rgba(124,92,214,0.28);
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(124,92,214,0.12), rgba(5,4,8,0.5));
+        box-shadow: 0 30px 90px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,239,230,0.05);
+        backdrop-filter: blur(6px);
+        text-align: left;
+      }
+      .ls-journey-orb {
+        flex: none;
+        width: clamp(96px, 26vw, 180px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+      }
+      .ls-journey-orb-inner {
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        will-change: transform;
+      }
+      .ls-journey-orb-inner img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 26px rgba(124,92,214,0.5)) drop-shadow(0 0 10px rgba(255,255,255,0.16));
+      }
+      .ls-journey-orb .ls-journey-bigglyph {
+        font-size: clamp(1.8rem, 9vw, 3.4rem);
+        filter: drop-shadow(0 0 16px rgba(212,182,122,0.5));
+      }
+      .ls-journey-card-text { display: grid; gap: 8px; min-width: 0; }
+      .ls-journey-card .ls-journey-name { text-align: left; }
+      .ls-journey-card .ls-journey-line { text-align: left; font-size: clamp(1.3rem, 4.6vw, 2.1rem); }
+      .ls-journey-progress {
+        position: absolute;
+        right: clamp(10px, 2vw, 22px);
+        top: 24%;
+        bottom: 24%;
+        width: 3px;
+        border-radius: 3px;
+        overflow: hidden;
+        background: rgba(245,239,230,0.12);
+        z-index: 3;
+      }
+      .ls-journey-progress span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: ${C.violet};
+        transform-origin: top center;
+      }
+      @media (max-width: 899px) {
+        .ls-journey-orb { width: clamp(74px, 30vw, 128px); }
+        .ls-journey-card { gap: 16px; padding: 16px 18px; }
+      }
       @media (max-width: 899px) {
         .ls-journey-tick { width: 12px; }
         .ls-journey-tick.is-active { width: 22px; }
