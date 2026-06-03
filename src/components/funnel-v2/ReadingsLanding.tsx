@@ -548,6 +548,38 @@ function BirthSkyJourney() {
   const starY = useTransform(scrollYProgress, [0, 1], ["-6%", "-26%"]);
   const nebulaY = useTransform(scrollYProgress, [0, 1], ["8%", "-48%"]);
 
+  // Camera: pan + zoom across the solar system so the active body's region is
+  // centred and magnified, gliding from planet to planet as you scroll.
+  const seg = 1 / steps;
+  const ZOOM = 2.3;
+  const targets = SYSTEM.map((b) => {
+    const px = 50 + b.r * Math.cos((b.a * Math.PI) / 180);
+    const py = 50 + b.r * Math.sin((b.a * Math.PI) / 180);
+    return { tx: -ZOOM * (px - 50), ty: -ZOOM * (py - 50) };
+  });
+  const panIn = [0, ...SYSTEM.map((_, i) => (i + 0.5) * seg), 1];
+  const camX = useTransform(scrollYProgress, panIn, [
+    `${targets[0].tx}%`,
+    ...targets.map((t) => `${t.tx}%`),
+    `${targets[total - 1].tx}%`,
+  ]);
+  const camY = useTransform(scrollYProgress, panIn, [
+    `${targets[0].ty}%`,
+    ...targets.map((t) => `${t.ty}%`),
+    `${targets[total - 1].ty}%`,
+  ]);
+  const zoomIn: number[] = [];
+  const zoomOut: number[] = [];
+  for (let i = 0; i < total; i++) {
+    zoomIn.push(i * seg);
+    zoomOut.push(1.5);
+    zoomIn.push((i + 0.5) * seg);
+    zoomOut.push(ZOOM);
+  }
+  zoomIn.push(1);
+  zoomOut.push(2);
+  const camScale = useTransform(scrollYProgress, zoomIn, zoomOut);
+
   const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!date) {
@@ -615,40 +647,42 @@ function BirthSkyJourney() {
           Computed sky · <span style={{ color: C.gold }}>free</span>
         </p>
 
-        <div className="ls-journey-viewport">
-          {!onForm ? (
-            <>
-              <div className="ls-journey-system" aria-hidden="true">
-                {SYSTEM.slice(1).map((b) => (
-                  <span key={`orbit-${b.key}`} className="ls-journey-orbit" style={{ width: `${b.r * 2}%`, height: `${b.r * 2}%` }} />
-                ))}
-                {SYSTEM.map((b, i) => (
-                  <SystemBody key={b.key} body={b} index={i} active={active} />
-                ))}
-              </div>
-              {meta && body && (
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={body}
-                    className="ls-journey-dock"
-                    initial={{ opacity: 0, y: 48, scale: 0.94 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -30, scale: 0.97 }}
-                    transition={{ duration: reduce ? 0 : 0.5, ease }}
-                  >
-                    <div className="ls-dock-orb">
-                      {meta.img ? <img src={meta.img} alt={meta.label} /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
-                    </div>
-                    <div className="ls-dock-text">
-                      <span className="ls-journey-name"><i className="ls-readout-glyph">{meta.glyph}</i>{meta.label}</span>
-                      <p className="ls-journey-line">{line}</p>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              )}
-            </>
-          ) : (
-            <div className="ls-journey-formstage">
+        {!onForm && (
+          <div className="ls-journey-system" aria-hidden="true">
+            <motion.div className="ls-journey-camera" style={reduce ? undefined : { x: camX, y: camY, scale: camScale }}>
+              {SYSTEM.slice(1).map((b) => (
+                <span key={`orbit-${b.key}`} className="ls-journey-orbit" style={{ width: `${b.r * 2}%`, height: `${b.r * 2}%` }} />
+              ))}
+              {SYSTEM.map((b, i) => (
+                <SystemBody key={b.key} body={b} index={i} active={active} />
+              ))}
+            </motion.div>
+          </div>
+        )}
+
+        {!onForm ? (
+          meta && body && (
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={body}
+                className="ls-journey-dock"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -22 }}
+                transition={{ duration: reduce ? 0 : 0.45, ease }}
+              >
+                <div className="ls-dock-orb">
+                  {meta.img ? <img src={meta.img} alt={meta.label} /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
+                </div>
+                <div className="ls-dock-text">
+                  <span className="ls-journey-name"><i className="ls-readout-glyph">{meta.glyph}</i>{meta.label}</span>
+                  <p className="ls-journey-line">{line}</p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )
+        ) : (
+          <div className="ls-journey-formstage">
               {status !== "ready" ? (
                 <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
                   <span className="ls-journey-name">Their free sky</span>
@@ -677,7 +711,6 @@ function BirthSkyJourney() {
               )}
             </div>
           )}
-        </div>
 
         <div className="ls-journey-progress" aria-hidden="true">
           <motion.span style={{ scaleY: scrollYProgress }} />
@@ -698,7 +731,7 @@ function BirthSkyJourney() {
 // recedes as the next takes over). Glow fades in/out with it.
 function SystemBody({ body, index, active }: { body: { key: string; r: number; a: number }; index: number; active: number }) {
   const base = REL_SIZE[body.key] ?? 0.3;
-  const baseDiam = 3.5 + base * 10;
+  const baseDiam = 2.5 + base * 7;
   const left = 50 + body.r * Math.cos((body.a * Math.PI) / 180);
   const top = 50 + body.r * Math.sin((body.a * Math.PI) / 180);
   const meta = PLANET_META[body.key];
@@ -1179,12 +1212,12 @@ function CosmicStyles() {
         top: 0;
         height: 100svh;
         overflow: hidden;
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-items: center;
-        gap: clamp(10px, 2.4vh, 24px);
-        padding: clamp(18px, 5vh, 46px) 20px clamp(18px, 4vh, 40px);
+        justify-content: space-between;
+        gap: clamp(10px, 2vh, 20px);
+        padding: clamp(18px, 5vh, 46px) 20px clamp(22px, 5vh, 48px);
         text-align: center;
         z-index: 2;
       }
@@ -1399,16 +1432,19 @@ function CosmicStyles() {
         .ls-journey-orb { width: clamp(74px, 30vw, 128px); }
         .ls-journey-card { gap: 16px; padding: 16px 18px; }
       }
-      .ls-journey-viewport { position: relative; }
       .ls-journey-system {
         position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: min(72vw, 430px);
-        aspect-ratio: 1;
+        inset: 0;
         z-index: 1;
-        opacity: 0.6;
+        overflow: hidden;
+        opacity: 0.95;
+        pointer-events: none;
+      }
+      .ls-journey-camera {
+        position: absolute;
+        inset: 0;
+        transform-origin: center center;
+        will-change: transform;
       }
       .ls-sys-slot img {
         width: 100%;
