@@ -1760,24 +1760,23 @@ function CosmicStyles() {
       @keyframes lsFloatC { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-10px); } }
       @media (max-width: 899px) {
         .ls-hero-section {
-          min-height: 86svh;
+          min-height: 80svh;
           display: flex;
           align-items: flex-end;
-          padding-top: 88px;
-          padding-bottom: 52px;
-          background-position: 62% 40%;
+          padding-top: 76px;
+          padding-bottom: 44px;
+          background: #0a0810;
         }
         .ls-hero-backdrop {
-          background-position: 62% 40%;
+          background: #0a0810;
         }
         .ls-hero-backdrop::after {
-          background:
-            linear-gradient(180deg, rgba(8,6,11,0.66) 0%, rgba(8,6,11,0.18) 38%, rgba(8,6,11,0.68) 100%),
-            linear-gradient(90deg, rgba(8,6,11,0.50), rgba(8,6,11,0.04));
+          background: linear-gradient(180deg, rgba(10,8,16,0) 56%, rgba(10,8,16,0.86) 100%);
         }
         .ls-hero-backdrop-video {
-          object-position: 62% 40%;
-          opacity: 0.96;
+          object-fit: contain;
+          object-position: center top;
+          opacity: 1;
           top: 0;
           height: 100%;
           transform: none;
