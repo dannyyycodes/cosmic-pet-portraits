@@ -22,8 +22,11 @@
     position: relative; width: min(78vw, 360px); aspect-ratio: 1; display: grid; place-items: center;
   }
   /* Option 1 — real footage, circle masked + corona glow */
-  .sun-vid { position: relative; z-index: 1; width: 76%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; }
-  .sun-vid video { width: 100%; height: 100%; object-fit: cover; display: block; filter: sepia(0.55) saturate(2) hue-rotate(-12deg) brightness(1.05) contrast(1.05); }
+  .sun-vid { position: relative; z-index: 1; width: 80%; aspect-ratio: 1; }
+  .sun-vid video { width: 100%; height: 100%; object-fit: cover; display: block;
+    -webkit-mask-image: radial-gradient(circle, #000 60%, rgba(0,0,0,0.5) 73%, transparent 84%);
+    mask-image: radial-gradient(circle, #000 60%, rgba(0,0,0,0.5) 73%, transparent 84%);
+    filter: sepia(0.5) saturate(2.05) hue-rotate(-14deg) brightness(1.08) contrast(1.06); }
   .stage--vid::before {
     content: ""; position: absolute; left: 50%; top: 50%; width: 90%; aspect-ratio: 1;
     transform: translate(-50%,-50%); border-radius: 50%;

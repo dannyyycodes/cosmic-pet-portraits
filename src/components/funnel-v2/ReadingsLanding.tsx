@@ -172,6 +172,8 @@ const BODY_POS: Record<string, { x: number; y: number }> = {
   neptune: { x: 92, y: 26 },
   pluto: { x: 98, y: 22 },
 };
+// On phones, flatten the steep diagonal so bodies read across the screen.
+const flattenY = (y: number, mob: boolean) => (mob ? 50 + (y - 50) * 0.5 : y);
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
 const JOURNEY_SEQ = ["sun", "mercury", "venus", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Everything drawn in the system (adds decorative Earth).
@@ -578,7 +580,7 @@ function BirthSkyJourney() {
   const targets = JOURNEY_SEQ.map((key) => {
     if (key === "sun") return { tx: 0, ty: 0 };
     const p = BODY_POS[key];
-    return { tx: -ZOOM * (p.x - 50), ty: -ZOOM * (p.y - 50) };
+    return { tx: -ZOOM * (p.x - 50), ty: -ZOOM * (flattenY(p.y, isMobile) - 50) };
   });
   const panIn = [0, ...JOURNEY_SEQ.map((_, i) => (i + 0.5) * seg), 1];
   const camX = useTransform(scrollYProgress, panIn, [
@@ -691,7 +693,7 @@ function BirthSkyJourney() {
                 </g>
               </svg>
               {RENDER_ORDER.map((k) => (
-                <SystemBody key={k} bodyKey={k} journeyIndex={(JOURNEY_SEQ as readonly string[]).indexOf(k)} active={active} onJump={goTo} />
+                <SystemBody key={k} bodyKey={k} journeyIndex={(JOURNEY_SEQ as readonly string[]).indexOf(k)} active={active} onJump={goTo} isMobile={isMobile} />
               ))}
             </motion.div>
           </div>
@@ -876,18 +878,19 @@ function SunCanvas() {
   return <canvas ref={ref} className="ls-sun-canvas" aria-hidden="true" />;
 }
 
-function SystemBody({ bodyKey, journeyIndex, active, onJump }: { bodyKey: string; journeyIndex: number; active: number; onJump: (i: number) => void }) {
+function SystemBody({ bodyKey, journeyIndex, active, onJump, isMobile }: { bodyKey: string; journeyIndex: number; active: number; onJump: (i: number) => void; isMobile: boolean }) {
   const pos = BODY_POS[bodyKey];
   const base = REL_SIZE[bodyKey] ?? 0.3;
   const isSun = bodyKey === "sun";
-  const baseDiam = isSun ? 56 : 1 + base * 13;
+  const baseDiam = isSun ? 56 : (1 + base * 13) * (isMobile ? 1.6 : 1);
+  const top = flattenY(pos.y, isMobile);
   const meta = PLANET_META[bodyKey];
   const clickable = journeyIndex >= 0;
   const isActive = clickable && journeyIndex === active;
   return (
     <div
       className={`ls-sys-slot ${isActive ? "is-active" : ""} ${clickable ? "is-clickable" : ""}`}
-      style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: `${baseDiam}%`, zIndex: isSun ? 0 : isActive ? 5 : 1 }}
+      style={{ left: `${pos.x}%`, top: `${top}%`, width: `${baseDiam}%`, zIndex: isSun ? 0 : isActive ? 5 : 1 }}
       onClick={clickable ? () => onJump(journeyIndex) : undefined}
     >
       {isSun ? (
@@ -1648,8 +1651,9 @@ function CosmicStyles() {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 50%;
-        filter: sepia(0.55) saturate(2) hue-rotate(-12deg) brightness(1.05) contrast(1.05);
+        -webkit-mask-image: radial-gradient(circle, #000 60%, rgba(0,0,0,0.5) 73%, transparent 84%);
+        mask-image: radial-gradient(circle, #000 60%, rgba(0,0,0,0.5) 73%, transparent 84%);
+        filter: sepia(0.5) saturate(2.05) hue-rotate(-14deg) brightness(1.08) contrast(1.06);
       }
       @keyframes ls-sun-aura {
         0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
