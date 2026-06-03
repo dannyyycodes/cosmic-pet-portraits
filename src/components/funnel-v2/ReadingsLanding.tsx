@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, RefObject } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -255,6 +256,23 @@ export function ReadingsLanding() {
   const [selectedPrice, setSelectedPrice] = useState(0);
   useCosmicParallax(pageRef);
   useScrollReveal(pageRef);
+  const reduceMotion = useReducedMotion();
+
+  // Lenis smooth scroll for the whole page (native touch momentum kept on mobile).
+  useEffect(() => {
+    if (reduceMotion || typeof window === "undefined") return;
+    const lenis = new Lenis({ smoothWheel: true, syncTouch: false, lerp: 0.09 });
+    let raf = 0;
+    const loop = (t: number) => {
+      lenis.raf(t);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, [reduceMotion]);
 
   const scrollToCheckout = () => {
     checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -698,6 +716,12 @@ function BirthSkyJourney() {
         <p className="ls-journey-eyebrow" style={eyebrowStyle(C.cream)}>
           Computed sky · <span style={{ color: C.gold }}>free</span>
         </p>
+
+        {!onForm && active > 0 && (
+          <button type="button" className="ls-journey-overview" onClick={() => goTo(0)}>
+            ◎ View whole system
+          </button>
+        )}
 
         {!onForm && (
           <div className="ls-journey-system" aria-hidden="true">
@@ -1683,8 +1707,8 @@ function CosmicStyles() {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        -webkit-clip-path: circle(45%);
-        clip-path: circle(45%);
+        -webkit-clip-path: circle(48%);
+        clip-path: circle(48%);
         filter: sepia(0.5) saturate(2.05) hue-rotate(-14deg) brightness(1.08) contrast(1.06);
       }
       @keyframes ls-sun-aura {
@@ -1766,6 +1790,25 @@ function CosmicStyles() {
       .ls-dock-orb .ls-sys-glyph { font-size: clamp(2rem, 7vw, 3.2rem); color: ${C.gold}; }
       .ls-dock-text { display: grid; gap: 6px; justify-items: center; min-width: 0; }
       .ls-dock-glyph { color: ${C.gold}; font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1; }
+      .ls-journey-overview {
+        position: absolute;
+        top: clamp(74px, 9vh, 92px);
+        right: clamp(14px, 3vw, 24px);
+        z-index: 5;
+        border: 1px solid rgba(124,92,214,0.5);
+        background: rgba(124,92,214,0.16);
+        color: ${C.cream};
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-family: Lato, system-ui, sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      .ls-journey-overview:hover { background: rgba(124,92,214,0.3); border-color: rgba(124,92,214,0.8); }
       .ls-dock-text .ls-journey-name { text-align: center; font-size: 0.82rem; }
       .ls-dock-text .ls-journey-line { text-align: center; font-size: clamp(1.3rem, 4.4vw, 2rem); }
       .ls-journey-orbit {
