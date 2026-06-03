@@ -509,11 +509,11 @@ function PlanetCard({
 const SOLAR_ORBITS = [
   // Kepler's 3rd law: period proportional to orbit-radius^1.5 (inner fast,
   // outer slow). Sizes keep real relative order, compressed; Sun dwarfs all.
-  { planet: "mercury", size: 7, dur: 16, ring: 30, start: 35 },
-  { planet: "venus", size: 12, dur: 30, ring: 46, start: 160 },
-  { planet: "mars", size: 9, dur: 48, ring: 62, start: 255 },
-  { planet: "jupiter", size: 22, dur: 67, ring: 78, start: 100 },
-  { planet: "saturn", size: 34, dur: 89, ring: 94, start: 300 },
+  { planet: "mercury", size: 7, dur: 96, ring: 30, start: 35 },
+  { planet: "venus", size: 12, dur: 180, ring: 46, start: 160 },
+  { planet: "mars", size: 9, dur: 290, ring: 62, start: 255 },
+  { planet: "jupiter", size: 22, dur: 400, ring: 78, start: 100 },
+  { planet: "saturn", size: 34, dur: 540, ring: 94, start: 300 },
 ] as const;
 
 function SolarSystemBackdrop() {
