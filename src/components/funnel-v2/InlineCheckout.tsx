@@ -52,11 +52,11 @@ const TIERS: TierDef[] = [
     name: "Soul Reading",
     features: [
       { label: "Included:", kind: "divider" },
-      { label: "Full astrological breakdown — 30+ sections (works for any pet)" },
-      { label: "How they love, how they learn, how they heal, what they hope for, what they fear — and what makes them feel most themselves" },
+      { label: "Full astrological breakdown, 30+ sections (works for any pet)" },
+      { label: "How they love, how they learn, how they heal, what they hope for, what they fear, and what makes them feel most themselves" },
       { label: "Their photo becomes part of the reveal" },
-      { label: "Yours forever — revisit anytime, from any device" },
-      { label: "Bonus sections — little surprises written just for them", kind: "bonus" },
+      { label: "Yours forever. Revisit anytime, from any device" },
+      { label: "Bonus sections, little surprises written just for them", kind: "bonus" },
       { label: "SoulSpeak", kind: "soulspeak" },
       { label: "1 month of weekly horoscopes", kind: "horoscope" },
     ],
@@ -67,7 +67,7 @@ const TIERS: TierDef[] = [
     badge: "Most Chosen",
     features: [
       { label: "Everything in Soul Reading, plus:", kind: "divider" },
-      { label: "Your chart against theirs — where you align, where you challenge each other, and why the universe paired you" },
+      { label: "Your chart against theirs, where you align, where you challenge each other, and why the universe paired you" },
       { label: "Where your energies meet, mirror, and balance" },
       { label: "The soul-reasons you found each other" },
     ],
@@ -84,15 +84,15 @@ const TIERS: TierDef[] = [
       { label: "Included:", kind: "divider" },
       { label: "Dedicated to what made them, them." },
       { label: "What they'd tell you if they could speak today." },
-      { label: "Your chart and theirs, side by side — why the universe chose you for each other." },
+      { label: "Your chart and theirs, side by side. Why the universe chose you for each other." },
       { label: "The lesson they came to bring, and the love they came to give." },
-      { label: "The gifts they brought into your life — named and honoured." },
+      { label: "The gifts they brought into your life, named and honoured." },
       { label: "What they came to teach you, and what you gave them in return." },
       { label: "The parts of them you still carry." },
       { label: "What they loved about you." },
-      { label: "A permanent home for their memory — with you, always." },
+      { label: "A permanent home for their memory, with you, always." },
       { label: "A place where the conversation never has to end.", kind: "soulspeak" },
-      { label: "Signs they might still be sending you — and how to notice." },
+      { label: "Signs they might still be sending you, and how to notice." },
     ],
   },
 ];
@@ -240,7 +240,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         if (c.gift_only) {
           // Gift-only wheel prize (25% gift slice). Not applicable to this
           // flow — visitor should use it at /gift for a friend's reading.
-          setCodeError("Your gift prize is saved — use it at /gift to send a reading to a friend.");
+          setCodeError("Your gift prize is saved. Use it at /gift to send a reading to a friend.");
           setCodeStatus("idle");
           return;
         }
@@ -347,7 +347,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           return;
         }
         if (coupon.gift_only) {
-          setCodeError("This code is for gift purchases — try it on the /gift page.");
+          setCodeError("This code is for gift purchases. Try it on the /gift page.");
           setCodeStatus("idle");
           return;
         }
@@ -901,10 +901,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       {infoIcon}
                     </span>
                   ) : isBonus ? (
-                    <span>Bonus sections — little surprises written just for them</span>
+                    <span>Bonus sections, little surprises written just for them</span>
                   ) : isHoroscope ? (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      Weekly horoscopes — 1 month included
+                      Weekly horoscopes, 1 month included
                       {infoIcon}
                     </span>
                   ) : (
@@ -1568,7 +1568,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             {error && <p style={{ color: "#ffffff", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
 
             <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
-              {isLoading ? "Opening secure checkout..." : `${ctaLabel} — ${fmt(finalPrice + charityBonus * 100)}`}
+              {isLoading ? "Opening secure checkout..." : `${ctaLabel} · ${fmt(finalPrice + charityBonus * 100)}`}
             </button>
             <a href="/gift" className="cosmic-gift-link" onClick={() => trackFunnelEvent("v2_gift_link_clicked", { path })}>
               Or gift this reading
@@ -1781,9 +1781,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: petCount >= 2 ? "var(--rose, #bf524a)" : "var(--muted, #958779)" }}
           >
             {petCount >= 2 ? (
-              <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied — {petCount} readings · {fmt(selectedPrice)}</>
+              <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied, {petCount} readings · {fmt(selectedPrice)}</>
             ) : (
-              <>🐾 Got more pets? Use the + buttons above — save up to 30% on 2 or more</>
+              <>🐾 Got more pets? Use the + buttons above to save up to 30% on 2 or more</>
             )}
           </p>
         )}
@@ -1835,7 +1835,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>✨</span>
                 <div style={{ minWidth: 0 }}>
                   <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.98rem", color: "var(--rose, #bf524a)", margin: 0, lineHeight: 1.15, fontWeight: 400 }}>
-                    Extra {appliedCoupon.discount_value}% off — stacked
+                    Extra {appliedCoupon.discount_value}% off, stacked
                   </p>
                   <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", color: "var(--gold, #c4a265)", margin: "2px 0 0 0", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
                     Code {appliedCoupon.code} · on top of your launch saving
@@ -3182,7 +3182,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
 const HoroscopePreview = () => (
   <div className="horo-preview">
     <p className="horo-lead">
-      A cosmic forecast — written every Sunday, just for them.
+      A cosmic forecast, written every Sunday, just for them.
     </p>
 
     <div className="horo-divider" aria-hidden="true">
@@ -3194,11 +3194,11 @@ const HoroscopePreview = () => (
     </div>
 
     <p className="horo-body">
-      Like a weather forecast — but made of starlight. Each Sunday, you'll see what the week ahead holds for their little soul: the tender days, the stirring ones, the quiet ones. A gentle map of the cosmos moving through their world — so nothing arrives without meaning.
+      Like a weather forecast, but made of starlight. Each Sunday, you'll see what the week ahead holds for their little soul: the tender days, the stirring ones, the quiet ones. A gentle map of the cosmos moving through their world, so nothing arrives without meaning.
     </p>
 
     <p className="horo-body">
-      Without it, the weeks just <em className="ink">pass</em>. The small shifts, the soft turns, the days that wanted to be noticed — gone by before you saw them. And they only get so many weeks <em className="rose">with you</em>.
+      Without it, the weeks just <em className="ink">pass</em>. The small shifts, the soft turns, the days that wanted to be noticed, gone by before you saw them. And they only get so many weeks <em className="rose">with you</em>.
     </p>
 
     <figure className="horo-quote">
