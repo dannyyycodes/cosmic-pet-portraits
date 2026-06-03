@@ -1010,7 +1010,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             overflow: hidden;
             padding: 0;
             background: transparent;
-            color: #f5efe6;
+            color: #ffffff;
             scroll-margin-top: 96px;
           }
           .cosmic-checkout::before {
@@ -1053,7 +1053,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-checkout-title {
             max-width: 520px;
             margin: 0;
-            color: #f5efe6;
+            color: #ffffff;
             font-family: "Playfair Display", Georgia, serif;
             font-size: clamp(2.25rem, 4.6vw, 3.75rem);
             font-weight: 500;
@@ -1062,7 +1062,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-checkout-body {
             max-width: 600px;
             margin: 0;
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 1rem;
             line-height: 1.72;
@@ -1097,7 +1097,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             right: 18px;
             border-radius: 999px;
             background: #7c5cd6;
-            color: #f5efe6;
+            color: #ffffff;
             padding: 4px 10px;
             font-family: Lato, system-ui, sans-serif;
             font-size: 10px;
@@ -1124,7 +1124,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-tier h3 {
             margin: 0;
-            color: #f5efe6;
+            color: #ffffff;
             font-family: "Playfair Display", Georgia, serif;
             font-size: 1.62rem;
             line-height: 1.06;
@@ -1132,13 +1132,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-tier p {
             margin: 8px 0 0;
-            color: #9d8d7f;
+            color: #c8c8d2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.88rem;
             line-height: 1.48;
           }
           .cosmic-tier-price strong {
-            color: #f5efe6;
+            color: #ffffff;
             font-family: "Playfair Display", Georgia, serif;
             font-size: 2.2rem;
             font-weight: 500;
@@ -1172,7 +1172,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-feature-list p,
           .cosmic-feature-list button {
             margin: 0;
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.86rem;
             font-weight: 600;
@@ -1194,7 +1194,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             flex-shrink: 0;
             border: 1px solid rgba(212,182,122,0.30);
             border-radius: 999px;
-            color: #f0d99f;
+            color: #ffffff;
             padding: 3px 7px;
             font-size: 0.62rem;
             font-weight: 800;
@@ -1224,7 +1224,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-included-strip p {
             margin: 0;
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.86rem;
             line-height: 1.48;
@@ -1234,7 +1234,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border: 1px solid rgba(212,182,122,0.32);
             border-radius: 999px;
             background: rgba(212,182,122,0.08);
-            color: #f0d99f;
+            color: #ffffff;
             padding: 0 12px;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.72rem;
@@ -1244,7 +1244,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             white-space: nowrap;
           }
           .cosmic-stepper > span {
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.82rem;
           }
@@ -1259,7 +1259,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border: 1px solid rgba(212,182,122,0.34);
             border-radius: 999px;
             background: rgba(245,239,230,0.06);
-            color: #f0d99f;
+            color: #ffffff;
             font: 700 18px/1 Lato, system-ui, sans-serif;
           }
           .cosmic-stepper button:disabled {
@@ -1267,7 +1267,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-stepper b {
             min-width: 20px;
-            color: #f5efe6;
+            color: #ffffff;
             text-align: center;
             font-family: "Playfair Display", Georgia, serif;
             font-size: 1.2rem;
@@ -1290,17 +1290,17 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             gap: 18px;
             border-bottom: 1px solid rgba(245,239,230,0.08);
             padding: 12px 0;
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.92rem;
           }
           .cosmic-total-row {
             border-bottom: 0;
-            color: #f5efe6;
+            color: #ffffff;
             font-size: 1.05rem;
           }
           .cosmic-total-row strong {
-            color: #f0d99f;
+            color: #ffffff;
             font-family: "Playfair Display", Georgia, serif;
             font-size: 1.8rem;
             font-weight: 500;
@@ -1327,14 +1327,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border: 1px solid rgba(212,182,122,0.34);
             border-radius: 8px;
             background: rgba(5,4,7,0.76);
-            color: #f5efe6;
+            color: #ffffff;
             padding: 0 14px;
             font-family: Lato, system-ui, sans-serif;
           }
           .cosmic-order-panel label {
             display: block;
             margin: 14px 0 7px;
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.84rem;
             font-weight: 700;
@@ -1342,10 +1342,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-primary-button,
           .cosmic-apply-button {
             min-height: 50px;
-            border: 1px solid #f0d99f;
+            border: 1px solid #9a7ee6;
             border-radius: 8px;
-            background: linear-gradient(180deg, #f0d99f, #d4b67a);
-            color: #141210;
+            background: linear-gradient(180deg, #9a7ee6, #7c5cd6);
+            color: #ffffff;
             font-family: Lato, system-ui, sans-serif;
             font-weight: 800;
           }
@@ -1357,7 +1357,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: flex;
             justify-content: center;
             margin-top: 12px;
-            color: #f0d99f;
+            color: #ffffff;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.88rem;
             text-decoration: none;
@@ -1369,14 +1369,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             margin: 18px 0;
           }
           .cosmic-proof span {
-            color: #cfc1b1;
+            color: #ececf2;
             text-align: center;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.74rem;
             line-height: 1.35;
           }
           .cosmic-refund {
-            color: #cfc1b1;
+            color: #ececf2;
             text-align: center;
             font-family: Cormorant, Georgia, serif;
             font-size: 1.08rem;
@@ -1420,7 +1420,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-preview-panel h3 {
             margin: 0;
-            color: #f5efe6;
+            color: #ffffff;
             font-family: "Playfair Display", Georgia, serif;
             font-size: clamp(2rem, 6vw, 3rem);
             font-weight: 500;
@@ -1428,7 +1428,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-preview-panel p {
             margin: 16px 0 0;
-            color: #cfc1b1;
+            color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
             font-size: 1rem;
             line-height: 1.68;
@@ -1439,7 +1439,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border: 1px solid rgba(212,182,122,0.40);
             border-radius: 8px;
             background: rgba(212,182,122,0.10);
-            color: #f0d99f;
+            color: #ffffff;
             padding: 0 18px;
             font-family: Lato, system-ui, sans-serif;
             font-weight: 800;
@@ -1555,7 +1555,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 </button>
               </div>
             )}
-            {codeError && <p style={{ color: "#f0d99f", fontSize: 12, margin: "4px 0 0" }}>{codeError}</p>}
+            {codeError && <p style={{ color: "#ffffff", fontSize: 12, margin: "4px 0 0" }}>{codeError}</p>}
 
             <label htmlFor="v2-email">Where their reading opens</label>
             <input
@@ -1565,7 +1565,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               onChange={(e) => { setEmail(e.target.value); setError(""); }}
               placeholder="you@example.com"
             />
-            {error && <p style={{ color: "#f0d99f", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
+            {error && <p style={{ color: "#ffffff", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
 
             <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
               {isLoading ? "Opening secure checkout..." : `${ctaLabel} — ${fmt(finalPrice + charityBonus * 100)}`}
@@ -1575,7 +1575,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             </a>
 
             {isLocalized && (
-              <p style={{ color: "#9d8d7f", textAlign: "center", fontSize: 12, margin: "10px 0 0" }}>
+              <p style={{ color: "#c8c8d2", textAlign: "center", fontSize: 12, margin: "10px 0 0" }}>
                 Shown in {currencyCode}. Billed in USD at today's rate.
               </p>
             )}

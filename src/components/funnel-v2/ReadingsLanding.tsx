@@ -6,9 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 const C = {
   ink: "#141210",
-  cream: "#f5efe6",
-  creamDim: "#cfc1b1",
-  muted: "#9d8d7f",
+  cream: "#ffffff",
+  creamDim: "#ececf2",
+  muted: "#c8c8d2",
   gold: "#d4b67a",
   goldSoft: "#f0d99f",
   goldDeep: "#8b6f3a",
@@ -1126,7 +1126,7 @@ function CosmicStyles() {
       }
       .ls-chart-form label,
       .ls-lead-form label {
-        color: ${C.gold};
+        color: ${C.cream};
         font-family: Lato, system-ui, sans-serif;
         font-size: 0.72rem;
         font-weight: 800;
@@ -1538,12 +1538,12 @@ function CosmicStyles() {
         transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
       }
       .ls-gold-button {
-        background: ${C.gold};
-        color: ${C.ink};
-        border: 1px solid ${C.goldSoft};
+        background: ${C.violet};
+        color: ${C.cream};
+        border: 1px solid ${C.violetSoft};
       }
       .ls-gold-button:hover {
-        background: ${C.goldSoft};
+        background: ${C.violetSoft};
       }
       .ls-gold-button:disabled {
         cursor: default;
