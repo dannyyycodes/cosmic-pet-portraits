@@ -1082,22 +1082,22 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border: 1px solid rgba(245,239,230,0.12);
             border-radius: 8px;
             background:
-              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.10), transparent 44%),
+              radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.12), transparent 44%),
               linear-gradient(180deg, rgba(5,4,7,0.42), rgba(5,4,7,0.18));
             padding: 22px;
             cursor: pointer;
           }
           .cosmic-tier.is-selected {
-            border-color: rgba(212,182,122,0.72);
-            box-shadow: 0 0 0 1px rgba(212,182,122,0.16), 0 18px 48px rgba(0,0,0,0.24);
+            border-color: rgba(124,92,214,0.72);
+            box-shadow: 0 0 0 1px rgba(124,92,214,0.22), 0 18px 48px rgba(0,0,0,0.24);
           }
           .cosmic-tier-badge {
             position: absolute;
             top: -11px;
             right: 18px;
             border-radius: 999px;
-            background: #d4b67a;
-            color: #141210;
+            background: #7c5cd6;
+            color: #f5efe6;
             padding: 4px 10px;
             font-family: Lato, system-ui, sans-serif;
             font-size: 10px;
@@ -1115,12 +1115,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             width: 18px;
             height: 18px;
             margin-top: 6px;
-            border: 2px solid rgba(212,182,122,0.55);
+            border: 2px solid rgba(124,92,214,0.6);
             border-radius: 999px;
           }
           .cosmic-tier.is-selected .cosmic-radio {
             box-shadow: inset 0 0 0 4px #15101c;
-            background: #d4b67a;
+            background: #7c5cd6;
           }
           .cosmic-tier h3 {
             margin: 0;
@@ -1342,10 +1342,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-primary-button,
           .cosmic-apply-button {
             min-height: 50px;
-            border: 1px solid #9a7ee6;
+            border: 1px solid #f0d99f;
             border-radius: 8px;
-            background: linear-gradient(180deg, #9a7ee6, #7c5cd6);
-            color: #f5efe6;
+            background: linear-gradient(180deg, #f0d99f, #d4b67a);
+            color: #141210;
             font-family: Lato, system-ui, sans-serif;
             font-weight: 800;
           }

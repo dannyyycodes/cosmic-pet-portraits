@@ -1547,12 +1547,12 @@ function CosmicStyles() {
         transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
       }
       .ls-gold-button {
-        background: ${C.violet};
-        color: ${C.cream};
-        border: 1px solid ${C.violetSoft};
+        background: ${C.gold};
+        color: ${C.ink};
+        border: 1px solid ${C.goldSoft};
       }
       .ls-gold-button:hover {
-        background: ${C.violetSoft};
+        background: ${C.goldSoft};
       }
       .ls-gold-button:disabled {
         cursor: default;

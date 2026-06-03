@@ -15,8 +15,8 @@ const C = {
   sand: "#e8ddd0",
   ink: "#141210",
   warm: "#5a4a42",
-  gold: "#c4a265",
-  goldLight: "#d4b67a",
+  gold: "#7c5cd6",
+  goldLight: "#9a7ee6",
   cosmos: "#0d0a14",
   cosmosText: "#f5efe6",
   cosmosDim: "#b8a89c",
@@ -56,7 +56,7 @@ export function ReadingsNav() {
         background: navBg,
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        borderBottom: scrolled ? `1px solid rgba(212,182,122,0.22)` : "1px solid rgba(196,162,101,0.16)",
+        borderBottom: scrolled ? `1px solid rgba(124,92,214,0.22)` : "1px solid rgba(154,126,230,0.16)",
         height: 64,
       }}
     >
@@ -134,7 +134,7 @@ export function ReadingsNav() {
               className="hidden min-h-10 items-center gap-2 px-3 text-sm font-medium sm:inline-flex"
               style={{
                 color: C.cosmosText,
-                border: "1px solid rgba(196,162,101,0.28)",
+                border: "1px solid rgba(154,126,230,0.28)",
                 borderRadius: 8,
                 fontFamily: "Lato, system-ui, sans-serif",
               }}
@@ -153,7 +153,7 @@ export function ReadingsNav() {
               color: C.ink,
               fontFamily: "Lato, system-ui, sans-serif",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#f0d99f")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#9a7ee6")}
             onMouseLeave={(e) => (e.currentTarget.style.background = C.goldLight)}
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -167,7 +167,7 @@ export function ReadingsNav() {
                 style={{
                   width: 40,
                   height: 40,
-                  border: "1px solid rgba(196,162,101,0.32)",
+                  border: "1px solid rgba(154,126,230,0.32)",
                   borderRadius: 8,
                   background: "rgba(245,239,230,0.06)",
                   color: C.cosmosText,
@@ -177,7 +177,7 @@ export function ReadingsNav() {
                 <BurgerIcon />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[360px]" style={{ background: C.cosmos, borderColor: "rgba(212,182,122,0.22)" }}>
+            <SheetContent side="right" className="w-[300px] sm:w-[360px]" style={{ background: C.cosmos, borderColor: "rgba(124,92,214,0.22)" }}>
               <nav className="mt-10 flex flex-col gap-2" aria-label="Mobile primary">
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon;
@@ -200,13 +200,13 @@ export function ReadingsNav() {
                   );
                 })}
 
-                <div className="mt-6 flex flex-col gap-2 border-t pt-6" style={{ borderColor: "rgba(212,182,122,0.22)" }}>
+                <div className="mt-6 flex flex-col gap-2 border-t pt-6" style={{ borderColor: "rgba(124,92,214,0.22)" }}>
                   <SheetClose asChild>
                     <Link
                       to={user ? "/account" : "/auth"}
                       className="mx-4 inline-flex items-center justify-center gap-2 px-4 py-3 text-center"
                       style={{
-                        border: "1px solid rgba(212,182,122,0.28)",
+                        border: "1px solid rgba(124,92,214,0.28)",
                         borderRadius: 8,
                         color: C.cosmosText,
                         fontFamily: "Lato, system-ui, sans-serif",
