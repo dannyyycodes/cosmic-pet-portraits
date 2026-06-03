@@ -136,7 +136,7 @@ const JOURNEY_CTA = "Open Their Reading";
 const REL_SIZE: Record<string, number> = {
   sun: 1,
   jupiter: 0.34,
-  saturn: 0.3,
+  saturn: 0.42,
   uranus: 0.18,
   neptune: 0.17,
   earth: 0.18,
@@ -148,6 +148,23 @@ const REL_SIZE: Record<string, number> = {
   chiron: 0.05,
   northNode: 0.06,
   lilith: 0.06,
+};
+
+// Real NASA full-disc images, black background keyed to transparent (kills the
+// black box, keeps Saturn's rings). North Node renders as a glyph point; Lilith
+// reuses the Moon image, shadowed (the dark Moon).
+const NASA_IMG: Record<string, string> = {
+  mercury: "/readings/planets-nasa/mercury.png",
+  venus: "/readings/planets-nasa/venus.png",
+  earth: "/readings/planets-nasa/earth.png",
+  moon: "/readings/planets-nasa/moon.png",
+  lilith: "/readings/planets-nasa/moon.png",
+  mars: "/readings/planets-nasa/mars.png",
+  jupiter: "/readings/planets-nasa/jupiter.png",
+  saturn: "/readings/planets-nasa/saturn.png",
+  chiron: "/readings/planets-nasa/chiron.png",
+  uranus: "/readings/planets-nasa/uranus.png",
+  neptune: "/readings/planets-nasa/neptune.png",
 };
 
 // Scientifically-ish placed bodies (r = % of half-extent from centre, a = degrees).
@@ -711,7 +728,7 @@ function BirthSkyJourney() {
                 transition={{ duration: reduce ? 0 : 0.45, ease }}
               >
                 <div className="ls-dock-orb">
-                  {meta.img ? <img src={meta.img} alt={meta.label} /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
+                  {NASA_IMG[body] ? <img src={NASA_IMG[body]} alt={meta.label} /> : meta.img ? <img src={meta.img} alt={meta.label} /> : <span className="ls-sys-glyph">{meta.glyph}</span>}
                 </div>
                 <div className="ls-dock-text">
                   <span className="ls-journey-name"><i className="ls-readout-glyph">{meta.glyph}</i>{meta.label}</span>
@@ -774,14 +791,16 @@ function SunMedia() {
   const reduce = useReducedMotion();
   return (
     <span className="ls-sun-media">
-      {reduce ? (
-        <img className="ls-sun-video" src="/readings/sun/sun-poster.jpg" alt="" />
-      ) : (
-        <video className="ls-sun-video" autoPlay muted loop playsInline preload="auto" poster="/readings/sun/sun-poster.jpg">
-          <source src="/readings/sun/sun.webm" type="video/webm" />
-          <source src="/readings/sun/sun.mp4" type="video/mp4" />
-        </video>
-      )}
+      <span className="ls-sun-disc">
+        {reduce ? (
+          <img className="ls-sun-video" src="/readings/sun/sun-poster.jpg" alt="" />
+        ) : (
+          <video className="ls-sun-video" autoPlay muted loop playsInline preload="auto" poster="/readings/sun/sun-poster.jpg">
+            <source src="/readings/sun/sun.webm" type="video/webm" />
+            <source src="/readings/sun/sun.mp4" type="video/mp4" />
+          </video>
+        )}
+      </span>
     </span>
   );
 }
@@ -895,11 +914,11 @@ function SystemBody({ bodyKey, journeyIndex, active, onJump, isMobile }: { bodyK
     >
       {isSun ? (
         <span className="ls-sys-sun"><SunMedia /></span>
-      ) : bodyKey === "earth" ? (
-        <span className="ls-sys-earth" />
-      ) : meta?.img ? (
-        <span className={`ls-sys-orb ${bodyKey === "saturn" ? "ls-sys-orb--free" : ""}`}>
-          <img src={meta.img} alt="" />
+      ) : bodyKey === "northNode" ? (
+        <span className="ls-sys-node">{PLANET_META.northNode.glyph}</span>
+      ) : NASA_IMG[bodyKey] ? (
+        <span className="ls-sys-orb2">
+          <img src={NASA_IMG[bodyKey]} alt="" className={bodyKey === "lilith" ? "is-shadowed" : ""} loading="lazy" />
         </span>
       ) : (
         <span className="ls-sys-glyph">{meta?.glyph}</span>
@@ -1645,14 +1664,21 @@ function CosmicStyles() {
         z-index: 0;
         pointer-events: none;
       }
-      .ls-sun-video {
+      .ls-sun-disc {
         position: relative;
         z-index: 1;
         width: 100%;
         height: 100%;
+        border-radius: 50%;
+        overflow: hidden;
+      }
+      .ls-sun-video {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        -webkit-mask-image: radial-gradient(circle, #000 60%, rgba(0,0,0,0.5) 73%, transparent 84%);
-        mask-image: radial-gradient(circle, #000 60%, rgba(0,0,0,0.5) 73%, transparent 84%);
+        transform: scale(1.04);
+        -webkit-clip-path: circle(49%);
+        clip-path: circle(49%);
         filter: sepia(0.5) saturate(2.05) hue-rotate(-14deg) brightness(1.08) contrast(1.06);
       }
       @keyframes ls-sun-aura {
@@ -1697,6 +1723,13 @@ function CosmicStyles() {
       }
       .ls-sys-slot.is-active .ls-sys-orb img { opacity: 1; }
       .ls-sys-slot.is-active .ls-sys-glyph { color: ${C.violet}; text-shadow: 0 0 12px rgba(124,92,214,0.9); }
+      .ls-sys-orb2 { width: 100%; aspect-ratio: 1; display: grid; place-items: center; }
+      .ls-sys-orb2 img { width: 100%; height: 100%; object-fit: contain; transition: filter 0.4s ease; }
+      .ls-sys-orb2 img.is-shadowed { filter: brightness(0.32) saturate(0.5) contrast(1.05); }
+      .ls-sys-node { color: ${C.gold}; font-size: clamp(0.7rem, 2.6vw, 1.5rem); line-height: 1; }
+      .ls-sys-slot.is-active .ls-sys-orb2 img { filter: drop-shadow(0 0 14px rgba(124,92,214,0.85)); }
+      .ls-sys-slot.is-active .ls-sys-orb2 img.is-shadowed { filter: brightness(0.42) drop-shadow(0 0 14px rgba(124,92,214,0.9)); }
+      .ls-sys-slot.is-active .ls-sys-node { color: ${C.violet}; text-shadow: 0 0 12px rgba(124,92,214,0.9); }
       .ls-journey-dock {
         position: relative;
         z-index: 4;
