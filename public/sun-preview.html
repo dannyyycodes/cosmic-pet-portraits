@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sun preview — Little Souls</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: #0a0810; color: #f5efe6;
+    font-family: Lato, system-ui, sans-serif;
+    display: grid; place-items: center; padding: 28px 16px 60px;
+  }
+  h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: clamp(1.4rem, 4vw, 2.2rem); margin: 0 0 6px; text-align: center; }
+  .sub { color: #b8a89c; font-size: 0.85rem; text-align: center; margin: 0 0 30px; letter-spacing: 0.04em; }
+  .wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 5vw, 60px); width: min(960px, 100%); align-items: start; }
+  @media (max-width: 720px) { .wrap { grid-template-columns: 1fr; } }
+  .panel { display: grid; gap: 14px; justify-items: center; }
+  .label { color: #d4b67a; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.74rem; }
+  .stage {
+    position: relative; width: min(78vw, 360px); aspect-ratio: 1; display: grid; place-items: center;
+  }
+  /* Option 1 — real footage, circle masked + corona glow */
+  .sun-vid { position: relative; width: 76%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; }
+  .sun-vid video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .stage--vid::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle, transparent 36%, rgba(255,140,40,0.28) 42%, transparent 60%);
+    pointer-events: none;
+  }
+  /* Option 2 — shader */
+  canvas { width: 100%; height: 100%; display: block; }
+  .note { color: #9d8d7f; font-size: 0.78rem; max-width: 30ch; text-align: center; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>Sun options</h1>
+    <p class="sub">Pick one — tell Claude "1" or "2". Both loop forever.</p>
+    <div class="wrap">
+      <div class="panel">
+        <span class="label">1 · Real NASA footage</span>
+        <div class="stage stage--vid">
+          <div class="sun-vid">
+            <video autoplay muted loop playsinline preload="auto" poster="/readings/sun/sun-poster.jpg">
+              <source src="/readings/sun/sun.webm" type="video/webm" />
+              <source src="/readings/sun/sun.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+        <p class="note">Actual NASA SDO X9 solar-flare footage (171Å), public domain. Real plasma + real flares.</p>
+      </div>
+      <div class="panel">
+        <span class="label">2 · WebGL shader</span>
+        <div class="stage"><canvas id="sun"></canvas></div>
+        <p class="note">Procedural plasma: granulation, limb darkening, prominences + corona. Crisp at any size, tiny weight.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var canvas = document.getElementById("sun");
+    var gl = canvas.getContext("webgl", { premultipliedAlpha: true, antialias: true });
+    if (!gl) return;
+    var vs = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+    var fs = [
+      "precision highp float;",
+      "uniform float t; uniform vec2 res;",
+      "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }",
+      "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
+      "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x), u.y); }",
+      "float fbm(vec2 p){ float v=0.0,a=0.5; for(int i=0;i<6;i++){ v+=a*noise(p); p*=2.04; a*=0.5; } return v; }",
+      "void main(){",
+      "  vec2 uv=(gl_FragCoord.xy/res-0.5); uv.x*=res.x/res.y;",
+      "  float d=length(uv); float R=0.40; float time=t*0.04;",
+      "  float z=sqrt(max(0.0,R*R-d*d));",
+      "  float limb=pow(max(z/R,0.0),0.45);",
+      "  vec2 sc=vec2(uv.x, uv.y)*2.4 + vec2(time*0.5,0.0);",
+      "  float w=fbm(sc + fbm(sc*1.7 - time)*1.5);",
+      "  float gran=fbm(sc*5.0 + w*2.0 - time*1.5);",
+      "  float heat=w*0.6 + gran*0.5;",
+      "  vec3 deep=vec3(0.5,0.06,0.0), mid=vec3(1.0,0.40,0.04), hot=vec3(1.0,0.92,0.6);",
+      "  vec3 surf=mix(deep,mid,smoothstep(0.25,0.6,heat));",
+      "  surf=mix(surf,hot,smoothstep(0.62,0.95,heat));",
+      "  surf*=(0.5+0.7*limb);",
+      "  float disc=smoothstep(R+0.004,R-0.004,d);",
+      "  float ang=atan(uv.y,uv.x);",
+      "  float prom=pow(fbm(vec2(ang*3.0+time*2.0, time*1.5)),2.0);",
+      "  float band=smoothstep(R+0.16,R,d)*smoothstep(R-0.04,R+0.02,d);",
+      "  float flare=band*prom*(0.8+0.6*fbm(vec2(ang*7.0,time*3.0)));",
+      "  float corona=smoothstep(R+0.45,R,d)*0.5*(0.6+0.5*prom); corona*=smoothstep(R-0.05,R+0.1,d);",
+      "  vec3 flareCol=mix(vec3(1.0,0.35,0.04),vec3(1.0,0.7,0.2),prom);",
+      "  vec3 col=surf*disc + flareCol*flare*1.6 + vec3(1.0,0.45,0.12)*corona;",
+      "  float alpha=clamp(max(disc,max(flare*1.5,corona*1.4)),0.0,1.0);",
+      "  gl_FragColor=vec4(col*alpha, alpha);",
+      "}"
+    ].join("\n");
+    function sh(type, src){ var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+    var prog=gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog); gl.useProgram(prog);
+    var buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+    var loc=gl.getAttribLocation(prog,"p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    var uT=gl.getUniformLocation(prog,"t"), uR=gl.getUniformLocation(prog,"res");
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    function frame(ms){
+      var dpr=Math.min(2, window.devicePixelRatio||1);
+      var r=canvas.getBoundingClientRect();
+      var w=Math.max(2,Math.round(r.width*dpr)), h=Math.max(2,Math.round(r.height*dpr));
+      if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
+      gl.viewport(0,0,canvas.width,canvas.height);
+      gl.uniform1f(uT, ms*0.001); gl.uniform2f(uR, canvas.width, canvas.height);
+      gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
