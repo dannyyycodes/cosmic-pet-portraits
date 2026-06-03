@@ -261,26 +261,17 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
-          <p className="ls-reveal ls-hero-eyebrow" style={{ ...eyebrowStyle(C.gold), ...revealDelay(0) }}>
-            Their real birth chart, read as a soul
-          </p>
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
             Behind every soul, a cosmos.
           </h1>
-          <p className="ls-reveal mt-6 max-w-xl text-pretty" style={{ ...heroLeadStyle, ...revealDelay(0.16) }}>
-            The real sky from the day they arrived — every planet, computed — turned into who they are.
-          </p>
           <div className="ls-reveal mt-9 flex flex-col gap-3 sm:flex-row" style={revealDelay(0.24)}>
-            <button onClick={onBegin} className="ls-gold-button">
+            <button onClick={onBegin} className="ls-gold-button ls-violet-button">
               Begin Their Reading <ArrowRight size={17} />
             </button>
             <a href="#computed-sky" className="ls-ghost-button">
               Compute their sky — free
             </a>
           </div>
-          <p className="ls-reveal mt-8 max-w-lg text-pretty" style={{ ...whisperStyle, ...revealDelay(0.32) }}>
-            You already know them. You never had the words.
-          </p>
         </div>
       </div>
     </section>
@@ -1565,6 +1556,14 @@ function CosmicStyles() {
       .ls-ghost-button:hover {
         border-color: rgba(212,182,122,0.56);
         background: rgba(245,239,230,0.04);
+      }
+      .ls-violet-button {
+        background: ${C.violet};
+        color: ${C.cream};
+        border-color: ${C.violetSoft};
+      }
+      .ls-violet-button:hover {
+        background: ${C.violetSoft};
       }
       .ls-hero-section {
         background:
