@@ -149,6 +149,10 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/r/pin",
+      "destination": "/api/pin"
+    },
+    {
       "source": "/api/reading/:token",
       "destination": "/api/soul-reading?action=view&token=:token"
     },
@@ -195,6 +199,17 @@
         }
       ],
       "destination": "/api/pawtraits-ssr?path=gallery"
+    },
+    {
+      "source": "/pawtraits/art/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|pinterest|pinterestbot|twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|mj12bot|ahrefsbot|semrushbot|bytespider).*"
+        }
+      ],
+      "destination": "/api/pawtraits-art-ssr?id=:id"
     },
     {
       "source": "/pawtraits/studio",

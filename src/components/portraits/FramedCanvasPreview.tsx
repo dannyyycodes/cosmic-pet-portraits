@@ -3,11 +3,14 @@
  * on a wall, live-reflecting the selected size (aspect ratio) and frame tone.
  *
  * This is the "canvas image in the flow" — it makes the product tangible while
- * the customer configures it, instead of a bare cropped thumbnail. Pure CSS
- * (no per-size mockup images): a wood-tone frame border + thin mat + soft wall
- * backdrop + drop shadow, sized to the true print aspect ratio.
+ * the customer configures it, instead of a bare cropped thumbnail.
  *
- * Rebuilt 2026-06-01 (ground-up configurator pass).
+ * Frame = real photoreal wood TEXTURE (public/portraits/frames/frame-tex-*.webp,
+ * Codex gpt-image-1) applied via border-image so the corners + edges show actual
+ * grain, plus an inner bevel lip + soft mat + wall backdrop + drop shadow. Falls
+ * back to a solid stain colour if a texture asset fails to load.
+ *
+ * Rebuilt 2026-06-01 (configurator pass); textured 2026-06-04.
  */
 import { CANVAS_SIZES, type FrameColor } from "./gelatoFramedCanvas";
 import { PALETTE } from "./tokens";
@@ -21,16 +24,17 @@ interface FramedCanvasPreviewProps {
   maxWidth?: number;
 }
 
-// Wood-tone gradients approximating each frame stain (no texture assets needed).
-const FRAME_FACE: Record<FrameColor, string> = {
-  black: "linear-gradient(135deg, #2a2724 0%, #14110f 55%, #2a2724 100%)",
-  "natural-wood": "linear-gradient(135deg, #d8b486 0%, #b98c5a 50%, #cfa878 100%)",
-  "dark-wood": "linear-gradient(135deg, #6b4226 0%, #4a2c18 55%, #6b4226 100%)",
+// Real wood texture per stain (Codex gpt-image-1, seamless 1024² planks).
+const FRAME_TEX: Record<FrameColor, string> = {
+  black: "/portraits/frames/frame-tex-black.webp",
+  "natural-wood": "/portraits/frames/frame-tex-natural.webp",
+  "dark-wood": "/portraits/frames/frame-tex-dark.webp",
 };
+// Solid stain fallback (shown only if the texture asset 404s).
 const FRAME_EDGE: Record<FrameColor, string> = {
-  black: "#0c0a09",
-  "natural-wood": "#8a6437",
-  "dark-wood": "#321d10",
+  black: "#15110f",
+  "natural-wood": "#b98c5a",
+  "dark-wood": "#4a2c18",
 };
 
 export function FramedCanvasPreview({
@@ -45,8 +49,10 @@ export function FramedCanvasPreview({
   // Frame thickness scales a little with the print's long edge so a Statement
   // canvas reads heftier than a Small one.
   const longEdge = Math.max(size.inches.w, size.inches.h);
-  const frameW = frameColor === null ? 0 : Math.round(10 + (longEdge / 36) * 14); // 10–24px
+  const frameW = frameColor === null ? 0 : Math.round(13 + (longEdge / 36) * 15); // 13–28px
   const matW = frameColor === null ? 0 : 6;
+
+  const framed = frameColor !== null;
 
   return (
     <div
@@ -56,7 +62,7 @@ export function FramedCanvasPreview({
         // Warm wall backdrop with a hint of window light from the left.
         background: `radial-gradient(120% 90% at 20% 10%, #fffaf2 0%, ${PALETTE.cream2} 55%, ${PALETTE.paper} 100%)`,
         borderRadius: 14,
-        padding: "clamp(20px, 6vw, 36px)",
+        padding: "clamp(20px, 6vw, 40px)",
         boxShadow: "inset 0 1px 2px rgba(255,255,255,0.6)",
       }}
     >
@@ -65,11 +71,11 @@ export function FramedCanvasPreview({
         aria-hidden
         className="absolute left-1/2 -translate-x-1/2"
         style={{
-          bottom: "10%",
-          width: "62%",
-          height: 18,
-          background: "rgba(20,18,16,0.18)",
-          filter: "blur(16px)",
+          bottom: "8%",
+          width: "64%",
+          height: 20,
+          background: "rgba(20,18,16,0.20)",
+          filter: "blur(17px)",
           borderRadius: "50%",
         }}
       />
@@ -79,19 +85,27 @@ export function FramedCanvasPreview({
           width: "100%",
           maxWidth: maxWidth - 56,
           aspectRatio: aspect,
-          // The frame itself.
-          background: frameColor === null ? "transparent" : FRAME_FACE[frameColor],
-          border:
-            frameColor === null
-              ? `1px solid ${PALETTE.sandDeep}`
-              : `1px solid ${FRAME_EDGE[frameColor]}`,
-          padding: frameW,
+          boxSizing: "border-box",
+          // The frame itself — real wood texture via border-image, solid-stain fallback.
+          ...(framed
+            ? {
+                borderStyle: "solid",
+                borderWidth: frameW,
+                borderColor: FRAME_EDGE[frameColor],
+                borderImage: `url("${FRAME_TEX[frameColor]}") 33% round`,
+                // outer float + inner bevel lip (light top-left, dark bottom-right)
+                boxShadow:
+                  "0 24px 52px -14px rgba(20,18,16,0.5), 0 4px 12px rgba(20,18,16,0.24)," +
+                  "inset 2px 2px 1px rgba(255,255,255,0.18), inset -3px -3px 5px rgba(0,0,0,0.42)",
+              }
+            : {
+                border: `1px solid ${PALETTE.sandDeep}`,
+                boxShadow:
+                  "0 14px 34px -12px rgba(20,18,16,0.34), 0 2px 6px rgba(20,18,16,0.14)",
+              }),
           borderRadius: 2,
-          boxShadow:
-            frameColor === null
-              ? "0 14px 34px -12px rgba(20,18,16,0.34), 0 2px 6px rgba(20,18,16,0.14)"
-              : "0 22px 48px -14px rgba(20,18,16,0.45), 0 3px 10px rgba(20,18,16,0.22)",
-          transition: "padding 220ms ease, background 220ms ease, aspect-ratio 260ms ease",
+          background: "#fff",
+          transition: "border-width 220ms ease, aspect-ratio 260ms ease",
         }}
       >
         {/* mat + image */}
@@ -101,7 +115,9 @@ export function FramedCanvasPreview({
             height: "100%",
             background: "#fff",
             padding: matW,
-            boxShadow: frameColor === null ? "none" : "inset 0 0 0 1px rgba(20,18,16,0.08)",
+            boxShadow: framed
+              ? "inset 0 0 0 1px rgba(20,18,16,0.10), inset 0 1px 3px rgba(20,18,16,0.12)"
+              : "none",
           }}
         >
           <img
