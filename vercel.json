@@ -153,6 +153,10 @@
       "destination": "/api/pin"
     },
     {
+      "source": "/feeds/google-pawtraits.xml",
+      "destination": "/api/google-feed"
+    },
+    {
       "source": "/api/reading/:token",
       "destination": "/api/soul-reading?action=view&token=:token"
     },
