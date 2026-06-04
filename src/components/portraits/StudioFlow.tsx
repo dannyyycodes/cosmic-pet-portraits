@@ -1962,7 +1962,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.28, ease: EASE.out }}
               className="overflow-hidden"
-              style={{ order: 2 }}
+              style={{ order: 4 }}
             >
               <div className="mt-3">
                 <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 11.5, fontWeight: 700, color: PALETTE.earthMuted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8, paddingLeft: 2 }}>
@@ -2178,44 +2178,31 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── [order 3] Mode toggle — always visible ───────────────────────── */}
+        {/* ── [order 3] Mode — small toggle (default = Transform with AI) ──── */}
         {studioPhase === 'compose' && (
-          <div className="mt-4" style={{ order: 3 }}>
-            <div
-              className="grid grid-cols-2 gap-1 p-1 rounded-2xl"
-              style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
-              role="tablist"
-              aria-label="Portrait mode"
+          <div className="mt-2.5 flex justify-end" style={{ order: 3 }}>
+            <button
+              type="button"
+              onClick={() => switchMode(mode === "asis" ? "ai" : "asis")}
+              aria-pressed={mode === "asis"}
+              title="Skip the AI styling and print your photo exactly as it is"
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition-all"
+              style={{
+                background: mode === "asis" ? PALETTE.roseSoft : "transparent",
+                border: `1px solid ${mode === "asis" ? PALETTE.rose : PALETTE.sandDeep}`,
+                color: mode === "asis" ? PALETTE.rose : PALETTE.earthMuted,
+                ...body("12.5px"),
+                fontWeight: 600,
+              }}
             >
-              {([
-                { key: "ai" as const, label: "Transform into art", icon: "✨" },
-                { key: "asis" as const, label: "Use my photo", icon: "📷" },
-              ]).map((opt) => {
-                const active = mode === opt.key;
-                return (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => switchMode(opt.key)}
-                    className="rounded-xl px-3 py-2.5 transition-all flex items-center justify-center gap-2"
-                    style={{
-                      background: active ? PALETTE.cream : "transparent",
-                      border: active ? `1.5px solid ${PALETTE.rose}` : "1.5px solid transparent",
-                      boxShadow: active ? "0 4px 12px rgba(191,82,74,0.12)" : "none",
-                      color: active ? PALETTE.rose : PALETTE.earthMuted,
-                      fontFamily: "Asap, system-ui, sans-serif",
-                      fontSize: 13.5,
-                      fontWeight: active ? 700 : 600,
-                    }}
-                  >
-                    <span aria-hidden style={{ fontSize: 15 }}>{opt.icon}</span>
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
+              <span
+                aria-hidden
+                style={{ width: 30, height: 18, borderRadius: 999, background: mode === "asis" ? PALETTE.rose : PALETTE.sandDeep, position: "relative", transition: "background 200ms", flexShrink: 0 }}
+              >
+                <span style={{ position: "absolute", top: 2, left: mode === "asis" ? 14 : 2, width: 14, height: 14, borderRadius: "50%", background: "#fff", transition: "left 200ms", boxShadow: "0 1px 2px rgba(0,0,0,0.25)" }} />
+              </span>
+              Use my own photo (no AI)
+            </button>
           </div>
         )}
 
@@ -2229,7 +2216,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               exit={{ opacity: 0 }}
               transition={sectionTransition}
               className="mt-3"
-              style={{ order: 4 }}
+              style={{ order: 2 }}
             >
             {layout === "separate" && uploadedPets.length > 1 && (
               <div
