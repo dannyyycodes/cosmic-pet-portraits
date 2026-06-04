@@ -1166,6 +1166,18 @@ const GALLERY_SHOTS = [
     height: 942,
   },
   {
+    src: "/readings/hero/birth-chart-tablet-pet-nearby.png",
+    alt: "Tabby cat resting beside a tablet glowing with a gold celestial chart",
+    width: 1586,
+    height: 992,
+  },
+  {
+    src: "/readings/hero/quiet-keepsake-reading-moment.png",
+    alt: "Dog resting beside a person holding a tablet filled with a quiet star map",
+    width: 1896,
+    height: 830,
+  },
+  {
     src: "/readings/hero/doberman-puppy-star-map.webp",
     alt: "Doberman puppy touching a softly glowing star map",
     width: 1672,
