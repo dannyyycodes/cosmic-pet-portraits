@@ -2178,8 +2178,8 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── [order 3] Mode toggle — appears once a photo is added ────────── */}
-        {studioPhase === 'compose' && uploadedPets.length >= 1 && (
+        {/* ── [order 3] Mode toggle — always visible ───────────────────────── */}
+        {studioPhase === 'compose' && (
           <div className="mt-4" style={{ order: 3 }}>
             <div
               className="grid grid-cols-2 gap-1 p-1 rounded-2xl"
@@ -2219,9 +2219,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           </div>
         )}
 
-        {/* ── [order 4] Prompt box — appears once a photo is added (clean empty state) ─ */}
+        {/* ── [order 4] Prompt box — always visible (Generate gated by photo) ─ */}
         <AnimatePresence>
-          {uploadedPets.length >= 1 && (
+          {true && (
             <motion.div
               key="prompt"
               initial={{ opacity: 0, y: 12 }}
