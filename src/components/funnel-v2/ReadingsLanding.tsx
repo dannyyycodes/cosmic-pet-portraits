@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, RefObject } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,6 +94,7 @@ const PLANET_META: Record<string, { glyph: string; label: string; line: string; 
   moon: { glyph: "☽", label: "Moon", line: "How they feel, and what soothes them.", img: "/readings/planets/moon.png" },
   mercury: { glyph: "☿", label: "Mercury", line: "How they read you, and answer back.", img: "/readings/planets/mercury.png" },
   venus: { glyph: "♀", label: "Venus", line: "How they give, and ask for, love.", img: "/readings/planets/venus.png" },
+  earth: { glyph: "⊕", label: "Earth", line: "This is where we are!" },
   mars: { glyph: "♂", label: "Mars", line: "Their drive, their courage, their play.", img: "/readings/planets/mars.png" },
   jupiter: { glyph: "♃", label: "Jupiter", line: "Where they trust enough to open.", img: "/readings/planets/jupiter.png" },
   saturn: { glyph: "♄", label: "Saturn", line: "What steadies them, and holds them.", img: "/readings/planets/saturn.png" },
@@ -117,6 +118,7 @@ const JOURNEY_LINES: Record<string, string> = {
   moon: "What they feel before you do.",
   mercury: "How they listen, then answer you.",
   venus: "The way they ask to be loved.",
+  earth: "This is where we are — home.",
   mars: "Their fire, their nerve, their play.",
   jupiter: "Where they grow brave enough to trust.",
   saturn: "What steadies them when everything shakes.",
@@ -194,11 +196,52 @@ const BODY_POS: Record<string, { x: number; y: number }> = {
 // On phones, flatten the steep diagonal so bodies read across the screen.
 const flattenY = (y: number, mob: boolean) => (mob ? 50 + (y - 50) * 0.5 : y);
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
-const JOURNEY_SEQ = ["sun", "mercury", "venus", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+const JOURNEY_SEQ = ["sun", "mercury", "venus", "earth", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Everything drawn in the system (adds decorative Earth).
 const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Bodies that get a faint orbit ring (real planets only, not the lunar points / chiron).
 const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"] as const;
+
+// --- Side-view orrery diagram (the "Birth sky" section) ----------------------
+// Coordinates are % of the diagram box. Sun anchored low-left, planets stepping
+// up-and-right along concentric swept orbits — a real astronomy chart. Spacing +
+// sizes tuned so nothing overlaps on phone or desktop.
+const ORRERY_POS: Record<string, { x: number; y: number }> = {
+  sun: { x: 1, y: 58 },
+  mercury: { x: 30, y: 61 }, venus: { x: 38, y: 57 }, earth: { x: 45, y: 53 },
+  lilith: { x: 42, y: 55 }, moon: { x: 49, y: 51 }, northNode: { x: 52, y: 49 },
+  mars: { x: 57, y: 48 }, jupiter: { x: 67, y: 42 }, saturn: { x: 77, y: 37 },
+  chiron: { x: 82, y: 34 }, uranus: { x: 87, y: 31 }, neptune: { x: 92, y: 26 },
+  pluto: { x: 97, y: 22 },
+};
+// Every body (not the Sun) gets its own orbit ring.
+const ORRERY_ORBIT_ALL = ["mercury", "venus", "earth", "lilith", "moon", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+// Diameter as % of the box width (gas giants big, rocky small — real-ish order).
+const ORRERY_DIAM: Record<string, number> = {
+  sun: 50, mercury: 3.6, venus: 5, earth: 5.2, moon: 2.8, mars: 4,
+  jupiter: 11, saturn: 9.5, uranus: 7, neptune: 7, pluto: 3.2,
+  chiron: 3, northNode: 2.6, lilith: 2.8,
+};
+const ORRERY_K = 0.4; // vertical squash of the orbit ellipses
+// Bodies that always show a name label (the classic planets, like the reference).
+const ORRERY_LABELLED = new Set(["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"]);
+// The orbit ellipses are drawn through each body then rotated this much about the
+// sun for a swept look — so the bodies must be rotated by the SAME angle to land
+// exactly on their ring.
+const ORRERY_ROT = -7;
+const ORRERY_RPOS: Record<string, { x: number; y: number }> = (() => {
+  const cx = ORRERY_POS.sun.x;
+  const cy = ORRERY_POS.sun.y;
+  const a = (ORRERY_ROT * Math.PI) / 180;
+  const ca = Math.cos(a);
+  const sa = Math.sin(a);
+  const out: Record<string, { x: number; y: number }> = {};
+  for (const k in ORRERY_POS) {
+    const { x, y } = ORRERY_POS[k];
+    out[k] = { x: cx + (x - cx) * ca - (y - cy) * sa, y: cy + (x - cx) * sa + (y - cy) * ca };
+  }
+  return out;
+})();
 
 const SIGN_GLYPHS: Record<string, string> = {
   Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
@@ -366,7 +409,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(212,182,122,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
+      <div className="ls-hero-veil absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(212,182,122,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
@@ -584,9 +627,8 @@ function BirthChartPreviewSection() {
 // lights the bodies one at a time (Sun outward). Next/Prev + dots also navigate.
 // The final step is the existing free-calc form, then a value reveal + hint.
 function BirthSkyJourney() {
-  const sectionRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  const boxRef = useRef<HTMLDivElement>(null);
 
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
@@ -595,60 +637,95 @@ function BirthSkyJourney() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [active, setActive] = useState(0);
-  const [isMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 900);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 760);
 
   const total = JOURNEY_SEQ.length;
-  const steps = total + 1;
+  const activeRef = useRef(0);
+  activeRef.current = active;
 
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const idx = Math.min(steps - 1, Math.max(0, Math.floor(p * steps + 0.0001)));
-    setActive((cur) => (cur === idx ? cur : idx));
-  });
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 760);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
-  // Parallax layers (slower = deeper) + continuous within-segment camera dwell.
-  const starY = useTransform(scrollYProgress, [0, 1], ["-6%", "-26%"]);
-  const nebulaY = useTransform(scrollYProgress, [0, 1], ["8%", "-48%"]);
+  // Layout positions. On mobile the vertical climb is flattened to a gentle,
+  // steady ramp (the steep diagonal reads badly on a tall box). POS = base
+  // (pre-rotation, used to draw each orbit through its planet), RPOS = the same
+  // points rotated -7° about the sun so the bodies sit exactly on those rings.
+  const { POS, RPOS } = useMemo(() => {
+    const ramp = isMobile ? 0.5 : 1;
+    const cyBase = ORRERY_POS.sun.y;
+    const POS: Record<string, { x: number; y: number }> = {};
+    for (const k in ORRERY_POS) {
+      const p = ORRERY_POS[k];
+      POS[k] = { x: p.x, y: cyBase + (p.y - cyBase) * ramp };
+    }
+    const a = (ORRERY_ROT * Math.PI) / 180, ca = Math.cos(a), sa = Math.sin(a);
+    const cx = POS.sun.x, cy = POS.sun.y;
+    const RPOS: Record<string, { x: number; y: number }> = {};
+    for (const k in POS) {
+      const p = POS[k];
+      RPOS[k] = { x: cx + (p.x - cx) * ca - (p.y - cy) * sa, y: cy + (p.x - cx) * sa + (p.y - cy) * ca };
+    }
+    return { POS, RPOS };
+  }, [isMobile]);
 
-  // Camera: pan + zoom across the solar system so the active body's region is
-  // centred and magnified, gliding from planet to planet as you scroll.
-  const seg = 1 / steps;
-  const ZOOM = isMobile ? 2.7 : 2.5;
-  const targets = JOURNEY_SEQ.map((key) => {
-    if (key === "sun") return { tx: 0, ty: 0 };
-    const p = BODY_POS[key];
-    return { tx: -ZOOM * (p.x - 50), ty: -ZOOM * (flattenY(p.y, isMobile) - 50) };
-  });
-  const panIn = [0, ...JOURNEY_SEQ.map((_, i) => (i + 0.5) * seg), 1];
-  const camX = useTransform(scrollYProgress, panIn, [
-    `${targets[0].tx}%`,
-    ...targets.map((t) => `${t.tx}%`),
-    `${targets[total - 1].tx}%`,
-  ]);
-  const camY = useTransform(scrollYProgress, panIn, [
-    `${targets[0].ty}%`,
-    ...targets.map((t) => `${t.ty}%`),
-    `${targets[total - 1].ty}%`,
-  ]);
-  const zoomIn: number[] = [];
-  const zoomOut: number[] = [];
-  for (let i = 0; i < total; i++) {
-    zoomIn.push(i * seg);
-    zoomOut.push(i === 0 ? (isMobile ? 1.15 : 0.92) : isMobile ? 1.4 : 1.15);
-    zoomIn.push((i + 0.5) * seg);
-    zoomOut.push(i === 0 ? (isMobile ? 1.25 : 0.95) : ZOOM);
-  }
-  zoomIn.push(1);
-  zoomOut.push(1.4);
-  const camScale = useTransform(scrollYProgress, zoomIn, zoomOut);
+  // Smooth camera that eases to centre the active body (guided tour, not scroll-jack).
+  const camX = useSpring(0, { stiffness: 80, damping: 22, mass: 0.6 });
+  const camY = useSpring(0, { stiffness: 80, damping: 22, mass: 0.6 });
+  const camS = useSpring(1, { stiffness: 80, damping: 22, mass: 0.6 });
+  const camTransform = useMotionTemplate`translate3d(${camX}%, ${camY}%, 0) scale(${camS})`;
 
-  const goTo = (i: number) => {
-    const el = sectionRef.current;
-    if (!el || typeof window === "undefined") return;
-    const clamped = Math.max(0, Math.min(total - 1, i));
-    const scrollable = Math.max(1, el.offsetHeight - window.innerHeight);
-    const top = el.offsetTop + ((clamped + 0.5) / steps) * scrollable;
-    window.scrollTo({ top, behavior: "smooth" });
-  };
+  useEffect(() => {
+    const key = JOURNEY_SEQ[active];
+    const p = RPOS[key] ?? RPOS.sun;
+    if (reduce) { camX.set(0); camY.set(0); camS.set(1); return; }
+    if (key === "sun") { camX.set(0); camY.set(0); camS.set(isMobile ? 1.04 : 0.96); return; }
+    const zoom = isMobile ? 1.5 : 1.34;
+    camX.set(-zoom * (p.x - 50));
+    camY.set(-zoom * (p.y - 50));
+    camS.set(zoom);
+  }, [active, isMobile, reduce, camX, camY, camS, RPOS]);
+
+  // Step through bodies only when the gesture is OVER the diagram. At either end
+  // the gesture passes through, so the page scrolls on past the section. The
+  // diagram carries data-lenis-prevent so global smooth-scroll leaves it alone.
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    let accum = 0;
+    let lastY = 0;
+    const atEdge = (dir: number) =>
+      (dir > 0 && activeRef.current >= total - 1) || (dir < 0 && activeRef.current <= 0);
+    const stepBy = (d: number) => setActive((a) => Math.max(0, Math.min(total - 1, a + d)));
+    const onWheel = (e: WheelEvent) => {
+      const dir = e.deltaY > 0 ? 1 : -1;
+      if (atEdge(dir)) { accum = 0; return; }
+      e.preventDefault();
+      accum += e.deltaY;
+      if (Math.abs(accum) >= 60) { stepBy(accum > 0 ? 1 : -1); accum = 0; }
+    };
+    const onTouchStart = (e: TouchEvent) => { lastY = e.touches[0].clientY; accum = 0; };
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0].clientY;
+      const dy = lastY - y;
+      lastY = y;
+      const dir = dy > 0 ? 1 : -1;
+      if (atEdge(dir)) return;
+      e.preventDefault();
+      accum += dy;
+      if (Math.abs(accum) >= 40) { stepBy(accum > 0 ? 1 : -1); accum = 0; }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [total]);
 
   const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -702,106 +779,317 @@ function BirthSkyJourney() {
   const scrollToCheckout = () =>
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const onForm = active >= total;
-  const body = onForm ? null : JOURNEY_SEQ[active];
-  const meta = body ? PLANET_META[body] : null;
-  const line = body ? JOURNEY_LINES[body] ?? PLANET_META[body].line : "";
   const ease = [0.22, 0.7, 0.2, 1] as const;
+  const activeKey = JOURNEY_SEQ[active];
+  const meta = PLANET_META[activeKey];
+  const line = JOURNEY_LINES[activeKey] ?? meta.line;
+
+  const orbitFor = (px: number, py: number) => {
+    const cx = POS.sun.x;
+    const cy = POS.sun.y;
+    const rx = Math.hypot(px - cx, (py - cy) / ORRERY_K);
+    return { cx, cy, rx, ry: rx * ORRERY_K };
+  };
 
   return (
-    <section ref={sectionRef} id="computed-sky" className="ls-journey ls-parallax-band">
-      <div className="ls-journey-stage">
-        <motion.div className="ls-journey-stars" style={{ y: reduce ? undefined : starY }} aria-hidden="true" />
-        <motion.div className="ls-journey-nebula" style={{ y: reduce ? undefined : nebulaY }} aria-hidden="true" />
-        <p className="ls-journey-eyebrow" style={eyebrowStyle(C.cream)}>
-          Computed sky · <span style={{ color: C.gold }}>free</span>
+    <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
+      <div className="ls-orrery-head ls-reveal">
+        <p style={eyebrowStyle(C.cream)}>
+          Computed sky · <span style={{ color: C.violetSoft }}>free</span>
         </p>
-
-        {!onForm && active > 0 && (
-          <button type="button" className="ls-journey-overview" onClick={() => goTo(0)}>
-            ◎ View whole system
-          </button>
-        )}
-
-        {!onForm && (
-          <div className="ls-journey-system" aria-hidden="true">
-            <motion.div className="ls-journey-camera" style={reduce ? undefined : { x: camX, y: camY, scale: camScale }}>
-              <svg className="ls-journey-orbits" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                <g transform="rotate(-6 3 54)">
-                  {ORBIT_KEYS.map((k) => {
-                    const rx = BODY_POS[k].x - BODY_POS.sun.x;
-                    return <ellipse key={`orbit-${k}`} cx={BODY_POS.sun.x} cy={54} rx={rx} ry={rx * 0.42} />;
-                  })}
-                </g>
-              </svg>
-              {RENDER_ORDER.map((k) => (
-                <SystemBody key={k} bodyKey={k} journeyIndex={(JOURNEY_SEQ as readonly string[]).indexOf(k)} active={active} onJump={goTo} isMobile={isMobile} />
-              ))}
-            </motion.div>
-          </div>
-        )}
-
-        {!onForm ? (
-          meta && body && (
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={body}
-                className="ls-journey-dock"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -22 }}
-                transition={{ duration: reduce ? 0 : 0.45, ease }}
-              >
-                <div className="ls-dock-text">
-                  <span className="ls-dock-glyph">{meta.glyph}</span>
-                  <span className="ls-journey-name">{meta.label}</span>
-                  <p className="ls-journey-line">{line}</p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          )
-        ) : (
-          <div className="ls-journey-formstage">
-              {status !== "ready" ? (
-                <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
-                  <span className="ls-journey-name">Their free sky</span>
-                  <div className="ls-lead-row">
-                    <div className="ls-lead-field">
-                      <label htmlFor="j-name">Their name (optional)</label>
-                      <input id="j-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
-                    </div>
-                    <div className="ls-lead-field">
-                      <label htmlFor="j-date">Birth or adoption date</label>
-                      <input id="j-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-                    </div>
-                    <div className="ls-lead-field">
-                      <label htmlFor="j-email">Your email</label>
-                      <input id="j-email" type="email" value={email} autoComplete="email" required placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-                    </div>
-                  </div>
-                  <button type="submit" className="ls-gold-button ls-violet-button" disabled={status === "loading"}>
-                    {status === "loading" ? "Reading their sky..." : "Reveal their sky"}
-                    {status !== "loading" && <ArrowRight size={17} />}
-                  </button>
-                  {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-                </form>
-              ) : (
-                <JourneyReveal chart={chart} name={petName.trim()} onBegin={scrollToCheckout} />
-              )}
-            </div>
-          )}
-
-        <div className="ls-journey-progress" aria-hidden="true">
-          <motion.span style={{ scaleY: scrollYProgress }} />
-        </div>
+        <h3 className="mt-3 text-balance" style={chartTitleStyle}>Their birth sky</h3>
+        <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
+          The real sky the day they arrived — every body, computed. Scroll across
+          the system to meet each one.
+        </p>
       </div>
 
-      <div className="ls-journey-track" aria-hidden="true">
-        {Array.from({ length: steps }).map((_, i) => (
-          <div key={i} className={`ls-journey-step ${i === total ? "ls-journey-step--final" : ""}`} />
+      <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Birth sky diagram">
+        <div className="ls-orrery-stars" aria-hidden="true" />
+        <div className="ls-orrery-nebula" aria-hidden="true" />
+        <motion.div className="ls-orrery-camera" style={reduce ? undefined : { transform: camTransform }}>
+          <svg className="ls-orrery-orbits" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            {(ORRERY_ORBIT_ALL as readonly string[]).map((k) => {
+              const o = orbitFor(POS[k].x, POS[k].y);
+              return (
+                <ellipse
+                  key={k}
+                  cx={o.cx}
+                  cy={o.cy}
+                  rx={o.rx}
+                  ry={o.ry}
+                  transform={`rotate(-7 ${o.cx} ${o.cy})`}
+                  className={activeKey === k ? "is-active" : ""}
+                />
+              );
+            })}
+          </svg>
+          {RENDER_ORDER.map((k) => (
+            <OrreryBody
+              key={k}
+              bodyKey={k}
+              pos={RPOS[k]}
+              diam={ORRERY_DIAM[k] ?? 4}
+              active={activeKey === k}
+              showLabel={ORRERY_LABELLED.has(k) || activeKey === k}
+              index={(JOURNEY_SEQ as readonly string[]).indexOf(k)}
+              onPick={(i) => i >= 0 && setActive(i)}
+            />
+          ))}
+        </motion.div>
+        <span className="ls-orrery-hint" aria-hidden="true">
+          {isMobile ? "swipe to explore" : "scroll to explore"}
+        </span>
+      </div>
+
+      <div className="ls-orrery-card">
+        <div className="ls-orrery-card-frame">
+          <motion.div
+            key={activeKey}
+            className="ls-orrery-card-orb"
+            initial={reduce ? false : { scale: 0.5, opacity: 0 }}
+            animate={reduce ? {} : { scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          >
+            {activeKey === "sun" ? (
+              <SunVid className="ls-orrery-sunvid--card" />
+            ) : NASA_IMG[activeKey] ? (
+              <img src={NASA_IMG[activeKey]} alt={meta.label} className={activeKey === "lilith" ? "is-shadowed" : ""} />
+            ) : (
+              <span className="ls-orrery-card-glyph">{meta.glyph}</span>
+            )}
+          </motion.div>
+        </div>
+        <motion.div
+          key={activeKey + "-t"}
+          className="ls-orrery-card-text"
+          initial={reduce ? false : { opacity: 0, x: 12 }}
+          animate={reduce ? {} : { opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, ease }}
+        >
+          <span className="ls-orrery-card-sym" aria-hidden="true">{meta.glyph}</span>
+          <span className="ls-orrery-name">{meta.label}</span>
+          <p className="ls-orrery-line">{line}</p>
+        </motion.div>
+      </div>
+
+      <div className="ls-orrery-pips" role="tablist" aria-label="Bodies">
+        {JOURNEY_SEQ.map((k, i) => (
+          <button
+            key={k}
+            type="button"
+            className={`ls-orrery-pip ${i === active ? "is-active" : ""}`}
+            aria-label={PLANET_META[k].label}
+            onClick={() => setActive(i)}
+          />
         ))}
       </div>
+
+      <div className="ls-orrery-formwrap ls-reveal">
+        {status !== "ready" ? (
+          <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
+            <span className="ls-orrery-name" style={{ textAlign: "center" }}>Their free sky</span>
+            <div className="ls-lead-row">
+              <div className="ls-lead-field">
+                <label htmlFor="j-name">Their name (optional)</label>
+                <input id="j-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+              </div>
+              <div className="ls-lead-field">
+                <label htmlFor="j-date">Birth or adoption date</label>
+                <input id="j-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+              </div>
+              <div className="ls-lead-field">
+                <label htmlFor="j-email">Your email</label>
+                <input id="j-email" type="email" value={email} autoComplete="email" required placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+              </div>
+            </div>
+            <button type="submit" className="ls-gold-button ls-violet-button" disabled={status === "loading"}>
+              {status === "loading" ? "Reading their sky..." : "Reveal their sky"}
+              {status !== "loading" && <ArrowRight size={17} />}
+            </button>
+            {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+          </form>
+        ) : (
+          <JourneyReveal chart={chart} name={petName.trim()} onBegin={scrollToCheckout} />
+        )}
+      </div>
     </section>
+  );
+}
+
+// High-grade procedural Sun. A fiery radial gradient disc warped by animated
+// fractal-noise (churning plasma + flare edge), a finer granulation overlay, and
+// limb darkening — crisp at any size, no external asset. Pauses on reduced-motion.
+// Genuine real-time WebGL sun. Domain-warped 3D fbm plasma on a faked sphere
+// (churning surface + bright active regions), spherical limb darkening, plus a
+// Fresnel corona with radiating solar flares. Adapted from the fbm-gas-surface
+// technique (sangillee.com) + a polar-flare corona. Premultiplied alpha so it
+// composites over deep space. Pauses offscreen / on reduced-motion. Falls back
+// to the pre-rendered PNG if WebGL is unavailable, so it never breaks.
+function SunGL({ className = "ls-orrery-sun-gl" }: { className?: string }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const reduce = useReducedMotion();
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || typeof window === "undefined") return;
+    const gl = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: true });
+    if (!gl) { setFailed(true); return; }
+
+    const vs = "attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }";
+    const fs = [
+      "precision highp float;",
+      "uniform float u_time; uniform vec2 u_res;",
+      "float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7)))*43758.5453123); }",
+      "float vnoise(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);",
+      "  return mix(mix(mix(hash(i+vec3(0,0,0)),hash(i+vec3(1,0,0)),f.x), mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),",
+      "             mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x), mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y), f.z); }",
+      "float fbm(vec3 p){ float v=0.0, a=0.5; for(int i=0;i<6;i++){ v+=a*vnoise(p); p=p*2.03+vec3(1.7,9.2,3.3); a*=0.55; } return v; }",
+      "void main(){",
+      "  vec2 uv=(gl_FragCoord.xy-0.5*u_res)/(0.5*u_res.y);",
+      "  float r=length(uv); float t=u_time*0.22;",
+      "  float R=0.60;",
+      "  vec3 col=vec3(0.0); float alpha=0.0;",
+      "  if(r < R*1.02){",
+      "    float z=sqrt(max(R*R-r*r,0.0))/R;",
+      "    vec3 sp=vec3(uv*2.4, z*2.4);",
+      "    vec3 q=vec3(fbm(sp+vec3(0.0,0.0,t)), fbm(sp+vec3(2.3,1.2,t)), fbm(sp+vec3(1.1,3.4,t)));",
+      "    float n=fbm(sp+q*1.9+vec3(0.0,0.0,t));",
+      "    n=pow(clamp(n,0.0,1.0),1.35);",
+      "    vec3 deep=vec3(0.85,0.16,0.0), mid=vec3(1.0,0.52,0.07), hot=vec3(1.0,0.97,0.78);",
+      "    col=mix(deep,mid,smoothstep(0.18,0.5,n));",
+      "    col=mix(col,hot,smoothstep(0.52,0.92,n+q.x*0.34));",
+      "    col+=hot*smoothstep(0.78,1.0,n)*0.9;",
+      "    col+=hot*smoothstep(R*0.62,0.0,r)*0.55;",
+      "    float limb=smoothstep(R,R*0.12,r);",
+      "    col*=0.62+0.7*limb;",
+      "    col*=1.55;",
+      "    float disc=smoothstep(R+0.012,R-0.02,r);",
+      "    col*=disc; alpha=disc;",
+      "  }",
+      "  float ang=atan(uv.y,uv.x);",
+      "  float fl=fbm(vec3(cos(ang)*3.0, sin(ang)*3.0, t*1.6));",
+      "  fl*=fbm(vec3(cos(ang)*6.0+t, sin(ang)*6.0, t*0.8));",
+      "  float corona=smoothstep(R*1.55,R*0.98,r)*(0.32+1.15*fl);",
+      "  corona*=smoothstep(R*0.92,R*1.04,r);",
+      "  vec3 cor=mix(vec3(1.0,0.42,0.07), vec3(1.0,0.78,0.3), fl)*corona*1.7;",
+      "  col+=cor; alpha=clamp(max(alpha,corona*1.3),0.0,1.0);",
+      "  gl_FragColor=vec4(col*alpha, alpha);",
+      "}",
+    ].join("\n");
+
+    const compile = (type: number, src: string) => {
+      const sh = gl.createShader(type);
+      if (!sh) return null;
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      return sh;
+    };
+    const vsh = compile(gl.VERTEX_SHADER, vs);
+    const fsh = compile(gl.FRAGMENT_SHADER, fs);
+    const prog = gl.createProgram();
+    if (!prog || !vsh || !fsh) { setFailed(true); return; }
+    gl.attachShader(prog, vsh);
+    gl.attachShader(prog, fsh);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { setFailed(true); return; }
+    gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const uT = gl.getUniformLocation(prog, "u_time");
+    const uR = gl.getUniformLocation(prog, "u_res");
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+    let raf = 0;
+    let visible = true;
+    const render = (ms: number) => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(2, Math.round(rect.width * dpr));
+      const h = Math.max(2, Math.round(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform1f(uT, ms * 0.001);
+      gl.uniform2f(uR, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+    const loop = (ms: number) => {
+      render(ms);
+      raf = !reduce && visible ? requestAnimationFrame(loop) : 0;
+    };
+    const io = new IntersectionObserver((es) => {
+      visible = es[0].isIntersecting;
+      if (visible && !reduce && !raf) raf = requestAnimationFrame(loop);
+    }, { threshold: 0.01 });
+    io.observe(canvas);
+    if (reduce) render(1500);
+    else raf = requestAnimationFrame(loop);
+    return () => { if (raf) cancelAnimationFrame(raf); io.disconnect(); };
+  }, [reduce]);
+
+  if (failed) return <img className="ls-orrery-sun-img" src="/readings/sun/sun-orrery.png" alt="" />;
+  return <canvas ref={ref} className={className} aria-hidden="true" />;
+}
+
+// Option 1 sun (Danny-picked): real NASA SDO full disc with limb prominences and
+// corona keyed into a transparent PNG, shown whole (no circle clip) so the flares
+// bleed out into space.
+function SunVid({ className = "" }: { className?: string }) {
+  return (
+    <span className={`ls-orrery-sunvid ${className}`} aria-hidden="true">
+      <img src="/readings/sun/sun-opt1.png?v=3" alt="" />
+    </span>
+  );
+}
+
+// One body in the side-view orrery: positioned by its centre (% of box), sized
+// by diameter (% of box width), with an optional name label beneath. The Sun is
+// the procedural plasma disc; planets are the transparent NASA discs.
+function OrreryBody({
+  bodyKey,
+  pos,
+  diam,
+  active,
+  showLabel,
+  index,
+  onPick,
+}: {
+  bodyKey: string;
+  pos: { x: number; y: number };
+  diam: number;
+  active: boolean;
+  showLabel: boolean;
+  index: number;
+  onPick: (i: number) => void;
+}) {
+  const meta = PLANET_META[bodyKey];
+  const isSun = bodyKey === "sun";
+  const clickable = index >= 0;
+  return (
+    <div
+      className={`ls-orrery-body ${active ? "is-active" : ""} ${clickable ? "is-clickable" : ""} ${isSun ? "is-sun" : ""}`}
+      style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: `${diam}%` }}
+      onClick={clickable ? () => onPick(index) : undefined}
+    >
+      <span className="ls-orrery-orb">
+        {isSun ? (
+          <SunVid />
+        ) : NASA_IMG[bodyKey] ? (
+          <img src={NASA_IMG[bodyKey]} alt="" loading="lazy" />
+        ) : (
+          <span className="ls-orrery-pt">{meta?.glyph}</span>
+        )}
+      </span>
+      {!isSun && showLabel && <span className="ls-orrery-label">{meta?.label}</span>}
+    </div>
   );
 }
 
@@ -1432,6 +1720,181 @@ function CosmicStyles() {
       @media (prefers-reduced-motion: reduce) {
         .ls-gallery-item img { animation: none; transform: scale(1.04); }
       }
+      /* === Birth-sky orrery (contained, scroll-to-step diagram) ============ */
+      .ls-orrery-section {
+        position: relative;
+        z-index: 1;
+        padding: clamp(44px, 7vw, 104px) 20px clamp(48px, 8vw, 112px);
+        text-align: center;
+      }
+      .ls-orrery-head { max-width: 62ch; margin-inline: auto; }
+      .ls-orrery {
+        position: relative;
+        margin: clamp(22px, 4vw, 44px) auto 0;
+        width: min(100%, 1060px);
+        aspect-ratio: 16 / 8.4;
+        border-radius: 20px;
+        overflow: hidden;
+        background:
+          radial-gradient(130% 130% at 9% 62%, rgba(44,24,66,0.55), transparent 55%),
+          radial-gradient(110% 110% at 82% 16%, rgba(22,17,38,0.7), transparent 60%),
+          #06050c;
+        border: 1px solid rgba(124,92,214,0.18);
+        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 44px 130px rgba(0,0,0,0.55);
+        touch-action: none;
+        cursor: grab;
+        isolation: isolate;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .ls-orrery:active { cursor: grabbing; }
+      .ls-orrery-stars {
+        position: absolute; inset: 0; z-index: 0; opacity: 0.5; pointer-events: none;
+        background-image:
+          radial-gradient(1px 1px at 22% 26%, #fff, transparent),
+          radial-gradient(1px 1px at 68% 18%, rgba(255,255,255,0.8), transparent),
+          radial-gradient(1.4px 1.4px at 44% 70%, #fff, transparent),
+          radial-gradient(1px 1px at 84% 64%, rgba(255,255,255,0.7), transparent),
+          radial-gradient(1px 1px at 14% 82%, rgba(255,255,255,0.66), transparent),
+          radial-gradient(1.6px 1.6px at 58% 40%, #fff, transparent);
+        background-size: 280px 280px;
+        background-repeat: repeat;
+      }
+      .ls-orrery-nebula {
+        position: absolute; inset: -12%; z-index: 0; pointer-events: none; opacity: 0.7;
+        background:
+          radial-gradient(36% 44% at 24% 60%, rgba(124,92,214,0.24), transparent 70%),
+          radial-gradient(40% 40% at 80% 26%, rgba(94,70,122,0.28), transparent 72%);
+      }
+      .ls-orrery-camera {
+        position: absolute; inset: 0; z-index: 1;
+        transform-origin: center center; will-change: transform;
+      }
+      .ls-orrery-orbits {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        overflow: visible; pointer-events: none; z-index: 0;
+      }
+      .ls-orrery-orbits ellipse {
+        fill: none; stroke: rgba(222,216,255,0.22); stroke-width: 1;
+        vector-effect: non-scaling-stroke; transition: stroke 0.4s ease;
+      }
+      .ls-orrery-orbits ellipse.is-active { stroke: rgba(184,152,235,0.75); stroke-width: 1.6; }
+      /* The orb itself is centred on the position (label is absolute below it),
+         so the orbit line passes exactly through each planet's centre. */
+      .ls-orrery-body {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: grid; place-items: center;
+        z-index: 2;
+      }
+      .ls-orrery-body.is-sun { z-index: 1; }
+      .ls-orrery-body.is-clickable { cursor: pointer; }
+      .ls-orrery-orb {
+        position: relative; width: 100%; aspect-ratio: 1;
+        display: grid; place-items: center;
+      }
+      .ls-orrery-orb img {
+        width: 100%; height: 100%; object-fit: contain;
+        filter: drop-shadow(0 3px 10px rgba(0,0,0,0.55));
+        transition: filter 0.4s ease;
+      }
+      /* (sun corona now lives on .ls-orrery-sunvid::before — single soft aura) */
+      /* Option 1 sun: real NASA SDO disc with prominences/corona baked into a
+         transparent PNG. NO clip — the whole sun + flares show; sized larger than
+         the orb so the flares bleed past it. Soft drop-shadow aura. */
+      .ls-orrery-sunvid { position: absolute; inset: -16%; }
+      .ls-orrery-sunvid--card { inset: -4%; }
+      .ls-orrery-sunvid img {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 16px rgba(255,120,40,0.5)) drop-shadow(0 0 42px rgba(255,90,30,0.3));
+      }
+      /* PNG fallback (no WebGL path used now, kept harmless). */
+      .ls-orrery-sun-img { width: 122%; height: 122%; object-fit: contain; display: block; }
+      .ls-orrery-card-frame .ls-orrery-sun-img { width: 104%; height: 104%; }
+      .ls-orrery-card-orb { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-orrery-body.is-sun .ls-orrery-orb::after { animation: none; }
+      }
+      /* Focus card: active body pops big in the left frame, symbol + line on the right. */
+      .ls-orrery-card {
+        display: flex; align-items: center; gap: clamp(16px, 4vw, 30px);
+        width: min(94vw, 560px); margin: clamp(22px, 3.4vw, 36px) auto 0;
+        padding: clamp(14px, 2.6vw, 22px) clamp(16px, 3vw, 26px);
+        border: 1px solid rgba(124,92,214,0.3); border-radius: 20px;
+        background: linear-gradient(135deg, rgba(40,26,66,0.86), rgba(10,8,16,0.82));
+        box-shadow: 0 28px 84px rgba(0,0,0,0.5), inset 0 1px 0 rgba(245,239,230,0.05);
+        backdrop-filter: blur(8px); text-align: left;
+      }
+      .ls-orrery-card-frame {
+        flex: none; width: clamp(86px, 22vw, 138px); aspect-ratio: 1;
+        border-radius: 16px; display: grid; place-items: center; overflow: visible;
+        background: radial-gradient(circle at 50% 40%, rgba(124,92,214,0.2), rgba(6,5,12,0.62));
+        border: 1px solid rgba(124,92,214,0.3);
+        box-shadow: inset 0 0 26px rgba(0,0,0,0.55);
+      }
+      .ls-orrery-card-frame img {
+        width: 86%; height: 86%; object-fit: contain;
+        filter: drop-shadow(0 0 16px rgba(176,142,230,0.7));
+      }
+      .ls-orrery-card-frame img.is-shadowed { filter: brightness(0.42) drop-shadow(0 0 16px rgba(176,142,230,0.7)); }
+      .ls-orrery-card-frame .ls-orrery-sun-svg { width: 100%; height: 100%; }
+      .ls-orrery-card-glyph { font-size: clamp(2.4rem, 9vw, 3.6rem); color: ${C.violetSoft}; line-height: 1; }
+      .ls-orrery-card-text { display: grid; gap: 8px; min-width: 0; }
+      .ls-orrery-card-sym { font-size: clamp(1.5rem, 5vw, 2.1rem); color: ${C.violetSoft}; line-height: 1; }
+      .ls-orrery-card .ls-orrery-name { text-align: left; }
+      .ls-orrery-card .ls-orrery-line { text-align: left; font-size: clamp(1.25rem, 3.8vw, 1.95rem); }
+      .ls-orrery-pt { color: ${C.violetSoft}; font-size: clamp(0.7rem, 1.6vw, 1.2rem); line-height: 1; }
+      .ls-orrery-label {
+        position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+        margin-top: 5px;
+        font-family: Lato, system-ui, sans-serif;
+        font-size: clamp(7px, 1vw, 11px);
+        letter-spacing: 0.14em; text-transform: uppercase;
+        color: rgba(224,218,242,0.62); white-space: nowrap;
+        transition: color 0.3s ease; pointer-events: none;
+      }
+      .ls-orrery-body.is-active .ls-orrery-orb img { filter: drop-shadow(0 0 14px rgba(176,142,230,0.85)); }
+      .ls-orrery-body.is-active .ls-orrery-label { color: #d8c5f5; }
+      .ls-orrery-hint {
+        position: absolute; right: 14px; bottom: 12px; z-index: 3;
+        font-family: Lato, system-ui, sans-serif; font-size: 11px;
+        letter-spacing: 0.16em; text-transform: uppercase;
+        color: rgba(224,218,242,0.5); pointer-events: none;
+      }
+      .ls-orrery-dock {
+        margin: clamp(20px, 3vw, 32px) auto 0;
+        max-width: 32ch; display: grid; gap: 6px; justify-items: center;
+      }
+      .ls-orrery-glyph { color: ${C.violetSoft}; font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1; }
+      .ls-orrery-name {
+        color: #d8c5f5; font-family: Lato, system-ui, sans-serif;
+        font-size: 0.78rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+      }
+      .ls-orrery-line {
+        margin: 0; color: ${C.cream}; font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.4rem, 4.4vw, 2.3rem); line-height: 1.1;
+      }
+      .ls-orrery-pips {
+        display: flex; flex-wrap: wrap; gap: 7px; justify-content: center;
+        margin: clamp(14px, 2.4vw, 22px) auto 0; max-width: 320px;
+      }
+      .ls-orrery-pip {
+        width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%;
+        background: rgba(224,218,242,0.22); cursor: pointer;
+        transition: transform 0.25s ease, background 0.25s ease;
+      }
+      .ls-orrery-pip.is-active { background: ${C.violetSoft}; transform: scale(1.5); }
+      .ls-orrery-formwrap { margin: clamp(30px, 5vw, 54px) auto 0; width: min(94vw, 460px); }
+      @media (max-width: 759px) {
+        .ls-orrery { aspect-ratio: 4 / 4.3; }
+        .ls-orrery-label { display: none; }
+        .ls-orrery-body.is-active .ls-orrery-label { display: block; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-orrery-camera { transform: none !important; }
+      }
+      /* === end orrery ====================================================== */
       .ls-journey { position: relative; }
       .ls-journey-stage {
         position: sticky;
@@ -2882,27 +3345,42 @@ function CosmicStyles() {
       @keyframes lsFloatB { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(12px); } }
       @keyframes lsFloatC { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-10px); } }
       @media (max-width: 899px) {
+        /* Full-bleed video BEHIND the whole hero (title + buttons sit over it).
+           16:9 video covers full width so the shooting-star sweep still reads
+           side to side; only top/bottom crop. Copy overlaid low with a gradient. */
         .ls-hero-section {
-          min-height: 80svh;
+          min-height: 82svh;
           display: flex;
           align-items: flex-end;
-          padding-top: 76px;
+          padding-top: 92px;
           padding-bottom: 44px;
           background: #0a0810;
         }
         .ls-hero-backdrop {
-          background: #0a0810;
+          inset: 0;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          bottom: auto;
+          overflow: hidden;
+          background: url("/readings/hero/hero-motion-husky-shooting-star-poster.jpg") center center / cover no-repeat;
         }
         .ls-hero-backdrop::after {
-          background: linear-gradient(180deg, rgba(10,8,16,0) 56%, rgba(10,8,16,0.86) 100%);
+          background: linear-gradient(180deg, rgba(10,8,16,0.30) 0%, rgba(10,8,16,0) 30%, rgba(10,8,16,0.34) 62%, rgba(10,8,16,0.88) 100%);
         }
         .ls-hero-backdrop-video {
-          object-fit: contain;
-          object-position: center top;
-          opacity: 1;
           top: 0;
+          left: 0;
+          width: 100%;
           height: 100%;
+          object-fit: cover;
+          object-position: center center;
+          opacity: 1;
           transform: none;
+        }
+        .ls-hero-veil {
+          display: none;
         }
         .ls-hero-copy .ls-gold-button,
         .ls-hero-copy .ls-ghost-button {
