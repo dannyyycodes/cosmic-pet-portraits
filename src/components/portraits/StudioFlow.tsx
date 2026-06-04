@@ -1785,7 +1785,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               marginRight: "auto",
             }}
           >
-            <SplitWords text="Picture them," />{" "}
+            <SplitWords text="Picture them in" />{" "}
             <SplitWords
               text="any way."
               delay={0.28}
