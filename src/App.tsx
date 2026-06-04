@@ -74,6 +74,7 @@ const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
 const PawtraitsThanks = lazy(() => import("./pages/PawtraitsThanks"));
 const SoulReadingIntake = lazy(() => import("./pages/SoulReadingIntake"));
 const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
+const PawtraitArt = lazy(() => import("./pages/PawtraitArt"));
 const PawtraitsSEOLanding = lazy(() => import("./pages/PawtraitsSEOLanding"));
 const SharePet = lazy(() => import("./pages/SharePet"));
 const ShareThanks = lazy(() => import("./pages/ShareThanks"));
@@ -230,6 +231,7 @@ const App = () => (
                   <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/pawtraits/thanks" element={<PawtraitsThanks />} />
                   <Route path="/pawtraits/gallery" element={<PawtraitsGallery />} />
+                  <Route path="/pawtraits/art/:id" element={<PawtraitArt />} />
                   {/* Programmatic SEO landing pages — Pinterest deep-link targets.
                       Unknown slugs render gracefully (no 404). */}
                   <Route path="/pawtraits/breed/:breed" element={<PawtraitsSEOLanding kind="breed" />} />

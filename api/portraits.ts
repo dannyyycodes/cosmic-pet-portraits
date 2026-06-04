@@ -3759,7 +3759,7 @@ function asisLargestUsableSize(sourceW: number, sourceH: number): string | null 
 }
 
 async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
-  const body = (req.body ?? {}) as { imageUrl?: string; sizeKey?: string };
+  const body = (req.body ?? {}) as { imageUrl?: string; sizeKey?: string; source?: string };
 
   const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '';
   if (!sizeKey) return res.status(400).json({ error: 'sizeKey required' });
@@ -3790,6 +3790,17 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
   if (!imageUrl) return res.status(400).json({ error: 'imageUrl required' });
   const ssrf = validateImageUrlOrigin(imageUrl);
   if (ssrf) return res.status(400).json({ error: 'invalid_image_url', message: `Image URL rejected (${ssrf}).` });
+
+  // Library/premade artwork = AI-generated, smooth, AuraSR-friendly (same as the
+  // studio AI path which sells every size). The honest source-PPI gate below is
+  // a guard for low-detail CUSTOMER PHOTOS; it doesn't apply to our own library
+  // art, which is upscaled cleanly at fulfilment (api/cron/gelato-worker AuraSR
+  // 4×). Bypass it ONLY when the caller flags source:'library' AND the URL is a
+  // genuine pawtrait-library asset on our own Supabase storage (not a user URL).
+  const isLibraryArt =
+    body.source === 'library' &&
+    /\/storage\/v1\/object\/public\/pawtrait-library\//.test(imageUrl) &&
+    imageUrl.includes('.supabase.co/');
 
   // Auth OPTIONAL — "use my photo" is a no-AI sharp crop, so buying a canvas
   // must work signed-out (account is only for AI generations). If a token is
@@ -3849,7 +3860,7 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
   // Honest source-detail PPI. asisDetailPpi is scale-invariant (depends only on
   // the aspect ratio), so feeding exact-ratio dims is correct.
   const ppi = asisDetailPpi(sw, sh, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
-  if (ppi < ASIS_PPI_HIDE) {
+  if (ppi < ASIS_PPI_HIDE && !isLibraryArt) {
     return res.status(422).json({
       error: 'source_too_low_res',
       message: 'This photo is too low-resolution to print sharply at this size.',

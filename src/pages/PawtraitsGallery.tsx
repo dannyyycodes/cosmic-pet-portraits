@@ -206,6 +206,21 @@ function PawtraitModal({ row, onClose }: { row: GalleryRow; onClose: () => void 
           )}
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Link
+              to={`/pawtraits/art/${row.id}`}
+              className="inline-flex items-center justify-center rounded-full font-semibold transition active:scale-95"
+              style={{
+                background: '#bf524a',
+                color: '#fff',
+                fontSize: 15,
+                padding: '12px 22px',
+                minHeight: 48,
+                letterSpacing: '0.02em',
+                boxShadow: '0 6px 22px rgba(191, 82, 74, 0.45)',
+              }}
+            >
+              Buy this print →
+            </Link>
             <button
               type="button"
               onClick={handleCopy}
@@ -227,13 +242,13 @@ function PawtraitModal({ row, onClose }: { row: GalleryRow; onClose: () => void 
               to={`/pawtraits?style=${encodeURIComponent(row.art_style)}#studio`}
               className="inline-flex items-center justify-center rounded-full font-semibold transition active:scale-95"
               style={{
-                background: '#bf524a',
+                background: 'rgba(255,255,255,0.12)',
                 color: '#fff',
+                border: '1px solid rgba(255,255,255,0.18)',
                 fontSize: 15,
                 padding: '12px 22px',
                 minHeight: 48,
                 letterSpacing: '0.02em',
-                boxShadow: '0 6px 22px rgba(191, 82, 74, 0.45)',
               }}
             >
               Make my pet in this style →

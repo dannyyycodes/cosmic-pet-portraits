@@ -118,6 +118,28 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
       }
     }
 
+    // Per-artwork product pages — one indexable URL per approved library
+    // pawtrait (/pawtraits/art/<id>). Each renders unique title/desc/Product
+    // schema from breed + pet_name + art_style + backstory/prompt (api/
+    // pawtraits-art-ssr.ts), so they are genuine product pages, not thin
+    // doorways. Capped + single fetch to stay well within the function budget.
+    const artRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/pawtrait_library?select=id,created_at&approved=eq.true&image_style=eq.portrait&order=created_at.desc&limit=5000`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } },
+    );
+    if (artRes.ok) {
+      const arts = (await artRes.json()) as Array<{ id: string; created_at: string | null }>;
+      for (const a of arts) {
+        if (!a.id) continue;
+        entries.push({
+          loc: `${SITE}/pawtraits/art/${a.id}`,
+          lastmod: (a.created_at || "").slice(0, 10) || undefined,
+          changefreq: "monthly",
+          priority: 0.6,
+        });
+      }
+    }
+
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=900, s-maxage=3600, stale-while-revalidate=86400");
     return res.status(200).send(toXml(entries));
