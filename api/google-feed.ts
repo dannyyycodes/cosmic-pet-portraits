@@ -62,9 +62,16 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
 
   const items = rows.filter((r) => r.id && r.image_url).map((r) => {
     const style = pretty(r.art_style);
-    const title = `${r.breed} ${style} Pet Portrait — Canvas Wall Art Print`.slice(0, 140);
-    const desc = (r.backstory?.trim()
-      || `A ${style.toLowerCase()} ${r.breed} pet portrait, printed locally on gallery canvas. Ready-made wall art, or create your own pet's portrait at littlesouls.app/pawtraits.`).slice(0, 4900);
+    const kind = (r.pet_kind || "Pet"); const Kind = pretty(kind);
+    // Keyword-front-loaded: intent ("Custom <breed> Portrait") + format ("Canvas
+    // Wall Art") + gift angle. Google weights the first ~70 chars heavily.
+    const title = `Custom ${r.breed} Portrait — ${style} Canvas Wall Art, Personalized ${Kind} Gift`.slice(0, 150);
+    const desc = (
+      `${(r.backstory?.trim() ? r.backstory.trim() + " " : "")}` +
+      `A ${style.toLowerCase()} ${r.breed} portrait on museum-grade gallery canvas — a personalized ${kind.toLowerCase()} keepsake and gift. ` +
+      `Buy this ready-made print, or upload your own photo to create your pet in this exact style at littlesouls.app/pawtraits. ` +
+      `Printed locally (UK / EU / USA), ships worldwide.`
+    ).slice(0, 4900);
     const link = `${SITE}/pawtraits/art/${r.id}?utm_source=google&utm_medium=organic&utm_campaign=shopping`;
     return `<item>
 <g:id>art-${esc(r.id)}</g:id>
