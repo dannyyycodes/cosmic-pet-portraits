@@ -1450,7 +1450,7 @@ const GALLERY_SHOTS = [
   {
     src: "/readings/hero/cockapoo-reading-tablet.webp",
     alt: "Cockapoo beside a human holding a glowing celestial reading",
-    caption: "Made for reading with them curled beside you.",
+    caption: "Made for reading with them close.",
     width: 1672,
     height: 942,
   },
