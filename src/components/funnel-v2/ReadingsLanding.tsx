@@ -1050,52 +1050,10 @@ function SunVid({ className = "" }: { className?: string }) {
   );
 }
 
-// Cosmic penguin guide. A cute wizard penguin that bobs, blinks and "talks"
-// (beak chatters) beside the speech bubble while it explains the active body.
+// Cosmic penguin guide: a cute cartoon wizard penguin (gpt-image-1, transparent
+// PNG) that gently bobs beside the speech bubble while it explains the active body.
 function CosmicPenguin() {
-  return (
-    <svg className="ls-peng is-talking" viewBox="0 0 120 150" aria-hidden="true">
-      <defs>
-        <linearGradient id="pengHat" x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0" stopColor="#9a7ae6" />
-          <stop offset="1" stopColor="#5a3fa6" />
-        </linearGradient>
-        <radialGradient id="pengBelly" cx="50%" cy="42%" r="62%">
-          <stop offset="0" stopColor="#fdf8ee" />
-          <stop offset="1" stopColor="#ecdfce" />
-        </radialGradient>
-      </defs>
-      <g className="ls-peng-spark" fill="#d8c5f5">
-        <circle cx="13" cy="44" r="1.7" /><circle cx="108" cy="34" r="2.1" /><circle cx="102" cy="74" r="1.5" /><circle cx="18" cy="86" r="1.4" />
-      </g>
-      <g className="ls-peng-body">
-        <ellipse cx="46" cy="143" rx="11" ry="5" fill="#f6a02a" />
-        <ellipse cx="74" cy="143" rx="11" ry="5" fill="#f6a02a" />
-        <ellipse cx="60" cy="95" rx="41" ry="46" fill="#2c2452" />
-        <ellipse cx="60" cy="99" rx="28" ry="35" fill="url(#pengBelly)" />
-        <path d="M21 84 q-12 18 3 42 q8-3 10-20 z" fill="#221a44" />
-        <path d="M99 84 q12 18 -3 42 q-8-3 -10-20 z" fill="#221a44" />
-        <circle cx="39" cy="86" r="6" fill="#e98aa0" opacity="0.45" />
-        <circle cx="81" cy="86" r="6" fill="#e98aa0" opacity="0.45" />
-        <g className="ls-peng-eyes">
-          <ellipse cx="49" cy="72" rx="9.5" ry="11.5" fill="#fff" />
-          <ellipse cx="71" cy="72" rx="9.5" ry="11.5" fill="#fff" />
-          <circle cx="51" cy="74" r="4.6" fill="#1a1330" />
-          <circle cx="69" cy="74" r="4.6" fill="#1a1330" />
-          <circle cx="52.6" cy="72" r="1.7" fill="#fff" />
-          <circle cx="70.6" cy="72" r="1.7" fill="#fff" />
-        </g>
-        <g className="ls-peng-beak">
-          <path d="M53 85 L67 85 L60 93 Z" fill="#f6a02a" />
-        </g>
-        <g className="ls-peng-hat">
-          <path d="M33 51 Q52 4 70 14 Q92 26 90 49 Q72 45 60 47 Q46 49 33 51 Z" fill="url(#pengHat)" />
-          <ellipse cx="61" cy="50" rx="33" ry="7" fill="#4a3296" />
-          <circle cx="59" cy="30" r="2" fill="#ffd86b" /><circle cx="71" cy="38" r="1.6" fill="#ffd86b" /><circle cx="51" cy="42" r="1.5" fill="#ffd86b" />
-        </g>
-      </g>
-    </svg>
-  );
+  return <img className="ls-peng" src="/readings/penguin.png" alt="" aria-hidden="true" />;
 }
 
 // One body in the side-view orrery: positioned by its centre (% of box), sized
@@ -2033,7 +1991,7 @@ function CosmicStyles() {
       .ls-orrery-bubble-glyph { color: #b8a0ef; font-size: clamp(1rem, 2vw, 1.5rem); line-height: 1; }
       .ls-orrery-bubble .ls-orrery-name { text-align: left; }
       .ls-orrery-bubble .ls-orrery-line { text-align: left; margin: 0; font-size: clamp(1.02rem, 1.9vw, 1.45rem); line-height: 1.18; }
-      .ls-peng { flex: none; width: clamp(74px, 12vw, 132px); height: auto; transform-origin: 50% 100%; filter: drop-shadow(0 7px 14px rgba(0,0,0,0.5)); animation: ls-peng-bob 3.2s ease-in-out infinite; }
+      .ls-peng { flex: none; width: clamp(92px, 15vw, 158px); height: auto; display: block; transform-origin: 50% 100%; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5)); animation: ls-peng-bob 3.4s ease-in-out infinite; }
       @keyframes ls-peng-bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-5px) rotate(1.5deg); } }
       .ls-peng-eyes { transform-origin: 60px 72px; animation: ls-peng-blink 4.6s infinite; }
       @keyframes ls-peng-blink { 0%,93%,100% { transform: scaleY(1); } 96.5% { transform: scaleY(0.12); } }
@@ -2044,7 +2002,7 @@ function CosmicStyles() {
       @media (max-width: 759px) {
         .ls-orrery-guide { left: 3%; right: 3%; bottom: 3%; max-width: none; align-items: flex-end; }
         .ls-orrery-bubble { max-width: none; flex: 1; }
-        .ls-peng { width: 62px; }
+        .ls-peng { width: 78px; }
         .ls-orrery-hint { display: none; }
       }
       @media (prefers-reduced-motion: reduce) {
