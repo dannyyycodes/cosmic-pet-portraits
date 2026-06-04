@@ -42,6 +42,9 @@ interface PetUploadCardProps {
   canDelete: boolean;
   /** Per-pet error from the API (e.g. "no_pet_detected"). Empty when clear. */
   errorMessage?: string | null;
+  /** When false, the per-pet name input is hidden (name is handled by the
+   *  studio-level "Add their name" opt-in section instead). Default true. */
+  showName?: boolean;
 }
 
 export function PetUploadCard({
@@ -51,6 +54,7 @@ export function PetUploadCard({
   onDelete,
   canDelete,
   errorMessage,
+  showName = true,
 }: PetUploadCardProps) {
   const hasError = !!errorMessage;
 
@@ -144,7 +148,8 @@ export function PetUploadCard({
         )}
       </AnimatePresence>
 
-      {/* Name input — same microcopy as the original single-pet flow. */}
+      {/* Name input — gated by the studio-level "Add their name" opt-in. */}
+      {showName && (
       <div className="mt-3">
         <div className="flex items-center justify-between gap-3 px-1 mb-1.5">
           <label
@@ -223,6 +228,7 @@ export function PetUploadCard({
           )}
         </AnimatePresence>
       </div>
+      )}
     </motion.div>
   );
 }

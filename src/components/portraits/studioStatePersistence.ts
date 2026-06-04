@@ -69,6 +69,11 @@ export interface StudioState {
   /** Studio mode — "ai" (transform with AI, default) or "asis" (print the
    *  uploaded photo exactly, no AI). */
   mode?: "ai" | "asis";
+  /** Name-on-canvas opt-in (off by default). */
+  namesOn?: boolean;
+  /** Multi-pet canvas layout — "together" (one canvas, default) or "separate"
+   *  (one portrait per pet). */
+  layout?: "together" | "separate";
 }
 
 interface StoredEnvelope {
