@@ -71,7 +71,7 @@ import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
 import { getVisitorId } from "@/lib/auth/visitorId";
-import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/tokens";
+import { PALETTE, EASE, MOTION, display, body, eyebrow } from "@/components/portraits/tokens";
 import { SplitWords } from "@/components/portraits/SplitWords";
 import { StudioBackdrop } from "@/components/portraits/StudioBackdrop";
 import { GenerationCanvas } from "@/components/portraits/studio/GenerationCanvas";
@@ -652,6 +652,24 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // uploaded photo exactly with no AI. The as-is path skips generation +
   // credits entirely and crops the upload to canvas server-side.
   const [mode, setMode] = useState<"ai" | "asis">(restoredState?.mode === "asis" ? "asis" : "ai");
+  // Name on canvas is OPT-IN (off by default for a clean photo→prompt start).
+  // Re-derive on from restored pets so a refresh keeps it if any name was set.
+  const [namesOn, setNamesOn] = useState<boolean>(
+    () => (restoredState?.pets ?? []).some((p) => (p.name ?? "").trim().length > 0 && !p.noName),
+  );
+  // Multi-pet canvas layout: "together" = all pets on one canvas (cap MAX_PETS),
+  // "separate" = one portrait per pet, each its own cart item (unlimited).
+  const [layout, setLayout] = useState<"together" | "separate">(
+    restoredState?.layout === "separate" ? "separate" : "together",
+  );
+  // Separate-portraits run: index of the pet currently being made (into the
+  // uploaded-pets order). null = not in a separate run / together mode. Each
+  // pet flows through the normal generate→approve→add pipeline one at a time,
+  // becoming its own cart item, then we advance to the next.
+  const [sepActiveIdx, setSepActiveIdx] = useState<number | null>(null);
+  /** Name to print for a pet — empty when names are toggled off globally or the
+   *  pet is individually unnamed. Single source so generate + print master agree. */
+  const petNameFor = (pet: Pet) => (namesOn ? canvasPetName(pet) : "");
   // Natural pixel dims of the first uploaded photo — drives as-is size gating.
   const [asisSrcDims, setAsisSrcDims] = useState<{ w: number; h: number } | null>(null);
   // Live "what will print" crop preview for the selected size (as-is mode).
@@ -962,8 +980,10 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       frameColor,
       deliveryType,
       mode,
+      namesOn,
+      layout,
     });
-  }, [pets, prompt, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType, mode]);
+  }, [pets, prompt, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType, mode, namesOn, layout]);
 
   // Variant resolution — three paths:
   //   • digital  → DIGITAL_VARIANT (single SKU, no size/frame)
@@ -1162,7 +1182,13 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       //   imageUrls is the array of uploaded pet photos (filter out empty
       //   slots so we never send null), petNames is parallel to that list
       //   so the server can map per-pet name → per-pet typography.
-      const orderedPets = pets.filter((p) => p.photoUrl);
+      const allUploaded = pets.filter((p) => p.photoUrl);
+      // Separate portraits: send ONLY the active pet so it gets its own canvas.
+      // Together: send all (backend composites them). 1 pet = same either way.
+      const sepRun = layout === "separate" && allUploaded.length > 1;
+      const curIdx = sepRun ? Math.min(sepActiveIdx ?? 0, allUploaded.length - 1) : 0;
+      if (sepRun && sepActiveIdx === null) setSepActiveIdx(0);
+      const orderedPets = sepRun ? [allUploaded[curIdx]] : allUploaded;
       const res = await fetch("/api/portraits?action=generate", {
         method: "POST",
         headers: {
@@ -1171,7 +1197,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         },
         body: JSON.stringify({
           imageUrls: orderedPets.map((p) => p.photoUrl as string),
-          petNames: orderedPets.map(canvasPetName),
+          petNames: orderedPets.map(petNameFor),
           customPrompt: prompt.trim(),
         }),
         signal: ctrl.signal,
@@ -1399,6 +1425,28 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     requestAnimationFrame(() => smoothScrollStudio(stageRef.current));
   }
 
+  /** Separate-portraits: after a cart-add, advance to the next pet (its own
+   *  portrait) instead of ending. Returns true if a next pet was queued — the
+   *  caller should NOT clear state, so the studio stays open for the next pet. */
+  function advanceSeparateAfterAdd(): boolean {
+    if (layout !== "separate") return false;
+    const total = uploadedPets.length;
+    if (total <= 1) return false;
+    const cur = sepActiveIdx ?? 0;
+    if (cur + 1 < total) {
+      setSepActiveIdx(cur + 1);
+      setVariants([]);
+      setSelectedVariantUrl(null);
+      setApproved(false);
+      setCartAddCount((n) => n + 1);
+      requestAnimationFrame(() => smoothScrollStudio(stageRef.current));
+      toast.success(`Added! Now let's make pet ${cur + 2} of ${total}.`, { duration: 5000 });
+      return true;
+    }
+    setSepActiveIdx(null);
+    return false;
+  }
+
   /** Toggle AI ↔ as-is. Resets any generated/approved state so the customer
    *  re-confirms in the new mode (an AI variant is meaningless in as-is and
    *  vice-versa). */
@@ -1408,6 +1456,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     setVariants([]);
     setSelectedVariantUrl(null);
     setApproved(false);
+    setSepActiveIdx(null);
     // As-is never sells a digital download (see force-physical effect below).
     if (next === "asis") setDeliveryType("physical");
   }
@@ -1429,7 +1478,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     }
 
     // Persist the first pet's name for the Soul Reading upsell pre-fill.
-    const trimmedNames = pets.map(canvasPetName);
+    const trimmedNames = pets.map(petNameFor);
     const firstName = trimmedNames[0];
     if (firstName && typeof window !== "undefined") {
       try { window.sessionStorage.setItem("portraits.lastPet", firstName); } catch {}
@@ -1451,7 +1500,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     // here is an unreachable edge. If it ever fires we show a clear, honest
     // error (pick a smaller size) rather than silently changing their choice.
     if (mode === "asis") {
-      const sourceUrl = uploadedPets[0].photoUrl as string;
+      // Separate portraits: print the ACTIVE pet (its own canvas); else first.
+      const asisIdx = layout === "separate" && uploadedPets.length > 1
+        ? Math.min(sepActiveIdx ?? 0, uploadedPets.length - 1)
+        : 0;
+      const sourceUrl = uploadedPets[asisIdx].photoUrl as string;
       let asisPath: string | null = null;
       try {
         const res = await fetch("/api/portraits?action=printMaster_asis", {
@@ -1513,6 +1566,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         properties: asisProps,
       });
       onCartAdd(asisItem);
+      if (advanceSeparateAfterAdd()) return;
       setCartAddCount((n) => n + 1);
       clearStudioState();
       return;
@@ -1525,7 +1579,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     let printMasterUrl: string | null = null;
     try {
       const orderedPhotos = uploadedPets.map((p) => p.photoUrl as string);
-      const orderedNames = uploadedPets.map(canvasPetName);
+      const orderedNames = uploadedPets.map(petNameFor);
       // Step 1: submit
       const submitRes = await fetch("/api/portraits?action=printMaster_submit", {
         method: "POST",
@@ -1656,6 +1710,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       properties: Object.keys(properties).length > 0 ? properties : undefined,
     });
     onCartAdd(item);
+    if (advanceSeparateAfterAdd()) return;
     setCartAddCount((n) => n + 1);
     // Cart-add is the natural "session ended" boundary — clear the
     // mid-generation snapshot so a returning customer doesn't see a
@@ -1836,19 +1891,21 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         {studioPhase === 'compose' && (
         <motion.div
           key="compose"
+          className="flex flex-col"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8, transition: { duration: 0.32, ease: EASE.out } }}
           transition={sectionTransition}
         >
-        {/* ── Multi-pet upload stack ──────────────────────────────────
-            One PetUploadCard per pet (photo + name input). Cap at MAX_PETS.
-            "+ Add another pet" button below; per-card "×" delete affordance. */}
+        {/* ── [order 1] Multi-pet upload stack ─────────────────────────
+            One PetUploadCard per pet (photo only; names are the opt-in
+            section below). "+ Add pet" below; per-card "×" delete. */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={sectionTransition}
           className="space-y-3"
+          style={{ order: 1 }}
         >
           <AnimatePresence initial={false}>
             {pets.map((p, idx) => (
@@ -1860,19 +1917,21 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                 onDelete={() => removePet(p.id)}
                 canDelete={pets.length > 1}
                 errorMessage={petErrors[p.id]}
+                showName={false}
               />
             ))}
           </AnimatePresence>
 
-          {/* "+ Add another pet" — disabled at MAX_PETS with tooltip. */}
+          {/* "+ Add another pet" — together caps at MAX_PETS; separate is
+              unlimited (each pet is its own portrait). */}
           <button
             type="button"
             onClick={addPet}
-            disabled={pets.length >= MAX_PETS}
+            disabled={layout === "together" && pets.length >= MAX_PETS}
             title={
-              pets.length >= MAX_PETS
-                ? `Up to ${MAX_PETS} pets per portrait — beyond that, recognition drops.`
-                : "Add another pet to this portrait"
+              layout === "together" && pets.length >= MAX_PETS
+                ? `Up to ${MAX_PETS} pets on one canvas — switch to separate portraits for more.`
+                : "Add another pet"
             }
             className="w-fit ml-auto rounded-full px-3.5 py-2 transition-all disabled:opacity-50 active:scale-[0.99] flex items-center justify-center gap-2"
             style={{
@@ -1885,11 +1944,58 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
             }}
           >
             <Plus className="w-[16px] h-[16px]" strokeWidth={2.4} />
-            {pets.length >= MAX_PETS
-              ? `${MAX_PETS}-pet max`
-              : `Add pet (${pets.length}/${MAX_PETS})`}
+            {layout === "together" && pets.length >= MAX_PETS
+              ? `${MAX_PETS}-pet max on one canvas`
+              : `Add pet${pets.length > 1 ? ` (${pets.length})` : ""}`}
           </button>
         </motion.div>
+
+        {/* ── [order 2] Together vs Separate — only once a 2nd pet exists ── */}
+        <AnimatePresence initial={false}>
+          {pets.length > 1 && (
+            <motion.div
+              key="layout-selector"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.28, ease: EASE.out }}
+              className="overflow-hidden"
+              style={{ order: 2 }}
+            >
+              <div className="mt-4">
+                <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 11.5, fontWeight: 700, color: PALETTE.earthMuted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8, paddingLeft: 2 }}>
+                  {pets.length} pets — how do you want them?
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { key: "together" as const, title: "One canvas", sub: "All together in a single portrait", disabled: pets.length > MAX_PETS },
+                    { key: "separate" as const, title: "Separate", sub: "A portrait each — buy any number", disabled: false },
+                  ]).map((o) => {
+                    const active = layout === o.key;
+                    return (
+                      <button
+                        key={o.key}
+                        type="button"
+                        disabled={o.disabled}
+                        onClick={() => { setLayout(o.key); setSepActiveIdx(null); }}
+                        title={o.disabled ? `Over ${MAX_PETS} pets — use Separate, or remove some.` : undefined}
+                        className="text-left rounded-2xl px-4 py-3 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
+                        style={{
+                          background: active ? PALETTE.roseSoft : "#fff",
+                          border: active ? `1.5px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sandDeep}`,
+                          boxShadow: active ? "0 6px 16px rgba(191,82,74,0.10)" : "none",
+                        }}
+                      >
+                        <div style={{ ...display("15px"), color: active ? PALETTE.rose : PALETTE.ink }}>{o.title}</div>
+                        <div style={{ ...body("12px"), color: PALETTE.earthMuted, marginTop: 2 }}>{o.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Upfront frame picker REMOVED (2026-05-10) — frame choice is
             post-image only. The post-approval picker further down is the
@@ -1905,8 +2011,69 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
             One chip per named pet, side-by-side. Same look as the prior
             single-pet preview, just rendered per pet. Uses the first
             generated variant as the chip background once available. */}
+        {/* ── [order 5] Name opt-in — off by default; below the prompt ──── */}
+        {studioPhase === 'compose' && (
+          <div className="mt-5" style={{ order: 5 }}>
+            <button
+              type="button"
+              onClick={() => setNamesOn((v) => !v)}
+              aria-pressed={namesOn}
+              className="w-full flex items-center justify-between rounded-2xl px-4 py-3 transition-all"
+              style={{
+                background: namesOn ? PALETTE.roseSoft : PALETTE.cream2,
+                border: `1px solid ${namesOn ? PALETTE.rose : PALETTE.sand}`,
+              }}
+            >
+              <span style={{ ...body("14px"), fontWeight: 700, color: PALETTE.ink }}>
+                Add their name onto the {pets.length > 1 ? "portraits" : "portrait"}
+                <span style={{ ...body("12px"), color: PALETTE.earthMuted, fontWeight: 500, marginLeft: 8 }}>optional</span>
+              </span>
+              <span
+                aria-hidden
+                style={{ width: 40, height: 24, borderRadius: 999, background: namesOn ? PALETTE.rose : PALETTE.sandDeep, position: "relative", transition: "background 200ms", flexShrink: 0 }}
+              >
+                <span style={{ position: "absolute", top: 3, left: namesOn ? 19 : 3, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left 200ms", boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }} />
+              </span>
+            </button>
+            <AnimatePresence initial={false}>
+              {namesOn && (
+                <motion.div
+                  key="name-inputs"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.24, ease: EASE.out }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-3 space-y-2.5">
+                    {pets.map((p, idx) => (
+                      <div key={p.id} className="flex items-center gap-2.5">
+                        {pets.length > 1 && (
+                          <span style={{ ...body("12px"), fontWeight: 700, color: PALETTE.earthMuted, minWidth: 44 }}>Pet {idx + 1}</span>
+                        )}
+                        <input
+                          type="text"
+                          value={p.noName ? "" : p.name}
+                          onChange={(e) => updatePet(p.id, { ...p, name: e.target.value.slice(0, 40), noName: false })}
+                          placeholder={`e.g. ${["Luna", "Bella", "Rex", "Milo"][idx % 4]}`}
+                          maxLength={40}
+                          aria-label={`Name to print for pet ${idx + 1}`}
+                          className="flex-1 outline-none px-3.5 py-2.5"
+                          style={{ ...body("15px"), color: PALETTE.ink, background: "#fff", border: `1.5px solid ${PALETTE.sandDeep}`, borderRadius: 12, transition: "border-color 200ms" }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = PALETTE.rose; }}
+                          onBlur={(e) => { e.currentTarget.style.borderColor = PALETTE.sandDeep; }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
         <AnimatePresence initial={false}>
-          {pets.some((p) => canvasPetName(p).length > 0) && (
+          {namesOn && pets.some((p) => canvasPetName(p).length > 0) && (
             <motion.div
               key="petname-previews"
               initial={{ opacity: 0, y: 8 }}
@@ -1915,6 +2082,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               transition={{ duration: 0.36, ease: EASE.out }}
               className="mt-5 flex items-start gap-3 flex-wrap px-1.5"
               aria-live="polite"
+              style={{ order: 6 }}
             >
               {pets
                 .filter((p) => canvasPetName(p).length > 0)
@@ -2008,9 +2176,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── Mode toggle: Transform with AI ↔ Use my photo as-is ─────────── */}
+        {/* ── [order 3] Mode toggle: Transform with AI ↔ Use my photo ─────── */}
         {studioPhase === 'compose' && (
-          <div className="mt-5">
+          <div className="mt-5" style={{ order: 3 }}>
             <div
               className="grid grid-cols-2 gap-1 p-1 rounded-2xl"
               style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
@@ -2059,7 +2227,19 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               exit={{ opacity: 0 }}
               transition={sectionTransition}
               className="mt-5"
+              style={{ order: 4 }}
             >
+            {layout === "separate" && uploadedPets.length > 1 && (
+              <div
+                style={{
+                  marginBottom: 10, padding: "8px 14px", borderRadius: 12,
+                  background: PALETTE.roseSoft, border: `1px solid ${PALETTE.rose}`,
+                  ...body("12.5px"), fontWeight: 700, color: PALETTE.roseDeep,
+                }}
+              >
+                Separate portraits · making pet {Math.min((sepActiveIdx ?? 0) + 1, uploadedPets.length)} of {uploadedPets.length} — add each to cart, then the next.
+              </div>
+            )}
             <div style={{ position: "relative" }}>
               {/* Breathing gilt halo — only renders when focused or actively typing */}
               {(focused || prompt.length > 0) && (
