@@ -78,7 +78,8 @@ export function PetUploadCard({
         transition: "box-shadow 220ms, border-color 220ms, background 220ms",
       }}
     >
-      {/* Header row — pet number chip + delete affordance */}
+      {/* Header row — only for multi-pet (chip + delete). Single pet = clean. */}
+      {canDelete && (
       <div className="flex items-center justify-between mb-2.5">
         <span
           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
@@ -113,6 +114,7 @@ export function PetUploadCard({
           </button>
         )}
       </div>
+      )}
 
       {/* Photo upload — Agent 3 owns the internals; we just instantiate it. */}
       <PetPhotoUpload
