@@ -1923,33 +1923,6 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               />
             ))}
           </AnimatePresence>
-
-          {/* "+ Add another pet" — together caps at MAX_PETS; separate is
-              unlimited (each pet is its own portrait). */}
-          <button
-            type="button"
-            onClick={addPet}
-            disabled={layout === "together" && pets.length >= MAX_PETS}
-            title={
-              layout === "together" && pets.length >= MAX_PETS
-                ? `Up to ${MAX_PETS} pets on one canvas — switch to separate portraits for more.`
-                : "Add another pet"
-            }
-            className="w-fit ml-auto rounded-full px-3.5 py-2 transition-all disabled:opacity-50 active:scale-[0.99] flex items-center justify-center gap-2"
-            style={{
-              background: "transparent",
-              border: `1px solid ${PALETTE.sandDeep}`,
-              color: PALETTE.earth,
-              fontFamily: "Asap, system-ui, sans-serif",
-              fontSize: 12.5,
-              fontWeight: 600,
-            }}
-          >
-            <Plus className="w-[16px] h-[16px]" strokeWidth={2.4} />
-            {layout === "together" && pets.length >= MAX_PETS
-              ? `${MAX_PETS}-pet max on one canvas`
-              : `Add pet${pets.length > 1 ? ` (${pets.length})` : ""}`}
-          </button>
         </motion.div>
 
         {/* ── [order 2] Together vs Separate — only once a 2nd pet exists ── */}
@@ -2178,9 +2151,32 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── [order 3] Mode — small toggle (default = Transform with AI) ──── */}
+        {/* ── [order 3] Below the prompt: Add pet (left) + Use-my-photo (right) ─ */}
         {studioPhase === 'compose' && (
-          <div className="mt-2.5 flex justify-end" style={{ order: 3 }}>
+          <div className="mt-2.5 flex items-center justify-between gap-3" style={{ order: 3 }}>
+            <button
+              type="button"
+              onClick={addPet}
+              disabled={layout === "together" && pets.length >= MAX_PETS}
+              title={
+                layout === "together" && pets.length >= MAX_PETS
+                  ? `Up to ${MAX_PETS} pets on one canvas — switch to separate portraits for more.`
+                  : "Add another pet"
+              }
+              className="rounded-full px-3.5 py-1.5 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center gap-1.5"
+              style={{
+                background: "transparent",
+                border: `1px solid ${PALETTE.sandDeep}`,
+                color: PALETTE.earth,
+                ...body("12.5px"),
+                fontWeight: 600,
+              }}
+            >
+              <Plus className="w-[15px] h-[15px]" strokeWidth={2.4} />
+              {layout === "together" && pets.length >= MAX_PETS
+                ? `${MAX_PETS}-pet max`
+                : `Add pet${pets.length > 1 ? ` (${pets.length})` : ""}`}
+            </button>
             <button
               type="button"
               onClick={() => switchMode(mode === "asis" ? "ai" : "asis")}
@@ -2201,7 +2197,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               >
                 <span style={{ position: "absolute", top: 2, left: mode === "asis" ? 14 : 2, width: 14, height: 14, borderRadius: "50%", background: "#fff", transition: "left 200ms", boxShadow: "0 1px 2px rgba(0,0,0,0.25)" }} />
               </span>
-              Use my own photo (no AI)
+              Use my own photo
             </button>
           </div>
         )}
