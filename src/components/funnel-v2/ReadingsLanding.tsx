@@ -1474,12 +1474,18 @@ const GALLERY_SHOTS = [
   },
 ] as const;
 
+const GALLERY_SHOT_LAYOUTS = ["lead", "portrait", "square", "wide", "tall"] as const;
+
 function QuietMomentSection() {
   return (
     <section className="ls-story-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
-      <div className="ls-gallery mx-auto max-w-5xl">
+      <div className="ls-gallery mx-auto max-w-6xl">
         {GALLERY_SHOTS.map((shot, i) => (
-          <figure key={shot.src} className="ls-gallery-item ls-reveal" style={revealDelay(i * 0.05)}>
+          <figure
+            key={shot.src}
+            className={`ls-gallery-item ls-gallery-item--${GALLERY_SHOT_LAYOUTS[i] ?? "wide"} ls-reveal`}
+            style={revealDelay(i * 0.05)}
+          >
             <img src={shot.src} alt={shot.alt} loading="lazy" width={shot.width} height={shot.height} />
             {"caption" in shot && shot.caption && (
               <figcaption className="ls-gallery-caption" style={galleryCaptionStyle}>
@@ -1667,16 +1673,43 @@ function CosmicStyles() {
       }
       .ls-gallery {
         display: grid;
-        gap: clamp(26px, 5vw, 72px);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: clamp(18px, 2.2vw, 30px);
+        align-items: start;
       }
       .ls-gallery-item {
         position: relative;
         margin: 0;
         overflow: hidden;
-        border-radius: 12px;
-        aspect-ratio: 16 / 10;
+        border-radius: 14px;
         background: #030305;
-        box-shadow: 0 34px 100px rgba(0,0,0,0.46);
+        box-shadow: 0 30px 90px rgba(0,0,0,0.42);
+        isolation: isolate;
+        transform: translateZ(0);
+      }
+      .ls-gallery-item--lead {
+        grid-column: 1 / -1;
+        aspect-ratio: 16 / 8;
+      }
+      .ls-gallery-item--portrait {
+        grid-column: 1 / span 5;
+        margin-top: clamp(10px, 2vw, 28px);
+        aspect-ratio: 4 / 5;
+      }
+      .ls-gallery-item--square {
+        grid-column: 6 / span 7;
+        margin-top: clamp(10px, 2vw, 28px);
+        aspect-ratio: 1 / 1;
+      }
+      .ls-gallery-item--wide {
+        grid-column: 1 / -1;
+        margin-top: clamp(10px, 2vw, 28px);
+        aspect-ratio: 16 / 7;
+      }
+      .ls-gallery-item--tall {
+        grid-column: 3 / span 8;
+        margin-top: clamp(10px, 2vw, 28px);
+        aspect-ratio: 16 / 9;
       }
       .ls-gallery-item::after {
         content: "";
@@ -1684,7 +1717,9 @@ function CosmicStyles() {
         inset: 0;
         z-index: 1;
         pointer-events: none;
-        background: linear-gradient(180deg, rgba(5,4,8,0) 36%, rgba(5,4,8,0.66) 100%);
+        background:
+          radial-gradient(circle at 22% 18%, rgba(212,182,122,0.14), transparent 28%),
+          linear-gradient(180deg, rgba(5,4,8,0) 34%, rgba(5,4,8,0.68) 100%);
       }
       .ls-gallery-item img {
         width: 100%;
@@ -1697,6 +1732,11 @@ function CosmicStyles() {
         animation-timeline: view();
         animation-range: cover 0% cover 100%;
       }
+      .ls-gallery-item--lead img { object-position: 72% center; }
+      .ls-gallery-item--portrait img { object-position: 48% center; }
+      .ls-gallery-item--square img { object-position: 58% center; }
+      .ls-gallery-item--wide img { object-position: center; }
+      .ls-gallery-item--tall img { object-position: 68% center; }
       @keyframes ls-gallery-drift {
         from { transform: scale(1.14) translate3d(0, -3.4%, 0); }
         to { transform: scale(1.14) translate3d(0, 3.4%, 0); }
@@ -1714,8 +1754,59 @@ function CosmicStyles() {
         max-width: 16ch;
         text-shadow: 0 2px 22px rgba(0,0,0,0.82), 0 8px 50px rgba(0,0,0,0.6);
       }
+      .ls-gallery-item--portrait .ls-gallery-caption {
+        max-width: 13ch;
+        left: clamp(16px, 3vw, 30px);
+        right: clamp(16px, 3vw, 30px);
+        bottom: clamp(16px, 3vw, 30px);
+      }
       @media (max-width: 899px) {
-        .ls-gallery-item { aspect-ratio: 4 / 5; }
+        .ls-story-section {
+          padding-left: 0;
+          padding-right: 0;
+        }
+        .ls-gallery {
+          display: flex;
+          gap: 12px;
+          max-width: none;
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
+          margin-right: calc(50% - 50vw);
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding: 0 16px 18px;
+          scroll-padding-inline: 16px;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+        }
+        .ls-gallery::-webkit-scrollbar { display: none; }
+        .ls-gallery { scrollbar-width: none; }
+        .ls-gallery-item {
+          flex: 0 0 min(78vw, 340px);
+          scroll-snap-align: center;
+          margin-top: 0;
+          border-radius: 12px;
+          box-shadow: 0 24px 68px rgba(0,0,0,0.45);
+        }
+        .ls-gallery-item--lead,
+        .ls-gallery-item--portrait,
+        .ls-gallery-item--square,
+        .ls-gallery-item--wide,
+        .ls-gallery-item--tall {
+          grid-column: auto;
+          aspect-ratio: 4 / 5;
+        }
+        .ls-gallery-item--wide {
+          flex-basis: min(84vw, 380px);
+          aspect-ratio: 16 / 11;
+        }
+        .ls-gallery-caption {
+          left: 18px;
+          right: 18px;
+          bottom: 18px;
+          max-width: 13ch;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         .ls-gallery-item img { animation: none; transform: scale(1.04); }
@@ -3546,10 +3637,10 @@ const heroLeadStyle = {
 const galleryCaptionStyle = {
   color: C.cream,
   fontFamily: '"Playfair Display", Georgia, serif',
-  fontSize: "clamp(1.8rem, 4.6vw, 3.4rem)",
+  fontSize: "clamp(1.65rem, 4.2vw, 3.2rem)",
   fontWeight: 500,
   lineHeight: 1.04,
-  letterSpacing: "-0.015em",
+  letterSpacing: 0,
 } as const;
 
 const heroTitleStyle = {
