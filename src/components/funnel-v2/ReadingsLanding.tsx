@@ -114,22 +114,22 @@ const PLANET_ORDER = [
 // Punchy per-body lines for the scroll journey (filled from the brand-locked
 // copy workflow). Falls back to the PLANET_META line until populated.
 const JOURNEY_LINES: Record<string, string> = {
-  sun: "Who they truly are underneath.",
-  moon: "What they feel before you do.",
-  mercury: "How they listen, then answer you.",
-  venus: "The way they ask to be loved.",
-  earth: "This is where we are — home.",
-  mars: "Their fire, their nerve, their play.",
-  jupiter: "Where they grow brave enough to trust.",
-  saturn: "What steadies them when everything shakes.",
-  uranus: "Where they surprise even themselves.",
-  neptune: "The dreaming softness behind their eyes.",
-  pluto: "What they hold and never show.",
-  chiron: "The old wound slowly mending.",
-  northNode: "Where their soul is quietly headed.",
-  lilith: "The wild they never surrendered.",
+  sun: "Their core self — vitality, ego, and who they shine as.",
+  moon: "Their emotions and instincts — what they need to feel safe.",
+  mercury: "Their mind — how they think, signal, and read you.",
+  venus: "Their heart — how they love, bond, and what they treasure.",
+  earth: "This is where we are — grounded, here, together.",
+  mars: "Their drive — courage, energy, desire, and play.",
+  jupiter: "Their growth — luck, trust, and where they expand.",
+  saturn: "Their structure — boundaries, discipline, and what keeps them secure.",
+  uranus: "Their individuality — freedom, surprise, and breaking the pattern.",
+  neptune: "Their dream-world — intuition, sensitivity, and the unseen.",
+  pluto: "Their depths — instinct, intensity, and what they transform.",
+  chiron: "Their tender wound — where they hurt, and where they heal.",
+  northNode: "Their soul's path — the direction they're growing toward.",
+  lilith: "Their wild side — the untamed, primal self that won't be caged.",
 };
-const JOURNEY_HINT = "These thirteen lines only graze the surface of the chart their birth sky drew.";
+const JOURNEY_HINT = "These fourteen lines only graze the surface of the chart their birth sky drew.";
 const JOURNEY_CTA = "Open Their Reading";
 
 // Relative scientific size of each body (compressed so the small ones stay
@@ -196,7 +196,7 @@ const BODY_POS: Record<string, { x: number; y: number }> = {
 // On phones, flatten the steep diagonal so bodies read across the screen.
 const flattenY = (y: number, mob: boolean) => (mob ? 50 + (y - 50) * 0.5 : y);
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
-const JOURNEY_SEQ = ["sun", "mercury", "venus", "earth", "moon", "northNode", "lilith", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+const JOURNEY_SEQ = ["sun", "mercury", "venus", "earth", "moon", "lilith", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Everything drawn in the system (adds decorative Earth).
 const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Bodies that get a faint orbit ring (real planets only, not the lunar points / chiron).
@@ -209,8 +209,8 @@ const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "u
 const ORRERY_POS: Record<string, { x: number; y: number }> = {
   sun: { x: 1, y: 58 },
   mercury: { x: 30, y: 61 }, venus: { x: 38, y: 57 }, earth: { x: 45, y: 53 },
-  lilith: { x: 42, y: 55 }, moon: { x: 49, y: 51 }, northNode: { x: 52, y: 49 },
-  mars: { x: 57, y: 48 }, jupiter: { x: 67, y: 42 }, saturn: { x: 77, y: 37 },
+  moon: { x: 48, y: 52 }, lilith: { x: 51, y: 51 }, northNode: { x: 54, y: 50 },
+  mars: { x: 58, y: 48 }, jupiter: { x: 67, y: 42 }, saturn: { x: 77, y: 37 },
   chiron: { x: 82, y: 34 }, uranus: { x: 87, y: 31 }, neptune: { x: 92, y: 26 },
   pluto: { x: 97, y: 22 },
 };
@@ -1839,12 +1839,28 @@ function CosmicStyles() {
       }
       .ls-orrery-card-frame img.is-shadowed { filter: brightness(0.42) drop-shadow(0 0 16px rgba(176,142,230,0.7)); }
       .ls-orrery-card-frame .ls-orrery-sun-svg { width: 100%; height: 100%; }
-      .ls-orrery-card-glyph { font-size: clamp(2.4rem, 9vw, 3.6rem); color: ${C.violetSoft}; line-height: 1; }
+      .ls-orrery-card-glyph {
+        width: 78%; aspect-ratio: 1; border-radius: 50%;
+        display: grid; place-items: center;
+        font-size: clamp(1.7rem, 6vw, 2.6rem); color: #f0e9ff; line-height: 1;
+        background: radial-gradient(circle at 42% 38%, #c7a9f2 0%, #8a63d8 42%, #4a2f86 78%, #2a1a54 100%);
+        box-shadow: inset -3px -4px 9px rgba(0,0,0,0.45), 0 0 20px rgba(157,122,214,0.7);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      }
       .ls-orrery-card-text { display: grid; gap: 8px; min-width: 0; }
       .ls-orrery-card-sym { font-size: clamp(1.5rem, 5vw, 2.1rem); color: ${C.violetSoft}; line-height: 1; }
       .ls-orrery-card .ls-orrery-name { text-align: left; }
       .ls-orrery-card .ls-orrery-line { text-align: left; font-size: clamp(1.25rem, 3.8vw, 1.95rem); }
-      .ls-orrery-pt { color: ${C.violetSoft}; font-size: clamp(0.7rem, 1.6vw, 1.2rem); line-height: 1; }
+      /* Lunar-point visual (North Node): a small glowing violet orb carrying its glyph. */
+      .ls-orrery-pt {
+        width: 100%; aspect-ratio: 1; border-radius: 50%;
+        display: grid; place-items: center;
+        color: #f0e9ff; font-size: clamp(0.6rem, 1.4vw, 1.05rem); line-height: 1;
+        background: radial-gradient(circle at 42% 38%, #c7a9f2 0%, #8a63d8 42%, #4a2f86 78%, #2a1a54 100%);
+        box-shadow: inset -2px -3px 6px rgba(0,0,0,0.45), 0 0 12px rgba(157,122,214,0.7);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      }
+      .ls-orrery-body.is-active .ls-orrery-pt { box-shadow: inset -2px -3px 6px rgba(0,0,0,0.45), 0 0 18px rgba(184,152,235,0.95); }
       .ls-orrery-label {
         position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
         margin-top: 5px;
