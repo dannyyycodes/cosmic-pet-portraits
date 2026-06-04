@@ -849,37 +849,28 @@ function BirthSkyJourney() {
         <span className="ls-orrery-hint" aria-hidden="true">
           {isMobile ? "swipe to explore" : "scroll to explore"}
         </span>
-      </div>
 
-      <div className="ls-orrery-card">
-        <div className="ls-orrery-card-frame">
-          <motion.div
-            key={activeKey}
-            className="ls-orrery-card-orb"
-            initial={reduce ? false : { scale: 0.5, opacity: 0 }}
-            animate={reduce ? {} : { scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          >
-            {activeKey === "sun" ? (
-              <SunVid className="ls-orrery-sunvid--card" />
-            ) : NASA_IMG[activeKey] ? (
-              <img src={NASA_IMG[activeKey]} alt={meta.label} className={activeKey === "lilith" ? "is-shadowed" : ""} />
-            ) : (
-              <span className="ls-orrery-card-glyph">{meta.glyph}</span>
-            )}
-          </motion.div>
+        {/* Penguin guide + speech bubble: the info lives ON the diagram, next to
+            the body you scrolled onto, so it's visible without scrolling away. */}
+        <div className="ls-orrery-guide">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeKey}
+              className="ls-orrery-bubble"
+              initial={reduce ? false : { opacity: 0, y: 12, scale: 0.95 }}
+              animate={reduce ? {} : { opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? {} : { opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ duration: reduce ? 0 : 0.32, ease }}
+            >
+              <span className="ls-orrery-bubble-head">
+                <span className="ls-orrery-bubble-glyph">{meta.glyph}</span>
+                <span className="ls-orrery-name">{meta.label}</span>
+              </span>
+              <p className="ls-orrery-line">{line}</p>
+            </motion.div>
+          </AnimatePresence>
+          <CosmicPenguin />
         </div>
-        <motion.div
-          key={activeKey + "-t"}
-          className="ls-orrery-card-text"
-          initial={reduce ? false : { opacity: 0, x: 12 }}
-          animate={reduce ? {} : { opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, ease }}
-        >
-          <span className="ls-orrery-card-sym" aria-hidden="true">{meta.glyph}</span>
-          <span className="ls-orrery-name">{meta.label}</span>
-          <p className="ls-orrery-line">{line}</p>
-        </motion.div>
       </div>
 
       <div className="ls-orrery-pips" role="tablist" aria-label="Bodies">
@@ -1056,6 +1047,54 @@ function SunVid({ className = "" }: { className?: string }) {
     <span className={`ls-orrery-sunvid ${className}`} aria-hidden="true">
       <img src="/readings/sun/sun-opt1.png?v=3" alt="" />
     </span>
+  );
+}
+
+// Cosmic penguin guide. A cute wizard penguin that bobs, blinks and "talks"
+// (beak chatters) beside the speech bubble while it explains the active body.
+function CosmicPenguin() {
+  return (
+    <svg className="ls-peng is-talking" viewBox="0 0 120 150" aria-hidden="true">
+      <defs>
+        <linearGradient id="pengHat" x1="0" y1="0" x2="0.4" y2="1">
+          <stop offset="0" stopColor="#9a7ae6" />
+          <stop offset="1" stopColor="#5a3fa6" />
+        </linearGradient>
+        <radialGradient id="pengBelly" cx="50%" cy="42%" r="62%">
+          <stop offset="0" stopColor="#fdf8ee" />
+          <stop offset="1" stopColor="#ecdfce" />
+        </radialGradient>
+      </defs>
+      <g className="ls-peng-spark" fill="#d8c5f5">
+        <circle cx="13" cy="44" r="1.7" /><circle cx="108" cy="34" r="2.1" /><circle cx="102" cy="74" r="1.5" /><circle cx="18" cy="86" r="1.4" />
+      </g>
+      <g className="ls-peng-body">
+        <ellipse cx="46" cy="143" rx="11" ry="5" fill="#f6a02a" />
+        <ellipse cx="74" cy="143" rx="11" ry="5" fill="#f6a02a" />
+        <ellipse cx="60" cy="95" rx="41" ry="46" fill="#2c2452" />
+        <ellipse cx="60" cy="99" rx="28" ry="35" fill="url(#pengBelly)" />
+        <path d="M21 84 q-12 18 3 42 q8-3 10-20 z" fill="#221a44" />
+        <path d="M99 84 q12 18 -3 42 q-8-3 -10-20 z" fill="#221a44" />
+        <circle cx="39" cy="86" r="6" fill="#e98aa0" opacity="0.45" />
+        <circle cx="81" cy="86" r="6" fill="#e98aa0" opacity="0.45" />
+        <g className="ls-peng-eyes">
+          <ellipse cx="49" cy="72" rx="9.5" ry="11.5" fill="#fff" />
+          <ellipse cx="71" cy="72" rx="9.5" ry="11.5" fill="#fff" />
+          <circle cx="51" cy="74" r="4.6" fill="#1a1330" />
+          <circle cx="69" cy="74" r="4.6" fill="#1a1330" />
+          <circle cx="52.6" cy="72" r="1.7" fill="#fff" />
+          <circle cx="70.6" cy="72" r="1.7" fill="#fff" />
+        </g>
+        <g className="ls-peng-beak">
+          <path d="M53 85 L67 85 L60 93 Z" fill="#f6a02a" />
+        </g>
+        <g className="ls-peng-hat">
+          <path d="M33 51 Q52 4 70 14 Q92 26 90 49 Q72 45 60 47 Q46 49 33 51 Z" fill="url(#pengHat)" />
+          <ellipse cx="61" cy="50" rx="33" ry="7" fill="#4a3296" />
+          <circle cx="59" cy="30" r="2" fill="#ffd86b" /><circle cx="71" cy="38" r="1.6" fill="#ffd86b" /><circle cx="51" cy="42" r="1.5" fill="#ffd86b" />
+        </g>
+      </g>
+    </svg>
   );
 }
 
@@ -1957,15 +1996,60 @@ function CosmicStyles() {
       .ls-orrery-card .ls-orrery-name { text-align: left; }
       .ls-orrery-card .ls-orrery-line { text-align: left; font-size: clamp(1.25rem, 3.8vw, 1.95rem); }
       /* Lunar-point visual (North Node): a small glowing violet orb carrying its glyph. */
+      /* North Node: an ethereal point of light (soft violet halo + glyph), not a
+         solid ball, so it reads as an abstract astrological point. */
       .ls-orrery-pt {
-        width: 100%; aspect-ratio: 1; border-radius: 50%;
+        width: 120%; aspect-ratio: 1; border-radius: 50%;
         display: grid; place-items: center;
-        color: #f0e9ff; font-size: clamp(0.6rem, 1.4vw, 1.05rem); line-height: 1;
-        background: radial-gradient(circle at 42% 38%, #c7a9f2 0%, #8a63d8 42%, #4a2f86 78%, #2a1a54 100%);
-        box-shadow: inset -2px -3px 6px rgba(0,0,0,0.45), 0 0 12px rgba(157,122,214,0.7);
-        text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        color: #efe6ff; font-size: clamp(0.55rem, 1.3vw, 0.95rem); line-height: 1;
+        background: radial-gradient(circle, rgba(206,180,250,0.6) 0%, rgba(150,110,228,0.34) 36%, rgba(124,92,214,0.12) 58%, rgba(124,92,214,0) 74%);
+        text-shadow: 0 0 7px rgba(220,200,255,0.95), 0 0 2px rgba(0,0,0,0.5);
+        animation: ls-node-pulse 3.4s ease-in-out infinite;
       }
-      .ls-orrery-body.is-active .ls-orrery-pt { box-shadow: inset -2px -3px 6px rgba(0,0,0,0.45), 0 0 18px rgba(184,152,235,0.95); }
+      @keyframes ls-node-pulse { 0%,100% { filter: brightness(1); transform: scale(1); } 50% { filter: brightness(1.25); transform: scale(1.06); } }
+      .ls-orrery-body.is-active .ls-orrery-pt { background: radial-gradient(circle, rgba(224,206,255,0.78) 0%, rgba(176,142,235,0.46) 38%, rgba(140,100,225,0.16) 60%, rgba(124,92,214,0) 76%); }
+      /* Penguin guide + speech bubble (lives on the diagram). */
+      .ls-orrery-guide {
+        position: absolute; z-index: 6; right: 2.5%; bottom: 3.5%;
+        display: flex; align-items: flex-end; gap: 8px; max-width: 66%;
+        pointer-events: none;
+      }
+      .ls-orrery-bubble {
+        position: relative; min-width: 0;
+        max-width: clamp(190px, 27vw, 330px);
+        padding: clamp(10px, 1.5vw, 15px) clamp(13px, 1.9vw, 20px);
+        border: 1px solid rgba(124,92,214,0.38); border-radius: 16px;
+        background: linear-gradient(135deg, rgba(48,31,78,0.94), rgba(13,10,22,0.9));
+        box-shadow: 0 16px 46px rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+        display: grid; gap: 5px;
+      }
+      .ls-orrery-bubble::after {
+        content: ""; position: absolute; right: -7px; bottom: 20px; width: 14px; height: 14px;
+        background: linear-gradient(135deg, rgba(48,31,78,0.94), rgba(13,10,22,0.9));
+        border-right: 1px solid rgba(124,92,214,0.38); border-bottom: 1px solid rgba(124,92,214,0.38);
+        transform: rotate(-45deg);
+      }
+      .ls-orrery-bubble-head { display: flex; align-items: center; gap: 8px; }
+      .ls-orrery-bubble-glyph { color: #b8a0ef; font-size: clamp(1rem, 2vw, 1.5rem); line-height: 1; }
+      .ls-orrery-bubble .ls-orrery-name { text-align: left; }
+      .ls-orrery-bubble .ls-orrery-line { text-align: left; margin: 0; font-size: clamp(1.02rem, 1.9vw, 1.45rem); line-height: 1.18; }
+      .ls-peng { flex: none; width: clamp(74px, 12vw, 132px); height: auto; transform-origin: 50% 100%; filter: drop-shadow(0 7px 14px rgba(0,0,0,0.5)); animation: ls-peng-bob 3.2s ease-in-out infinite; }
+      @keyframes ls-peng-bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-5px) rotate(1.5deg); } }
+      .ls-peng-eyes { transform-origin: 60px 72px; animation: ls-peng-blink 4.6s infinite; }
+      @keyframes ls-peng-blink { 0%,93%,100% { transform: scaleY(1); } 96.5% { transform: scaleY(0.12); } }
+      .ls-peng.is-talking .ls-peng-beak { transform-origin: 60px 85px; animation: ls-peng-talk 0.5s ease-in-out infinite; }
+      @keyframes ls-peng-talk { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(0.45) translateY(1px); } }
+      .ls-peng-spark { animation: ls-peng-twinkle 2.6s ease-in-out infinite; }
+      @keyframes ls-peng-twinkle { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+      @media (max-width: 759px) {
+        .ls-orrery-guide { left: 3%; right: 3%; bottom: 3%; max-width: none; align-items: flex-end; }
+        .ls-orrery-bubble { max-width: none; flex: 1; }
+        .ls-peng { width: 62px; }
+        .ls-orrery-hint { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-peng, .ls-peng-eyes, .ls-peng .ls-peng-beak, .ls-peng-spark, .ls-orrery-pt { animation: none !important; }
+      }
       .ls-orrery-label {
         position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
         margin-top: 5px;
@@ -1977,12 +2061,7 @@ function CosmicStyles() {
       }
       .ls-orrery-body.is-active .ls-orrery-orb img { filter: drop-shadow(0 0 14px rgba(176,142,230,0.85)); }
       .ls-orrery-body.is-active .ls-orrery-label { color: #d8c5f5; }
-      .ls-orrery-hint {
-        position: absolute; right: 14px; bottom: 12px; z-index: 3;
-        font-family: Lato, system-ui, sans-serif; font-size: 11px;
-        letter-spacing: 0.16em; text-transform: uppercase;
-        color: rgba(224,218,242,0.5); pointer-events: none;
-      }
+      .ls-orrery-hint { display: none; }
       .ls-orrery-dock {
         margin: clamp(20px, 3vw, 32px) auto 0;
         max-width: 32ch; display: grid; gap: 6px; justify-items: center;
