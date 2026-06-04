@@ -114,20 +114,20 @@ const PLANET_ORDER = [
 // Punchy per-body lines for the scroll journey (filled from the brand-locked
 // copy workflow). Falls back to the PLANET_META line until populated.
 const JOURNEY_LINES: Record<string, string> = {
-  sun: "Their core self — vitality, ego, and who they shine as.",
-  moon: "Their emotions and instincts — what they need to feel safe.",
-  mercury: "Their mind — how they think, signal, and read you.",
-  venus: "Their heart — how they love, bond, and what they treasure.",
-  earth: "This is where we are — grounded, here, together.",
-  mars: "Their drive — courage, energy, desire, and play.",
-  jupiter: "Their growth — luck, trust, and where they expand.",
-  saturn: "Their structure — boundaries, discipline, and what keeps them secure.",
-  uranus: "Their individuality — freedom, surprise, and breaking the pattern.",
-  neptune: "Their dream-world — intuition, sensitivity, and the unseen.",
-  pluto: "Their depths — instinct, intensity, and what they transform.",
-  chiron: "Their tender wound — where they hurt, and where they heal.",
-  northNode: "Their soul's path — the direction they're growing toward.",
-  lilith: "Their wild side — the untamed, primal self that won't be caged.",
+  sun: "Their core self. Vitality, ego, and who they shine as.",
+  moon: "Their emotions and instincts. What they need to feel safe.",
+  mercury: "Their mind. How they think, signal, and read you.",
+  venus: "Their heart. How they love, bond, and what they treasure.",
+  earth: "This is where we are. Grounded, here, together.",
+  mars: "Their drive. Courage, energy, desire, and play.",
+  jupiter: "Their growth. Luck, trust, and where they expand.",
+  saturn: "Their structure. Boundaries, discipline, and what keeps them secure.",
+  uranus: "Their individuality. Freedom, surprise, and breaking the pattern.",
+  neptune: "Their dream world. Intuition, sensitivity, and the unseen.",
+  pluto: "Their depths. Instinct, intensity, and what they transform.",
+  chiron: "Their tender wound. Where they hurt, and where they heal.",
+  northNode: "Their soul's path. The direction they're growing toward.",
+  lilith: "Their wild side. The untamed, primal self that won't be caged.",
 };
 const JOURNEY_HINT = "These fourteen lines only graze the surface of the chart their birth sky drew.";
 const JOURNEY_CTA = "Open Their Reading";
@@ -198,7 +198,7 @@ const flattenY = (y: number, mob: boolean) => (mob ? 50 + (y - 50) * 0.5 : y);
 // Order the camera + cards visit (radial, with the Moon cluster grouped).
 const JOURNEY_SEQ = ["sun", "mercury", "venus", "earth", "moon", "lilith", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Everything drawn in the system (adds decorative Earth).
-const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+const RENDER_ORDER = ["sun", "mercury", "venus", "earth", "moon", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Bodies that get a faint orbit ring (real planets only, not the lunar points / chiron).
 const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"] as const;
 
@@ -209,18 +209,18 @@ const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "u
 const ORRERY_POS: Record<string, { x: number; y: number }> = {
   sun: { x: 1, y: 58 },
   mercury: { x: 30, y: 61 }, venus: { x: 38, y: 57 }, earth: { x: 45, y: 53 },
-  moon: { x: 48, y: 52 }, lilith: { x: 51, y: 51 }, northNode: { x: 54, y: 50 },
+  moon: { x: 48, y: 52 }, lilith: { x: 48, y: 52 }, northNode: { x: 54, y: 50 },
   mars: { x: 58, y: 48 }, jupiter: { x: 67, y: 42 }, saturn: { x: 77, y: 37 },
   chiron: { x: 82, y: 34 }, uranus: { x: 87, y: 31 }, neptune: { x: 92, y: 26 },
   pluto: { x: 97, y: 22 },
 };
 // Every body (not the Sun) gets its own orbit ring.
-const ORRERY_ORBIT_ALL = ["mercury", "venus", "earth", "lilith", "moon", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
+const ORRERY_ORBIT_ALL = ["mercury", "venus", "earth", "moon", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Diameter as % of the box width (gas giants big, rocky small — real-ish order).
 const ORRERY_DIAM: Record<string, number> = {
   sun: 50, mercury: 3.6, venus: 5, earth: 5.2, moon: 2.8, mars: 4,
   jupiter: 11, saturn: 9.5, uranus: 7, neptune: 7, pluto: 3.2,
-  chiron: 3, northNode: 2.6, lilith: 2.8,
+  chiron: 3, northNode: 3.6, lilith: 2.8,
 };
 const ORRERY_K = 0.4; // vertical squash of the orbit ellipses
 // Bodies that always show a name label (the classic planets, like the reference).
@@ -799,7 +799,7 @@ function BirthSkyJourney() {
         </p>
         <h3 className="mt-3 text-balance" style={chartTitleStyle}>Their birth sky</h3>
         <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-          The real sky the day they arrived — every body, computed. Scroll across
+          The real sky the day they arrived, every body computed. Scroll across
           the system to meet each one.
         </p>
       </div>
@@ -824,18 +824,27 @@ function BirthSkyJourney() {
               );
             })}
           </svg>
-          {RENDER_ORDER.map((k) => (
-            <OrreryBody
-              key={k}
-              bodyKey={k}
-              pos={RPOS[k]}
-              diam={ORRERY_DIAM[k] ?? 4}
-              active={activeKey === k}
-              showLabel={ORRERY_LABELLED.has(k) || activeKey === k}
-              index={(JOURNEY_SEQ as readonly string[]).indexOf(k)}
-              onPick={(i) => i >= 0 && setActive(i)}
-            />
-          ))}
+          {RENDER_ORDER.map((k) => {
+            // Lilith is the dark Moon: it shares the Moon's body + orbit. When
+            // Lilith is active the Moon stays put and turns shadowed.
+            const isMoon = k === "moon";
+            const moonDark = isMoon && activeKey === "lilith";
+            const bodyActive = activeKey === k || moonDark;
+            const jumpIndex = (JOURNEY_SEQ as readonly string[]).indexOf(k);
+            return (
+              <OrreryBody
+                key={k}
+                bodyKey={k}
+                pos={RPOS[k]}
+                diam={ORRERY_DIAM[k] ?? 4}
+                active={bodyActive}
+                dark={moonDark}
+                showLabel={ORRERY_LABELLED.has(k) || activeKey === k}
+                index={jumpIndex}
+                onPick={(i) => i >= 0 && setActive(i)}
+              />
+            );
+          })}
         </motion.div>
         <span className="ls-orrery-hint" aria-hidden="true">
           {isMobile ? "swipe to explore" : "scroll to explore"}
@@ -1058,6 +1067,7 @@ function OrreryBody({
   pos,
   diam,
   active,
+  dark = false,
   showLabel,
   index,
   onPick,
@@ -1066,6 +1076,7 @@ function OrreryBody({
   pos: { x: number; y: number };
   diam: number;
   active: boolean;
+  dark?: boolean;
   showLabel: boolean;
   index: number;
   onPick: (i: number) => void;
@@ -1083,7 +1094,7 @@ function OrreryBody({
         {isSun ? (
           <SunVid />
         ) : NASA_IMG[bodyKey] ? (
-          <img src={NASA_IMG[bodyKey]} alt="" loading="lazy" />
+          <img src={NASA_IMG[bodyKey]} alt="" loading="lazy" className={dark ? "is-shadowed" : ""} />
         ) : (
           <span className="ls-orrery-pt">{meta?.glyph}</span>
         )}
@@ -1887,9 +1898,12 @@ function CosmicStyles() {
       .ls-orrery-orb img {
         width: 100%; height: 100%; object-fit: contain;
         filter: drop-shadow(0 3px 10px rgba(0,0,0,0.55));
-        transition: filter 0.4s ease;
+        transition: filter 0.5s ease;
       }
-      /* (sun corona now lives on .ls-orrery-sunvid::before — single soft aura) */
+      /* Lilith = the dark Moon: same body, shadowed (smoothly transitions). */
+      .ls-orrery-orb img.is-shadowed { filter: brightness(0.3) saturate(0.55) contrast(1.05); }
+      .ls-orrery-body.is-active .ls-orrery-orb img.is-shadowed { filter: brightness(0.4) saturate(0.6) drop-shadow(0 0 12px rgba(124,92,214,0.85)); }
+      /* (sun corona now lives on .ls-orrery-sunvid::before single soft aura) */
       /* Option 1 sun: real NASA SDO disc with prominences/corona baked into a
          transparent PNG. NO clip — the whole sun + flares show; sized larger than
          the orb so the flares bleed past it. Soft drop-shadow aura. */
