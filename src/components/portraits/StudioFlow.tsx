@@ -676,16 +676,29 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     const styleSlug = studioSearchParams.get('style');
     if (!styleSlug) return;
     const friendly = styleSlug.replace(/-/g, ' ').trim();
-    if (!friendly) return;
-    setPrompt((current) => {
-      if (current.trim().length > 0) return current;
-      return `${friendly} style`;
-    });
     // Clear the param from the URL so a refresh doesn't re-inject and a manual
     // edit isn't fought by the effect on every state update.
     const next = new URLSearchParams(studioSearchParams);
     next.delete('style');
     setStudioSearchParams(next, { replace: true });
+    // Prefer the EXACT library style brief (the same render recipe that produced
+    // the gallery artwork) so the customer's own pet renders in that precise
+    // style — not just the slug words. Falls back to "<slug> style" if the map
+    // is unavailable. We only inject when the prompt is still empty.
+    let cancelled = false;
+    fetch('/portraits/library-style-prompts.json')
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((map: Record<string, string>) => {
+        if (cancelled) return;
+        const brief = (map && map[styleSlug]) || (friendly ? `${friendly} style` : '');
+        if (!brief) return;
+        setPrompt((current) => (current.trim().length > 0 ? current : brief));
+      })
+      .catch(() => {
+        if (cancelled || !friendly) return;
+        setPrompt((current) => (current.trim().length > 0 ? current : `${friendly} style`));
+      });
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

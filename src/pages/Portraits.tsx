@@ -999,6 +999,29 @@ const Portraits = () => {
     uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  // Deep link from the gallery / artwork "Make my pet in this style" CTA arrives
+  // at /pawtraits?style=<slug>#studio — jump STRAIGHT to the studio upload, not
+  // the landing top. We capture the intent at FIRST RENDER (a ref initialiser),
+  // because the child StudioFlow effect clears ?style (and the hash) before this
+  // parent effect runs — reading window.location in the effect would be too late.
+  // Scroll through Lenis (native scrollIntoView desyncs it). (Danny 2026-06-04)
+  const wantStudioRef = useRef(
+    typeof window !== "undefined" &&
+      (window.location.hash === "#studio" ||
+        new URLSearchParams(window.location.search).has("style")),
+  );
+  useEffect(() => {
+    if (!wantStudioRef.current) return;
+    const t = setTimeout(() => {
+      const el = uploadRef.current;
+      if (!el) return;
+      const lenis = (window as unknown as { __lenis?: { scrollTo: (t: HTMLElement, o?: object) => void } }).__lenis;
+      if (lenis) lenis.scrollTo(el, { offset: -12 });
+      else el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 420);
+    return () => clearTimeout(t);
+  }, []);
+
   const handlePickPack = (packId: string) => {
     setPresetPack(packId);
     setTimeout(scrollToUpload, 80);
