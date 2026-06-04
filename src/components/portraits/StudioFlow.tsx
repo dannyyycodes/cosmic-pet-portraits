@@ -1777,9 +1777,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           <h2
             id="studio-heading"
             style={{
-              ...display("clamp(30px, 4.6vw, 52px)"),
+              ...display("clamp(24px, 3.4vw, 38px)"),
               color: PALETTE.ink,
-              marginTop: 10,
+              marginTop: 6,
               maxWidth: 620,
               marginLeft: "auto",
               marginRight: "auto",
@@ -1787,22 +1787,24 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           >
             <SplitWords text="Picture them," />{" "}
             <SplitWords
-              text="anywhere."
+              text="any way."
               delay={0.28}
               className="ls-hero-shine"
             />
           </h2>
           <p
-            className="mx-auto mt-4"
+            className="mx-auto mt-2"
             style={{
               fontFamily: 'Assistant, system-ui, sans-serif',
               fontSize: 13,
               color: PALETTE.earthMuted,
               maxWidth: 440,
-              lineHeight: 1.45,
+              lineHeight: 1.4,
             }}
           >
-            Describe the scene you want painted.
+            {mode === "asis"
+              ? "Upload a photo, choose your canvas — done."
+              : "Upload a photo, say the style, see it painted."}
           </p>
         </div>
 
@@ -1962,14 +1964,14 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               className="overflow-hidden"
               style={{ order: 2 }}
             >
-              <div className="mt-4">
+              <div className="mt-3">
                 <p style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: 11.5, fontWeight: 700, color: PALETTE.earthMuted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8, paddingLeft: 2 }}>
-                  {pets.length} pets — how do you want them?
+                  {pets.length} pets — one picture or one each?
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {([
-                    { key: "together" as const, title: "One canvas", sub: "All together in a single portrait", disabled: pets.length > MAX_PETS },
-                    { key: "separate" as const, title: "Separate", sub: "A portrait each — buy any number", disabled: false },
+                    { key: "together" as const, title: "All on one", sub: "All pets in one picture", disabled: pets.length > MAX_PETS },
+                    { key: "separate" as const, title: "One each", sub: "A separate picture per pet", disabled: false },
                   ]).map((o) => {
                     const active = layout === o.key;
                     return (
@@ -2011,9 +2013,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
             One chip per named pet, side-by-side. Same look as the prior
             single-pet preview, just rendered per pet. Uses the first
             generated variant as the chip background once available. */}
-        {/* ── [order 5] Name opt-in — off by default; below the prompt ──── */}
-        {studioPhase === 'compose' && (
-          <div className="mt-5" style={{ order: 5 }}>
+        {/* ── [order 5] Name opt-in — off by default; appears with the prompt ─ */}
+        {studioPhase === 'compose' && uploadedPets.length >= 1 && (
+          <div className="mt-3" style={{ order: 5 }}>
             <button
               type="button"
               onClick={() => setNamesOn((v) => !v)}
@@ -2176,9 +2178,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── [order 3] Mode toggle: Transform with AI ↔ Use my photo ─────── */}
-        {studioPhase === 'compose' && (
-          <div className="mt-5" style={{ order: 3 }}>
+        {/* ── [order 3] Mode toggle — appears once a photo is added ────────── */}
+        {studioPhase === 'compose' && uploadedPets.length >= 1 && (
+          <div className="mt-4" style={{ order: 3 }}>
             <div
               className="grid grid-cols-2 gap-1 p-1 rounded-2xl"
               style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
@@ -2217,16 +2219,16 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           </div>
         )}
 
-        {/* ── Premium prompt box — always visible (Generate gated by !!photoUrl) ─ */}
+        {/* ── [order 4] Prompt box — appears once a photo is added (clean empty state) ─ */}
         <AnimatePresence>
-          {true && (
+          {uploadedPets.length >= 1 && (
             <motion.div
               key="prompt"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={sectionTransition}
-              className="mt-5"
+              className="mt-3"
               style={{ order: 4 }}
             >
             {layout === "separate" && uploadedPets.length > 1 && (
@@ -2425,20 +2427,6 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
 
               {/* Upload-first hint when no photo yet — sits below the prompt.
                   Also clarifies that size + frame are picked AFTER variants generate. */}
-              {uploadedPets.length === 0 && (
-                <p
-                  className="text-center mt-3 px-2"
-                  style={{
-                    fontFamily: 'Assistant, system-ui, sans-serif',
-                    fontSize: 13,
-                    color: PALETTE.earthMuted,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Upload {pets.length > 1 ? "at least one pet's photo above" : "your pet's photo above"} to {mode === "asis" ? "continue" : "generate"}. Pick your canvas size &amp; frame after.
-                </p>
-              )}
-
               {/* Help expansion */}
               <AnimatePresence initial={false}>
                 {helpOpen && (
