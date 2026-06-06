@@ -1527,7 +1527,7 @@ function QuietMomentSection() {
         ))}
         <article className="ls-story-panel ls-story-panel--reveal ls-reveal" style={revealDelay(0.14)}>
           <div className="ls-story-copy">
-            <h2 className="ls-story-caption" style={galleryCaptionStyle}>A reading that feels unmistakably like them.</h2>
+            <h2 className="ls-story-caption" style={galleryCaptionStyle}>Know the soul beside you while they are still here.</h2>
           </div>
           <ReadingPreviewStoryVisual />
         </article>
@@ -1541,14 +1541,14 @@ function ReadingPreviewStoryVisual() {
     <div className="ls-reading-preview" aria-label="Little Souls reading preview">
       <div className="ls-reading-preview-top">
         <div>
-          <span>Inside the reading</span>
-          <strong>Their chart, translated</strong>
+          <span>Their soul language</span>
+          <strong>The language behind their little rituals</strong>
         </div>
-        <span className="ls-reading-preview-pill">Personal chart</span>
+        <span className="ls-reading-preview-pill">Inner map</span>
       </div>
       <div className="ls-reading-preview-grid">
         <div className="ls-reading-chart-shell">
-          <div className="ls-reading-chart-label">Exact sky</div>
+          <div className="ls-reading-chart-label">Soul map</div>
           <div className="ls-reading-chart" aria-hidden="true">
           <svg viewBox="0 0 220 220">
             <circle cx="110" cy="110" r="92" />
@@ -1582,10 +1582,10 @@ function ReadingPreviewStoryVisual() {
         <div className="ls-reading-translation">
           <div className="ls-reading-element-orbit" aria-label="Elemental balance">
             {[
-              ["Earth", "32%"],
-              ["Fire", "28%"],
-              ["Air", "24%"],
-              ["Water", "16%"],
+              ["Safety", "what helps them feel safe"],
+              ["Joy", "what brings them alive"],
+              ["Trust", "how they ask to be close"],
+              ["Bond", "why it feels so specific"],
             ].map(([element, value], i) => (
               <div key={element} className="ls-reading-orbit-item" style={{ "--ls-delay": `${i * 0.06}s` } as CSSProperties}>
                 <span>{element}</span>
@@ -1595,9 +1595,8 @@ function ReadingPreviewStoryVisual() {
           </div>
           <div className="ls-reading-card-row">
             {[
-              ["Comfort", "where they need softness"],
-              ["Spark", "what lights them back up"],
-              ["Bond", "why they chose you"],
+              ["Their signals", "the looks and routines they repeat for you"],
+              ["Their needs", "what they are asking for without words"],
             ].map(([planet, sign]) => (
               <div key={planet} className="ls-reading-mini-card">
                 <span>{planet}</span>
@@ -1608,8 +1607,8 @@ function ReadingPreviewStoryVisual() {
         </div>
       </div>
       <div className="ls-reading-insight">
-        <span>What it gives you</span>
-        <strong>Words for the little things you already feel.</strong>
+        <span>Why it matters</span>
+        <strong>You only get so many ordinary days together. This gives you words for the ones you never want to forget.</strong>
       </div>
     </div>
   );
