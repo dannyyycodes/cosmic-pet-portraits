@@ -43,3 +43,10 @@ supabase/.temp/
 
 # Local-only scratch (crop mockups, test images)
 .pawtrait-staging/
+.claude/
+.claude-tmp/
+.deploy/
+.design-ref/
+.assetstaging/
+*.tsbuildinfo
+.tmp-render-card.cjs
