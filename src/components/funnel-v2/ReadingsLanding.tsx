@@ -1489,63 +1489,117 @@ function CheckoutSection({
 // scroll-driven parallax via animation-timeline: view(), GPU, mobile + desktop,
 // with a static fallback and a reduced-motion guard). Words stay minimal — the
 // cat opens the series; the rest let the images talk. Captions added per-shot.
-const GALLERY_SHOTS = [
+const STORY_SCENES = [
   {
     src: "/readings/hero/cockapoo-reading-tablet-cockapoo-match.webp",
     alt: "Cockapoo cuddled beside a person reading a Little Souls soul reading on a tablet",
+    kicker: "The moment",
     caption: "Made for reading with them close.",
     width: 1672,
     height: 941,
   },
   {
-    src: "/readings/hero/black-cat-galaxy-eye.webp",
-    alt: "Black cat with a faint galaxy reflected in one eye",
+    src: "/readings/hero/cat-soul-eye-story.webp",
+    alt: "Dark tabby cat in warm evening light with a subtle celestial chart reflected in one eye",
+    kicker: "The soul",
     caption: "Discover the soul behind those eyes.",
     width: 1672,
     height: 941,
   },
-  {
-    src: "/readings/hero/birth-chart-tablet-pet-nearby.png",
-    alt: "Tabby cat resting beside a tablet glowing with a gold celestial chart",
-    width: 1586,
-    height: 992,
-  },
-  {
-    src: "/readings/hero/quiet-keepsake-reading-moment.png",
-    alt: "Dog resting beside a person holding a tablet filled with a quiet star map",
-    width: 1896,
-    height: 830,
-  },
-  {
-    src: "/readings/hero/doberman-puppy-star-map.webp",
-    alt: "Doberman puppy touching a softly glowing star map",
-    width: 1672,
-    height: 942,
-  },
 ] as const;
-
-const GALLERY_SHOT_LAYOUTS = ["lead", "portrait", "square", "wide", "tall"] as const;
 
 function QuietMomentSection() {
   return (
     <section className="ls-story-section ls-parallax-band relative isolate overflow-hidden px-5 py-18 sm:py-28">
-      <div className="ls-gallery mx-auto max-w-6xl">
-        {GALLERY_SHOTS.map((shot, i) => (
-          <figure
-            key={shot.src}
-            className={`ls-gallery-item ls-gallery-item--${GALLERY_SHOT_LAYOUTS[i] ?? "wide"} ls-reveal`}
-            style={revealDelay(i * 0.05)}
+      <div className="ls-story-sequence mx-auto max-w-6xl">
+        {STORY_SCENES.map((scene, i) => (
+          <article
+            key={scene.src}
+            className={`ls-story-panel ${i % 2 ? "ls-story-panel--reverse" : ""} ls-reveal`}
+            style={revealDelay(i * 0.06)}
           >
-            <img src={shot.src} alt={shot.alt} loading="lazy" width={shot.width} height={shot.height} />
-            {"caption" in shot && shot.caption && (
-              <figcaption className="ls-gallery-caption" style={galleryCaptionStyle}>
-                {shot.caption}
-              </figcaption>
-            )}
-          </figure>
+            <figure className="ls-story-media">
+              <img src={scene.src} alt={scene.alt} loading="lazy" width={scene.width} height={scene.height} />
+            </figure>
+            <div className="ls-story-copy">
+              <span className="ls-story-kicker">{scene.kicker}</span>
+              <h2 className="ls-story-caption" style={galleryCaptionStyle}>{scene.caption}</h2>
+            </div>
+          </article>
         ))}
+        <article className="ls-story-panel ls-story-panel--reveal ls-reveal" style={revealDelay(0.14)}>
+          <div className="ls-story-copy">
+            <span className="ls-story-kicker">The map</span>
+            <h2 className="ls-story-caption" style={galleryCaptionStyle}>Then the sky turns into something you can hold.</h2>
+          </div>
+          <ReadingPreviewStoryVisual />
+        </article>
       </div>
     </section>
+  );
+}
+
+function ReadingPreviewStoryVisual() {
+  return (
+    <div className="ls-reading-preview" aria-label="Little Souls reading preview">
+      <div className="ls-reading-preview-top">
+        <div>
+          <span>Soul Reading</span>
+          <strong>Monty</strong>
+        </div>
+        <span className="ls-reading-preview-pill">Live chart</span>
+      </div>
+      <div className="ls-reading-preview-grid">
+        <div className="ls-reading-chart" aria-hidden="true">
+          <svg viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="92" />
+            <circle cx="110" cy="110" r="66" />
+            <circle cx="110" cy="110" r="34" />
+            {Array.from({ length: 12 }).map((_, i) => {
+              const angle = (i * 30 - 90) * (Math.PI / 180);
+              const x1 = 110 + Math.cos(angle) * 34;
+              const y1 = 110 + Math.sin(angle) * 34;
+              const x2 = 110 + Math.cos(angle) * 92;
+              const y2 = 110 + Math.sin(angle) * 92;
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
+            })}
+            <path d="M65 82 111 38 152 88 138 150 82 158Z" />
+            <path d="M82 158 152 88 65 82 138 150 111 38" />
+          </svg>
+        </div>
+        <div className="ls-reading-bars">
+          {[
+            ["Fire", "28%"],
+            ["Earth", "32%"],
+            ["Air", "24%"],
+            ["Water", "16%"],
+          ].map(([label, value], i) => (
+            <div key={label} className="ls-reading-bar" style={{ "--ls-bar": value, "--ls-delay": `${i * 0.06}s` } as CSSProperties}>
+              <span>{label}</span>
+              <i />
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="ls-reading-card-row">
+        {[
+          ["Sun", "Aquarius"],
+          ["Moon", "Leo"],
+          ["Rising", "Taurus"],
+          ["Venus", "Pisces"],
+        ].map(([planet, sign]) => (
+          <div key={planet} className="ls-reading-mini-card">
+            <span>{planet}</span>
+            <strong>{sign}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="ls-reading-insight">
+        <span>Soul theme</span>
+        <strong>The Loyal Heart</strong>
+      </div>
+    </div>
   );
 }
 
@@ -1721,152 +1775,253 @@ function CosmicStyles() {
         from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.985); }
         to { opacity: 1; transform: none; }
       }
-      .ls-gallery {
+      .ls-story-sequence {
         display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: clamp(18px, 2.2vw, 30px);
-        align-items: start;
+        gap: clamp(58px, 9vw, 124px);
       }
-      .ls-gallery-item {
+      .ls-story-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1.22fr) minmax(260px, 0.78fr);
+        gap: clamp(22px, 5vw, 70px);
+        align-items: center;
+        min-height: min(720px, calc(100vh - 96px));
+      }
+      .ls-story-panel--reverse {
+        grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+      }
+      .ls-story-panel--reverse .ls-story-media {
+        order: 2;
+      }
+      .ls-story-media {
         position: relative;
         margin: 0;
         overflow: hidden;
         border-radius: 14px;
-        background: #030305;
+        background: #050408;
         box-shadow: 0 30px 90px rgba(0,0,0,0.42);
-        isolation: isolate;
-        transform: translateZ(0);
       }
-      .ls-gallery-item--lead {
-        grid-column: 1 / -1;
-        aspect-ratio: 16 / 8;
-      }
-      .ls-gallery-item--portrait {
-        grid-column: 1 / span 5;
-        margin-top: clamp(10px, 2vw, 28px);
-        aspect-ratio: 4 / 5;
-      }
-      .ls-gallery-item--square {
-        grid-column: 6 / span 7;
-        margin-top: clamp(10px, 2vw, 28px);
-        aspect-ratio: 1 / 1;
-      }
-      .ls-gallery-item--wide {
-        grid-column: 1 / -1;
-        margin-top: clamp(10px, 2vw, 28px);
-        aspect-ratio: 16 / 7;
-      }
-      .ls-gallery-item--tall {
-        grid-column: 3 / span 8;
-        margin-top: clamp(10px, 2vw, 28px);
-        aspect-ratio: 16 / 9;
-      }
-      .ls-gallery-item::after {
+      .ls-story-media::after {
         content: "";
         position: absolute;
         inset: 0;
-        z-index: 1;
         pointer-events: none;
         background:
-          radial-gradient(circle at 22% 18%, rgba(212,182,122,0.14), transparent 28%),
-          linear-gradient(180deg, rgba(5,4,8,0) 34%, rgba(5,4,8,0.68) 100%);
+          radial-gradient(circle at 18% 18%, rgba(212,182,122,0.13), transparent 30%),
+          linear-gradient(180deg, rgba(5,4,8,0) 58%, rgba(5,4,8,0.16) 100%);
       }
-      .ls-gallery-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      .ls-story-media img {
         display: block;
-        transform: scale(1.14);
-        will-change: transform;
-        animation: ls-gallery-drift linear both;
+        width: 100%;
+        height: auto;
+        animation: ls-story-image-reveal linear both;
         animation-timeline: view();
-        animation-range: cover 0% cover 100%;
+        animation-range: entry 0% cover 45%;
       }
-      .ls-gallery-item--lead img { object-position: 72% center; }
-      .ls-gallery-item--portrait img { object-position: 48% center; }
-      .ls-gallery-item--square img { object-position: 58% center; }
-      .ls-gallery-item--wide img { object-position: center; }
-      .ls-gallery-item--tall img { object-position: 68% center; }
-      @keyframes ls-gallery-drift {
-        from { transform: scale(1.14) translate3d(0, -3.4%, 0); }
-        to { transform: scale(1.14) translate3d(0, 3.4%, 0); }
+      .ls-story-copy {
+        position: relative;
+        z-index: 1;
+        max-width: 390px;
       }
-      @supports not (animation-timeline: view()) {
-        .ls-gallery-item img { transform: scale(1.06); animation: none; }
+      .ls-story-kicker {
+        display: block;
+        margin-bottom: 14px;
+        font-family: Assistant, system-ui, sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: ${C.gold};
       }
-      .ls-gallery-caption {
-        position: absolute;
-        left: clamp(18px, 4vw, 46px);
-        right: clamp(18px, 4vw, 46px);
-        bottom: clamp(18px, 4vw, 42px);
-        z-index: 2;
+      .ls-story-caption {
         margin: 0;
-        max-width: 16ch;
-        text-shadow: 0 2px 22px rgba(0,0,0,0.82), 0 8px 50px rgba(0,0,0,0.6);
+        text-shadow: 0 2px 22px rgba(0,0,0,0.45);
       }
-      .ls-gallery-item--portrait .ls-gallery-caption {
-        max-width: 13ch;
-        left: clamp(16px, 3vw, 30px);
-        right: clamp(16px, 3vw, 30px);
-        bottom: clamp(16px, 3vw, 30px);
+      @keyframes ls-story-image-reveal {
+        from { opacity: 0.72; transform: translate3d(0, 24px, 0); }
+        to { opacity: 1; transform: none; }
+      }
+      .ls-reading-preview {
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        padding: clamp(18px, 3.2vw, 34px);
+        background:
+          radial-gradient(circle at 20% 12%, rgba(154,126,230,0.28), transparent 34%),
+          radial-gradient(circle at 86% 16%, rgba(212,182,122,0.16), transparent 30%),
+          linear-gradient(145deg, rgba(22,15,38,0.96), rgba(7,5,13,0.98));
+        border: 1px solid rgba(212,182,122,0.2);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 34px 100px rgba(0,0,0,0.45);
+      }
+      .ls-reading-preview-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: clamp(18px, 3vw, 28px);
+      }
+      .ls-reading-preview-top span,
+      .ls-reading-mini-card span,
+      .ls-reading-insight span {
+        display: block;
+        font-family: Assistant, system-ui, sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(240,217,159,0.78);
+      }
+      .ls-reading-preview-top strong {
+        display: block;
+        margin-top: 4px;
+        font-family: "DM Serif Display", Georgia, serif;
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 400;
+        line-height: 0.95;
+      }
+      .ls-reading-preview-pill {
+        flex: 0 0 auto;
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: rgba(124,92,214,0.22);
+        border: 1px solid rgba(154,126,230,0.36);
+      }
+      .ls-reading-preview-grid {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.9fr) minmax(180px, 1fr);
+        gap: clamp(16px, 3vw, 28px);
+        align-items: center;
+      }
+      .ls-reading-chart {
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(212,182,122,0.1), rgba(124,92,214,0.08) 58%, transparent 70%);
+      }
+      .ls-reading-chart svg {
+        width: min(100%, 230px);
+        height: auto;
+        fill: none;
+        stroke: rgba(240,217,159,0.72);
+        stroke-width: 1.2;
+      }
+      .ls-reading-chart path:last-child {
+        stroke: rgba(154,126,230,0.8);
+      }
+      .ls-reading-bars {
+        display: grid;
+        gap: 13px;
+      }
+      .ls-reading-bar {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) 42px;
+        gap: 10px;
+        align-items: center;
+        font-family: Assistant, system-ui, sans-serif;
+        color: ${C.creamDim};
+      }
+      .ls-reading-bar span,
+      .ls-reading-bar strong {
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .ls-reading-bar i {
+        position: relative;
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+      }
+      .ls-reading-bar i::after {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--ls-bar);
+        border-radius: inherit;
+        background: linear-gradient(90deg, #9a7ee6, #d4b67a);
+        animation: ls-reading-bar 0.82s cubic-bezier(0.22,0.7,0.2,1) both;
+        animation-delay: var(--ls-delay, 0s);
+      }
+      @keyframes ls-reading-bar {
+        from { width: 0; }
+        to { width: var(--ls-bar); }
+      }
+      .ls-reading-card-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: clamp(16px, 2.6vw, 26px);
+      }
+      .ls-reading-mini-card,
+      .ls-reading-insight {
+        border-radius: 12px;
+        padding: 14px;
+        background: rgba(255,255,255,0.055);
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      .ls-reading-mini-card strong,
+      .ls-reading-insight strong {
+        display: block;
+        margin-top: 5px;
+        font-family: "DM Serif Display", Georgia, serif;
+        font-size: clamp(18px, 2.2vw, 25px);
+        font-weight: 400;
+        line-height: 1.02;
+        color: ${C.cream};
+      }
+      .ls-reading-insight {
+        margin-top: 10px;
+        background: rgba(124,92,214,0.16);
       }
       @media (max-width: 899px) {
         .ls-story-section {
-          padding-left: 0;
-          padding-right: 0;
+          padding-left: 16px;
+          padding-right: 16px;
         }
-        .ls-gallery {
+        .ls-story-sequence {
+          gap: 58px;
+        }
+        .ls-story-panel,
+        .ls-story-panel--reverse {
           display: flex;
-          gap: 12px;
-          max-width: none;
-          width: 100vw;
-          margin-left: calc(50% - 50vw);
-          margin-right: calc(50% - 50vw);
-          overflow-x: auto;
-          overflow-y: hidden;
-          padding: 0 16px 18px;
-          scroll-padding-inline: 16px;
-          scroll-snap-type: x mandatory;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior-x: contain;
+          flex-direction: column;
+          gap: 18px;
+          min-height: 0;
         }
-        .ls-gallery::-webkit-scrollbar { display: none; }
-        .ls-gallery { scrollbar-width: none; }
-        .ls-gallery-item {
-          flex: 0 0 min(78vw, 340px);
-          scroll-snap-align: center;
-          margin-top: 0;
+        .ls-story-panel--reverse .ls-story-media {
+          order: 0;
+        }
+        .ls-story-media,
+        .ls-reading-preview {
+          width: 100%;
           border-radius: 12px;
-          box-shadow: 0 24px 68px rgba(0,0,0,0.45);
         }
-        .ls-gallery-item--lead,
-        .ls-gallery-item--portrait,
-        .ls-gallery-item--square,
-        .ls-gallery-item--wide,
-        .ls-gallery-item--tall {
-          grid-column: auto;
-          aspect-ratio: 4 / 5;
+        .ls-story-copy {
+          width: 100%;
+          max-width: none;
         }
-        .ls-gallery-item--lead {
-          flex-basis: min(92vw, 420px);
-          aspect-ratio: 16 / 11;
+        .ls-story-kicker {
+          margin-bottom: 8px;
         }
-        .ls-gallery-item--lead img {
-          object-position: 48% center;
+        .ls-story-caption {
+          max-width: 14ch;
         }
-        .ls-gallery-item--wide {
-          flex-basis: min(84vw, 380px);
-          aspect-ratio: 16 / 11;
+        .ls-reading-preview-grid {
+          grid-template-columns: 1fr;
         }
-        .ls-gallery-caption {
-          left: 18px;
-          right: 18px;
-          bottom: 18px;
-          max-width: 13ch;
+        .ls-reading-chart {
+          width: min(70vw, 260px);
+          margin-inline: auto;
+        }
+        .ls-reading-card-row {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        .ls-gallery-item img { animation: none; transform: scale(1.04); }
+        .ls-story-media img,
+        .ls-reading-bar i::after {
+          animation: none;
+        }
       }
       /* === Birth-sky orrery (contained, scroll-to-step diagram) ============ */
       .ls-orrery-section {
