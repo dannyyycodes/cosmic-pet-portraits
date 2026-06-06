@@ -1493,15 +1493,13 @@ const STORY_SCENES = [
   {
     src: "/readings/hero/cockapoo-reading-tablet-cockapoo-match.webp",
     alt: "Cockapoo cuddled beside a person reading a Little Souls soul reading on a tablet",
-    kicker: "The moment",
     caption: "Made for reading with them close.",
     width: 1672,
     height: 941,
   },
   {
-    src: "/readings/hero/black-cat-galaxy-eye-cutout.webp",
-    alt: "Close-up cutout of half a black cat face with a swirling galaxy reflected in one eye",
-    kicker: "The soul",
+    src: "/readings/hero/black-cat-milky-way-eye-cutout.webp",
+    alt: "Close-up cutout of half a black cat face with a Milky Way spiral reflected in one eye",
     caption: "Discover the soul behind those eyes.",
     width: 1254,
     height: 1254,
@@ -1523,14 +1521,12 @@ function QuietMomentSection() {
               <img src={scene.src} alt={scene.alt} loading="lazy" width={scene.width} height={scene.height} />
             </figure>
             <div className="ls-story-copy">
-              <span className="ls-story-kicker">{scene.kicker}</span>
               <h2 className="ls-story-caption" style={galleryCaptionStyle}>{scene.caption}</h2>
             </div>
           </article>
         ))}
         <article className="ls-story-panel ls-story-panel--reveal ls-reveal" style={revealDelay(0.14)}>
           <div className="ls-story-copy">
-            <span className="ls-story-kicker">The map</span>
             <h2 className="ls-story-caption" style={galleryCaptionStyle}>Then the sky turns into something you can hold.</h2>
           </div>
           <ReadingPreviewStoryVisual />
@@ -1828,7 +1824,7 @@ function CosmicStyles() {
         filter: drop-shadow(0 34px 70px rgba(0,0,0,0.42));
       }
       .ls-story-panel--reverse .ls-story-media--cutout {
-        justify-self: start;
+        justify-self: end;
       }
       .ls-story-media--cutout::after {
         display: none;
@@ -1839,17 +1835,7 @@ function CosmicStyles() {
       .ls-story-copy {
         position: relative;
         z-index: 1;
-        max-width: 390px;
-      }
-      .ls-story-kicker {
-        display: block;
-        margin-bottom: 14px;
-        font-family: Assistant, system-ui, sans-serif;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: ${C.gold};
+        max-width: min(480px, 100%);
       }
       .ls-story-caption {
         margin: 0;
@@ -2025,9 +2011,6 @@ function CosmicStyles() {
         .ls-story-copy {
           width: 100%;
           max-width: none;
-        }
-        .ls-story-kicker {
-          margin-bottom: 8px;
         }
         .ls-story-caption {
           max-width: 14ch;
