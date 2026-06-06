@@ -1,240 +1,169 @@
-import { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Ticket, Sparkles, CheckCircle } from 'lucide-react';
+import { FormEvent, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Compass, Heart, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-type OccasionMode = 'discover' | 'new' | 'birthday' | 'memorial' | 'gift';
-
-// Order: the three primary landing paths first (discover / new / memorial),
-// then birthday + gift. Matches the landing-page PathPicker so redeem flows
-// can carry intent through to the same report voice.
-const OCCASION_OPTIONS: Array<{ value: OccasionMode; emoji: string; label: string; desc: string }> = [
-  { value: 'discover', emoji: '🔮', label: 'Discover', desc: 'Explore who they are' },
-  { value: 'new', emoji: '🌱', label: 'New Pet', desc: 'A soul just arrived in your life' },
-  { value: 'memorial', emoji: '🕊️', label: 'Memorial', desc: 'For a soul no longer at your side' },
-  { value: 'birthday', emoji: '🎂', label: 'Birthday', desc: 'Celebrate another year' },
-  { value: 'gift', emoji: '🎁', label: 'Gift', desc: 'A cosmic gift for someone' },
+// What the reading reveals. Occasion is NOT asked here on purpose: the
+// post-purchase intake asks it once (Screen 0), so asking it here too would
+// double up the flow.
+const INSIDE = [
+  { icon: Sparkles, label: "Read from their real birth chart" },
+  { icon: Compass, label: "Their nature, instincts and quirks" },
+  { icon: Heart, label: "What the stars say about your bond" },
 ];
 
 export default function RedeemCode() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // Accept ?occasion=memorial|birthday|discover|gift so landing pages can deep-link
-  // straight into the right context. The post-purchase intake reads pet_reports.occasion_mode
-  // and skips the occasion picker when this is set to anything other than 'discover'.
-  const urlOccasion = searchParams.get('occasion') as OccasionMode | null;
-  const initialOccasion: OccasionMode =
-    urlOccasion && ['discover', 'new', 'birthday', 'memorial', 'gift'].includes(urlOccasion)
-      ? urlOccasion
-      : 'discover';
-  const [code, setCode] = useState('');
-  const [occasion, setOccasion] = useState<OccasionMode>(initialOccasion);
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{
-    reportId: string;
-    tier: string;
-  } | null>(null);
+  const navigate = useNavigate();
+  const urlCode = searchParams.get("code")?.trim() ?? "";
+  const hasUrlCode = Boolean(urlCode);
 
-  const handleRedeem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
+  const [code, setCode] = useState(urlCode);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-    setIsLoading(true);
+  const submitLabel = hasUrlCode ? "Unlock my free reading" : "Claim my free reading";
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const redeemCode = code.trim();
+    if (!redeemCode) {
+      toast.error("Enter your invite code.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('redeem-free-code', {
-        body: { code: code.trim(), occasionMode: occasion },
+      const { data, error } = await supabase.functions.invoke("redeem-free-code", {
+        body: { code: redeemCode },
       });
+      if (error) throw error;
 
-      if (error || data?.error) {
-        toast.error(data?.error || 'Failed to redeem code');
-        return;
-      }
+      const reportId = data?.report_id ?? data?.reportId ?? data?.report?.id;
+      if (!reportId) throw new Error("Missing report id.");
 
-      setResult({ reportId: data.reportId, tier: data.tier });
-      toast.success('Code redeemed! Redirecting to your reading...');
-
-      // Redirect to payment-success with quick checkout — PostPurchaseIntake handles pet data + email
-      setTimeout(() => {
-        navigate(`/payment-success?session_id=redeem_${data.reportId}&report_id=${data.reportId}&quick=true`);
-      }, 1500);
-    } catch (err) {
-      toast.error('Something went wrong. Please try again.');
+      setIsSuccess(true);
+      toast.success("Your free reading is unlocked.");
+      navigate(
+        `/payment-success?session_id=redeem_${reportId}&report_id=${reportId}&quick=true`,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "We could not redeem that code.";
+      toast.error(message);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div style={{ background: '#0d0a14', minHeight: '100vh' }}>
-      <div className="max-w-md mx-auto px-6 py-12">
-        {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 mb-8 text-sm transition-colors"
-          style={{ color: '#9d8d7f' }}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
+    <main
+      className="min-h-screen overflow-hidden px-5 py-6 text-[#f5efe6] sm:px-8 lg:px-10"
+      style={{
+        background:
+          "radial-gradient(circle at 18% 18%, rgba(191, 82, 74, 0.24), transparent 28%), radial-gradient(circle at 78% 12%, rgba(212, 182, 122, 0.18), transparent 24%), #0d0a14",
+      }}
+    >
+      <section className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.04fr_0.96fr]">
+        {/* Hero */}
+        <div className="relative flex min-h-[520px] items-center justify-center rounded-[28px] border border-[#d4b67a]/20 bg-[#f5efe6]/[0.035] p-6 shadow-2xl shadow-black/30 sm:p-10">
+          <div className="absolute inset-5 rounded-[24px] border border-[#d4b67a]/10" />
+          <div className="absolute left-10 top-10 h-2 w-2 rounded-full bg-[#d4b67a]" />
+          <div className="absolute right-14 top-20 h-1.5 w-1.5 rounded-full bg-[#f5efe6]/70" />
+          <div className="absolute bottom-20 left-16 h-1.5 w-1.5 rounded-full bg-[#bf524a]" />
+          <div className="absolute bottom-12 right-20 h-2 w-2 rounded-full bg-[#d4b67a]/80" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-            style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
-          >
-            <Ticket className="w-4 h-4" style={{ color: '#d4b67a' }} />
-            <span className="text-sm font-semibold" style={{ color: '#d4b67a' }}>
-              Free Reading
-            </span>
-          </div>
+          <div className="relative grid place-items-center text-center">
+            <div className="absolute h-[360px] w-[360px] rounded-full border border-[#d4b67a]/15" />
+            <div className="absolute h-[270px] w-[270px] rounded-full border border-[#bf524a]/20" />
+            <div className="absolute h-[200px] w-[200px] rounded-full bg-[#d4b67a]/[0.06] blur-2xl" />
 
-          <h1
-            className="text-3xl md:text-4xl font-bold mb-3"
-            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}
-          >
-            Redeem Your Free Reading
-          </h1>
-          <p style={{ color: '#9d8d7f' }}>
-            Enter your code below to unlock a complimentary Little Souls reading
-          </p>
-        </motion.div>
-
-        {!result ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="p-8 rounded-2xl"
-            style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
-          >
-            <form onSubmit={handleRedeem} className="space-y-6">
-              <div>
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: '#f5efe6' }}
-                >
-                  What's this reading for?
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {OCCASION_OPTIONS.map((opt) => {
-                    // Memorial gets a muted dove/sage palette — a grieving
-                    // buyer shouldn't see the same warm gold as birthday
-                    // and discover options. The colour shift is subtle but
-                    // signals product respect.
-                    const isMemorialOpt = opt.value === 'memorial';
-                    const selectedBg = isMemorialOpt
-                      ? 'rgba(120,130,125,0.18)'
-                      : 'rgba(212,182,122,0.18)';
-                    const selectedBorder = isMemorialOpt ? '#788280' : '#d4b67a';
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setOccasion(opt.value)}
-                        className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
-                        style={{
-                          background: occasion === opt.value ? selectedBg : 'rgba(245,239,230,0.05)',
-                          border: occasion === opt.value
-                            ? `1.5px solid ${selectedBorder}`
-                            : '1.5px solid rgba(212,182,122,0.22)',
-                        }}
-                      >
-                        <span className="text-xl">{opt.emoji}</span>
-                        <span className="text-[0.85rem] font-semibold" style={{ color: '#f5efe6' }}>{opt.label}</span>
-                        <span className="text-[0.68rem]" style={{ color: '#9d8d7f' }}>{opt.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div>
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: '#f5efe6' }}
-                >
-                  Redeem Code
-                </label>
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  className="w-full px-4 py-3.5 rounded-xl text-center text-lg font-mono tracking-widest transition-all outline-none"
-                  style={{
-                    background: 'rgba(245,239,230,0.05)',
-                    border: '1px solid rgba(212,182,122,0.22)',
-                    color: '#f5efe6',
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = '#d4b67a')}
-                  onBlur={(e) => (e.target.style.borderColor = 'rgba(212,182,122,0.22)')}
-                  placeholder="ENTER CODE"
-                  required
-                  autoFocus
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading || !code.trim()}
-                className="w-full py-3.5 rounded-xl font-semibold transition-all disabled:opacity-50"
-                style={{
-                  background: '#d4b67a',
-                  color: '#141210',
-                  border: 'none',
-                }}
-              >
-                {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-5 h-5 border-2 border-[#141210] border-t-transparent rounded-full"
-                    />
-                    Redeeming...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Sparkles className="w-5 h-5" />
-                    Redeem Code
-                  </span>
-                )}
-              </button>
-            </form>
-
-            <p className="text-center text-xs mt-6" style={{ color: '#9d8d7f' }}>
-              Codes are case-insensitive and single-use unless specified otherwise
-            </p>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-8 rounded-2xl text-center"
-            style={{ background: 'rgba(245,239,230,0.05)', border: '1px solid rgba(212,182,122,0.22)' }}
-          >
-            <div
-              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-              style={{ background: '#d4b67a' }}
-            >
-              <CheckCircle className="w-8 h-8" style={{ color: '#141210' }} />
+            <div className="relative flex h-48 w-48 items-center justify-center rounded-full border border-[#d4b67a]/35 bg-[#0d0a14] shadow-[0_0_80px_rgba(212,182,122,0.22)]">
+              <img
+                src="/apple-touch-icon.png"
+                alt="Little Souls"
+                className="h-28 w-28 rounded-[32px] object-cover"
+              />
             </div>
-            <h2
-              className="text-xl font-bold mb-2"
-              style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#f5efe6' }}
-            >
-              Code Redeemed!
-            </h2>
-            <p style={{ color: '#cfc1b1' }}>
-              Taking you to your free {result.tier} reading...
-            </p>
-          </motion.div>
-        )}
-      </div>
-    </div>
+
+            <div className="relative mt-10 max-w-md">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.28em] text-[#d4b67a]">
+                Complimentary creator invite
+              </p>
+              <h1
+                className="text-5xl leading-[0.95] text-[#f5efe6] sm:text-6xl lg:text-7xl"
+                style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
+              >
+                Claim your free pet soul reading
+              </h1>
+              <p className="mx-auto mt-5 max-w-sm text-base leading-7 text-[#bcae9b]">
+                Real astrology, mapped from your pet's birth chart.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Claim panel */}
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-[28px] border border-[#d4b67a]/20 bg-[#0d0a14]/80 p-6 shadow-2xl shadow-black/35 backdrop-blur sm:p-8"
+        >
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#d4b67a]">
+            Free reading
+          </p>
+          <h2
+            className="mt-2 text-3xl leading-tight text-[#f5efe6] sm:text-4xl"
+            style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
+          >
+            A reading made for your pet
+          </h2>
+
+          <ul className="mt-7 space-y-4">
+            {INSIDE.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#d4b67a]/25 bg-[#d4b67a]/10">
+                  <Icon className="h-5 w-5 text-[#d4b67a]" />
+                </span>
+                <span className="text-base text-[#f5efe6]">{label}</span>
+              </li>
+            ))}
+          </ul>
+
+          {hasUrlCode ? (
+            <div className="mt-7 rounded-2xl border border-[#d4b67a]/20 bg-[#d4b67a]/10 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d4b67a]">
+                Invite code found
+              </p>
+              <p className="mt-1 text-lg font-semibold tracking-[0.18em] text-[#f5efe6]">
+                {urlCode}
+              </p>
+            </div>
+          ) : (
+            <label className="mt-7 block">
+              <span className="mb-2 block text-sm font-medium text-[#f5efe6]">Invite code</span>
+              <input
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+                placeholder="Enter your code"
+                className="h-14 w-full rounded-2xl border border-[#d4b67a]/25 bg-[#f5efe6]/[0.06] px-4 text-base font-semibold uppercase tracking-[0.16em] text-[#f5efe6] outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-[#9d8d7f]/70 focus:border-[#d4b67a] focus:ring-2 focus:ring-[#d4b67a]/20"
+                autoComplete="off"
+              />
+            </label>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting || isSuccess}
+            className="mt-7 h-14 w-full rounded-2xl bg-[#d4b67a] px-5 text-base font-bold text-[#0d0a14] shadow-[0_18px_48px_rgba(212,182,122,0.24)] transition hover:bg-[#e0c58d] disabled:cursor-not-allowed disabled:opacity-65"
+          >
+            {isSuccess ? "Reading unlocked" : isSubmitting ? "Unlocking..." : submitLabel}
+          </button>
+
+          <p className="mt-4 text-center text-sm text-[#9d8d7f]">No payment needed.</p>
+        </form>
+      </section>
+    </main>
   );
 }
