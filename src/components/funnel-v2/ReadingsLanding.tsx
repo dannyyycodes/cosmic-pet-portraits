@@ -1499,12 +1499,13 @@ const STORY_SCENES = [
     height: 941,
   },
   {
-    src: "/readings/hero/cat-soul-eye-story.webp",
-    alt: "Dark tabby cat in warm evening light with a subtle celestial chart reflected in one eye",
+    src: "/readings/hero/black-cat-galaxy-eye-cutout.webp",
+    alt: "Close-up cutout of half a black cat face with a swirling galaxy reflected in one eye",
     kicker: "The soul",
     caption: "Discover the soul behind those eyes.",
-    width: 1672,
-    height: 941,
+    width: 1254,
+    height: 1254,
+    cutout: true,
   },
 ] as const;
 
@@ -1518,7 +1519,7 @@ function QuietMomentSection() {
             className={`ls-story-panel ${i % 2 ? "ls-story-panel--reverse" : ""} ls-reveal`}
             style={revealDelay(i * 0.06)}
           >
-            <figure className="ls-story-media">
+            <figure className={`ls-story-media ${"cutout" in scene && scene.cutout ? "ls-story-media--cutout" : ""}`}>
               <img src={scene.src} alt={scene.alt} loading="lazy" width={scene.width} height={scene.height} />
             </figure>
             <div className="ls-story-copy">
@@ -1817,6 +1818,24 @@ function CosmicStyles() {
         animation-timeline: view();
         animation-range: entry 0% cover 45%;
       }
+      .ls-story-media--cutout {
+        width: min(100%, 560px);
+        justify-self: end;
+        overflow: visible;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        filter: drop-shadow(0 34px 70px rgba(0,0,0,0.42));
+      }
+      .ls-story-panel--reverse .ls-story-media--cutout {
+        justify-self: start;
+      }
+      .ls-story-media--cutout::after {
+        display: none;
+      }
+      .ls-story-media--cutout img {
+        width: 100%;
+      }
       .ls-story-copy {
         position: relative;
         z-index: 1;
@@ -1995,6 +2014,13 @@ function CosmicStyles() {
         .ls-reading-preview {
           width: 100%;
           border-radius: 12px;
+        }
+        .ls-story-media--cutout {
+          width: min(100%, 420px);
+          align-self: flex-end;
+          margin-top: -10px;
+          margin-bottom: -6px;
+          border-radius: 0;
         }
         .ls-story-copy {
           width: 100%;
