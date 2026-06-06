@@ -1527,7 +1527,7 @@ function QuietMomentSection() {
         ))}
         <article className="ls-story-panel ls-story-panel--reveal ls-reveal" style={revealDelay(0.14)}>
           <div className="ls-story-copy">
-            <h2 className="ls-story-caption" style={galleryCaptionStyle}>Know the soul beside you while they are still here.</h2>
+            <h2 className="ls-story-caption" style={galleryCaptionStyle}>The little rituals start to make sense.</h2>
           </div>
           <ReadingPreviewStoryVisual />
         </article>
@@ -1607,8 +1607,8 @@ function ReadingPreviewStoryVisual() {
         </div>
       </div>
       <div className="ls-reading-insight">
-        <span>Why it matters</span>
-        <strong>You only get so many ordinary days together. This gives you words for the ones you never want to forget.</strong>
+        <span>A quiet line from the reading</span>
+        <strong>They keep returning to the same small rituals because that is where their trust lives.</strong>
       </div>
     </div>
   );
