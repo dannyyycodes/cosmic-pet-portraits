@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { zodiacSigns } from '@/lib/zodiac';
+import { auraColorName } from './cosmic/colorName';
 
 interface AuraVisualProps {
   aura: { primary: string; secondary: string; meaning: string };
@@ -47,10 +48,12 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
       variants={s.variants}
       className="mx-4 my-3 max-w-[520px] sm:mx-auto"
       style={{
-        background: '#ffffff',
+        background: 'rgba(22,16,42,0.72)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
         borderRadius: '18px',
-        border: '1px solid #e8ddd0',
-        boxShadow: '0 2px 12px rgba(61,47,42,0.07)',
+        border: '1px solid rgba(154,126,230,0.18)',
+        boxShadow: '0 2px 18px rgba(0,0,0,0.45)',
         padding: '28px 24px 24px',
         textAlign: 'center',
         position: 'relative',
@@ -64,7 +67,7 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
           fontWeight: 700,
           letterSpacing: '2.5px',
           textTransform: 'uppercase',
-          color: '#c4a265',
+          color: '#e6c179',
           marginBottom: '6px',
         }}
       >
@@ -77,13 +80,13 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
         style={{
           fontSize: '1.25rem',
           fontFamily: 'DM Serif Display, serif',
-          color: '#3d2f2a',
+          color: '#f3ecff',
           margin: '0 0 24px',
           lineHeight: 1.3,
         }}
       >
-        {aura.primary}
-        {aura.secondary ? ` with ${aura.secondary}` : ''}
+        {auraColorName(aura.primary)}
+        {aura.secondary ? ` & ${auraColorName(aura.secondary)}` : ''}
       </h2>
 
       {/* Orb backdrop + orb */}
@@ -97,8 +100,8 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          /* Warm backdrop gradient */
-          background: `radial-gradient(circle, rgba(196,162,101,0.10) 0%, rgba(245,239,230,0.55) 55%, transparent 75%)`,
+          /* Cosmic backdrop gradient */
+          background: `radial-gradient(circle, rgba(154,126,230,0.16) 0%, rgba(29,21,56,0.55) 55%, transparent 75%)`,
         }}
       >
         {/* Outer breathing glow — slowest */}
@@ -169,7 +172,7 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
         style={{
           fontSize: '0.875rem',
           lineHeight: 1.8,
-          color: '#5a4a42',
+          color: '#d8c5f5',
           maxWidth: '360px',
           margin: '0 auto 20px',
         }}
@@ -192,8 +195,8 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            background: '#f5efe6',
-            border: '1px solid #e8ddd0',
+            background: '#1d1538',
+            border: '1px solid rgba(154,126,230,0.18)',
             borderRadius: '999px',
             padding: '5px 13px 5px 8px',
           }}
@@ -214,7 +217,7 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
               fontSize: '0.72rem',
               fontWeight: 600,
               letterSpacing: '0.4px',
-              color: '#9a8578',
+              color: '#9a86c8',
               textTransform: 'uppercase',
             }}
           >
@@ -224,11 +227,11 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
             style={{
               fontSize: '0.78rem',
               fontWeight: 500,
-              color: '#3d2f2a',
+              color: '#f3ecff',
               textTransform: 'capitalize',
             }}
           >
-            {aura.primary}
+            {auraColorName(aura.primary)}
           </span>
         </div>
 
@@ -239,8 +242,8 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#f5efe6',
-              border: '1px solid #e8ddd0',
+              background: '#1d1538',
+              border: '1px solid rgba(154,126,230,0.18)',
               borderRadius: '999px',
               padding: '5px 13px 5px 8px',
             }}
@@ -261,7 +264,7 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
                 fontSize: '0.72rem',
                 fontWeight: 600,
                 letterSpacing: '0.4px',
-                color: '#9a8578',
+                color: '#9a86c8',
                 textTransform: 'uppercase',
               }}
             >
@@ -271,11 +274,11 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
               style={{
                 fontSize: '0.78rem',
                 fontWeight: 500,
-                color: '#3d2f2a',
+                color: '#f3ecff',
                 textTransform: 'capitalize',
               }}
             >
-              {aura.secondary}
+              {auraColorName(aura.secondary)}
             </span>
           </div>
         )}

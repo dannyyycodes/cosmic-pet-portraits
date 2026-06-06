@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { deDash } from './cosmic/text';
 
 interface QuoteCardProps {
   /** The lines of the existing StaticPassage — joined into a single quote. */
@@ -24,7 +25,7 @@ const speciesWord = (species?: string) => {
 // body in italic Cormorant, gold attribution in Caveat.
 export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
   const cleaned = lines
-    .map((l) => l.replace(/\[fur\/feathers\/scales\]/g, speciesWord(species)))
+    .map((l) => deDash(l.replace(/\[fur\/feathers\/scales\]/g, speciesWord(species))))
     .filter((l) => l.trim().length > 0);
 
   // Compose the body — keep line breaks for poetic rhythm.
@@ -37,7 +38,7 @@ export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
       className="relative max-w-[560px] mx-auto px-6 py-12 sm:py-14 my-8 text-center"
     >
       {/* Top hairline */}
-      <div className="mx-auto mb-6 h-px w-24 bg-gradient-to-r from-transparent via-[#c4a265]/70 to-transparent" />
+      <div className="mx-auto mb-6 h-px w-24 bg-gradient-to-r from-transparent via-[#e6c179]/70 to-transparent" />
 
       {/* Oversized opening quote */}
       <motion.span
@@ -46,22 +47,22 @@ export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
         whileInView={{ opacity: 0.55, scale: 1, rotate: 0 }}
         viewport={{ once: true, margin: '-15% 0px' }}
         transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="block font-serif text-[#c4a265] leading-none mb-3 select-none"
+        className="block font-serif text-[#e6c179] leading-none mb-3 select-none"
         style={{ fontSize: '3.5rem', fontFamily: 'DM Serif Display, serif' }}
       >
         &ldquo;
       </motion.span>
 
       <blockquote
-        className="text-[#3d2f2a] italic"
+        className="text-[#efe7d8] italic"
         style={{
           fontFamily: 'Cormorant, serif',
-          fontSize: 'clamp(1.05rem, 3vw, 1.25rem)',
+          fontSize: 'clamp(1.2rem, 3.2vw, 1.5rem)',
           lineHeight: 1.7,
         }}
       >
         {cleaned.map((line, i) => (
-          <p key={i} className={i < cleaned.length - 1 ? 'mb-2' : ''}>
+          <p key={i} className={i < cleaned.length - 1 ? 'mb-3' : ''}>
             {line}
           </p>
         ))}
@@ -69,19 +70,19 @@ export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
 
       {attribution && (
         <figcaption className="mt-6 flex items-center justify-center gap-2">
-          <span className="block h-px w-6 bg-[#c4a265]/50" />
+          <span className="block h-px w-6 bg-[#e6c179]/50" />
           <span
-            className="text-[#c4a265]"
-            style={{ fontFamily: 'Caveat, cursive', fontSize: '1rem' }}
+            className="text-[#e6c179]"
+            style={{ fontFamily: 'Caveat, cursive', fontSize: '1.05rem' }}
           >
-            {attribution}
+            {deDash(attribution)}
           </span>
-          <span className="block h-px w-6 bg-[#c4a265]/50" />
+          <span className="block h-px w-6 bg-[#e6c179]/50" />
         </figcaption>
       )}
 
       {/* Bottom hairline */}
-      <div className="mx-auto mt-6 h-px w-24 bg-gradient-to-r from-transparent via-[#c4a265]/70 to-transparent" />
+      <div className="mx-auto mt-6 h-px w-24 bg-gradient-to-r from-transparent via-[#e6c179]/70 to-transparent" />
     </motion.figure>
   );
 }

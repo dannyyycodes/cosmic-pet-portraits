@@ -1,0 +1,409 @@
+{
+  "subjects": [
+    {
+      "species": "dog",
+      "breed": "Border Collie",
+      "furColor": "Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears",
+      "eyeColor": "Dark brown to black (image is black and white, limiting color determination)",
+      "earShape": "Semi-erect with tips folding forward, medium-length feathering",
+      "distinguishing": "Classic Border Collie white facial blaze and intelligent alert expression"
+    },
+    {
+      "species": "dog",
+      "breed": "Pug",
+      "furColor": "fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric",
+      "eyeColor": "dark brown",
+      "earShape": "small, folded, button ears",
+      "distinguishing": "characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle"
+    },
+    {
+      "species": "dog",
+      "breed": "Dalmatian",
+      "furColor": "white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings",
+      "eyeColor": "blue",
+      "earShape": "pendant/drop ears, medium length, spotted with black",
+      "distinguishing": "striking blue eyes with asymmetric black facial patches"
+    },
+    {
+      "species": "cat",
+      "breed": "Sphynx",
+      "furColor": "Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest",
+      "eyeColor": "Yellow-green/amber",
+      "earShape": "Very large, wide-set, bat-like ears with no fur",
+      "distinguishing": "Completely hairless with prominent wrinkles on forehead"
+    },
+    {
+      "species": "cat",
+      "breed": "Bengal",
+      "furColor": "Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings",
+      "eyeColor": "Green-gold",
+      "earShape": "Large, wide-set, rounded tips with slight forward tilt",
+      "distinguishing": "Wild appearance with leopard-like rosette pattern and intense forward gaze"
+    }
+  ],
+  "singleResults": [
+    {
+      "breed": "Border Collie",
+      "style": "Astronaut in Space",
+      "styleId": "astronaut",
+      "url": "https://v3b.fal.media/files/b/0a994237/XJmjhX_diqeo1zkpT9sYL_Z2Yym0vn.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Border Collie silhouette and breed characteristics, Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears fur pattern, Dark brown to black (image is black and white, limiting color determination) eyes, Semi-erect with tips folding forward, medium-length feathering ear shape, Classic Border Collie white facial blaze and intelligent alert expression.\nApply this artistic transformation: an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours.\nRender the name \"Scout\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Border Collie",
+      "style": "Medieval Knight",
+      "styleId": "knight",
+      "url": "https://v3b.fal.media/files/b/0a994237/cz2vNHvMzO0pEltzB62uN_01wi245b.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Border Collie silhouette and breed characteristics, Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears fur pattern, Dark brown to black (image is black and white, limiting color determination) eyes, Semi-erect with tips folding forward, medium-length feathering ear shape, Classic Border Collie white facial blaze and intelligent alert expression.\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\nRender the name \"Scout\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Border Collie",
+      "style": "Pencil Sketch",
+      "styleId": "pencil",
+      "url": "https://v3b.fal.media/files/b/0a994237/F1Qc1KZEee-eRLyEaSzGx_3SfAk4jm.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Border Collie silhouette and breed characteristics, Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears fur pattern, Dark brown to black (image is black and white, limiting color determination) eyes, Semi-erect with tips folding forward, medium-length feathering ear shape, Classic Border Collie white facial blaze and intelligent alert expression.\nApply this artistic transformation: a confident graphite pencil sketch with crosshatch shading, expressive contour lines, toned beige paper background.\nRender the name \"Scout\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Border Collie",
+      "style": "Christmas Sweater",
+      "styleId": "christmas",
+      "url": "https://v3b.fal.media/files/b/0a994237/YMuBKWnNfzNm9BP8zJDKX_Um6RRL9t.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Border Collie silhouette and breed characteristics, Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears fur pattern, Dark brown to black (image is black and white, limiting color determination) eyes, Semi-erect with tips folding forward, medium-length feathering ear shape, Classic Border Collie white facial blaze and intelligent alert expression.\nApply this artistic transformation: wearing a cosy red and cream Fair Isle Christmas sweater, holiday lights backdrop, warm cinematic lighting.\nRender the name \"Scout\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Border Collie",
+      "style": "Noir Detective",
+      "styleId": "detective",
+      "url": "https://v3b.fal.media/files/b/0a994237/iZaBkfIwG8ZUKSiYHZdy5_S6ACuHGF.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Border Collie silhouette and breed characteristics, Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears fur pattern, Dark brown to black (image is black and white, limiting color determination) eyes, Semi-erect with tips folding forward, medium-length feathering ear shape, Classic Border Collie white facial blaze and intelligent alert expression.\nApply this artistic transformation: a noir 1940s detective in tan trench coat and felt fedora, rainy neon-lit alley, moody chiaroscuro.\nRender the name \"Scout\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Pug",
+      "style": "Astronaut in Space",
+      "styleId": "astronaut",
+      "url": "https://v3b.fal.media/files/b/0a99423e/30sDC0Gf_eRf9gNeB58-I_TZFzK6lM.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Pug silhouette and breed characteristics, fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric fur pattern, dark brown eyes, small, folded, button ears ear shape, characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle.\nApply this artistic transformation: an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours.\nRender the name \"Otis\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Pug",
+      "style": "Medieval Knight",
+      "styleId": "knight",
+      "url": "https://v3b.fal.media/files/b/0a99423e/yP2psvbhec7FH8lAsbTvV_YASknL1b.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Pug silhouette and breed characteristics, fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric fur pattern, dark brown eyes, small, folded, button ears ear shape, characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle.\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\nRender the name \"Otis\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Pug",
+      "style": "Pencil Sketch",
+      "styleId": "pencil",
+      "url": "https://v3b.fal.media/files/b/0a99423e/aTpWs3lFYCASYOLKFJtsy_9mLNOTy2.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Pug silhouette and breed characteristics, fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric fur pattern, dark brown eyes, small, folded, button ears ear shape, characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle.\nApply this artistic transformation: a confident graphite pencil sketch with crosshatch shading, expressive contour lines, toned beige paper background.\nRender the name \"Otis\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Pug",
+      "style": "Christmas Sweater",
+      "styleId": "christmas",
+      "url": "https://v3b.fal.media/files/b/0a99423e/Am8KhnlwhMy84Z0P_zxiD_jtDACgz9.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Pug silhouette and breed characteristics, fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric fur pattern, dark brown eyes, small, folded, button ears ear shape, characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle.\nApply this artistic transformation: wearing a cosy red and cream Fair Isle Christmas sweater, holiday lights backdrop, warm cinematic lighting.\nRender the name \"Otis\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Pug",
+      "style": "Noir Detective",
+      "styleId": "detective",
+      "url": "https://v3b.fal.media/files/b/0a99423e/EzIexLQ1mmz3YsMyWDFoj_RKBALsEE.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Pug silhouette and breed characteristics, fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric fur pattern, dark brown eyes, small, folded, button ears ear shape, characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle.\nApply this artistic transformation: a noir 1940s detective in tan trench coat and felt fedora, rainy neon-lit alley, moody chiaroscuro.\nRender the name \"Otis\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dalmatian",
+      "style": "Astronaut in Space",
+      "styleId": "astronaut",
+      "url": "https://v3b.fal.media/files/b/0a994244/1tweVS0uFY2r9uQZDoBzB_uCb3wAPx.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Dalmatian silhouette and breed characteristics, white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings fur pattern, blue eyes, pendant/drop ears, medium length, spotted with black ear shape, striking blue eyes with asymmetric black facial patches.\nApply this artistic transformation: an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours.\nRender the name \"Pongo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dalmatian",
+      "style": "Medieval Knight",
+      "styleId": "knight",
+      "url": "https://v3b.fal.media/files/b/0a994244/HGg_6yNt6ZARTZk30eYEs_BhaJtW62.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Dalmatian silhouette and breed characteristics, white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings fur pattern, blue eyes, pendant/drop ears, medium length, spotted with black ear shape, striking blue eyes with asymmetric black facial patches.\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\nRender the name \"Pongo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dalmatian",
+      "style": "Pencil Sketch",
+      "styleId": "pencil",
+      "url": "https://v3b.fal.media/files/b/0a994244/CwCezhJxEso22fuB-MwnS_Ky8lXnD0.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Dalmatian silhouette and breed characteristics, white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings fur pattern, blue eyes, pendant/drop ears, medium length, spotted with black ear shape, striking blue eyes with asymmetric black facial patches.\nApply this artistic transformation: a confident graphite pencil sketch with crosshatch shading, expressive contour lines, toned beige paper background.\nRender the name \"Pongo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dalmatian",
+      "style": "Christmas Sweater",
+      "styleId": "christmas",
+      "url": "https://v3b.fal.media/files/b/0a994244/2M774yzPQTV2Luakd0pas_MV6g292H.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Dalmatian silhouette and breed characteristics, white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings fur pattern, blue eyes, pendant/drop ears, medium length, spotted with black ear shape, striking blue eyes with asymmetric black facial patches.\nApply this artistic transformation: wearing a cosy red and cream Fair Isle Christmas sweater, holiday lights backdrop, warm cinematic lighting.\nRender the name \"Pongo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dalmatian",
+      "style": "Noir Detective",
+      "styleId": "detective",
+      "url": "https://v3b.fal.media/files/b/0a994245/bHXMASR8HiaiFFaxEq6B2_YhCe8Gx7.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Dalmatian silhouette and breed characteristics, white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings fur pattern, blue eyes, pendant/drop ears, medium length, spotted with black ear shape, striking blue eyes with asymmetric black facial patches.\nApply this artistic transformation: a noir 1940s detective in tan trench coat and felt fedora, rainy neon-lit alley, moody chiaroscuro.\nRender the name \"Pongo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Sphynx Cat",
+      "style": "Astronaut in Space",
+      "styleId": "astronaut",
+      "url": null,
+      "error": "422: {\"detail\":[{\"loc\":[\"body\",\"prompt\"],\"msg\":\"The content could not be processed because it contained material flagged by a content checker.\",\"type\":\"content_policy_violation\",\"url\":\"https://docs.fal.ai/errors#content_policy_violation\",\"input\":{\"prompt\":\"Use the exact pet shown in the source image. Pre",
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest fur pattern, Yellow-green/amber eyes, Very large, wide-set, bat-like ears with no fur ear shape, Completely hairless with prominent wrinkles on forehead.\nApply this artistic transformation: an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours.\nRender the name \"Naked\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Sphynx Cat",
+      "style": "Medieval Knight",
+      "styleId": "knight",
+      "url": null,
+      "error": "422: {\"detail\":[{\"loc\":[\"body\",\"prompt\"],\"msg\":\"The content could not be processed because it contained material flagged by a content checker.\",\"type\":\"content_policy_violation\",\"url\":\"https://docs.fal.ai/errors#content_policy_violation\",\"input\":{\"prompt\":\"Use the exact pet shown in the source image. Pre",
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest fur pattern, Yellow-green/amber eyes, Very large, wide-set, bat-like ears with no fur ear shape, Completely hairless with prominent wrinkles on forehead.\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\nRender the name \"Naked\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Sphynx Cat",
+      "style": "Pencil Sketch",
+      "styleId": "pencil",
+      "url": "https://v3b.fal.media/files/b/0a99424b/ZL40YSbNhnE8M6veLk6i8_wp1h9UcM.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest fur pattern, Yellow-green/amber eyes, Very large, wide-set, bat-like ears with no fur ear shape, Completely hairless with prominent wrinkles on forehead.\nApply this artistic transformation: a confident graphite pencil sketch with crosshatch shading, expressive contour lines, toned beige paper background.\nRender the name \"Naked\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Sphynx Cat",
+      "style": "Christmas Sweater",
+      "styleId": "christmas",
+      "url": "https://v3b.fal.media/files/b/0a99424b/pdtgmkA202WtJ5HNkMpgy_ZjLTbGSe.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest fur pattern, Yellow-green/amber eyes, Very large, wide-set, bat-like ears with no fur ear shape, Completely hairless with prominent wrinkles on forehead.\nApply this artistic transformation: wearing a cosy red and cream Fair Isle Christmas sweater, holiday lights backdrop, warm cinematic lighting.\nRender the name \"Naked\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Sphynx Cat",
+      "style": "Noir Detective",
+      "styleId": "detective",
+      "url": "https://v3b.fal.media/files/b/0a99424b/Kq6Quv05KvIJ4rvsL_973_pT3wrRwM.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest fur pattern, Yellow-green/amber eyes, Very large, wide-set, bat-like ears with no fur ear shape, Completely hairless with prominent wrinkles on forehead.\nApply this artistic transformation: a noir 1940s detective in tan trench coat and felt fedora, rainy neon-lit alley, moody chiaroscuro.\nRender the name \"Naked\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Bengal Cat",
+      "style": "Astronaut in Space",
+      "styleId": "astronaut",
+      "url": "https://v3b.fal.media/files/b/0a994252/78Fd3LM4yPwIlcVLuAHZQ_ptgPIBe9.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Bengal silhouette and breed characteristics, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings fur pattern, Green-gold eyes, Large, wide-set, rounded tips with slight forward tilt ear shape, Wild appearance with leopard-like rosette pattern and intense forward gaze.\nApply this artistic transformation: an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours.\nRender the name \"Spots\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Bengal Cat",
+      "style": "Medieval Knight",
+      "styleId": "knight",
+      "url": "https://v3b.fal.media/files/b/0a994253/agrHDmFiIYgkivLTGE9Si_YEI05mJH.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Bengal silhouette and breed characteristics, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings fur pattern, Green-gold eyes, Large, wide-set, rounded tips with slight forward tilt ear shape, Wild appearance with leopard-like rosette pattern and intense forward gaze.\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\nRender the name \"Spots\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Bengal Cat",
+      "style": "Pencil Sketch",
+      "styleId": "pencil",
+      "url": "https://v3b.fal.media/files/b/0a994254/vt-74rYvZrHYCK6cQaNad_U3DFKKg6.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Bengal silhouette and breed characteristics, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings fur pattern, Green-gold eyes, Large, wide-set, rounded tips with slight forward tilt ear shape, Wild appearance with leopard-like rosette pattern and intense forward gaze.\nApply this artistic transformation: a confident graphite pencil sketch with crosshatch shading, expressive contour lines, toned beige paper background.\nRender the name \"Spots\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Bengal Cat",
+      "style": "Christmas Sweater",
+      "styleId": "christmas",
+      "url": "https://v3b.fal.media/files/b/0a994256/qh1ulC0piaBx6dsHuMRyB_81crRRdu.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Bengal silhouette and breed characteristics, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings fur pattern, Green-gold eyes, Large, wide-set, rounded tips with slight forward tilt ear shape, Wild appearance with leopard-like rosette pattern and intense forward gaze.\nApply this artistic transformation: wearing a cosy red and cream Fair Isle Christmas sweater, holiday lights backdrop, warm cinematic lighting.\nRender the name \"Spots\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Bengal Cat",
+      "style": "Noir Detective",
+      "styleId": "detective",
+      "url": "https://v3b.fal.media/files/b/0a994256/qA617RnGGiwlyjNFd1ych_KjQK6K8I.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet. The source image is authoritative — preserve any visible features even if not explicitly listed below.\nSpecifically preserve: the Bengal silhouette and breed characteristics, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings fur pattern, Green-gold eyes, Large, wide-set, rounded tips with slight forward tilt ear shape, Wild appearance with leopard-like rosette pattern and intense forward gaze.\nApply this artistic transformation: a noir 1940s detective in tan trench coat and felt fedora, rainy neon-lit alley, moody chiaroscuro.\nRender the name \"Spots\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    }
+  ],
+  "multiResults": [
+    {
+      "label": "Border Collie + Pug — Wizard",
+      "breeds": [
+        "Border Collie",
+        "Pug"
+      ],
+      "names": [
+        "Scout",
+        "Otis"
+      ],
+      "style": "Wizard Scene",
+      "url": "https://v3b.fal.media/files/b/0a99425d/Ap2498qaEpDS1pVRUccmC_eW1aw71A.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 2 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds. The source images are authoritative.\n\nPet 1 (named \"Scout\"): a Border Collie, Black and white bicolor with symmetric markings: white blaze running from forehead down muzzle, white chest and front, black body and ears, Dark brown to black (image is black and white, limiting color determination) eyes, Classic Border Collie white facial blaze and intelligent alert expression.\nPet 2 (named \"Otis\"): a Pug, fawn/tan body with black mask covering entire face, muzzle, and eye area; markings appear symmetric, dark brown eyes, characteristic black mask with deep facial wrinkles and flat brachycephalic muzzle.\n\nApply this artistic transformation: wise wizards in star-embroidered indigo robes and pointed hats, glowing wooden staffs, magical library backdrop.\n\nRender the names \"Scout\" and \"Otis\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "label": "Sphynx + Bengal — Astronauts",
+      "breeds": [
+        "Sphynx Cat",
+        "Bengal Cat"
+      ],
+      "names": [
+        "Naked",
+        "Spots"
+      ],
+      "style": "Astronauts",
+      "url": "https://v3b.fal.media/files/b/0a99425d/XwLCeooxocLa-uLCqF9_R_18jTkPqU.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 2 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds. The source images are authoritative.\n\nPet 1 (named \"Naked\"): a Sphynx, Hairless with dark grey-brown pigmentation on head and ears, warm tan/orange tones on face with darker tabby-like markings, white chin and chest, Yellow-green/amber eyes, Completely hairless with prominent wrinkles on forehead.\nPet 2 (named \"Spots\"): a Bengal, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings, Green-gold eyes, Wild appearance with leopard-like rosette pattern and intense forward gaze.\n\nApply this artistic transformation: two astronauts in white spacesuits, helmet visors reflecting stars, deep space backdrop with nebula.\n\nRender the names \"Naked\" and \"Spots\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "label": "Dalmatian + Bengal — Christmas Sweater",
+      "breeds": [
+        "Dalmatian",
+        "Bengal Cat"
+      ],
+      "names": [
+        "Pongo",
+        "Spots"
+      ],
+      "style": "Christmas Sweaters",
+      "url": "https://v3b.fal.media/files/b/0a994265/lgnREFZ8vSRzKqBm7mz9b_NlZMPvAK.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 2 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds. The source images are authoritative.\n\nPet 1 (named \"Pongo\"): a Dalmatian, white base with black spots throughout body; asymmetric facial markings with larger black patch over left eye extending to left cheek, smaller separate black patches over right eye and right cheek, black patch on right side of muzzle, spotted ears with black markings, blue eyes, striking blue eyes with asymmetric black facial patches.\nPet 2 (named \"Spots\"): a Bengal, Brown spotted tabby with black rosettes and stripes on golden-brown base, white chin and muzzle, symmetrical facial markings, Green-gold eyes, Wild appearance with leopard-like rosette pattern and intense forward gaze.\n\nApply this artistic transformation: wearing matching cosy red and cream Christmas sweaters, holiday lights backdrop, fireside warmth.\n\nRender the names \"Pongo\" and \"Spots\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    }
+  ],
+  "breeds": [
+    {
+      "name": "Border Collie",
+      "petName": "Scout",
+      "url": "https://images.pexels.com/photos/34363704/pexels-photo-34363704.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Pug",
+      "petName": "Otis",
+      "url": "https://images.pexels.com/photos/27401425/pexels-photo-27401425.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Dalmatian",
+      "petName": "Pongo",
+      "url": "https://images.pexels.com/photos/7800865/pexels-photo-7800865.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Sphynx Cat",
+      "petName": "Naked",
+      "url": "https://images.pexels.com/photos/31644049/pexels-photo-31644049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Bengal Cat",
+      "petName": "Spots",
+      "url": "https://images.pexels.com/photos/30189391/pexels-photo-30189391.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    }
+  ],
+  "styles": [
+    {
+      "id": "astronaut",
+      "label": "Astronaut in Space",
+      "prompt": "an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours"
+    },
+    {
+      "id": "knight",
+      "label": "Medieval Knight",
+      "prompt": "a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish"
+    },
+    {
+      "id": "pencil",
+      "label": "Pencil Sketch",
+      "prompt": "a confident graphite pencil sketch with crosshatch shading, expressive contour lines, toned beige paper background"
+    },
+    {
+      "id": "christmas",
+      "label": "Christmas Sweater",
+      "prompt": "wearing a cosy red and cream Fair Isle Christmas sweater, holiday lights backdrop, warm cinematic lighting"
+    },
+    {
+      "id": "detective",
+      "label": "Noir Detective",
+      "prompt": "a noir 1940s detective in tan trench coat and felt fedora, rainy neon-lit alley, moody chiaroscuro"
+    }
+  ],
+  "multiPairs": [
+    {
+      "label": "Border Collie + Pug — Wizard",
+      "pets": [
+        {
+          "name": "Border Collie",
+          "petName": "Scout",
+          "url": "https://images.pexels.com/photos/34363704/pexels-photo-34363704.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+        },
+        {
+          "name": "Pug",
+          "petName": "Otis",
+          "url": "https://images.pexels.com/photos/27401425/pexels-photo-27401425.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+        }
+      ],
+      "style": {
+        "id": "wizard",
+        "label": "Wizard Scene",
+        "prompt": "wise wizards in star-embroidered indigo robes and pointed hats, glowing wooden staffs, magical library backdrop"
+      }
+    },
+    {
+      "label": "Sphynx + Bengal — Astronauts",
+      "pets": [
+        {
+          "name": "Sphynx Cat",
+          "petName": "Naked",
+          "url": "https://images.pexels.com/photos/31644049/pexels-photo-31644049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+        },
+        {
+          "name": "Bengal Cat",
+          "petName": "Spots",
+          "url": "https://images.pexels.com/photos/30189391/pexels-photo-30189391.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+        }
+      ],
+      "style": {
+        "id": "astronaut",
+        "label": "Astronauts",
+        "prompt": "two astronauts in white spacesuits, helmet visors reflecting stars, deep space backdrop with nebula"
+      }
+    },
+    {
+      "label": "Dalmatian + Bengal — Christmas Sweater",
+      "pets": [
+        {
+          "name": "Dalmatian",
+          "petName": "Pongo",
+          "url": "https://images.pexels.com/photos/7800865/pexels-photo-7800865.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+        },
+        {
+          "name": "Bengal Cat",
+          "petName": "Spots",
+          "url": "https://images.pexels.com/photos/30189391/pexels-photo-30189391.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+        }
+      ],
+      "style": {
+        "id": "christmas",
+        "label": "Christmas Sweaters",
+        "prompt": "wearing matching cosy red and cream Christmas sweaters, holiday lights backdrop, fireside warmth"
+      }
+    }
+  ]
+}

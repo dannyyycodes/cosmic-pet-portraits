@@ -57,9 +57,11 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
     <div
       className="mx-4 my-3 max-w-[520px] sm:mx-auto rounded-[18px] overflow-hidden"
       style={{
-        background: '#ffffff',
-        border: '1px solid #e8ddd0',
-        boxShadow: '0 2px 16px rgba(61,47,42,0.08), 0 1px 4px rgba(61,47,42,0.04)',
+        background: 'rgba(22,16,42,0.72)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        border: '1px solid rgba(154,126,230,0.18)',
+        boxShadow: '0 2px 16px rgba(8,5,20,0.5), 0 1px 4px rgba(8,5,20,0.35)',
       }}
     >
       {/* ── Card Header ── */}
@@ -69,11 +71,14 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
         animate={header.isInView ? 'visible' : 'hidden'}
         variants={header.variants}
         className="px-6 pt-6 pb-4 text-center"
-        style={{ borderBottom: '1px solid #e8ddd0' }}
+        style={{
+          background: 'linear-gradient(135deg,#1a1330,#221a44)',
+          borderBottom: '1px solid rgba(154,126,230,0.18)',
+        }}
       >
         <div
           className="text-[0.58rem] font-bold tracking-[2.5px] uppercase mb-1.5"
-          style={{ color: '#c4a265' }}
+          style={{ color: '#d9b46a' }}
         >
           Birth Chart
         </div>
@@ -81,7 +86,7 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
           className="text-[1.45rem] leading-tight"
           style={{
             fontFamily: 'DM Serif Display, serif',
-            color: '#3d2f2a',
+            color: '#f3ecff',
           }}
         >
           {petName}'s Planetary Positions
@@ -90,7 +95,7 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
           className="text-[0.82rem] leading-relaxed mt-1.5 max-w-[340px] mx-auto"
           style={{
             fontFamily: 'Cormorant, serif',
-            color: '#9a8578',
+            color: '#9a86c8',
             fontStyle: 'italic',
           }}
         >
@@ -102,9 +107,9 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
       <div
         className="grid grid-cols-3 px-5 py-2 text-[0.58rem] font-bold tracking-[1.5px] uppercase"
         style={{
-          color: '#9a8578',
-          background: '#faf6ef',
-          borderBottom: '1px solid #e8ddd0',
+          color: '#d9b46a',
+          background: 'linear-gradient(135deg,#1a1330,#221a44)',
+          borderBottom: '1px solid rgba(154,126,230,0.18)',
         }}
       >
         <span>Planet</span>
@@ -120,7 +125,7 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
       >
         <div
           className="px-5 pt-3 pb-1 text-[0.55rem] font-bold tracking-[2px] uppercase"
-          style={{ color: '#c4a265' }}
+          style={{ color: '#d9b46a' }}
         >
           Personal Planets
         </div>
@@ -135,20 +140,20 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
               variants={rowVariants}
               className="grid grid-cols-3 px-5 py-2.5 items-center"
               style={{
-                background: isEven ? '#ffffff' : '#fdf9f5',
-                borderBottom: '1px solid #f0e8de',
+                background: isEven ? 'rgba(22,16,42,0.6)' : 'rgba(34,26,68,0.55)',
+                borderBottom: '1px solid rgba(154,126,230,0.12)',
               }}
             >
               <span
                 className="flex items-center gap-2 text-[0.82rem] font-semibold"
-                style={{ color: '#3d2f2a' }}
+                style={{ color: '#e6c179' }}
               >
                 <span
                   className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-full flex-shrink-0 text-[0.88rem]"
                   style={{
-                    background: '#faf6ef',
-                    border: '1px solid #e8ddd0',
-                    color: '#c4a265',
+                    background: 'rgba(154,126,230,0.10)',
+                    border: '1px solid rgba(154,126,230,0.18)',
+                    color: '#e6c179',
                   }}
                 >
                   {planet.symbol}
@@ -158,14 +163,14 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
 
               <span
                 className="text-[0.82rem]"
-                style={{ color: '#5a4a42' }}
+                style={{ color: '#e6c179' }}
               >
                 {placement.sign}
               </span>
 
               <span
                 className="text-[0.75rem] font-mono"
-                style={{ color: '#9a8578' }}
+                style={{ color: '#f3ecff' }}
               >
                 {formatDegree(placement.degree)}
               </span>
@@ -176,14 +181,14 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
 
       {/* ── Section Divider ── */}
       <div className="px-5 py-2.5 flex items-center gap-3">
-        <div className="flex-1 h-px" style={{ background: '#e8ddd0' }} />
+        <div className="flex-1 h-px" style={{ background: 'rgba(154,126,230,0.18)' }} />
         <span
           className="text-[0.65rem]"
-          style={{ color: '#c4a265' }}
+          style={{ color: '#e6c179' }}
         >
           ✦
         </span>
-        <div className="flex-1 h-px" style={{ background: '#e8ddd0' }} />
+        <div className="flex-1 h-px" style={{ background: 'rgba(154,126,230,0.18)' }} />
       </div>
 
       {/* ── Outer & Karmic Planets ── */}
@@ -194,7 +199,7 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
       >
         <div
           className="px-5 pt-1 pb-1 text-[0.55rem] font-bold tracking-[2px] uppercase"
-          style={{ color: '#c4a265' }}
+          style={{ color: '#d9b46a' }}
         >
           Outer &amp; Karmic
         </div>
@@ -210,21 +215,21 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
               variants={rowVariants}
               className="grid grid-cols-3 px-5 py-2.5 items-center"
               style={{
-                background: isEven ? '#ffffff' : '#fdf9f5',
-                borderBottom: isLast ? 'none' : '1px solid #f0e8de',
+                background: isEven ? 'rgba(22,16,42,0.6)' : 'rgba(34,26,68,0.55)',
+                borderBottom: isLast ? 'none' : '1px solid rgba(154,126,230,0.12)',
                 paddingBottom: isLast ? '1rem' : undefined,
               }}
             >
               <span
                 className="flex items-center gap-2 text-[0.82rem] font-semibold"
-                style={{ color: '#3d2f2a' }}
+                style={{ color: '#e6c179' }}
               >
                 <span
                   className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-full flex-shrink-0 text-[0.88rem]"
                   style={{
-                    background: '#faf6ef',
-                    border: '1px solid #e8ddd0',
-                    color: '#c4a265',
+                    background: 'rgba(154,126,230,0.10)',
+                    border: '1px solid rgba(154,126,230,0.18)',
+                    color: '#e6c179',
                   }}
                 >
                   {planet.symbol}
@@ -234,14 +239,14 @@ export function BirthChartTable({ chartPlacements, petName }: BirthChartTablePro
 
               <span
                 className="text-[0.82rem]"
-                style={{ color: '#5a4a42' }}
+                style={{ color: '#e6c179' }}
               >
                 {placement.sign}
               </span>
 
               <span
                 className="text-[0.75rem] font-mono"
-                style={{ color: '#9a8578' }}
+                style={{ color: '#f3ecff' }}
               >
                 {formatDegree(placement.degree)}
               </span>

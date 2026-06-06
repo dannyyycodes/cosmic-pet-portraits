@@ -68,7 +68,7 @@ export function PlanetSection({
               {label}
             </div>
             <div
-              className="text-[0.78rem] mt-0.5 text-[#3d2f2a]/70 italic max-w-[180px]"
+              className="text-[0.78rem] mt-0.5 text-[#9a86c8]/70 italic max-w-[180px]"
               style={{ fontFamily: 'Cormorant, serif' }}
             >
               {title}

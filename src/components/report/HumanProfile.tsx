@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { ReportContent } from './types';
-import { zodiacSigns } from '@/lib/zodiac';
+import { CosmicLineIcon } from './cosmic/CosmicLineIcon';
+import { deDash } from './cosmic/text';
 
 interface HumanProfileProps {
   petName: string;
@@ -21,6 +22,37 @@ const traitOrder = [
   'In a Group',
   'Catchphrase',
 ];
+
+// Map each dossier field to a fitting line-icon by meaning. Fallback: spark.
+const traitIcons: Record<string, string> = {
+  Aesthetic: 'sparkle',
+  Career: 'compass',
+  'Morning Routine': 'sun',
+  'Toxic Trait': 'mask',
+  'Love Life': 'heartOrbit',
+  'Spotify Wrapped': 'star',
+  'Red Flag': 'shield',
+  'Green Flag': 'leaf',
+  'In a Group': 'orbit',
+  Catchphrase: 'chat',
+};
+
+// Long-form fields get the full width so the grid never reads as a monotonous list.
+const wideTraits = new Set([
+  'Morning Routine',
+  'Love Life',
+  'In a Group',
+  'Catchphrase',
+]);
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+};
 
 function generateDefaultProfile(
   petName: string,
@@ -85,9 +117,6 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
   const s = useScrollReveal();
   const element = report.dominantElement || 'Water';
   const archetype = report.archetype?.name || '';
-  const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || '';
-  const signData = zodiacSigns[sunSign.toLowerCase()];
-  const signIcon = signData?.icon || '⭐';
 
   const profile = report.humanProfile || generateDefaultProfile(petName, element, archetype);
 
@@ -101,21 +130,24 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
     >
       <div
         className="rounded-[18px] overflow-hidden"
-        style={{ boxShadow: '0 3px 16px rgba(0,0,0,0.06)' }}
+        style={{
+          border: '1px solid rgba(154,126,230,0.18)',
+          boxShadow: '0 3px 16px rgba(0,0,0,0.45)',
+        }}
       >
         {/* Manila folder tab header */}
         <div
           className="px-5 py-4 relative"
           style={{
-            background: 'linear-gradient(135deg, #e8d5b8 0%, #d4c0a0 100%)',
-            borderBottom: '2px solid #c4a265',
+            background: 'linear-gradient(135deg, #1a1330 0%, #221a44 100%)',
+            borderBottom: '1px solid rgba(154,126,230,0.18)',
           }}
         >
-          <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#6b5a45]">
+          <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#d9b46a]">
             Classified Dossier
           </div>
           <h3
-            className="text-[1.05rem] text-[#3d2f2a] mt-0.5"
+            className="text-[1.05rem] text-[#f3ecff] mt-0.5"
             style={{ fontFamily: 'DM Serif Display, serif' }}
           >
             Subject: {petName}&rsquo;s Human
@@ -125,9 +157,9 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
           <div
             className="absolute top-3 right-4 text-[0.7rem] font-black tracking-[2px] uppercase select-none pointer-events-none"
             style={{
-              color: 'rgba(180,60,60,0.22)',
+              color: 'rgba(230,193,121,0.32)',
               transform: 'rotate(-12deg)',
-              border: '2px solid rgba(180,60,60,0.18)',
+              border: '2px solid rgba(230,193,121,0.22)',
               padding: '2px 8px',
               borderRadius: '4px',
               fontFamily: 'monospace',
@@ -138,44 +170,74 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
         </div>
 
         {/* Dossier body */}
-        <div className="bg-white px-5 py-4">
+        <div
+          className="px-5 py-4"
+          style={{
+            background: 'rgba(13,10,22,0.9)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+          }}
+        >
           {/* Avatar */}
-          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: '1px dashed #d4c5b0' }}>
+          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: '1px dashed rgba(154,126,230,0.18)' }}>
             <div
-              className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[1.5rem] flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #c4a265, #8b6f3a)' }}
+              className="w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 text-[#1a1330]"
+              style={{ background: 'linear-gradient(135deg, #e6c179, #d9b46a)' }}
             >
-              {signIcon}
+              <CosmicLineIcon name="eye" size={26} />
             </div>
             <div>
-              <div className="text-[0.62rem] font-bold tracking-[1.5px] uppercase text-[#9a8578]">
+              <div className="text-[0.62rem] font-bold tracking-[1.5px] uppercase text-[#d9b46a]">
                 Profile Assessment
               </div>
-              <div className="text-[0.78rem] text-[#5a4a42] mt-0.5">
+              <div className="text-[0.78rem] text-[#d8c5f5] mt-0.5">
                 As observed by {petName}
               </div>
             </div>
           </div>
 
-          {traitOrder.map((trait) => {
-            const value = profile[trait];
-            if (!value) return null;
-            return (
-              <div key={trait} className="flex items-baseline gap-2 py-2.5">
-                <span
-                  className="text-[0.68rem] font-semibold text-[#9a8578] w-[95px] flex-shrink-0 uppercase tracking-[0.5px]"
-                  style={{ fontFamily: 'monospace' }}
-                >
-                  {trait}
-                </span>
-                <span
-                  className="flex-1 border-b border-dotted border-[#d4c5b0] mx-1 mb-1 self-end"
-                  style={{ minWidth: '12px' }}
-                />
-                <span className="text-[0.8rem] text-[#3d2f2a] max-w-[55%] text-right leading-[1.45]">{value}</span>
-              </div>
-            );
-          })}
+          {/* Case-file cards — each field is its own scannable dossier card */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {traitOrder
+              .filter((trait) => Boolean(profile[trait]))
+              .map((trait, i) => {
+                const value = profile[trait];
+                const iconName = traitIcons[trait] || 'spark';
+                const wide = wideTraits.has(trait);
+                return (
+                  <motion.div
+                    key={trait}
+                    custom={i}
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate={s.isInView ? 'visible' : 'hidden'}
+                    className={`rounded-[12px] p-3.5 ${wide ? 'sm:col-span-2' : ''}`}
+                    style={{
+                      background: 'rgba(22,16,42,0.72)',
+                      border: '1px solid rgba(154,126,230,0.18)',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    {/* Header row: icon + monospace gold label */}
+                    <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px dashed rgba(154,126,230,0.18)' }}>
+                      <span className="flex-shrink-0 text-[#e6c179]" aria-hidden="true">
+                        <CosmicLineIcon name={iconName} size={16} />
+                      </span>
+                      <span
+                        className="text-[0.72rem] font-bold text-[#e6c179] uppercase tracking-[1px]"
+                        style={{ fontFamily: 'monospace' }}
+                      >
+                        {trait}
+                      </span>
+                    </div>
+                    {/* Field text — left-aligned, body size, readable */}
+                    <p className="text-left text-[1.05rem] text-[#ece5ff] leading-[1.6] m-0">
+                      {deDash(value)}
+                    </p>
+                  </motion.div>
+                );
+              })}
+          </div>
         </div>
       </div>
     </motion.div>

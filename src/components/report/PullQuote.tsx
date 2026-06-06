@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { deDash } from './cosmic/text';
 
 interface PullQuoteProps {
   /** The line to explode — one emotional sentence, keep short. */
@@ -14,14 +15,16 @@ interface PullQuoteProps {
 // in a screenshot.
 export function PullQuote({ children, attribution, tone = 'light' }: PullQuoteProps) {
   const isDark = tone === 'dark';
+  // Only string children carry displayed dashes; pass through any other node.
+  const body = typeof children === 'string' ? deDash(children) : children;
 
   return (
     <section
       className="relative w-full overflow-hidden py-24 md:py-32 px-6"
       style={{
         background: isDark
-          ? 'linear-gradient(180deg, #1a1210 0%, #3d2f2a 100%)'
-          : 'linear-gradient(180deg, #faf6ef 0%, #f5efe6 100%)',
+          ? 'radial-gradient(ellipse at 50% 0%, #221a44 0%, #0a0810 72%)'
+          : 'radial-gradient(ellipse at 50% 0%, #1a1330 0%, #0a0810 72%)',
       }}
     >
       {/* Parallax glow behind the text */}
@@ -51,7 +54,7 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
           viewport={{ once: true, margin: '-15% 0px' }}
           transition={{ duration: 0.8 }}
           className="font-serif text-5xl md:text-6xl leading-none mb-6 select-none"
-          style={{ color: isDark ? '#c4a265' : '#c4a265' }}
+          style={{ color: '#e6c179' }}
           aria-hidden="true"
         >
           &ldquo;
@@ -64,11 +67,11 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
           className="font-serif text-[1.75rem] md:text-[2.75rem] leading-[1.15] tracking-tight"
           style={{
-            color: isDark ? '#faf6ef' : '#1a1210',
+            color: '#f3ecff',
             fontFamily: '"DM Serif Display", "Playfair Display", Georgia, serif',
           }}
         >
-          {children}
+          {body}
         </motion.blockquote>
 
         {attribution && (
@@ -78,9 +81,9 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
             viewport={{ once: true, margin: '-15% 0px' }}
             transition={{ duration: 0.8, delay: 0.5 }}
             className="mt-8 text-[0.72rem] tracking-[0.35em] uppercase font-sans"
-            style={{ color: isDark ? 'rgba(196,162,101,0.8)' : '#9a8578' }}
+            style={{ color: 'rgba(230,193,121,0.85)' }}
           >
-            {attribution}
+            {deDash(attribution)}
           </motion.p>
         )}
       </div>

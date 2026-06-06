@@ -35,21 +35,21 @@ export function SoulSpeakTeaser({ petName, reportId, variant }: SoulSpeakTeaserP
         href={`/soul-chat.html?id=${reportId}`}
         className="block mx-4 my-2 p-4 max-w-[520px] sm:mx-auto rounded-xl no-underline transition-all duration-200 hover:shadow-sm"
         style={{
-          background: 'linear-gradient(135deg, #faf6ef 0%, #f5ede0 100%)',
-          border: '1px solid #e8ddd0',
+          background: 'linear-gradient(135deg, rgba(26,19,48,0.92) 0%, rgba(13,10,22,0.92) 100%)',
+          border: '1px solid #2a1f47',
         }}
       >
         <div className="flex items-center gap-3">
           <span className="text-lg">{content.emoji}</span>
           <div className="flex-1">
-            <div className="text-[0.78rem] font-semibold text-[#3d2f2a]">
+            <div className="text-[0.78rem] font-semibold text-[#f3ecff]">
               {content.text}
             </div>
-            <div className="text-[0.68rem] text-[#9a8578]">
+            <div className="text-[0.68rem] text-[#9a86c8]">
               {content.subtext}
             </div>
           </div>
-          <span className="text-[#c4a265] text-[0.75rem]">→</span>
+          <span className="text-[#e6c179] text-[0.75rem]">→</span>
         </div>
       </a>
     </motion.div>

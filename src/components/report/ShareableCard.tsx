@@ -154,7 +154,7 @@ export function ShareableCard({
         ? '🎁 Gifted with Love'
         : null;
 
-  // Card background — memorial gets softer tones
+  // Card background, memorial gets softer tones
   const cardBg = isMemorial
     ? 'linear-gradient(155deg, #FFFDF5 0%, #f5ede3 50%, #ebe3d9 100%)'
     : 'linear-gradient(155deg, #FFFDF5 0%, #faf3e8 50%, #f0e6d6 100%)';
@@ -177,7 +177,7 @@ export function ShareableCard({
           {petName}'s Cosmic Card
         </h2>
         <p className="text-[0.84rem] leading-[1.75] text-[#9a8578] max-w-[340px] mx-auto mt-1">
-          Screenshot and share — every card is one of a kind.
+          Screenshot and share, every card is one of a kind.
         </p>
       </motion.div>
 

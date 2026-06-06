@@ -84,7 +84,7 @@ function convertReportMessages(data: NonNullable<ReportContent['textMessages']>)
 function ReadReceipt({ isLastInSegment }: { isLastInSegment: boolean }) {
   if (!isLastInSegment) return null;
   return (
-    <div className="clear-both text-right text-[0.58rem] text-[#8e8e93] py-0.5 px-1 pb-1">
+    <div className="clear-both text-right text-[0.58rem] text-[#9a86c8] py-0.5 px-1 pb-1">
       Read ✓✓
     </div>
   );
@@ -103,7 +103,7 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-5 px-4 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-5 px-4 bg-[#0f0d16] rounded-[14px] border border-[#2a1f47] max-w-[520px] sm:mx-auto"
     >
       <style>{`
         @keyframes typingPulse {
@@ -117,10 +117,10 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
       `}</style>
 
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#e6c179] mb-1">
         💬 What {petName} Would Text You
       </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-3.5">
+      <h3 className="font-dm-serif text-[1.05rem] text-[#f3ecff] mb-3.5">
         If {petName} Had a Phone
       </h3>
 
@@ -137,17 +137,17 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
 
           return (
             <div key={si}>
-              <div className="clear-both text-center text-[0.62rem] text-[#8e8e93] py-2 pb-1.5">
+              <div className="clear-both text-center text-[0.62rem] text-[#9a86c8] py-2 pb-1.5">
                 {segment.time}
               </div>
 
               {/* Typing indicator before first pet message in each segment */}
               {startsWithPet && (
-                <div className="float-left clear-both px-4 py-2.5 bg-[#dce8f8] rounded-[18px] rounded-bl-[6px] mb-1 opacity-60">
+                <div className="float-left clear-both px-4 py-2.5 bg-[#262433] rounded-[18px] rounded-bl-[6px] mb-1 opacity-60">
                   <div className="flex gap-1">
-                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
-                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
-                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#9a86c8]" />
+                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#9a86c8]" />
+                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#9a86c8]" />
                   </div>
                 </div>
               )}
@@ -158,8 +158,8 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
                   <div
                     className={`max-w-[80%] px-3.5 py-2 rounded-[18px] text-[0.82rem] leading-[1.45] mb-1 ${
                       msg.sender === 'pet'
-                        ? 'float-left clear-both bg-[#dce8f8] text-[#1a1a1a] rounded-bl-[6px]'
-                        : 'float-right clear-both bg-[#e9e9eb] text-[#1a1a1a] rounded-br-[6px]'
+                        ? 'float-left clear-both bg-[#262433] text-[#f3ecff] rounded-bl-[6px]'
+                        : 'float-right clear-both bg-[#3a6df0] text-[#ffffff] rounded-br-[6px]'
                     }`}
                   >
                     {msg.text}
@@ -175,16 +175,16 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
         })}
 
         {/* Final delivered indicator */}
-        <div className="clear-both text-right text-[0.58rem] text-[#8e8e93] py-0.5 px-1 pb-1.5">
+        <div className="clear-both text-right text-[0.58rem] text-[#9a86c8] py-0.5 px-1 pb-1.5">
           Delivered ✓
         </div>
 
         {/* Typing indicator at the end */}
-        <div className="float-left px-4 py-2.5 bg-[#dce8f8] rounded-[18px] rounded-bl-[6px] mb-1">
+        <div className="float-left px-4 py-2.5 bg-[#262433] rounded-[18px] rounded-bl-[6px] mb-1">
           <div className="flex gap-1">
-            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
-            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
-            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#9a86c8]" />
+            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#9a86c8]" />
+            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#9a86c8]" />
           </div>
         </div>
         <div className="clear-both" />

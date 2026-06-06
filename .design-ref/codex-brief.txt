@@ -1,0 +1,15 @@
+You are improving a React + Vite + Tailwind site. The Soul Readings homepage at src/components/funnel-v2/ReadingsLanding.tsx feels bare-bones next to the Pawtraits page (src/pages/Portraits.tsx plus src/components/portraits/*). The attached image .design-ref/pawtraits-live.png IS the Pawtraits page: that is the visual quality and density target.
+
+GOAL: make src/components/funnel-v2/ReadingsLanding.tsx as rich, polished and image-dense as the Pawtraits page, in the SAME visual register (white-led background, Asap headings, Assistant body, Rose #bf524a CTA, gold accents). Use the PALETTE tokens in src/components/portraits/tokens.ts. Reuse patterns from PortraitsHero, ReviewWall, FrameSizes, HowItWorks, TrustStrip, PortraitsBackdrop.
+
+The product is a DIGITAL pet soul reading: a cinematic reveal of a pet astrology birth chart, plus a feature called SoulSpeak where the owner can ask their pet anything. Because it is digital it has little imagery, which is why it looks bare.
+
+DO THIS:
+1. ONLY edit src/components/funnel-v2/ReadingsLanding.tsx (and, if strictly needed, create NEW files under src/components/funnel-v2/ or public/readings/). Do NOT touch any admin pages, supabase functions, scripts, or unrelated files.
+2. GENERATE the missing product imagery with gpt-image-1 (you have image generation). Suggested shots: a phone screen showing the cinematic soul reading unfolding, a beautiful reading spread or soul-letter page, dreamy pet plus constellation art, a framed soul-card on a wall to mirror the pawtraits framed portrait. Write generated files to a writable folder .design-staging/ then move finals into public/readings/ and wire them into the page with width, height, and lazy loading.
+3. Add a trust strip, a visual sample-reading preview section, and overall the same density and depth as pawtraits. Add tasteful framer-motion entrance like the pawtraits components.
+4. KEEP the existing working InlineCheckout exactly as imported and used. Do not touch checkout logic.
+5. COPY RULES, strict: NO em-dashes anywhere (use periods or commas). NEVER use the words AI or report. Frame everything as a soul reading and a transformation. Do NOT invent any review counts or star numbers, real sales are near zero, use only the testimonials already in the file.
+6. When done run: npx tsc -p tsconfig.app.json --noEmit and fix any type errors in files you changed.
+
+Edit files directly. At the end, summarize exactly what you changed and list every generated image path.

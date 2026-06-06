@@ -1,0 +1,456 @@
+{
+  "name": "📘 FB Auto-Poster — Little Souls",
+  "nodes": [
+    {
+      "id": "manual_trigger",
+      "name": "▶️ Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        624
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "schedule_trigger",
+      "name": "⏰ Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        800
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "disabled": true,
+      "notes": "Enable this trigger after you've tested the workflow manually with the Manual Trigger. Runs every 15 minutes; picks the oldest approved+due post and publishes it."
+    },
+    {
+      "id": "get_next_approved",
+      "name": "📥 Get Next Approved Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        624
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://aduibsyrnenzobuyetmn.supabase.co/rest/v1/fb_posts?status=eq.approved&or=(scheduled_for.is.null,scheduled_for.lte.{{ encodeURIComponent($now.toISO()) }})&order=scheduled_for.asc.nullsfirst&limit=1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "PLACEHOLDER_REPLACE_WITH_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase fb_posts service role"
+        }
+      },
+      "notes": "Reads next approved fb_posts row. Credential: Custom Auth (httpCustomAuth) named 'Supabase fb_posts service role' with body containing both Authorization and apikey headers."
+    },
+    {
+      "id": "has_row",
+      "name": "🔀 Has Row?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        688,
+        624
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "len",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "extract_post",
+      "name": "⚙️ Extract Post Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        624
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Supabase returns an array. Take the first row (limit=1).\nconst row = Array.isArray($input.item.json) ? $input.item.json[0] : $input.item.json;\n\nif (!row || !row.id) {\n  throw new Error('No row returned from Supabase');\n}\n\n// Format media URLs as expected by Blotato. For carousel/album, pass as array.\n// For single image, still use array (Blotato handles either).\nconst mediaUrls = Array.isArray(row.image_urls) ? row.image_urls : [row.image_urls];\n\nreturn {\n  json: {\n    id: row.id,\n    slot: row.slot,\n    cast_member: row.cast_member,\n    style: row.style,\n    format: row.format,\n    caption: row.caption,\n    first_comment: row.first_comment,\n    self_reply: row.self_reply,\n    image_urls: mediaUrls,\n    image_count: mediaUrls.length,\n    scheduled_for: row.scheduled_for,\n    media_url_string: mediaUrls.join(',')\n  }\n};"
+      }
+    },
+    {
+      "id": "mark_publishing",
+      "name": "🚦 Mark Publishing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1136,
+        624
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://aduibsyrnenzobuyetmn.supabase.co/rest/v1/fb_posts?id=eq.{{ $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"status\": \"publishing\" }",
+        "options": {}
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "PLACEHOLDER_REPLACE_WITH_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase fb_posts service role"
+        }
+      }
+    },
+    {
+      "id": "post_to_facebook",
+      "name": "📘 Post to Facebook",
+      "type": "@blotato/n8n-nodes-blotato.blotato",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        624
+      ],
+      "parameters": {
+        "resource": "post",
+        "operation": "create",
+        "platform": "facebook",
+        "accountId": {
+          "__rl": true,
+          "value": "28985",
+          "mode": "list",
+          "cachedResultName": "Little Souls"
+        },
+        "postContentText": "={{ $('⚙️ Extract Post Data').item.json.caption }}",
+        "postContentMediaUrls": "={{ $('⚙️ Extract Post Data').item.json.image_urls }}",
+        "options": {}
+      },
+      "credentials": {
+        "blotatoApi": {
+          "id": "6ukdyGCzGdXWJ0xx",
+          "name": "Blotato"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "Posts to Little Souls FB Page (account ID 28985). For carousel/album: image_urls array gets sent as multi-photo post. For single photo: same param works. With onError=continueErrorOutput the node has TWO outputs: 0=success, 1=error."
+    },
+    {
+      "id": "mark_posted",
+      "name": "✅ Mark Posted",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1584,
+        480
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://aduibsyrnenzobuyetmn.supabase.co/rest/v1/fb_posts?id=eq.{{ $('⚙️ Extract Post Data').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"status\": \"posted\", \"posted_at\": {{ JSON.stringify($now.toISO()) }}, \"blotato_submission_id\": {{ JSON.stringify($json.submissionId || $json.id || null) }} }",
+        "options": {}
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "PLACEHOLDER_REPLACE_WITH_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase fb_posts service role"
+        }
+      }
+    },
+    {
+      "id": "telegram_success",
+      "name": "📨 Telegram — Posted",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        480
+      ],
+      "parameters": {
+        "chatId": "8006830504",
+        "text": "=📘 *Posted to FB*\n\nSlot: `{{ $('⚙️ Extract Post Data').item.json.slot }}`\nCast: `{{ $('⚙️ Extract Post Data').item.json.cast_member || 'real' }}`\n\n_{{ $('⚙️ Extract Post Data').item.json.caption.substring(0, 200) }}{{ $('⚙️ Extract Post Data').item.json.caption.length > 200 ? '...' : '' }}_\n\n👉 [Page](https://facebook.com/profile.php?id=Little Souls)",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "vdl8ypeesaCLEhRo",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "id": "mark_failed",
+      "name": "❌ Mark Failed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1584,
+        768
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://aduibsyrnenzobuyetmn.supabase.co/rest/v1/fb_posts?id=eq.{{ $('⚙️ Extract Post Data').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"status\": \"failed\", \"failure_reason\": {{ JSON.stringify($json.error?.message || $json.message || 'Blotato post failed') }}, \"retry_count\": {{ ($('⚙️ Extract Post Data').item.json.retry_count || 0) + 1 }} }",
+        "options": {}
+      },
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "PLACEHOLDER_REPLACE_WITH_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase fb_posts service role"
+        }
+      }
+    },
+    {
+      "id": "telegram_failure",
+      "name": "📨 Telegram — Failed",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        768
+      ],
+      "parameters": {
+        "chatId": "8006830504",
+        "text": "=🚨 *FB post FAILED*\n\nSlot: `{{ $('⚙️ Extract Post Data').item.json.slot }}`\nReason: `{{ $('❌ Mark Failed').item.json.failure_reason || 'unknown' }}`\n\nManual review needed in Supabase fb_posts table.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "vdl8ypeesaCLEhRo",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "id": "sticky_intro",
+      "name": "📋 How this works",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        384
+      ],
+      "parameters": {
+        "content": "## 📘 FB Auto-Poster v1\n\n1. **Trigger** runs (manual now, schedule when verified)\n2. **Get Next Approved**: pulls oldest approved+due fb_posts row from Supabase\n3. **Mark Publishing**: status='publishing'\n4. **Post to Facebook** via Blotato to Little Souls Page (28985)\n5. **Mark Posted** + Telegram confirm\n\n**Setup before activating:**\n• Run `sql/fb_posts.sql` in Supabase\n• Create n8n credential `Supabase fb_posts service role` (httpHeaderAuth, header `Authorization: Bearer <SERVICE_ROLE_KEY>`)\n• Replace 4× `PLACEHOLDER_REPLACE_WITH_SUPABASE_CREDENTIAL_ID` with the actual credential ID\n• Test via `node queue-post.cjs <manifest.json> --auto-approve`\n• Click Manual Trigger ▶️ to publish\n\n**Phase 2 (after FB Page Token):** add Graph API nodes for first-comment + self-reply with timed delays.",
+        "height": 220,
+        "width": 480,
+        "color": 4
+      }
+    },
+    {
+      "id": "sticky_credentials",
+      "name": "⚠️ Credentials needed",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        464,
+        384
+      ],
+      "parameters": {
+        "content": "### Supabase service role\n\nCredential type: **Custom Auth** (httpCustomAuth)\n\nName: `Supabase fb_posts service role`\n\nBody (JSON):\n```\n{\n  \"headers\": {\n    \"Authorization\": \"Bearer <KEY>\",\n    \"apikey\": \"<KEY>\"\n  }\n}\n```\n\nReplace BOTH `<KEY>` with the same SUPABASE_SERVICE_ROLE_KEY.\n\nSupabase REST requires BOTH headers — Custom Auth carries them in one credential.",
+        "height": 220,
+        "width": 320,
+        "color": 5
+      }
+    }
+  ],
+  "connections": {
+    "▶️ Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "📥 Get Next Approved Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏰ Every 15 Minutes": {
+      "main": [
+        [
+          {
+            "node": "📥 Get Next Approved Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📥 Get Next Approved Post": {
+      "main": [
+        [
+          {
+            "node": "🔀 Has Row?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 Has Row?": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Extract Post Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "⚙️ Extract Post Data": {
+      "main": [
+        [
+          {
+            "node": "🚦 Mark Publishing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚦 Mark Publishing": {
+      "main": [
+        [
+          {
+            "node": "📘 Post to Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📘 Post to Facebook": {
+      "main": [
+        [
+          {
+            "node": "✅ Mark Posted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "❌ Mark Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Mark Posted": {
+      "main": [
+        [
+          {
+            "node": "📨 Telegram — Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❌ Mark Failed": {
+      "main": [
+        [
+          {
+            "node": "📨 Telegram — Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

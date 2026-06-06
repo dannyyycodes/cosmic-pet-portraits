@@ -1527,7 +1527,7 @@ function QuietMomentSection() {
         ))}
         <article className="ls-story-panel ls-story-panel--reveal ls-reveal" style={revealDelay(0.14)}>
           <div className="ls-story-copy">
-            <h2 className="ls-story-caption" style={galleryCaptionStyle}>Then the sky turns into something you can hold.</h2>
+            <h2 className="ls-story-caption" style={galleryCaptionStyle}>A reading that feels unmistakably like them.</h2>
           </div>
           <ReadingPreviewStoryVisual />
         </article>
@@ -1541,15 +1541,18 @@ function ReadingPreviewStoryVisual() {
     <div className="ls-reading-preview" aria-label="Little Souls reading preview">
       <div className="ls-reading-preview-top">
         <div>
-          <span>Soul Reading</span>
-          <strong>Monty</strong>
+          <span>Inside the reading</span>
+          <strong>Their chart, translated</strong>
         </div>
-        <span className="ls-reading-preview-pill">Live chart</span>
+        <span className="ls-reading-preview-pill">Personal chart</span>
       </div>
       <div className="ls-reading-preview-grid">
-        <div className="ls-reading-chart" aria-hidden="true">
+        <div className="ls-reading-chart-shell">
+          <div className="ls-reading-chart-label">Exact sky</div>
+          <div className="ls-reading-chart" aria-hidden="true">
           <svg viewBox="0 0 220 220">
             <circle cx="110" cy="110" r="92" />
+              <circle cx="110" cy="110" r="79" />
             <circle cx="110" cy="110" r="66" />
             <circle cx="110" cy="110" r="34" />
             {Array.from({ length: 12 }).map((_, i) => {
@@ -1560,41 +1563,53 @@ function ReadingPreviewStoryVisual() {
               const y2 = 110 + Math.sin(angle) * 92;
               return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />;
             })}
-            <path d="M65 82 111 38 152 88 138 150 82 158Z" />
-            <path d="M82 158 152 88 65 82 138 150 111 38" />
+              {[
+                [110, 18, "Sun"],
+                [176, 65, "Moon"],
+                [164, 162, "Venus"],
+                [54, 151, "Mars"],
+                [48, 71, "Jupiter"],
+              ].map(([cx, cy, label]) => (
+                <g key={label}>
+                  <circle cx={cx as number} cy={cy as number} r="4.2" className="ls-chart-planet" />
+                </g>
+              ))}
+              <path d="M48 71 110 18 176 65 164 162 54 151Z" />
+              <path d="M54 151 176 65 48 71 164 162 110 18" />
           </svg>
-        </div>
-        <div className="ls-reading-bars">
-          {[
-            ["Fire", "28%"],
-            ["Earth", "32%"],
-            ["Air", "24%"],
-            ["Water", "16%"],
-          ].map(([label, value], i) => (
-            <div key={label} className="ls-reading-bar" style={{ "--ls-bar": value, "--ls-delay": `${i * 0.06}s` } as CSSProperties}>
-              <span>{label}</span>
-              <i />
-              <strong>{value}</strong>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="ls-reading-card-row">
-        {[
-          ["Sun", "Aquarius"],
-          ["Moon", "Leo"],
-          ["Rising", "Taurus"],
-          ["Venus", "Pisces"],
-        ].map(([planet, sign]) => (
-          <div key={planet} className="ls-reading-mini-card">
-            <span>{planet}</span>
-            <strong>{sign}</strong>
           </div>
-        ))}
+        </div>
+        <div className="ls-reading-translation">
+          <div className="ls-reading-element-orbit" aria-label="Elemental balance">
+            {[
+              ["Earth", "32%"],
+              ["Fire", "28%"],
+              ["Air", "24%"],
+              ["Water", "16%"],
+            ].map(([element, value], i) => (
+              <div key={element} className="ls-reading-orbit-item" style={{ "--ls-delay": `${i * 0.06}s` } as CSSProperties}>
+                <span>{element}</span>
+                <em>{value}</em>
+              </div>
+            ))}
+          </div>
+          <div className="ls-reading-card-row">
+            {[
+              ["Comfort", "where they need softness"],
+              ["Spark", "what lights them back up"],
+              ["Bond", "why they chose you"],
+            ].map(([planet, sign]) => (
+              <div key={planet} className="ls-reading-mini-card">
+                <span>{planet}</span>
+                <strong>{sign}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       <div className="ls-reading-insight">
-        <span>Soul theme</span>
-        <strong>The Loyal Heart</strong>
+        <span>What it gives you</span>
+        <strong>Words for the little things you already feel.</strong>
       </div>
     </div>
   );
@@ -1849,24 +1864,35 @@ function CosmicStyles() {
         position: relative;
         overflow: hidden;
         border-radius: 16px;
-        padding: clamp(18px, 3.2vw, 34px);
+        padding: clamp(20px, 3.4vw, 38px);
         background:
-          radial-gradient(circle at 20% 12%, rgba(154,126,230,0.28), transparent 34%),
-          radial-gradient(circle at 86% 16%, rgba(212,182,122,0.16), transparent 30%),
-          linear-gradient(145deg, rgba(22,15,38,0.96), rgba(7,5,13,0.98));
-        border: 1px solid rgba(212,182,122,0.2);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 34px 100px rgba(0,0,0,0.45);
+          radial-gradient(circle at 50% 34%, rgba(212,182,122,0.16), transparent 22%),
+          radial-gradient(circle at 22% 18%, rgba(154,126,230,0.26), transparent 34%),
+          radial-gradient(circle at 88% 8%, rgba(212,182,122,0.12), transparent 28%),
+          linear-gradient(150deg, rgba(24,16,40,0.97), rgba(7,5,13,0.99));
+        border: 1px solid rgba(212,182,122,0.22);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 34px 100px rgba(0,0,0,0.45);
+      }
+      .ls-reading-preview::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        pointer-events: none;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.055);
       }
       .ls-reading-preview-top {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 14px;
-        margin-bottom: clamp(18px, 3vw, 28px);
+        margin-bottom: clamp(20px, 3vw, 30px);
       }
       .ls-reading-preview-top span,
       .ls-reading-mini-card span,
-      .ls-reading-insight span {
+      .ls-reading-insight span,
+      .ls-reading-chart-label,
+      .ls-reading-orbit-item span {
         display: block;
         font-family: Assistant, system-ui, sans-serif;
         font-size: 11px;
@@ -1877,11 +1903,12 @@ function CosmicStyles() {
       }
       .ls-reading-preview-top strong {
         display: block;
-        margin-top: 4px;
+        max-width: 12ch;
+        margin-top: 5px;
         font-family: "DM Serif Display", Georgia, serif;
         font-size: clamp(28px, 4vw, 42px);
         font-weight: 400;
-        line-height: 0.95;
+        line-height: 0.94;
       }
       .ls-reading-preview-pill {
         flex: 0 0 auto;
@@ -1892,75 +1919,92 @@ function CosmicStyles() {
       }
       .ls-reading-preview-grid {
         display: grid;
-        grid-template-columns: minmax(150px, 0.9fr) minmax(180px, 1fr);
-        gap: clamp(16px, 3vw, 28px);
+        grid-template-columns: minmax(180px, 1fr) minmax(164px, 0.78fr);
+        gap: clamp(18px, 3vw, 30px);
         align-items: center;
+      }
+      .ls-reading-chart-shell {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-width: 0;
+      }
+      .ls-reading-chart-label {
+        position: absolute;
+        top: 8%;
+        left: 50%;
+        z-index: 1;
+        translate: -50% 0;
+        color: rgba(240,217,159,0.78);
       }
       .ls-reading-chart {
         aspect-ratio: 1;
+        width: min(100%, 292px);
         display: grid;
         place-items: center;
         border-radius: 999px;
-        background: radial-gradient(circle, rgba(212,182,122,0.1), rgba(124,92,214,0.08) 58%, transparent 70%);
+        background:
+          radial-gradient(circle, rgba(212,182,122,0.13), rgba(124,92,214,0.1) 52%, transparent 72%),
+          repeating-conic-gradient(from 12deg, rgba(255,255,255,0.05) 0 1deg, transparent 1deg 30deg);
+        box-shadow: 0 0 70px rgba(154,126,230,0.18);
       }
       .ls-reading-chart svg {
-        width: min(100%, 230px);
+        width: min(100%, 250px);
         height: auto;
         fill: none;
         stroke: rgba(240,217,159,0.72);
         stroke-width: 1.2;
       }
+      .ls-reading-chart circle:nth-child(2) {
+        stroke: rgba(240,217,159,0.28);
+      }
       .ls-reading-chart path:last-child {
         stroke: rgba(154,126,230,0.8);
       }
-      .ls-reading-bars {
+      .ls-chart-planet {
+        fill: ${C.gold};
+        stroke: rgba(7,5,13,0.82);
+        stroke-width: 2;
+      }
+      .ls-reading-translation {
         display: grid;
-        gap: 13px;
+        gap: 12px;
       }
-      .ls-reading-bar {
+      .ls-reading-element-orbit {
         display: grid;
-        grid-template-columns: 48px minmax(0, 1fr) 42px;
-        gap: 10px;
-        align-items: center;
-        font-family: Assistant, system-ui, sans-serif;
-        color: ${C.creamDim};
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
       }
-      .ls-reading-bar span,
-      .ls-reading-bar strong {
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .ls-reading-bar i {
-        position: relative;
-        height: 7px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.12);
-      }
-      .ls-reading-bar i::after {
-        content: "";
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: var(--ls-bar);
-        border-radius: inherit;
-        background: linear-gradient(90deg, #9a7ee6, #d4b67a);
-        animation: ls-reading-bar 0.82s cubic-bezier(0.22,0.7,0.2,1) both;
+      .ls-reading-orbit-item {
+        display: grid;
+        gap: 4px;
+        align-items: start;
+        padding: 11px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.075);
+        animation: ls-pop-in 0.62s both;
         animation-delay: var(--ls-delay, 0s);
       }
-      @keyframes ls-reading-bar {
-        from { width: 0; }
-        to { width: var(--ls-bar); }
+      .ls-reading-orbit-item em {
+        font-family: Assistant, system-ui, sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .ls-reading-orbit-item em {
+        color: ${C.cream};
+        font-style: normal;
       }
       .ls-reading-card-row {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: clamp(16px, 2.6vw, 26px);
+        grid-template-columns: 1fr;
+        gap: 9px;
+        margin-top: 0;
       }
       .ls-reading-mini-card,
       .ls-reading-insight {
         border-radius: 12px;
-        padding: 14px;
+        padding: 13px;
         background: rgba(255,255,255,0.055);
         border: 1px solid rgba(255,255,255,0.08);
       }
@@ -1968,15 +2012,21 @@ function CosmicStyles() {
       .ls-reading-insight strong {
         display: block;
         margin-top: 5px;
-        font-family: "DM Serif Display", Georgia, serif;
-        font-size: clamp(18px, 2.2vw, 25px);
-        font-weight: 400;
-        line-height: 1.02;
+        font-family: Assistant, system-ui, sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.35;
         color: ${C.cream};
       }
       .ls-reading-insight {
         margin-top: 10px;
         background: rgba(124,92,214,0.16);
+      }
+      .ls-reading-insight strong {
+        font-family: "DM Serif Display", Georgia, serif;
+        font-size: clamp(20px, 2.2vw, 28px);
+        font-weight: 400;
+        line-height: 1.08;
       }
       @media (max-width: 899px) {
         .ls-story-section {

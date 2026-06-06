@@ -50,7 +50,7 @@ function Stars({ rating }: { rating: number }) {
         <span
           key={i}
           className="text-[0.9rem]"
-          style={{ color: i <= rating ? '#c4a265' : '#e0d5c7' }}
+          style={{ color: i <= rating ? '#e6c179' : '#3a2e5c' }}
         >
           ★
         </span>
@@ -70,13 +70,13 @@ export function YelpReviews({ petName, report }: YelpReviewsProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-[#161029] rounded-[14px] border border-[#2a1f47] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#e6c179] mb-1">
         {petName}'s Reviews
       </div>
-      <p className="text-[0.72rem] text-[#9a8578] mb-4">
-        {petName} reviews their life — brutally honest, cosmically biased.
+      <p className="text-[0.72rem] text-[#9a86c8] mb-4">
+        {petName} reviews their life, brutally honest, cosmically biased.
       </p>
 
       <div className="space-y-4">
@@ -84,20 +84,20 @@ export function YelpReviews({ petName, report }: YelpReviewsProps) {
           <div
             key={i}
             className="pb-3.5 last:pb-0"
-            style={{ borderBottom: i < reviews.length - 1 ? '1px solid #f0e8de' : 'none' }}
+            style={{ borderBottom: i < reviews.length - 1 ? '1px solid rgba(154,126,230,0.10)' : 'none' }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="font-dm-serif text-[0.92rem] text-[#3d2f2a]">{review.place}</span>
+              <span className="font-dm-serif text-[0.92rem] text-[#f3ecff]">{review.place}</span>
               <Stars rating={review.rating} />
             </div>
-            <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6] italic">
+            <p className="text-[0.78rem] text-[#d8c5f5] leading-[1.6] italic">
               "{review.review}"
             </p>
           </div>
         ))}
       </div>
 
-      <p className="text-[0.65rem] text-[#b8a99e] mt-3 text-center">
+      <p className="text-[0.65rem] text-[#9a86c8] mt-3 text-center">
         {petName} is a verified reviewer and takes their opinions very seriously.
       </p>
     </motion.div>

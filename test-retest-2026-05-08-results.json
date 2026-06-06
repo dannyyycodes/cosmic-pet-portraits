@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-05-08T10:28:43.421Z",
+  "cells": [
+    {
+      "id": "sphynx-astronaut-rerun",
+      "label": "Sphynx × Astronaut (rerun, safe pet name)",
+      "breed": "Sphynx Cat",
+      "petName": "Toby",
+      "sourceUrl": "https://images.pexels.com/photos/31644049/pexels-photo-31644049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "style": "an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours",
+      "subject": {
+        "species": "cat",
+        "breed": "Sphynx",
+        "furColor": "Hairless with dark grey and tan mottled skin pattern on face, pale pink-grey body",
+        "eyeColor": "Yellow-green",
+        "earShape": "Erect triangular",
+        "distinguishing": "Hairless with prominent wrinkled forehead"
+      },
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nThe source image is the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark grey and tan mottled skin pattern on face, pale pink-grey body fur pattern, Yellow-green eyes, Erect triangular ear shape, Hairless with prominent wrinkled forehead.\n\nApply this artistic transformation: an astronaut in a white spacesuit with helmet visor reflecting stars, deep space backdrop with nebula colours.\n\nFor transformations that include headwear (hat, helmet, hood, crown, costume covering the head), render the headwear naturally OVER the head — ears should be tucked under or hidden by the headwear if it covers that area. Do NOT draw ears poking through fabric, helmet metal, or costume material.\n\nRender the name \"Toby\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.",
+      "url": "https://v3b.fal.media/files/b/0a995f69/5O4Z2cL4Dw3WVQniARE13_OiXdKWKw.png",
+      "error": null,
+      "ms": 55264
+    },
+    {
+      "id": "sphynx-knight-rerun",
+      "label": "Sphynx × Knight (rerun, safe pet name)",
+      "breed": "Sphynx Cat",
+      "petName": "Toby",
+      "sourceUrl": "https://images.pexels.com/photos/31644049/pexels-photo-31644049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "style": "a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish",
+      "subject": {
+        "species": "cat",
+        "breed": "Sphynx",
+        "furColor": "Hairless with dark gray and tan mottled skin pattern on face, pale pink-gray body",
+        "eyeColor": "Yellow-green",
+        "earShape": "Erect triangular",
+        "distinguishing": "Hairless with prominent wrinkled forehead"
+      },
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nThe source image is the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image.\nSpecifically preserve: the Sphynx silhouette and breed characteristics, Hairless with dark gray and tan mottled skin pattern on face, pale pink-gray body fur pattern, Yellow-green eyes, Erect triangular ear shape, Hairless with prominent wrinkled forehead.\n\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\n\nFor transformations that include headwear (hat, helmet, hood, crown, costume covering the head), render the headwear naturally OVER the head — ears should be tucked under or hidden by the headwear if it covers that area. Do NOT draw ears poking through fabric, helmet metal, or costume material.\n\nRender the name \"Toby\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.",
+      "url": "https://v3b.fal.media/files/b/0a995f6f/HYDVH05c3RPrh-NHXWRqx_tVCEgNcn.png",
+      "error": null,
+      "ms": 62451
+    },
+    {
+      "id": "gsd-knight-earsfix",
+      "label": "German Shepherd × Knight (ears-fix headwear test)",
+      "breed": "German Shepherd",
+      "petName": "Rex",
+      "sourceUrl": "https://aduibsyrnenzobuyetmn.supabase.co/storage/v1/object/public/pet-photos/admin-test/german-shepherd-1778145655837.webp",
+      "style": "a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish",
+      "subject": {
+        "species": "dog",
+        "breed": "German Shepherd",
+        "furColor": "Black saddle with rich tan markings on face, chest, and legs",
+        "eyeColor": "Dark brown",
+        "earShape": "Erect triangular",
+        "distinguishing": "Black mask on muzzle"
+      },
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nThe source image is the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, Black saddle with rich tan markings on face, chest, and legs fur pattern, Dark brown eyes, Erect triangular ear shape, Black mask on muzzle.\n\nApply this artistic transformation: a medieval knight in polished plate armour holding a heraldic banner, castle courtyard backdrop, rich oil-painting finish.\n\nFor transformations that include headwear (hat, helmet, hood, crown, costume covering the head), render the headwear naturally OVER the head — ears should be tucked under or hidden by the headwear if it covers that area. Do NOT draw ears poking through fabric, helmet metal, or costume material.\n\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.",
+      "url": "https://v3b.fal.media/files/b/0a995f76/o1lTcFFOQ62ot_-bkXJRt_Ff0ToSmb.png",
+      "error": null,
+      "ms": 61239
+    }
+  ]
+}

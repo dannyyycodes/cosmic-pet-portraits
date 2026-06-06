@@ -16,6 +16,7 @@ import {
 } from "./ephemeris-v2.ts";
 import { resolveBirthUTC } from "./timezone.ts";
 import { resolveSpeciesRules, findBannedIngredients } from "./species-recipe-rules.ts";
+import { jsonrepair } from "https://esm.sh/jsonrepair@3.12.0";
 import { verifyReport, type VerificationIssue } from "./verifier.ts";
 import { validateReport } from "./report-schema.ts";
 import {
@@ -264,7 +265,7 @@ let _customerPetName = "your pet";
 // Chosen 2026-04-22 after a 4-agent research sweep across Jan-Apr 2026
 // benchmarks + human blind-rater panels. Honest per-route best model:
 //
-// • memorial / discover / gift → claude-opus-4.6
+// • memorial / discover / gift → claude-opus-4.8
 //   Human blind-rater preference 47% (vs GPT-5.4 29%, Gemini 3.1 Pro 24%)
 //   for literary fiction. Best at subtext, earned emotion, chart-grounded
 //   insight. Opus 4.7 regressed to bullets + sycophancy per multiple
@@ -288,7 +289,7 @@ export function modelForOccasion(
     case "discover":
     case "gift":
     default:
-      return "anthropic/claude-opus-4.6";
+      return "anthropic/claude-opus-4.8";
   }
 }
 
@@ -299,7 +300,7 @@ export function modelForOccasion(
 async function fetchOpenRouter(
   systemPrompt: string,
   userPrompt: string,
-  model: string = "anthropic/claude-opus-4.6",
+  model: string = "anthropic/claude-opus-4.8",
 ): Promise<Response> {
   const body = JSON.stringify({
     model,
@@ -1948,7 +1949,7 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
 
   // ─── Parse response — fail loudly on any problem, never ship a template ────
 
-  let reportContent: Record<string, unknown>;
+  let reportContent!: Record<string, unknown>;
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "<no body>");
@@ -1998,17 +1999,52 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
           reportContent = JSON.parse(repaired);
           console.log("[WORKER] Repaired truncated JSON successfully");
         } catch (repairError) {
-          if (memorialReading) {
-            console.warn("[WORKER] Memorial run — JSON parse + repair both failed. Serving memorial fallback.");
-            await reportToSentry("Memorial fallback served (parse failure)", {
-              reportId,
-              parseError: String(parseError).slice(0, 200),
-              repairError: String(repairError).slice(0, 200),
-              head: rawContent.slice(0, 200),
-            });
-            reportContent = createMemorialFallbackReport();
-          } else {
-            throw new Error(`JSON parse + repair both failed. Parse: ${parseError}. Repair: ${repairError}. Head of content: ${rawContent.slice(0, 300)}`);
+          // Robustness (2026-06-04): Opus 4.8 et al intermittently emit JSON with
+          // unquoted keys / trailing commas the brace-repair cannot fix. Layered
+          // recovery: tolerant jsonrepair -> one full regeneration -> fallback/throw.
+          let recovered = false;
+          try {
+            reportContent = JSON.parse(jsonrepair(rawContent));
+            console.log("[WORKER] jsonrepair recovered malformed JSON");
+            recovered = true;
+          } catch (_jr) { /* fall through to regeneration */ }
+
+          if (!recovered) {
+            console.warn("[WORKER] parse+brace+jsonrepair failed — regenerating once...");
+            try {
+              const retryResp = await fetchOpenRouter(systemPrompt, userPrompt, selectedModel);
+              if (retryResp.ok) {
+                const retryJson = await retryResp.json();
+                let retryRaw = String(retryJson.choices?.[0]?.message?.content ?? "")
+                  .replace(/^```json\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+                try { reportContent = JSON.parse(retryRaw); recovered = true; }
+                catch { reportContent = JSON.parse(jsonrepair(retryRaw)); recovered = true; }
+                if (recovered) console.log("[WORKER] regeneration recovered JSON");
+              }
+            } catch (regenErr) {
+              console.warn("[WORKER] regeneration attempt failed:", regenErr);
+            }
+          }
+
+          if (!recovered) {
+            // Persist raw model output so failures are inspectable (Codex #1).
+            try {
+              Deno.mkdirSync("/opt/littlesouls/failures", { recursive: true });
+              Deno.writeTextFileSync(`/opt/littlesouls/failures/${reportId}.txt`, rawContent);
+              console.warn("[WORKER] raw output saved to /opt/littlesouls/failures/" + reportId + ".txt");
+            } catch (_e) { /* best-effort */ }
+            if (memorialReading) {
+              console.warn("[WORKER] Memorial run — all JSON recovery failed. Serving memorial fallback.");
+              await reportToSentry("Memorial fallback served (parse failure)", {
+                reportId,
+                parseError: String(parseError).slice(0, 200),
+                repairError: String(repairError).slice(0, 200),
+                head: rawContent.slice(0, 200),
+              });
+              reportContent = createMemorialFallbackReport();
+            } else {
+              throw new Error(`JSON parse + brace-repair + jsonrepair + regeneration all failed. Parse: ${parseError}. Head: ${rawContent.slice(0, 300)}`);
+            }
           }
         }
       }

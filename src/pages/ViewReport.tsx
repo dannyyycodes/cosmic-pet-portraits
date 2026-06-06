@@ -195,9 +195,6 @@ export default function ViewReport() {
       <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden" style={{ background: '#0d0a14', fontFamily: "'Playfair Display', Georgia, serif" }}>
         <VariantBackground />
         <div className="max-w-md w-full text-center relative z-10">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(212,182,122,0.18)' }}>
-            <span className="text-3xl">🔮</span>
-          </div>
           <h1 className="text-2xl font-display font-bold mb-4" style={{ color: '#f5efe6' }}>
             Verify Your Email
           </h1>

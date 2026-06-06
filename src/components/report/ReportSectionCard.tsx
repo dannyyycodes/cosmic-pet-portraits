@@ -3,6 +3,7 @@ import { useState } from 'react';
 import DOMPurify from 'dompurify';
 import { ChevronDown } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { deDash } from './cosmic/text';
 
 interface ReportSectionCardProps {
   icon: string;
@@ -20,8 +21,13 @@ interface ReportSectionCardProps {
 }
 
 const cleanWhiteStyle = {
-  container: 'bg-white rounded-[18px] border border-[#e8ddd0]',
-  containerStyle: { boxShadow: '0 2px 12px rgba(0,0,0,0.04)' } as React.CSSProperties,
+  container: 'rounded-[18px] border border-[#2a1f47]',
+  containerStyle: {
+    background: 'rgba(22,16,42,0.72)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    boxShadow: '0 2px 18px rgba(0,0,0,0.35)',
+  } as React.CSSProperties,
 };
 
 const variantStyles: Record<number, { container: string; containerStyle: React.CSSProperties }> = {
@@ -31,20 +37,16 @@ const variantStyles: Record<number, { container: string; containerStyle: React.C
 };
 
 function cleanContent(raw: string): string {
-  return raw
+  return deDash(raw)
     .replace(/\n\n/g, '<br /><br />')
-    .replace(/ — /g, '. ')
-    .replace(/ – /g, '. ')
     .replace(/^- /gm, '• ')
     .replace(/\n- /g, '<br />• ');
 }
 
 function getPreview(raw: string): string {
-  const plain = raw
+  const plain = deDash(raw)
     .replace(/\n\n/g, ' ')
     .replace(/\n/g, ' ')
-    .replace(/ — /g, '. ')
-    .replace(/ – /g, '. ')
     .replace(/^- /gm, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -92,22 +94,22 @@ export function ReportSectionCard({
             {icon}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#c4a265]">
-              {label}
+            <div className="text-[0.72rem] font-bold tracking-[2px] uppercase text-[#e6c179]">
+              {deDash(label)}
             </div>
-            <h3 className="text-[1.1rem] text-[#3d2f2a] mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h3>
+            <h3 className="text-[1.25rem] text-[#f3ecff] mt-1 leading-[1.3]" style={{ fontFamily: 'DM Serif Display, serif' }}>{deDash(title)}</h3>
           </div>
           {collapsible && (
             <button
               onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
               className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all"
               style={{
-                background: isExpanded ? 'rgba(196,162,101,0.1)' : 'rgba(196,162,101,0.06)',
-                border: '1px solid rgba(196,162,101,0.2)',
+                background: isExpanded ? 'rgba(230,193,121,0.14)' : 'rgba(230,193,121,0.08)',
+                border: '1px solid rgba(230,193,121,0.28)',
               }}
             >
               <ChevronDown
-                className={`w-4 h-4 text-[#c4a265] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-[#e6c179] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
               />
             </button>
           )}
@@ -115,7 +117,7 @@ export function ReportSectionCard({
 
         {/* Collapsed preview */}
         {collapsible && !isExpanded && (
-          <p className="text-[0.82rem] text-[#9a8578] leading-[1.6] mt-3">
+          <p className="text-[0.95rem] text-[#b9a8e0] leading-[1.62] mt-3.5 max-w-[64ch]">
             {getPreview(content)}
           </p>
         )}
@@ -136,14 +138,14 @@ export function ReportSectionCard({
                   <div className="mb-4">
                     <button
                       onClick={(e) => { e.stopPropagation(); setShowWhy(!showWhy); }}
-                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[0.68rem] font-semibold transition-all hover:scale-105 uppercase tracking-[1.5px]"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[0.82rem] font-semibold transition-all hover:scale-105 uppercase tracking-[1.5px]"
                       style={{
-                        background: showWhy ? 'rgba(196,162,101,0.12)' : 'rgba(196,162,101,0.06)',
-                        border: '1px solid rgba(196,162,101,0.2)',
-                        color: '#c4a265',
+                        background: showWhy ? 'rgba(230,193,121,0.16)' : 'rgba(230,193,121,0.08)',
+                        border: '1px solid rgba(230,193,121,0.28)',
+                        color: '#e6c179',
                       }}
                     >
-                      {whyBoxIcon && <span className="text-[0.75rem]">{whyBoxIcon}</span>}
+                      {whyBoxIcon && <span className="text-[0.82rem]">{whyBoxIcon}</span>}
                       {whyLabel || 'Why this matters'}
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showWhy ? 'rotate-180' : ''}`} />
                     </button>
@@ -156,11 +158,11 @@ export function ReportSectionCard({
                           transition={{ duration: 0.2 }}
                           style={{ overflow: 'hidden' }}
                         >
-                          <div className="mt-2 pl-4 border-l-2 border-[#c4a265]/30">
-                            <p className="text-[0.78rem] text-[#6b4c3b] leading-[1.6] italic"
+                          <div className="mt-2.5 pl-4 border-l-2 border-[#e6c179]/30">
+                            <p className="text-[0.95rem] text-[#ece5ff] leading-[1.65] italic max-w-[64ch]"
                               style={{ fontFamily: 'Cormorant, serif' }}
                             >
-                              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(whyText) }} />
+                              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(deDash(whyText)) }} />
                             </p>
                           </div>
                         </motion.div>
@@ -171,26 +173,26 @@ export function ReportSectionCard({
 
                 {/* Content */}
                 <div
-                  className="text-[0.86rem] leading-[1.85] text-[#5a4a42]"
+                  className="text-[1.05rem] leading-[1.65] text-[#ece5ff] max-w-[64ch]"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanContent(content)) }}
                 />
 
                 {/* Tip box */}
                 {tipBox && (
-                  <div className="mt-5 p-4 rounded-[12px] bg-[#faf6ef] border-l-[3px] border-[#c4a265]">
-                    <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c4a265] mb-1">
-                      {tipBox.icon} {tipBox.label}
+                  <div className="mt-5 p-4 rounded-[12px] bg-[#1d1538] border-l-[3px] border-[#e6c179]">
+                    <div className="text-[0.72rem] font-bold tracking-[1.5px] uppercase text-[#e6c179] mb-1.5">
+                      {tipBox.icon} {deDash(tipBox.label)}
                     </div>
-                    <p className="text-[0.82rem] text-[#5a4a42] leading-[1.6]">{tipBox.text}</p>
+                    <p className="text-[0.95rem] text-[#ece5ff] leading-[1.65] max-w-[64ch]">{deDash(tipBox.text)}</p>
                   </div>
                 )}
 
                 {/* Fun fact */}
                 {funFact && (
-                  <p className="mt-4 text-[0.78rem] text-[#9a8578] italic leading-[1.6]"
+                  <p className="mt-4 text-[0.95rem] text-[#b9a8e0] italic leading-[1.65] max-w-[64ch]"
                     style={{ fontFamily: 'Cormorant, serif' }}
                   >
-                    {funFact}
+                    {deDash(funFact)}
                   </p>
                 )}
               </div>

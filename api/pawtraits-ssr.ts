@@ -289,7 +289,7 @@ function renderGalleryGrid(rows: GalleryRow[], emptyMessage: string): string {
   const items = rows.map(r => {
     const alt = `${r.breed} portrait${r.art_style ? ` — ${r.art_style.replace(/-/g, " ")}` : ""}`;
     const src = r.thumbnail_url || r.image_url;
-    return `<li class="ls-grid-item"><a href="/pawtraits/gallery"><img src="${escAttr(src)}" alt="${escAttr(alt)}" loading="lazy" width="${r.width || 800}" height="${r.height || 1000}"/></a></li>`;
+    return `<li class="ls-grid-item"><a href="/pawtraits/art/${escAttr(r.id)}"><img src="${escAttr(src)}" alt="${escAttr(alt)}" loading="lazy" width="${r.width || 800}" height="${r.height || 1000}"/></a></li>`;
   }).join("");
   return `<ul class="ls-grid">${items}</ul>`;
 }

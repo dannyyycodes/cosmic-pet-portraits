@@ -117,33 +117,33 @@ export function CosmicRecipe({ petName, report }: CosmicRecipeProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-[#161029] rounded-[14px] border border-[#2a1f47] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-2.5">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#e6c179] mb-2.5">
         🍽️ {petName}'s Cosmic Recipe
       </div>
 
       <div className="flex gap-3.5 mb-3.5">
         <div className="text-[2.4rem]">{recipe.emoji}</div>
         <div>
-          <h4 className="font-dm-serif text-[1.05rem] text-[#3d2f2a]">{recipe.name}</h4>
-          <p className="text-[0.75rem] text-[#9a8578] mt-0.5">{recipe.description}</p>
+          <h4 className="font-dm-serif text-[1.05rem] text-[#f3ecff]">{recipe.name}</h4>
+          <p className="text-[0.75rem] text-[#9a86c8] mt-0.5">{recipe.description}</p>
         </div>
       </div>
 
-      <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6] mb-2 italic">{recipe.why}</p>
-      <p className="text-[0.68rem] text-[#9a8578] mb-3.5 bg-[#faf6ef] rounded-lg px-3 py-1.5 inline-block">
+      <p className="text-[0.78rem] text-[#d8c5f5] leading-[1.6] mb-2 italic">{recipe.why}</p>
+      <p className="text-[0.68rem] text-[#9a86c8] mb-3.5 bg-[#221a44] rounded-lg px-3 py-1.5 inline-block">
         🐾 A homemade treat recipe crafted for {petName}'s cosmic palate.
       </p>
 
       <div className="mb-3">
-        <h5 className="text-[0.68rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-1.5">
+        <h5 className="text-[0.68rem] font-bold text-[#e6c179] uppercase tracking-[1px] mb-1.5">
           Ingredients
         </h5>
         <ul className="list-none p-0">
           {recipe.ingredients.map((ing, i) => (
-            <li key={i} className="text-[0.8rem] text-[#5a4a42] py-0.5">
-              <span className="text-[#c4a265]">· </span>
+            <li key={i} className="text-[0.8rem] text-[#d8c5f5] py-0.5">
+              <span className="text-[#e6c179]">· </span>
               {ing}
             </li>
           ))}
@@ -151,12 +151,12 @@ export function CosmicRecipe({ petName, report }: CosmicRecipeProps) {
       </div>
 
       <div>
-        <h5 className="text-[0.68rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-1.5">
+        <h5 className="text-[0.68rem] font-bold text-[#e6c179] uppercase tracking-[1px] mb-1.5">
           Method
         </h5>
         <ol className="pl-[18px]">
           {recipe.steps.map((step, i) => (
-            <li key={i} className="text-[0.8rem] text-[#5a4a42] py-0.5 leading-[1.5]">
+            <li key={i} className="text-[0.8rem] text-[#d8c5f5] py-0.5 leading-[1.5]">
               {step}
             </li>
           ))}

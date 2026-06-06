@@ -1,126 +1,177 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { deDash } from './cosmic/text';
+import { CosmicLineIcon } from './cosmic/CosmicLineIcon';
 
 interface StaticPassageProps {
   lines: string[];
   variant?: 'full' | 'micro';
   species?: string;
+  /** Tiny gold caption under the lines, e.g. "The chart, listening". No dash. */
+  attribution?: string;
+  /** CosmicLineIcon name shown beside the attribution. Default 'sparkle'. */
+  icon?: string;
 }
 
 function getSpeciesWord(species?: string): string {
   if (!species) return 'fur';
   const s = species.toLowerCase();
-  if (s.includes('bird') || s.includes('parrot') || s.includes('cockatiel') || s.includes('budgie') || s.includes('canary') || s.includes('parakeet')) return 'feathers';
-  if (s.includes('reptile') || s.includes('snake') || s.includes('lizard') || s.includes('gecko') || s.includes('iguana') || s.includes('turtle') || s.includes('tortoise') || s.includes('chameleon')) return 'scales';
-  if (s.includes('fish') || s.includes('goldfish') || s.includes('betta') || s.includes('guppy') || s.includes('koi')) return 'fins';
+  if (/(bird|parrot|cockatiel|budgie|canary|parakeet)/.test(s)) return 'feathers';
+  if (/(reptile|snake|lizard|gecko|iguana|turtle|tortoise|chameleon)/.test(s)) return 'scales';
+  if (/(fish|goldfish|betta|guppy|koi)/.test(s)) return 'fins';
   return 'fur';
 }
 
 function processLine(line: string, species?: string): string {
-  return line.replace(/\[fur\/feathers\/scales\]/g, getSpeciesWord(species));
+  return deDash(line.replace(/\[fur\/feathers\/scales\]/g, getSpeciesWord(species)));
 }
 
-export function StaticPassage({ lines, variant = 'full', species }: StaticPassageProps) {
+// StaticPassage — a poetic interlude rendered as a sacred, designed beat:
+// a soft vertical light-beam backdrop on dark, a thin gold rule top + bottom,
+// generous editorial serif lines that reveal one-by-one on scroll, and an
+// elegant gold caption (with a tiny CosmicLineIcon) for the attribution.
+// No bare centered text dump. Mobile-first, GPU-only motion, reduced-motion safe.
+export function StaticPassage({
+  lines,
+  variant = 'full',
+  species,
+  attribution,
+  icon = 'sparkle',
+}: StaticPassageProps) {
   const s = useScrollReveal();
+  const reduce = useReducedMotion();
   const isMicro = variant === 'micro';
 
-  // Group lines into stanzas (split by empty lines)
-  const stanzas: string[][] = [];
-  let current: string[] = [];
-  for (const line of lines) {
-    const processed = processLine(line, species);
-    if (processed === '') {
-      if (current.length > 0) {
-        stanzas.push(current);
-        current = [];
-      }
-    } else {
-      current.push(processed);
-    }
-  }
-  if (current.length > 0) stanzas.push(current);
+  // Flatten to displayed lines; blank strings become stanza breaks (extra gap).
+  const display = lines.map((l) => processLine(l, species));
 
   return (
-    <motion.div
+    <motion.section
       ref={s.ref}
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: 0.15 } },
+        visible: { transition: { staggerChildren: reduce ? 0 : 0.16, delayChildren: 0.1 } },
       }}
-      className="max-w-[480px] mx-auto"
+      className="relative mx-auto"
       style={{
-        padding: isMicro ? 'clamp(20px, 4vw, 28px) clamp(24px, 6vw, 40px)' : 'clamp(32px, 6vw, 48px) clamp(24px, 6vw, 40px)',
+        maxWidth: isMicro ? 460 : 540,
+        padding: isMicro
+          ? 'clamp(28px,7vw,40px) clamp(22px,6vw,32px)'
+          : 'clamp(44px,9vw,72px) clamp(24px,6vw,40px)',
       }}
     >
-      {/* Top accent line */}
-      <motion.div
-        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="w-12 h-[1px] mx-auto mb-5"
-        style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
+      {/* Soft vertical light-beam backdrop */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(120% 60% at 50% 0%, rgba(154,126,230,0.12), transparent 62%), linear-gradient(180deg, rgba(230,193,121,0.07), transparent 30%, transparent 70%, rgba(230,193,121,0.05))',
+          maskImage:
+            'linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)',
+          WebkitMaskImage:
+            'linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)',
+        }}
+      />
+      {/* Faint starlight specks */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none opacity-50"
+        style={{
+          backgroundImage:
+            'radial-gradient(1px 1px at 18% 22%, rgba(243,236,255,0.55), transparent), radial-gradient(1px 1px at 82% 30%, rgba(230,193,121,0.5), transparent), radial-gradient(1px 1px at 30% 78%, rgba(154,126,230,0.5), transparent), radial-gradient(1px 1px at 70% 84%, rgba(243,236,255,0.4), transparent)',
+        }}
       />
 
-      {stanzas.map((stanza, si) => (
+      <div className="relative">
+        {/* Top gold rule */}
         <motion.div
-          key={si}
-          variants={{
-            hidden: { opacity: 0, y: 10 },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+          variants={{ hidden: { scaleX: 0, opacity: 0 }, visible: { scaleX: 1, opacity: 1 } }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto mb-7 h-px w-24"
+          style={{
+            background: 'linear-gradient(90deg, transparent, #e6c179, transparent)',
+            transformOrigin: 'center',
           }}
-          className={si < stanzas.length - 1 ? 'mb-4' : ''}
-        >
-          {stanza.map((line, li) => {
-            if (line === '\u2726' || line === '\u2726') {
-              return (
-                <div key={li} className="text-[#c4a265]/50 text-[0.8rem] my-2 text-center">
-                  \u2726
-                </div>
-              );
+        />
+
+        {/* The lines — editorial serif, balanced measure, line-by-line reveal */}
+        <div className="text-center">
+          {display.map((line, i) => {
+            const isBreak = line.trim().length === 0;
+            if (isBreak) {
+              return <div key={i} aria-hidden="true" style={{ height: 'clamp(14px,3vw,22px)' }} />;
             }
-
-            const isKeyLine = !isMicro && (
-              (si === 0 && li === 0) ||
-              line.startsWith('Astrology') ||
-              line.startsWith('They chose') ||
-              line.startsWith('You already') ||
-              line.startsWith('We just gave')
-            );
-
             return (
-              <p
-                key={li}
-                className={`leading-[1.7] mx-auto max-w-[400px] text-center ${
-                  isMicro
-                    ? 'text-[#9a8578] italic'
-                    : isKeyLine
-                      ? 'text-[#3d2f2a]'
-                      : 'text-[#9a8578] italic'
-                }`}
+              <motion.p
+                key={i}
+                variants={{
+                  hidden: { opacity: 0, y: 12, filter: 'blur(5px)' },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    filter: 'blur(0px)',
+                    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+                  },
+                }}
+                className="mx-auto"
                 style={{
-                  fontFamily: isKeyLine && !isMicro ? 'DM Serif Display, serif' : 'Cormorant, serif',
+                  fontFamily: 'Cormorant, serif',
+                  fontStyle: 'italic',
+                  color: '#f3ecff',
                   fontSize: isMicro
-                    ? 'clamp(0.88rem, 2.5vw, 0.95rem)'
-                    : isKeyLine
-                      ? 'clamp(1rem, 3vw, 1.08rem)'
-                      : 'clamp(0.9rem, 2.6vw, 0.98rem)',
+                    ? 'clamp(1.08rem,2.8vw,1.28rem)'
+                    : 'clamp(1.25rem,3.5vw,1.7rem)',
+                  lineHeight: 1.6,
+                  maxWidth: '30ch',
+                  textWrap: 'balance' as React.CSSProperties['textWrap'],
+                  letterSpacing: '0.005em',
                 }}
               >
                 {line}
-              </p>
+              </motion.p>
             );
           })}
-        </motion.div>
-      ))}
+        </div>
 
-      {/* Bottom accent line */}
-      <motion.div
-        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
-        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-        className="w-12 h-[1px] mx-auto mt-5"
-        style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
-      />
-    </motion.div>
+        {/* Gold attribution caption with tiny cosmic icon */}
+        {attribution && (
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+            }}
+            className="mt-7 flex items-center justify-center gap-2.5"
+          >
+            <span className="block h-px w-7" style={{ background: 'rgba(230,193,121,0.45)' }} />
+            <CosmicLineIcon name={icon} size={15} className="text-[#e6c179]" />
+            <span
+              style={{
+                fontFamily: 'Caveat, cursive',
+                fontSize: 'clamp(1.05rem,2.4vw,1.2rem)',
+                color: '#e6c179',
+                letterSpacing: '0.01em',
+              }}
+            >
+              {deDash(attribution)}
+            </span>
+            <span className="block h-px w-7" style={{ background: 'rgba(230,193,121,0.45)' }} />
+          </motion.div>
+        )}
+
+        {/* Bottom gold rule */}
+        <motion.div
+          variants={{ hidden: { scaleX: 0, opacity: 0 }, visible: { scaleX: 1, opacity: 1 } }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="mx-auto mt-7 h-px w-24"
+          style={{
+            background: 'linear-gradient(90deg, transparent, #e6c179, transparent)',
+            transformOrigin: 'center',
+          }}
+        />
+      </div>
+    </motion.section>
   );
 }

@@ -58,13 +58,13 @@ export function PlanetExplainers() {
         variants={header.variants}
         className="text-center px-6 py-5 max-w-[520px] mx-auto"
       >
-        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]">
+        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#e6c179]">
           The Celestial Bodies
         </div>
-        <h2 className="font-dm-serif text-2xl text-[#3d2f2a] leading-tight mt-1.5">
+        <h2 className="font-dm-serif text-2xl text-[#f3ecff] leading-tight mt-1.5">
           What Each Planet Reveals
         </h2>
-        <p className="text-[0.84rem] leading-[1.75] text-[#9a8578] max-w-[400px] mx-auto mt-2">
+        <p className="text-[0.84rem] leading-[1.75] text-[#9a86c8] max-w-[400px] mx-auto mt-2">
           Every planet in your pet's chart tells a different story. Here's why each one matters — and
           what it reveals about your pet.
         </p>
@@ -80,7 +80,7 @@ export function PlanetExplainers() {
               initial="hidden"
               animate={s.isInView ? 'visible' : 'hidden'}
               variants={s.variants}
-              className="flex gap-3 p-3 px-3.5 rounded-xl bg-white border border-[#e8ddd0]"
+              className="flex gap-3 p-3 px-3.5 rounded-xl bg-[#161029] border border-[#2a1f47]"
             >
               <div
                 className={`w-[38px] h-[38px] rounded-[10px] flex-shrink-0 flex items-center justify-center text-[1.1rem] ${planet.iconClass}`}
@@ -88,11 +88,11 @@ export function PlanetExplainers() {
                 {planet.icon}
               </div>
               <div>
-                <h5 className="text-[0.8rem] font-bold text-[#3d2f2a] mb-0.5">{planet.name}</h5>
-                <div className="text-[0.65rem] font-semibold text-[#c4a265] uppercase tracking-[0.5px] mb-0.5">
+                <h5 className="text-[0.8rem] font-bold text-[#f3ecff] mb-0.5">{planet.name}</h5>
+                <div className="text-[0.65rem] font-semibold text-[#e6c179] uppercase tracking-[0.5px] mb-0.5">
                   Governs: {planet.governs}
                 </div>
-                <p className="text-[0.74rem] text-[#9a8578] leading-[1.5]">{planet.desc}</p>
+                <p className="text-[0.74rem] text-[#d8c5f5] leading-[1.5]">{planet.desc}</p>
               </div>
             </motion.div>
           );

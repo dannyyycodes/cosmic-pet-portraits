@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { deDash } from './cosmic/text';
 
 interface DirectMessageProps {
   directMessage: {
@@ -17,7 +18,7 @@ interface DirectMessageProps {
 function splitLines(msg: string): string[] {
   return msg
     .split(/\n+/)
-    .map((l) => l.replace(/^["']|["']$/g, '').trim())
+    .map((l) => deDash(l.replace(/^["']|["']$/g, '').trim()))
     .filter(Boolean);
 }
 
@@ -36,43 +37,45 @@ export function DirectMessage({ directMessage, petName }: DirectMessageProps) {
       <div
         className="py-10 px-6 sm:px-10 rounded-[20px] relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #faf4e8 0%, #fdf5f5 100%)',
-          border: '1px solid #e8ddd0',
+          background: 'linear-gradient(135deg, rgba(26,19,48,0.92) 0%, rgba(13,10,22,0.92) 100%)',
+          border: '1px solid #2a1f47',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
         }}
       >
         {/* Golden frame corners */}
         <div
           className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 rounded-tl-md"
-          style={{ borderColor: '#c4a265' }}
+          style={{ borderColor: '#e6c179' }}
         />
         <div
           className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 rounded-tr-md"
-          style={{ borderColor: '#c4a265' }}
+          style={{ borderColor: '#e6c179' }}
         />
         <div
           className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 rounded-bl-md"
-          style={{ borderColor: '#c4a265' }}
+          style={{ borderColor: '#e6c179' }}
         />
         <div
           className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 rounded-br-md"
-          style={{ borderColor: '#c4a265' }}
+          style={{ borderColor: '#e6c179' }}
         />
 
         <div className="text-center mb-4">
-          <div className="text-[0.6rem] font-bold tracking-[3px] uppercase text-[#c4a265] mb-1">
+          <div className="text-[0.6rem] font-bold tracking-[3px] uppercase text-[#e6c179] mb-1">
             A Message From {petName}
           </div>
           <h3
-            className="text-[1.15rem] text-[#3d2f2a]"
+            className="text-[1.15rem] text-[#f3ecff]"
             style={{ fontFamily: 'DM Serif Display, serif' }}
           >
-            {directMessage.title || `The One Thing ${petName} Most Wants You to Know`}
+            {deDash(directMessage.title) || `The One Thing ${petName} Most Wants You to Know`}
           </h3>
         </div>
 
         {directMessage.preamble && (
-          <p className="text-[0.78rem] text-[#958779] text-center leading-[1.7] italic mb-5">
-            {directMessage.preamble}
+          <p className="text-[0.78rem] text-[#9a86c8] text-center leading-[1.7] italic mb-5">
+            {deDash(directMessage.preamble)}
           </p>
         )}
 
@@ -80,7 +83,7 @@ export function DirectMessage({ directMessage, petName }: DirectMessageProps) {
           {lines.map((line, i) => (
             <p
               key={i}
-              className="text-[1.05rem] sm:text-[1.15rem] text-[#3d2f2a] leading-[1.55]"
+              className="text-[1.05rem] sm:text-[1.15rem] text-[#f3ecff] leading-[1.55]"
               style={{ fontFamily: 'DM Serif Display, serif', fontStyle: 'italic' }}
             >
               {line}
@@ -90,10 +93,10 @@ export function DirectMessage({ directMessage, petName }: DirectMessageProps) {
 
         {directMessage.signoff && (
           <p
-            className="text-[0.82rem] text-[#5a4a42] text-right mt-6 pt-4 border-t border-[#e8ddd0]"
+            className="text-[0.82rem] text-[#d8c5f5] text-right mt-6 pt-4 border-t border-[#2a1f47]"
             style={{ fontFamily: 'DM Serif Display, serif', fontStyle: 'italic' }}
           >
-            {directMessage.signoff}
+            {deDash(directMessage.signoff)}
           </p>
         )}
       </div>

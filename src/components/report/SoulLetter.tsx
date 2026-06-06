@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { zodiacSigns } from '@/lib/zodiac';
+import { deDash } from './cosmic/text';
+import { CosmicLineIcon } from './cosmic/CosmicLineIcon';
 
 interface SoulLetterProps {
   petName: string;
@@ -9,16 +11,72 @@ interface SoulLetterProps {
   occasionMode?: string;
 }
 
+// A small drawn wax-seal motif in gold + violet — the keepsake's signature mark.
+// Stroke-only SVG so it matches the CosmicLineIcon family; the sun-sign glyph
+// sits embossed at its centre.
+function WaxSeal({ glyph }: { glyph: string }) {
+  return (
+    <span
+      className="relative inline-flex items-center justify-center rounded-full shrink-0"
+      style={{
+        width: 56,
+        height: 56,
+        background:
+          'radial-gradient(circle at 34% 28%, rgba(230,193,121,0.35), rgba(154,126,230,0.18) 55%, rgba(10,8,16,0.9) 92%)',
+        boxShadow:
+          '0 6px 22px rgba(154,126,230,0.28), inset 0 1px 2px rgba(255,216,107,0.35), inset 0 -3px 6px rgba(10,8,16,0.6)',
+      }}
+      aria-hidden="true"
+    >
+      <svg
+        width="56"
+        height="56"
+        viewBox="0 0 56 56"
+        fill="none"
+        className="absolute inset-0"
+        aria-hidden="true"
+      >
+        {/* wax rim + stitched inner ring */}
+        <circle cx="28" cy="28" r="23" stroke="#e6c179" strokeOpacity="0.7" strokeWidth="1.2" />
+        <circle
+          cx="28"
+          cy="28"
+          r="19"
+          stroke="#e6c179"
+          strokeOpacity="0.45"
+          strokeWidth="1"
+          strokeDasharray="1.5 3"
+        />
+      </svg>
+      <span
+        className="relative font-serif select-none"
+        style={{
+          fontSize: '1.5rem',
+          color: '#ffd86b',
+          textShadow: '0 1px 2px rgba(10,8,16,0.7)',
+        }}
+      >
+        {glyph || '✦'}
+      </span>
+    </span>
+  );
+}
+
+// SoulLetter — the emotional climax, framed as an actual letter from the pet's
+// soul: a parchment-of-light card on the dark cosmic ground, a serif drop-cap
+// opening the first paragraph, a comfortable ~62ch reading measure, bright body
+// (#ece5ff) at >=1.06rem / lh 1.7, and an elegant signature line closed with a
+// drawn gold wax-seal. The keepsake centrepiece. All copy verbatim (deDash only).
 export function SoulLetter({ petName, epilogue, sunSign, occasionMode }: SoulLetterProps) {
   const pause = useScrollReveal();
   const header = useScrollReveal();
   const signData = zodiacSigns[sunSign.toLowerCase()];
-  const signIcon = signData?.icon || '';
+  const signGlyph = signData?.icon || '';
 
-  // Split epilogue into paragraphs for breathing room
+  // Split epilogue into paragraphs for breathing room.
   const rawParagraphs = epilogue.split(/\n\n+/).filter(Boolean);
-  // If only 1 paragraph, try splitting on sentence boundaries into ~3 groups
-  const paragraphs = rawParagraphs.length > 1
+  // If only 1 paragraph, group sentences into ~3 readable blocks.
+  const paragraphs = (rawParagraphs.length > 1
     ? rawParagraphs
     : epilogue.split(/(?<=[.!?])\s+(?=[A-Z])/).reduce((acc: string[], sentence) => {
         const lastIdx = acc.length - 1;
@@ -28,7 +86,8 @@ export function SoulLetter({ petName, epilogue, sunSign, occasionMode }: SoulLet
           acc.push(sentence);
         }
         return acc;
-      }, []);
+      }, [])
+  ).map((p) => deDash(p));
 
   return (
     <>
@@ -37,91 +96,179 @@ export function SoulLetter({ petName, epilogue, sunSign, occasionMode }: SoulLet
         ref={pause.ref}
         initial="hidden"
         animate={pause.isInView ? 'visible' : 'hidden'}
-        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
-        className="text-center px-8 py-8 max-w-[520px] mx-auto"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } },
+        }}
+        className="text-center px-7 py-9 max-w-[520px] mx-auto"
       >
         <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-          <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+          <div className="h-px w-10" style={{ background: 'rgba(230,193,121,0.35)' }} />
+          <CosmicLineIcon name="sparkle" size={15} className="text-[#e6c179]" />
+          <div className="h-px w-10" style={{ background: 'rgba(230,193,121,0.35)' }} />
         </div>
         <p
-          className="text-[1.05rem] text-[#9a8578] italic leading-[1.8]"
-          style={{ fontFamily: 'Cormorant, serif' }}
+          className="italic"
+          style={{
+            fontFamily: 'Cormorant, serif',
+            color: '#ece5ff',
+            fontSize: 'clamp(1.1rem,2.8vw,1.3rem)',
+            lineHeight: 1.7,
+          }}
         >
-          {occasionMode === 'memorial'
+          {deDash(occasionMode === 'memorial'
             ? `Now, take a breath. ${petName} has something to tell you.`
-            : `Now, the part that matters most. ${petName} has something to say to you.`}
+            : `Now, the part that matters most. ${petName} has something to say to you.`)}
         </p>
       </motion.div>
 
-      {/* Header */}
+      {/* Header / eyebrow */}
       <motion.div
         ref={header.ref}
         initial="hidden"
         animate={header.isInView ? 'visible' : 'hidden'}
         variants={header.variants}
-        className="text-center px-6 py-3 max-w-[520px] mx-auto"
+        className="text-center px-6 pt-2 pb-4 max-w-[560px] mx-auto"
       >
-        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]">
+        <div
+          className="font-bold uppercase"
+          style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: '#e6c179' }}
+        >
           A Message From {petName}&rsquo;s Soul
         </div>
       </motion.div>
 
-      {/* The letter — dark immersive container */}
+      {/* The letter — parchment-of-light on the dark cosmic ground */}
       <div
-        className="mx-4 my-2.5 max-w-[520px] sm:mx-auto rounded-[20px] relative overflow-hidden"
+        className="mx-4 my-3 sm:mx-auto rounded-[22px] relative overflow-hidden"
         style={{
-          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 40%, #1a1210 100%)',
-          boxShadow: '0 8px 40px rgba(61,47,42,0.35)',
-          border: '1px solid rgba(196,162,101,0.15)',
+          maxWidth: 600,
+          background:
+            'linear-gradient(168deg, rgba(34,26,68,0.92) 0%, rgba(22,16,42,0.95) 46%, rgba(10,8,16,0.97) 100%)',
+          boxShadow: '0 18px 60px rgba(10,8,16,0.6), 0 0 0 1px rgba(154,126,230,0.16)',
+          border: '1px solid #2a1f47',
         }}
       >
-        {/* Glow accents */}
-        <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
-        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+        {/* Parchment-of-light glow accents */}
+        <div
+          className="absolute -top-10 right-0 w-52 h-52 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(230,193,121,0.18), transparent 68%)' }}
+          aria-hidden="true"
+        />
+        <div
+          className="absolute -bottom-12 left-0 w-52 h-52 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(154,126,230,0.2), transparent 68%)' }}
+          aria-hidden="true"
+        />
+        {/* faint top sheen — the "light on parchment" */}
+        <div
+          className="absolute inset-x-0 top-0 h-24 pointer-events-none"
+          style={{ background: 'linear-gradient(180deg, rgba(243,236,255,0.06), transparent)' }}
+          aria-hidden="true"
+        />
 
-        <div className="relative z-10 px-7 py-10 sm:px-9">
-          {/* Opening quote */}
-          <div className="text-[3.5rem] leading-none text-[#c4a265]/25 font-serif mb-2">&ldquo;</div>
+        <div
+          className="relative z-10"
+          style={{ padding: 'clamp(30px,7vw,52px) clamp(24px,6vw,48px)' }}
+        >
+          {/* Opening quote glyph */}
+          <div
+            aria-hidden="true"
+            className="leading-none mb-1 select-none"
+            style={{
+              fontSize: '3.4rem',
+              color: 'rgba(230,193,121,0.32)',
+              fontFamily: 'DM Serif Display, serif',
+            }}
+          >
+            &ldquo;
+          </div>
 
-          {/* Paragraphs with staggered reveal */}
-          <div className="space-y-5">
+          {/* Paragraphs — drop-cap on the first, comfortable reading measure */}
+          <div style={{ maxWidth: '62ch', marginInline: 'auto' }}>
             {paragraphs.map((para, i) => (
               <motion.p
                 key={i}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 viewport={{ once: true, margin: '-20px' }}
-                transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }}
-                className="text-[0.95rem] sm:text-[1rem] text-white/80 leading-[2] italic"
-                style={{ fontFamily: 'Cormorant, serif' }}
+                transition={{ duration: 0.8, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className={i === 0 ? 'soul-letter-dropcap' : ''}
+                style={{
+                  fontFamily: 'Cormorant, serif',
+                  color: '#ece5ff',
+                  fontSize: 'clamp(1.06rem,2.4vw,1.18rem)',
+                  lineHeight: 1.7,
+                  marginTop: i === 0 ? 0 : 'clamp(16px,3.5vw,22px)',
+                }}
               >
                 {para}
               </motion.p>
             ))}
           </div>
 
-          {/* Closing quote */}
-          <div className="text-[3.5rem] leading-none text-[#c4a265]/25 font-serif mt-3 text-right">&rdquo;</div>
-
-          {/* Divider */}
-          <div className="flex items-center justify-center gap-3 my-5">
-            <div className="w-10 h-[1px] bg-[#c4a265]/20" />
-            <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
-            <div className="w-10 h-[1px] bg-[#c4a265]/20" />
+          {/* Closing quote glyph */}
+          <div
+            aria-hidden="true"
+            className="leading-none mt-3 text-right select-none"
+            style={{
+              fontSize: '3.4rem',
+              color: 'rgba(230,193,121,0.32)',
+              fontFamily: 'DM Serif Display, serif',
+            }}
+          >
+            &rdquo;
           </div>
 
-          {/* Attribution */}
-          <div className="text-center">
-            <div className="text-[0.9rem] text-[#c4a265] font-bold">
-              — {petName}&rsquo;s Soul {signIcon}
+          {/* Divider */}
+          <div className="flex items-center justify-center gap-3 my-6">
+            <div className="h-px w-12" style={{ background: 'rgba(230,193,121,0.3)' }} />
+            <CosmicLineIcon name="star" size={14} className="text-[#e6c179]" />
+            <div className="h-px w-12" style={{ background: 'rgba(230,193,121,0.3)' }} />
+          </div>
+
+          {/* Signature line + wax seal (no dash) */}
+          <div className="flex items-center justify-center gap-3.5">
+            <div className="text-right">
+              <div
+                style={{
+                  fontFamily: 'Caveat, cursive',
+                  fontSize: 'clamp(1.5rem,4vw,1.9rem)',
+                  color: '#ffd86b',
+                  lineHeight: 1.1,
+                }}
+              >
+                {petName}&rsquo;s Soul
+              </div>
+              <div
+                className="uppercase"
+                style={{
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.18em',
+                  color: '#b9a8e0',
+                  marginTop: 4,
+                }}
+              >
+                Written in the stars
+              </div>
             </div>
+            <WaxSeal glyph={signGlyph} />
           </div>
         </div>
       </div>
+
+      {/* Drop-cap styling for the first paragraph's first letter. */}
+      <style>{`
+        .soul-letter-dropcap::first-letter {
+          font-family: 'DM Serif Display', serif;
+          font-size: 3.4em;
+          line-height: 0.78;
+          float: left;
+          margin: 0.04em 0.09em 0 0;
+          color: #e6c179;
+          font-style: normal;
+        }
+      `}</style>
     </>
   );
 }

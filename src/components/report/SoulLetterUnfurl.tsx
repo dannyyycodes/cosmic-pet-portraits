@@ -2,6 +2,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { zodiacSigns } from '@/lib/zodiac';
 import { SoulLetter } from './SoulLetter';
+import { deDash } from './cosmic/text';
 
 interface SoulLetterUnfurlProps {
   petName: string;
@@ -92,18 +93,31 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
   return (
     <div ref={ref} className="my-8 mx-4 sm:mx-auto max-w-[520px]">
       <div
-        className="relative rounded-[20px] overflow-hidden"
+        className="relative rounded-[22px] overflow-hidden"
         style={{
           background:
-            'radial-gradient(ellipse at center, #2a1f1a 0%, #1a1210 70%, #0f0908 100%)',
-          border: '1px solid rgba(196,162,101,0.2)',
+            'radial-gradient(ellipse at center, rgba(34,26,68,0.9) 0%, rgba(22,16,42,0.96) 62%, #06050c 100%)',
+          border: '1px solid #2a1f47',
           minHeight: 380,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.45)',
+          boxShadow: '0 18px 60px rgba(10,8,16,0.6), 0 0 0 1px rgba(154,126,230,0.14)',
         }}
       >
+        {/* Faint starlight backdrop */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none opacity-60"
+          style={{
+            backgroundImage:
+              'radial-gradient(1px 1px at 20% 24%, rgba(243,236,255,0.55), transparent), radial-gradient(1px 1px at 78% 32%, rgba(230,193,121,0.5), transparent), radial-gradient(1.5px 1.5px at 34% 74%, rgba(154,126,230,0.5), transparent), radial-gradient(1px 1px at 66% 82%, rgba(243,236,255,0.4), transparent)',
+          }}
+        />
+
         {/* Eyebrow */}
         <div className="absolute top-6 inset-x-0 text-center">
-          <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#c4a265]/85">
+          <div
+            className="font-bold uppercase"
+            style={{ fontSize: '0.64rem', letterSpacing: '0.22em', color: '#e6c179' }}
+          >
             A Sealed Letter Awaits
           </div>
         </div>
@@ -113,8 +127,8 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
           onClick={breakNow}
           onFocus={() => setPaused(true)}
           onBlur={() => setPaused(false)}
-          aria-label="Break the seal to open the letter — auto-opens in a moment if you don't"
-          className="absolute inset-0 flex items-center justify-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4a265] focus-visible:ring-offset-2 rounded-[20px]"
+          aria-label="Break the seal to open the letter. It opens on its own in a moment if you do not."
+          className="absolute inset-0 flex items-center justify-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e6c179] focus-visible:ring-offset-2 rounded-[22px]"
           disabled={stage !== 'sealed'}
         >
           {/* Ambient halo */}
@@ -123,7 +137,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
             className="absolute w-[260px] h-[260px] rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(196,162,101,0.25) 0%, rgba(191,82,74,0.15) 40%, transparent 70%)',
+                'radial-gradient(circle, rgba(230,193,121,0.3) 0%, rgba(154,126,230,0.18) 42%, transparent 72%)',
               filter: 'blur(6px)',
             }}
             initial={{ opacity: 0, scale: 0.6 }}
@@ -146,9 +160,9 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
               width: 116,
               height: 116,
               background:
-                'radial-gradient(circle at 35% 30%, #d96350 0%, #bf524a 35%, #8e2f2a 90%)',
+                'radial-gradient(circle at 35% 28%, #ffd86b 0%, #e6c179 32%, #9a7ee6 88%, #5a3fa6 100%)',
               boxShadow:
-                '0 6px 20px rgba(0,0,0,0.55), inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -4px 8px rgba(0,0,0,0.35)',
+                '0 8px 26px rgba(154,126,230,0.45), inset 0 2px 5px rgba(255,255,255,0.35), inset 0 -5px 10px rgba(10,8,16,0.45)',
             }}
             initial={{ scale: 0.3, opacity: 0, rotate: -25 }}
             animate={
@@ -166,9 +180,9 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
             <span
               className="font-serif text-4xl select-none"
               style={{
-                color: '#3a1210',
+                color: '#2a1f47',
                 textShadow:
-                  '0 1px 0 rgba(255,200,180,0.25), 0 -1px 1px rgba(0,0,0,0.55)',
+                  '0 1px 0 rgba(255,236,190,0.45), 0 -1px 1px rgba(10,8,16,0.5)',
                 letterSpacing: 0,
               }}
               aria-hidden="true"
@@ -181,8 +195,8 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
               aria-hidden="true"
               className="absolute inset-0 rounded-full pointer-events-none"
               style={{
-                border: '2px solid rgba(61,18,16,0.6)',
-                boxShadow: 'inset 0 0 0 1px rgba(255,200,180,0.25)',
+                border: '2px solid rgba(90,63,166,0.5)',
+                boxShadow: 'inset 0 0 0 1px rgba(255,236,190,0.4)',
               }}
             />
           </motion.div>
@@ -195,11 +209,11 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
                 aria-hidden="true"
                 className="absolute w-1 h-1 rounded-full pointer-events-none"
                 style={{
-                  background: s.i % 2 === 0 ? '#c4a265' : '#d96350',
+                  background: s.i % 2 === 0 ? '#e6c179' : '#9a7ee6',
                   boxShadow:
                     s.i % 2 === 0
-                      ? '0 0 6px #c4a265, 0 0 12px #c4a265'
-                      : '0 0 6px #d96350',
+                      ? '0 0 6px #e6c179, 0 0 12px #e6c179'
+                      : '0 0 6px #9a7ee6, 0 0 12px #9a7ee6',
                 }}
                 initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
                 animate={{
@@ -227,10 +241,16 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
               transition={{ delay: 1.2, duration: 0.8 }}
               className="absolute bottom-7 inset-x-0 text-center px-6"
             >
-              <div className="text-[#c4a265] text-sm font-serif italic mb-1">
-                {petName}&rsquo;s soul has written you a letter.
+              <div
+                className="font-serif italic mb-1.5"
+                style={{ color: '#ece5ff', fontSize: '0.98rem', lineHeight: 1.5 }}
+              >
+                {deDash(`${petName}’s soul has written you a letter.`)}
               </div>
-              <div className="text-[#faf6ef]/50 text-[0.68rem] tracking-[0.25em] uppercase font-sans">
+              <div
+                className="uppercase font-sans"
+                style={{ color: '#b9a8e0', fontSize: '0.7rem', letterSpacing: '0.25em' }}
+              >
                 Tap the seal to open &middot; or wait a moment
               </div>
             </motion.div>

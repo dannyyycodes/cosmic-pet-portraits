@@ -1,0 +1,153 @@
+{
+  "_meta": {
+    "description": "Founding brand-pet cast for Little Souls FB content. Each cast member has a locked identity (master image where available), breed-specific keep_list for prompt anchoring, story anchors drawn from a Habit Pool (per littlesouls-angle-prompt skill), and signature canvas style. Codex passes the master image as reference + the keep_list in every prompt to lock identity across multiple generations.",
+    "version": "1.0",
+    "created": "2026-05-09"
+  },
+  "clover": {
+    "name": "Clover",
+    "breed": "Golden Retriever",
+    "pet_kind": "dog",
+    "age_range": "3-5 years",
+    "personality": "The rescue who took three months to bond. Watchful, soft, slow to trust then absolute. Sleeps under her portrait now.",
+    "master_image": "C:/Users/danie/vault/01-projects/little-souls/pet-portraits/clover-reference.png",
+    "master_image_alt": "C:/Users/danie/pet-portraits/incoming/2026-05-09-test-B/processed/img_001.png",
+    "keep_list": "feathered tail, soft sable-and-gold layered coat, narrow muzzle, dark almond eyes, slight head-tilt, kind set of the brow, white wisp on chest only",
+    "signature_style": "watercolour-floral",
+    "primary_slots": ["reveal-monday", "aesthetic-drop-wednesday", "transformation-story-saturday"],
+    "story_anchors": [
+      "the kitchen radiator she claimed within an hour of getting home",
+      "didn't whine the first night — just blinked at the new dark like she was already counting it as hers",
+      "bit two foster carers in the first week",
+      "spent three months sleeping in the corner of the kitchen, watching the door",
+      "sleeps under her portrait on Sundays now",
+      "found wildflowers in the garden on her first proper walk",
+      "carries socks to the door but never out of it",
+      "the soft light by the kitchen window she always finds"
+    ],
+    "breed_facts": [
+      "Goldens hit their adult coat around fourteen months — soft puppy down replaced with the feathered legs that's the breed standard.",
+      "Lord Tweedmouth bred the first one in the Scottish Highlands in 1865. He wanted a retriever that wouldn't break the bird.",
+      "A Golden's mouth is so soft they were trained to retrieve eggs without cracking them.",
+      "The breed standard calls for 'eager, alert and self-confident' — three words that explain why they sit at the door at 5pm.",
+      "Goldens were almost extinct after WWII. Three breeders kept the line going.",
+      "They're one of only six breeds developed specifically for the comfort of the human carrying the gun."
+    ],
+    "status": "master_locked"
+  },
+  "atlas": {
+    "name": "Atlas",
+    "breed": "Black domestic shorthair",
+    "pet_kind": "cat",
+    "age_range": "3-5 years",
+    "personality": "Kitchen-window-watcher. Aloof until he isn't. Bonded the day he stopped pretending not to be.",
+    "master_image": null,
+    "keep_list": "ink-black coat, single small white wisp on chest only, pale green-yellow eyes, tall ears with slight forward-set, narrow body, long whip tail",
+    "signature_style": "oil-on-linen",
+    "primary_slots": ["aesthetic-drop-wednesday", "caption-this-thursday"],
+    "story_anchors": [
+      "watches the kettle boil from the kitchen window every morning",
+      "knows when you're crying before you do",
+      "sleeps on the warm laptop and refuses to move",
+      "small white wisp on the chest is the only un-black thing about him",
+      "stalked his own reflection for the entire first week",
+      "claimed the second step of the stairs because he could see the front door AND the kitchen at once",
+      "drops things off the table deliberately and watches you pick them up",
+      "purrs only when you're sad"
+    ],
+    "breed_facts": [
+      "Black cats lose their kitten eye-blue around twelve weeks. The pale yellow or green that comes in is theirs for life.",
+      "Cats have 32 muscles in each ear and can rotate them 180 degrees independently.",
+      "Cats domesticated themselves around 9000 years ago — earliest evidence is a 7500 BC burial site in Cyprus.",
+      "A cat's purr sits between 25 and 50 hertz. The same range used in bone-regrowth therapy studies.",
+      "Cats recognise their names. They just choose whether to respond.",
+      "Black cats have a single dominant gene (TYRP1). Statistically more melanistic cats are male than female."
+    ],
+    "status": "master_pending"
+  },
+  "hazel": {
+    "name": "Hazel",
+    "breed": "Lab mix (rescue, age unknown)",
+    "pet_kind": "dog",
+    "age_range": "10-13 years senior",
+    "personality": "Grey muzzle, sleeps under the kitchen table. The gentlest archetype for memorial framing only. Never used for active grief — only senior remembrance.",
+    "master_image": null,
+    "keep_list": "grey muzzle fading into chestnut coat, soft eyes with the slight cataracts of age, broad warm pink belly, paws white-tipped, the slowness of a senior dog",
+    "signature_style": "soft pastel",
+    "primary_slots": ["bridge-friday"],
+    "story_anchors": [
+      "sleeps under the kitchen table where it's coolest",
+      "took a year at the rescue before she wagged her tail again",
+      "still flinches at raised voices, six years later",
+      "drops her head into your lap when you're crying",
+      "the slow, deliberate way she follows you from room to room",
+      "the way she sighs when she lies down — long and final",
+      "the white that's spreading from her muzzle up around her eyes"
+    ],
+    "breed_facts": [
+      "Senior dogs grieve too — documented behaviour change in canines after losing a household member, human or animal.",
+      "Lab mixes are the most common breed in UK shelters; they're also the ones that bond hardest after long stays.",
+      "A dog's sense of smell is 40 times more powerful than ours, which means the absence of someone is something they detect long before we know to ask.",
+      "Cataracts in older dogs don't always mean blindness — many dogs adapt by mapping the house through smell and sound."
+    ],
+    "status": "master_pending",
+    "ethics_note": "Hazel is fallback only. Real customer memorial submissions take Bridge Friday whenever available. Never use Hazel for a 'just lost' framing — only 'gentle remembrance' or 'senior dog in the family' archetype. Five Love Test must pass."
+  },
+  "beans": {
+    "name": "Beans",
+    "breed": "French Bulldog",
+    "pet_kind": "dog",
+    "age_range": "3-6 years",
+    "personality": "Snorts at thunder. Fierce about toys. Will wear any costume; resents none of them.",
+    "master_image": null,
+    "keep_list": "fawn coat with black mask, bat ears at full alert, comical underbite with tiny lower teeth visible, brindle dappling on front paws, expressive bottom lip, slightly bowed front legs",
+    "signature_style_rotation": ["pop-art", "royal-oil", "cowboy-poster", "renaissance"],
+    "primary_slots": ["breed-pride-tuesday", "caption-this-thursday"],
+    "story_anchors": [
+      "snorts at thunder but not at fireworks",
+      "stole a sock and slept with it for three days",
+      "won't share the bed; will share the chair",
+      "her bat ears swivel independently like radar",
+      "the comical underbite means her tongue lives slightly out at all times",
+      "ferocious about her squeaky lobster",
+      "trembles at the bath, doesn't trembles in the rain"
+    ],
+    "breed_facts": [
+      "French Bulldogs were bred by lace workers in Nottingham in the 1800s as ratters and lap dogs. They went to Paris with the workers when textile work moved.",
+      "Their ears are a 'bat ear' set — a deliberate breed standard adopted in Paris in 1898.",
+      "Frenchies cannot swim — their dense bone structure and short snout mean they sink. Most pet insurance excludes water claims for the breed.",
+      "Their underbite is functional, not cosmetic — it lets them grip without hurting their soft palate.",
+      "About 80% of French Bulldogs are born by C-section because of their head-to-pelvis ratio."
+    ],
+    "status": "master_pending"
+  },
+  "mochi": {
+    "name": "Mochi",
+    "breed": "Maine Coon",
+    "pet_kind": "cat",
+    "age_range": "5-8 years",
+    "personality": "Older than the breed. Aristocratic indifference. Watches the window for hours and reports back nothing.",
+    "master_image": null,
+    "keep_list": "thick mane around face, prominent ear tufts, slow-blink amber eyes, long ringed tail thicker than her body, fur cascading in distinct layers, large paws with tufted toes",
+    "signature_style": "renaissance oil",
+    "primary_slots": ["aesthetic-drop-wednesday"],
+    "story_anchors": [
+      "watches the window for hours and reports back nothing",
+      "drops things off the table deliberately, then walks away",
+      "the slow-blink that says I will hear you out, briefly",
+      "her tail is bigger than her body when she's annoyed",
+      "claims the highest point in any room — top of the wardrobe by default",
+      "purrs at a register low enough to feel in your sternum",
+      "the way she walks past you like she's running for office and you didn't sign her petition"
+    ],
+    "breed_facts": [
+      "Maine Coons are the largest domestic cat breed — males commonly hit 9 kilos.",
+      "A coin from 1500 BC at the British Museum has a cat on it with the same eyes, chest, and ear tufts as a Maine Coon. Same breed, four millennia ago.",
+      "They're one of only two cat breeds with tufted toes — the other is the Norwegian Forest Cat.",
+      "Maine Coons trill more than they meow. The trill is a greeting; the meow is a complaint.",
+      "Their ear tufts (called 'lynx tips') are a thermal regulation adaptation — they evolved in Maine winters.",
+      "They take four years to reach full size. Most cats finish growing at one."
+    ],
+    "status": "master_pending"
+  }
+}

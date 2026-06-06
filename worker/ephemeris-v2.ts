@@ -398,8 +398,10 @@ export function getAscendant(jd: number, latitude: number, longitude: number): n
   const eps = 23.439291 - 0.0130042 * T;
   const epsRad = eps * DEG_TO_RAD;
   const latRad = latitude * DEG_TO_RAD;
-  const y = -Math.cos(LSTrad);
-  const x = Math.sin(epsRad) * Math.tan(latRad) + Math.cos(epsRad) * Math.sin(LSTrad);
+  // FIX 2026-06-04: prior form returned the DESCENDANT (exactly 180 off — verified
+  // independently vs JPL DE421 + altaz horizon calc). Canonical Meeus ascendant:
+  const y = Math.cos(LSTrad);
+  const x = -(Math.sin(LSTrad) * Math.cos(epsRad) + Math.tan(latRad) * Math.sin(epsRad));
   return normalizeAngle(Math.atan2(y, x) * RAD_TO_DEG);
 }
 

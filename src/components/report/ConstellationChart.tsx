@@ -37,10 +37,10 @@ const zodiacData = [
 ];
 
 const elementInk: Record<string, string> = {
-  fire: '#c06d43',
-  earth: '#7a8a4a',
-  air: '#7a8ac0',
-  water: '#7358a8',
+  fire: '#e6c179',
+  earth: '#d9b46a',
+  air: '#9a7ee6',
+  water: '#8a63d8',
 };
 
 const planetCatalog = [
@@ -137,11 +137,11 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
     >
       {/* Eyebrow */}
       <div className="text-center mb-3">
-        <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#c4a265]">
+        <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#e6c179]">
           The Constellation
         </div>
         <h3
-          className="mt-1 text-[1.35rem] font-serif text-[#3d2f2a]"
+          className="mt-1 text-[1.35rem] font-serif text-[#f3ecff]"
           style={{ fontFamily: 'DM Serif Display, serif' }}
         >
           {petName}&rsquo;s sky at the moment of arrival
@@ -152,9 +152,11 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
         className="relative rounded-[22px] overflow-hidden"
         style={{
           background:
-            'radial-gradient(ellipse at center, #FFFDF5 0%, #f5efe6 60%, #ede5d8 100%)',
-          border: '1px solid rgba(196,162,101,0.25)',
-          boxShadow: '0 4px 28px rgba(61,47,42,0.1)',
+            'radial-gradient(ellipse at center, rgba(34,26,68,0.92) 0%, rgba(22,16,42,0.85) 60%, rgba(13,9,26,0.9) 100%)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          border: '1px solid rgba(154,126,230,0.18)',
+          boxShadow: '0 4px 28px rgba(0,0,0,0.45)',
           padding: '28px 18px 24px',
         }}
       >
@@ -164,7 +166,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
             backgroundImage:
-              'radial-gradient(circle, #3d2f2a 1px, transparent 1px)',
+              'radial-gradient(circle, #9a86c8 1px, transparent 1px)',
             backgroundSize: '14px 14px',
           }}
         />
@@ -218,7 +220,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
             cy={cy}
             r={outerR}
             fill="none"
-            stroke="#c4a265"
+            stroke="#e6c179"
             strokeWidth="1.4"
             pathLength={1}
             initial={{ strokeDashoffset: 1, strokeDasharray: 1 }}
@@ -254,7 +256,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
                 y1={inner.y}
                 x2={outer.x}
                 y2={outer.y}
-                stroke="rgba(61,47,42,0.35)"
+                stroke="rgba(154,126,230,0.35)"
                 strokeWidth={isMajor ? 1 : 0.5}
                 initial={{ opacity: 0 }}
                 animate={inView ? { opacity: 1 } : { opacity: 0 }}
@@ -347,7 +349,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
                   cx={pos.x}
                   cy={pos.y}
                   r={baseR}
-                  fill="#FFFDF5"
+                  fill="#1d1538"
                   stroke={p.color}
                   strokeWidth="1.5"
                 />
@@ -377,7 +379,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               x={cx}
               y={cy - 4}
               textAnchor="middle"
-              fill="#5a4a42"
+              fill="#d8c5f5"
               fontSize="9"
               fontWeight="700"
               letterSpacing="2.5"
@@ -389,7 +391,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               x={cx}
               y={cy + 10}
               textAnchor="middle"
-              fill="#c4a265"
+              fill="#e6c179"
               fontSize="8.5"
               fontWeight="700"
               letterSpacing="2.2"
@@ -413,12 +415,12 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               <div className="text-[0.62rem] tracking-[2.5px] uppercase font-bold" style={{ color: activeData.color }}>
                 {activeData.name}
               </div>
-              <div className="text-[0.95rem] font-serif text-[#3d2f2a]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <div className="text-[0.95rem] font-serif text-[#f3ecff]" style={{ fontFamily: 'DM Serif Display, serif' }}>
                 {activeData.placement.sign} &middot; {Math.round(activeData.placement.degree)}&deg;
               </div>
             </>
           ) : (
-            <div className="text-[0.75rem] text-[#6a4d40] italic">
+            <div className="text-[0.75rem] text-[#9a86c8] italic">
               Tap a planet to see where the stars placed it
             </div>
           )}

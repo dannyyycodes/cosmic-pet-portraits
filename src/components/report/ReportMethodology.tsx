@@ -46,19 +46,19 @@ export function ReportMethodology({ petName }: ReportMethodologyProps) {
         variants={header.variants}
         className="text-center px-8 py-8 max-w-[520px] mx-auto"
       >
-        <div className="text-[0.55rem] font-bold tracking-[3px] uppercase text-[#c4a265]">
+        <div className="text-[0.55rem] font-bold tracking-[3px] uppercase text-[#e6c179]">
           Before Your Reading
         </div>
-        <h2 className="text-[1.6rem] text-[#3d2f2a] leading-tight mt-2" style={{ fontFamily: 'DM Serif Display, serif' }}>
+        <h2 className="text-[1.6rem] text-[#f3ecff] leading-tight mt-2" style={{ fontFamily: 'DM Serif Display, serif' }}>
           How We Mapped {petName}&rsquo;s Soul
         </h2>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full text-[0.78rem] font-medium cursor-pointer transition-all hover:scale-105"
           style={{
-            background: 'linear-gradient(135deg, rgba(196,162,101,0.12), rgba(196,162,101,0.06))',
-            border: '1px solid rgba(196,162,101,0.25)',
-            color: '#c4a265',
+            background: 'linear-gradient(135deg, rgba(230,193,121,0.14), rgba(230,193,121,0.06))',
+            border: '1px solid rgba(230,193,121,0.28)',
+            color: '#e6c179',
           }}
         >
           {isExpanded ? 'Hide details' : 'See how we calculated this'}
@@ -82,21 +82,21 @@ export function ReportMethodology({ petName }: ReportMethodologyProps) {
           >
             <div className="relative flex flex-col max-w-[520px] mx-auto px-6">
               {/* Connecting line */}
-              <div className="absolute left-[46px] top-7 bottom-7 w-[1.5px] bg-gradient-to-b from-[#c4a265] to-[#e8ddd0]" />
+              <div className="absolute left-[46px] top-7 bottom-7 w-[1.5px] bg-gradient-to-b from-[#e6c179] to-[#221a44]" />
 
               {steps.map((step) => (
                 <div
                   key={step.num}
                   className="flex gap-4 py-3.5 relative"
                 >
-                  <div className="w-11 h-11 rounded-full flex-shrink-0 bg-white border-[1.5px] border-[#c4a265] flex items-center justify-center text-[0.75rem] font-bold text-[#c4a265] relative z-[1]">
+                  <div className="w-11 h-11 rounded-full flex-shrink-0 bg-[#161029] border-[1.5px] border-[#e6c179] flex items-center justify-center text-[0.75rem] font-bold text-[#e6c179] relative z-[1]">
                     {step.num}
                   </div>
                   <div>
-                    <h4 className="font-dm-serif text-[0.95rem] text-[#3d2f2a] mb-0.5">
+                    <h4 className="font-dm-serif text-[0.95rem] text-[#f3ecff] mb-0.5">
                       {step.title}
                     </h4>
-                    <p className="text-[0.78rem] text-[#9a8578] leading-[1.55]">
+                    <p className="text-[0.78rem] text-[#9a86c8] leading-[1.55]">
                       {step.desc(petName)}
                     </p>
                   </div>

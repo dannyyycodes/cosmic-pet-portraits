@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ReactLenis } from 'lenis/react';
 import DOMPurify from 'dompurify';
 import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown, Share2 } from 'lucide-react';
@@ -20,9 +20,12 @@ import { PlanetExplainers } from './PlanetExplainers';
 import { ReadingTransition } from './ReadingTransition';
 import { BirthChartTable } from './BirthChartTable';
 import { ConstellationChart } from './ConstellationChart';
+import { ChartWheel } from './cosmic/ChartWheel';
+import { MilestoneBeat } from './cosmic/MilestoneBeat';
 import { AuraVisual } from './AuraVisual';
 import { AuraPortrait } from './AuraPortrait';
 import { ElementalBalance } from './ElementalBalance';
+import { ElementalTiles } from './cosmic/ElementalTiles';
 import { ReportSectionCard } from './ReportSectionCard';
 import { SoulLetter } from './SoulLetter';
 import { SoulLetterUnfurl } from './SoulLetterUnfurl';
@@ -50,16 +53,37 @@ import { DawnFadeReveal } from './DawnFadeReveal';
 import { TopProgressHairline } from './TopProgressHairline';
 import { ChapterReadingTime } from './ChapterReadingTime';
 import { PlanetSection } from './PlanetSection';
+import { PlanetIndex, PlanetIndexItem } from './cosmic/PlanetIndex';
+import { PlanetReadingCard } from './cosmic/PlanetReadingCard';
+import { ProseSectionFrame } from './cosmic/ProseSectionFrame';
+import { FinalSoulSeal } from './cosmic/FinalSoulSeal';
+import { PLANET_PRESETS } from './cosmic/tokens';
 import { PlanetOrbConfig } from './PlanetOrb';
 import { DirectMessage } from './DirectMessage';
 import { ShadowSelf } from './ShadowSelf';
 import { PetOwnerFriction } from './PetOwnerFriction';
+import { CosmicLineIcon } from './cosmic/CosmicLineIcon';
+import { deDash } from './cosmic/text';
+import { SoulScanHero } from './cosmic/SoulScanHero';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
 
 // Sanitize HTML content before rendering
-const safeHtml = (html: string) => DOMPurify.sanitize(html);
+const safeHtml = (html: string) => DOMPurify.sanitize(deDash(html));
+
+// Deep-strip em/en dashes from every string in the report data so NO dash
+// reaches the page regardless of which component renders the field.
+function deepDeDash<T>(v: T): T {
+  if (typeof v === 'string') return deDash(v) as unknown as T;
+  if (Array.isArray(v)) return v.map(deepDeDash) as unknown as T;
+  if (v && typeof v === 'object') {
+    const o: Record<string, unknown> = {};
+    for (const k in v as Record<string, unknown>) o[k] = deepDeDash((v as Record<string, unknown>)[k]);
+    return o as unknown as T;
+  }
+  return v;
+}
 
 interface CosmicReportViewerProps {
   petName: string;
@@ -245,37 +269,37 @@ const readingSections = [
 // Chapter definitions
 const chapters = [
   {
-    number: 1, title: 'How They Came Into This World', subtitle: 'The stars were watching', icon: '✦',
+    number: 1, title: 'How They Came Into This World', subtitle: 'The stars were watching', icon: '✦', iconKey: 'star',
     bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
     border: '2px solid rgba(212,182,122,0.2)', ornament: '✦',
   },
   {
-    number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '✨',
+    number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '✨', iconKey: 'orbit',
     bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
     border: '2px solid rgba(212,182,122,0.15)', ornament: '☽',
   },
   {
-    number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '🎭',
+    number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '🎭', iconKey: 'mask',
     bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
     border: '2px solid rgba(212,182,122,0.15)', ornament: '🐾',
   },
   {
-    number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '💭',
+    number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '💭', iconKey: 'eye',
     bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
     border: '2px solid rgba(212,182,122,0.18)', ornament: '✦',
   },
   {
-    number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕',
+    number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕', iconKey: 'heartOrbit',
     bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
     border: '2px solid rgba(212,182,122,0.15)', ornament: '♡',
   },
   {
-    number: 6, title: 'The Keepsake', subtitle: 'Something to hold onto', icon: '🎁',
+    number: 6, title: 'The Keepsake', subtitle: 'Something to hold onto', icon: '🎁', iconKey: 'gift',
     bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
     border: '2px solid rgba(184,150,42,0.2)', ornament: '⟡',
   },
   {
-    number: 7, title: 'A Letter From Their Soul', subtitle: 'In their own words, at last', icon: '💌',
+    number: 7, title: 'A Letter From Their Soul', subtitle: 'In their own words, at last', icon: '💌', iconKey: 'scroll',
     bg: 'linear-gradient(165deg, #201722 0%, #1a1210 100%)', accent: '#d4b67a', textColor: '#ffffff',
     border: '1px solid rgba(212,182,122,0.25)', ornament: '✦',
   },
@@ -283,7 +307,7 @@ const chapters = [
 
 export function CosmicReportViewer({
   petName,
-  report,
+  report: rawReport,
   isPreview,
   onUnlockFull,
   reportId,
@@ -301,6 +325,9 @@ export function CosmicReportViewer({
 }: CosmicReportViewerProps) {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const { currency } = useLocalizedPrice();
+
+  // Single choke point: all displayed report copy is dash-free.
+  const report = useMemo(() => deepDeDash(rawReport), [rawReport]);
 
   const hasMultipleReports = allReports && allReports.length > 1;
 
@@ -365,41 +392,23 @@ export function CosmicReportViewer({
       );
     }
 
-    const planet = planetConfigs[config.key];
+    const preset = PLANET_PRESETS[config.key];
+    const placement = preset?.placementKey
+      ? (report.chartPlacements as any)?.[preset.placementKey]
+      : undefined;
 
     return (
       <div key={config.key}>
-        {planet ? (
-          <PlanetSection
+        {preset ? (
+          <PlanetReadingCard
             id={config.key}
-            planet={planet}
-            label={config.label}
-            title={section.title}
+            preset={preset}
             index={index}
-          >
-            <ReportSectionCard
-              icon={config.icon}
-              iconClass={config.iconClass}
-              label={config.label}
-              title={section.title}
-              whyText={config.whyPrefix || section.whyThisMatters}
-              whyBoxIcon={config.whyBoxIcon}
-              whyLabel={config.whyLabel}
-              content={section.content}
-              tipBox={
-                section.practicalTip
-                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.practicalTip }
-                  : section.pastLifeHint
-                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.pastLifeHint }
-                  : section.soulContract
-                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.soulContract }
-                  : undefined
-              }
-              funFact={section.funFact}
-              variant={index % 3}
-              collapsible
-            />
-          </PlanetSection>
+            total={readingSections.length}
+            title={section.title}
+            content={section.content}
+            placement={placement && placement.sign ? { sign: placement.sign, degree: placement.degree } : undefined}
+          />
         ) : (
           <ReportSectionCard
             icon={config.icon}
@@ -472,7 +481,7 @@ export function CosmicReportViewer({
       {!isPreview && <ChapterProgressBar chapters={chapters} petName={petName} reportId={reportId} />}
 
       {/* ═══ HERO SECTION ═══ */}
-      <HeroSection
+      <SoulScanHero
         petName={petName}
         sunSign={sunSign}
         moonSign={moonSign}
@@ -480,13 +489,17 @@ export function CosmicReportViewer({
         element={element}
         archetype={report.archetype?.name || 'Cosmic Soul'}
         archetypeDesc={report.archetype?.description || ''}
-        signIcon={signIcon}
-        portraitUrl={portraitUrl}
+        portraitUrl={portraitUrl || petPhotoUrl}
       />
 
       {/* ═══ COSMIC NICKNAME ═══ */}
       {report.cosmicNickname && (
-        <CosmicNickname nickname={report.cosmicNickname} />
+        <ProseSectionFrame
+          id="cosmicNickname"
+          title={report.cosmicNickname.nickname}
+          content={report.cosmicNickname.explanation}
+          auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
+        />
       )}
 
       {/* ═══ PROLOGUE ═══ */}
@@ -497,7 +510,7 @@ export function CosmicReportViewer({
       {/* ═══ ARCHETYPE PULL-QUOTE — the Spotify-Wrapped-top-artist moment ═══ */}
       {report.archetype?.name && (
         <PullQuote attribution={`${petName}'s cosmic archetype`} tone="light">
-          {petName} is <em>the {report.archetype.name}</em>.
+          {petName} is <em>the {report.archetype.name.replace(/^the\s+/i, '')}</em>.
         </PullQuote>
       )}
 
@@ -532,10 +545,11 @@ export function CosmicReportViewer({
       {/* ══════════════════════════════════════════
           CHAPTER 2 — THE SOUL MAP
          ══════════════════════════════════════════ */}
+      {!isPreview && <MilestoneBeat index={1} total={7} petName={petName} />}
       <ChapterTitle chapter={chapters[1]} />
 
-      {/* ═══ CONSTELLATION CHART — signature moment: the wheel draws itself ═══ */}
-      <ConstellationChart placements={report.chartPlacements || {}} petName={petName} />
+      {/* ═══ NATAL WHEEL — signature moment: the chart instrument draws itself ═══ */}
+      <div className="my-10 px-4"><ChartWheel placements={report.chartPlacements || {}} petName={petName} size={400} /></div>
 
       {/* ═══ BIRTH CHART TABLE ═══ */}
       <BirthChartTable chartPlacements={report.chartPlacements || {}} petName={petName} />
@@ -554,19 +568,21 @@ export function CosmicReportViewer({
 
       {/* ═══ LUMINOUS FIELD (detailed aura) ═══ */}
       {report.luminousField && (
-        <LuminousFieldCard
+        <ProseSectionFrame
+          id="luminousField"
           title={report.luminousField.title}
           content={report.luminousField.content}
-          howToSense={report.luminousField.howToSense}
+          tip={report.luminousField.howToSense ? { label: 'How to sense it', text: report.luminousField.howToSense } : undefined}
+          auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
         />
       )}
       <SectionDivider />
 
       {/* ═══ ELEMENTAL BALANCE ═══ */}
-      <ElementalBalance
-        elementalBalance={report.elementalBalance || {}}
-        dominantElement={element}
-        petName={petName}
+      <ElementalTiles
+        balance={report.elementalBalance || {}}
+        dominant={element}
+        placements={report.chartPlacements as any}
       />
       <SectionDivider />
 
@@ -592,6 +608,19 @@ export function CosmicReportViewer({
         ]}
       />
 
+      {/* ═══ PLANET INDEX (sticky placement rail) ═══ */}
+      {!isPreview && (
+        <PlanetIndex
+          items={readingSections
+            .filter((c) => PLANET_PRESETS[c.key] && (report as any)[c.key])
+            .map((c): PlanetIndexItem => {
+              const pk = PLANET_PRESETS[c.key].placementKey;
+              const pl = pk ? (report.chartPlacements as any)?.[pk] : undefined;
+              return { id: c.key, preset: PLANET_PRESETS[c.key], sign: pl?.sign };
+            })}
+        />
+      )}
+
       {/* ═══ READING SECTIONS: First Half (I-VI) ═══ */}
       {readingSections.slice(0, 6).map((config, i) => renderReadingSection(config, i))}
 
@@ -604,10 +633,15 @@ export function CosmicReportViewer({
       {/* ═══ CELESTIAL CHOREOGRAPHY (planetary aspects) ═══ */}
       {report.celestialChoreography && (
         <>
-          <CelestialChoreographyCard
+          <ProseSectionFrame
+            id="celestialChoreography"
             title={report.celestialChoreography.title}
-            content={report.celestialChoreography.content}
-            funFact={report.celestialChoreography.funFact}
+            content={
+              report.celestialChoreography.funFact
+                ? `${report.celestialChoreography.content}\n\n${report.celestialChoreography.funFact}`
+                : report.celestialChoreography.content
+            }
+            auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
           />
           <SectionDivider />
         </>
@@ -636,7 +670,13 @@ export function CosmicReportViewer({
           {/* ═══ PET MONOLOGUE (emotional peak before lighter sections) ═══ */}
           {report.petMonologue && (
             <>
-              <PetMonologue monologue={report.petMonologue} petName={petName} sunSign={sunSign} />
+              <ProseSectionFrame
+                id="petMonologue"
+                title={`If ${petName} could speak to you`}
+                content={report.petMonologue.monologue}
+                tip={report.petMonologue.postScript ? { label: 'P.S.', text: report.petMonologue.postScript } : undefined}
+                auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
+              />
               {/* SoulSpeak teaser removed — keeping only floating button + end closer */}
               <SectionDivider />
             </>
@@ -681,7 +721,8 @@ export function CosmicReportViewer({
           {/* ══════════════════════════════════════════
               CHAPTER 3 — THE LIGHTER SIDE
              ══════════════════════════════════════════ */}
-          <ChapterTitle chapter={chapters[2]} />
+          {!isPreview && <MilestoneBeat index={2} total={7} petName={petName} />}
+      <ChapterTitle chapter={chapters[2]} />
 
           {/* ═══ TOP 5 CRIMES ═══ */}
           {report.topFiveCrimes?.crimes && (
@@ -713,6 +754,7 @@ export function CosmicReportViewer({
                 datingProfile={report.datingProfile}
                 sunSign={sunSign}
                 element={element}
+                petPhotoUrl={portraitUrl || petPhotoUrl}
               />
               <SectionShareHint petName={petName} section="Dating Profile" />
               <SectionDivider />
@@ -755,7 +797,8 @@ export function CosmicReportViewer({
           {/* ══════════════════════════════════════════
               CHAPTER 4 — THEIR SECRET WORLD
              ══════════════════════════════════════════ */}
-          <ChapterTitle chapter={chapters[3]} />
+          {!isPreview && <MilestoneBeat index={3} total={7} petName={petName} />}
+      <ChapterTitle chapter={chapters[3]} />
 
           {/* ═══ GOOGLE SEARCHES ═══ */}
           <SectionLabel icon="🔎" label={`What ${petName} Googles When You're Asleep`} />
@@ -821,53 +864,21 @@ export function CosmicReportViewer({
           {/* ══════════════════════════════════════════
               CHAPTER 5 — THE BOND
              ══════════════════════════════════════════ */}
-          <ChapterTitle chapter={chapters[4]} />
+          {!isPreview && <MilestoneBeat index={4} total={7} petName={petName} />}
+      <ChapterTitle chapter={chapters[4]} />
 
           {/* ═══ KEEPER'S BOND ═══ */}
           {report.keepersBond && (() => {
             const kb = report.keepersBond as SectionContent;
             return (
               <>
-                <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
-                  <div
-                    className="py-7 px-6 sm:px-7 rounded-[18px]"
-                    style={{ background: '#201722' }}
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0 bg-rose-500/10">
-                        {'\uD83D\uDC95'}
-                      </div>
-                      <div>
-                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
-                          Keeper&rsquo;s Bond
-                        </div>
-                        <h3 className="text-[1.1rem] text-[#f5efe6] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{kb.title}</h3>
-                      </div>
-                    </div>
-
-                    <div
-                      className="text-[0.88rem] leading-[1.9] text-[#cfc1b1]"
-                      dangerouslySetInnerHTML={{ __html: safeHtml((kb.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ')) }}
-                    />
-
-                    {kb.soulContract && (
-                      <div className="mt-5 p-4 rounded-[12px] bg-[rgba(21,16,28,0.7)] border-l-[3px] border-[#d4b67a]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-1">
-                          {'\uD83D\uDC95'} Soul contract
-                        </div>
-                        <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.65]">{kb.soulContract}</p>
-                      </div>
-                    )}
-
-                    {kb.funFact && (
-                      <p className="mt-4 text-[0.8rem] text-[#a89a8a] italic leading-[1.65]"
-                        style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-                      >
-                        {kb.funFact}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <ProseSectionFrame
+                  id="keepersBond"
+                  title={kb.title}
+                  content={kb.funFact ? `${kb.content}\n\n${kb.funFact}` : kb.content}
+                  tip={kb.soulContract ? { label: 'Soul contract', text: kb.soulContract } : undefined}
+                  auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
+                />
                 {/* SoulSpeak teaser removed — keeping only floating button + end closer */}
                 <SectionDivider />
               </>
@@ -1098,7 +1109,8 @@ export function CosmicReportViewer({
           {/* ══════════════════════════════════════════
               CHAPTER 6 — THE KEEPSAKE
              ══════════════════════════════════════════ */}
-          <ChapterTitle chapter={chapters[5]} />
+          {!isPreview && <MilestoneBeat index={5} total={7} petName={petName} />}
+      <ChapterTitle chapter={chapters[5]} />
 
           {/* ═══ SHAREABLE CARD ═══ */}
           <ShareableCard
@@ -1127,7 +1139,13 @@ export function CosmicReportViewer({
           {/* ═══ ETERNAL ARCHETYPE ═══ */}
           {report.eternalArchetype && (
             <>
-              <EternalArchetype archetype={report.eternalArchetype} petName={petName} />
+              <ProseSectionFrame
+                id="eternalArchetype"
+                title={report.eternalArchetype.archetypeName || report.eternalArchetype.title}
+                content={report.eternalArchetype.archetypeStory || report.eternalArchetype.content}
+                tip={report.eternalArchetype.archetypeLesson ? { label: `${petName}'s lesson`, text: report.eternalArchetype.archetypeLesson } : undefined}
+                auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
+              />
               <SectionDivider />
             </>
           )}
@@ -1140,7 +1158,8 @@ export function CosmicReportViewer({
           {/* ══════════════════════════════════════════
               CHAPTER 7 — A LETTER FROM THEIR SOUL
              ══════════════════════════════════════════ */}
-          <ChapterTitle chapter={chapters[6]} />
+          {!isPreview && <MilestoneBeat index={6} total={7} petName={petName} />}
+      <ChapterTitle chapter={chapters[6]} />
 
           {/* ═══ PASSAGE 4 → QUOTE CARD: Before the soul letter ═══ */}
           <QuoteCard
@@ -1208,6 +1227,19 @@ export function CosmicReportViewer({
             ]}
           />
 
+          {/* ═══ FINAL SOUL SEAL — the report's climactic sigil ═══ */}
+          {!isPreview && (
+            <FinalSoulSeal
+              petName={petName}
+              sun={report.chartPlacements?.sun}
+              moon={report.chartPlacements?.moon}
+              rising={report.chartPlacements?.ascendant}
+              dominantElement={report.dominantElement}
+              archetype={report.archetype?.name}
+              auraColors={{ primary: report.aura?.primary, secondary: report.aura?.secondary }}
+            />
+          )}
+
           {/* ═══ COMPLETION CEREMONY — "You've seen them fully" moment ═══ */}
           {!isPreview && (
             <motion.div
@@ -1246,7 +1278,7 @@ export function CosmicReportViewer({
 
                 <p className="text-[0.92rem] text-[#cfc1b1] leading-[1.85] max-w-[440px] mx-auto mb-5">
                   Every placement. Every shadow. Every quiet truth the stars have been holding for
-                  you. This isn&rsquo;t the end of the reading &mdash; it&rsquo;s the beginning of seeing
+                  you. This isn&rsquo;t the end of the reading , it&rsquo;s the beginning of seeing
                   {petName === 'your pet' ? ' them' : ' ' + petName} differently.
                 </p>
 
@@ -1275,7 +1307,7 @@ export function CosmicReportViewer({
                   className="text-[0.95rem] text-[#cfc1b1] leading-[1.85] max-w-[420px] mx-auto"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
-                  {petName}&rsquo;s entire birth chart &mdash; every planet, every placement, every trait you just read &mdash; has been woven into a living intelligence. This isn&rsquo;t a chatbot. This is {petName}&rsquo;s soul, speaking through their stars.
+                  {petName}&rsquo;s entire birth chart , every planet, every placement, every trait you just read , has been woven into a living intelligence. This isn&rsquo;t a chatbot. This is {petName}&rsquo;s soul, speaking through their stars.
                 </p>
               </motion.div>
 
@@ -1321,7 +1353,7 @@ export function CosmicReportViewer({
                           fontSize: '0.88rem',
                         }}
                       >
-                        I wasn&rsquo;t thinking. I was <em>knowing</em>. Every fibre of my {element} soul recognised you before my eyes did. That&rsquo;s what a {sunSign} does &mdash; we don&rsquo;t decide. We just know.
+                        I wasn&rsquo;t thinking. I was <em>knowing</em>. Every fibre of my {element} soul recognised you before my eyes did. That&rsquo;s what a {sunSign} does , we don&rsquo;t decide. We just know.
                       </div>
                     </div>
                     {/* Typing indicator */}
@@ -1345,7 +1377,7 @@ export function CosmicReportViewer({
 
                   <div className="text-center">
                     <div className="text-[0.45rem] font-bold tracking-[4px] uppercase text-[#d4b67a]/60 mb-2">
-                      SoulSpeak &mdash; World&rsquo;s First Astrology-Powered Soul Channel
+                      SoulSpeak , World&rsquo;s First Astrology-Powered Soul Channel
                     </div>
 
                     <h3
@@ -1359,7 +1391,7 @@ export function CosmicReportViewer({
                       className="text-[0.85rem] text-white/50 leading-[1.75] max-w-[340px] mx-auto mb-7"
                       style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic' }}
                     >
-                      Built on real astrology. Powered by {petName}&rsquo;s actual planetary placements. Every answer draws from their complete soul profile &mdash; their archetype, their element, the way their {sunSign} sun shapes everything they feel. No pet psychic. No guesswork. Just the stars and {petName}, finally able to speak.
+                      Built on real astrology. Powered by {petName}&rsquo;s actual planetary placements. Every answer draws from their complete soul profile , their archetype, their element, the way their {sunSign} sun shapes everything they feel. No pet psychic. No guesswork. Just the stars and {petName}, finally able to speak.
                     </p>
 
                     {/* CTA Button */}
@@ -1582,7 +1614,7 @@ function ChapterProgressBar({ chapters: chapterList, petName, reportId }: { chap
               <span className={`text-[0.65rem] transition-all ${
                 i <= activeChapter ? 'text-[#d4b67a]' : 'text-[#d4b67a]/30'
               }`}>
-                {ch.icon}
+                <CosmicLineIcon name={ch.iconKey} size={18} />
               </span>
               <div
                 className={`w-full h-[3px] rounded-full transition-all duration-300 ${
@@ -1656,7 +1688,7 @@ function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
         </div>
 
         {/* Chapter icon - large centered */}
-        <div className="text-[2.5rem] mb-4">{chapter.icon}</div>
+        <div className="mb-4 flex justify-center" style={{ color: '#e6c179' }}><CosmicLineIcon name={chapter.iconKey} size={36} /></div>
 
         <div className="text-[0.55rem] font-bold tracking-[4px] uppercase mb-3" style={{ color: chapter.accent }}>
           Chapter {chapter.number}
@@ -1718,7 +1750,7 @@ function TableOfContents() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#201722] transition-colors text-left group"
           >
             <span className="w-8 h-8 rounded-lg bg-[#201722] group-hover:bg-[rgba(21,16,28,0.8)] flex items-center justify-center text-[0.9rem] flex-shrink-0 border border-[rgba(212,182,122,0.4)]/50">
-              {ch.icon}
+              <CosmicLineIcon name={ch.iconKey} size={18} />
             </span>
             <div className="flex-1 min-w-0">
               <div className="text-[0.65rem] text-[#d4b67a] font-semibold tracking-[1px] uppercase">
@@ -1865,10 +1897,10 @@ function VillainOriginStory({
   const s = useScrollReveal();
 
   const sections = [
-    { label: 'The Trigger', text: story.trigger, icon: '⚡' },
-    { label: 'The Dramatic Response', text: story.dramaticResponse, icon: '🎭' },
-    { label: 'Secret Motivation', text: story.secretMotivation, icon: '🕵️' },
-    { label: 'Redemption Arc', text: story.redemptionArc, icon: '💛' },
+    { label: 'The Trigger', text: story.trigger, icon: 'spark' },
+    { label: 'The Dramatic Response', text: story.dramaticResponse, icon: 'mask' },
+    { label: 'Secret Motivation', text: story.secretMotivation, icon: 'eye' },
+    { label: 'Redemption Arc', text: story.redemptionArc, icon: 'heartOrbit' },
   ];
 
   return (
@@ -1877,37 +1909,82 @@ function VillainOriginStory({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]"
-      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-[#15101c] border border-[#3a2e1f]"
+      style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.35)' }}
     >
       {/* Header */}
       <div
-        className="px-6 pt-5 pb-4 sm:px-7"
-        style={{ background: 'linear-gradient(170deg, #201722 0%, #201722 100%)', borderBottom: '1px solid rgba(212,182,122,0.4)' }}
+        className="px-5 pt-6 pb-5 sm:px-7"
+        style={{
+          background: 'linear-gradient(170deg, #201722 0%, #15101c 100%)',
+          borderBottom: '1px solid rgba(230,193,121,0.22)',
+        }}
       >
-        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a] mb-1">
+        <div className="text-[0.62rem] font-bold tracking-[2px] uppercase text-[#e6c179] mb-2">
           Villain Origin Story
         </div>
-        <h3 className="text-[1.15rem] text-[#f5efe6]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h3
+          className="text-[1.5rem] sm:text-[1.7rem] leading-[1.2] text-[#f5efe6]"
+          style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+        >
           {petName}&rsquo;s Descent into Chaos
         </h3>
       </div>
 
-      {/* Story sections */}
-      <div className="px-6 py-5 sm:px-7 space-y-5">
-        {sections.map((sec) => (
-          <div key={sec.label}>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[0.85rem]">{sec.icon}</span>
-              <span className="text-[0.58rem] font-bold text-[#d4b67a] uppercase tracking-[1.5px]">
-                {sec.label}
-              </span>
+      {/* Story beats — vertical timeline */}
+      <div className="relative px-5 py-6 sm:px-7">
+        {/* Connecting spine: runs through the step markers */}
+        <div
+          className="absolute top-9 bottom-9 w-px left-[33px] sm:left-[41px]"
+          aria-hidden="true"
+          style={{ background: 'linear-gradient(180deg, rgba(230,193,121,0.45) 0%, rgba(154,126,230,0.45) 100%)' }}
+        />
+
+        <div className="relative space-y-4">
+          {sections.map((sec, i) => (
+            <div key={sec.label} className="flex gap-4 sm:gap-5">
+              {/* Step marker (>=44px tap target) */}
+              <div className="shrink-0 flex flex-col items-center justify-start pt-1.5">
+                <div
+                  className="relative w-11 h-11 rounded-full flex items-center justify-center text-[#e6c179]"
+                  style={{
+                    background: 'radial-gradient(circle at 50% 35%, rgba(154,126,230,0.18) 0%, rgba(21,16,28,0.95) 70%)',
+                    border: '1px solid rgba(230,193,121,0.5)',
+                    boxShadow: '0 0 14px rgba(154,126,230,0.18)',
+                  }}
+                >
+                  <CosmicLineIcon name={sec.icon} size={20} />
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[0.62rem] font-bold text-[#15101c]"
+                    style={{ background: '#e6c179' }}
+                    aria-hidden="true"
+                  >
+                    {i + 1}
+                  </span>
+                </div>
+              </div>
+
+              {/* Dark-glass beat with left accent rule */}
+              <div
+                className="flex-1 min-w-0 rounded-[14px] py-4 pl-4 pr-4 sm:pl-5 sm:pr-5"
+                style={{
+                  background: 'rgba(243,236,255,0.035)',
+                  border: '1px solid rgba(230,193,121,0.18)',
+                  borderLeft: '3px solid #9a7ee6',
+                }}
+              >
+                <span className="block text-[0.72rem] font-bold text-[#e6c179] uppercase tracking-[1.5px] mb-2">
+                  {sec.label}
+                </span>
+                <p
+                  className="text-[1.05rem] text-[#ece5ff]"
+                  style={{ lineHeight: 1.62 }}
+                  dangerouslySetInnerHTML={{ __html: safeHtml((sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ')) }}
+                />
+              </div>
             </div>
-            <p className="text-[0.86rem] text-[#cfc1b1] leading-[1.75]"
-               dangerouslySetInnerHTML={{ __html: safeHtml((sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ')) }}
-            />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </motion.div>
   );
@@ -2048,7 +2125,7 @@ function AccuracyPredictions({
             onClick={() => toggle(i)}
             className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all ${
               checked[i]
-                ? 'bg-[#f0fdf4] border-green-200'
+                ? 'bg-[#13241d] border-[#2f5d4a]'
                 : 'bg-[#201722] border-[rgba(212,182,122,0.4)] hover:border-[#d4b67a]/40'
             }`}
           >
@@ -2205,7 +2282,7 @@ function MemePersonalityCard({
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[rgba(212,182,122,0.18)]">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #fce4ec, #f3e5f5)' }}
+            style={{ background: 'linear-gradient(135deg, #7c5cd6, #5a3fa6)' }}
           >
             😼
           </div>
@@ -2318,9 +2395,9 @@ function DreamJobCard({
             <span
               className="inline-block text-[0.78rem] font-semibold px-3 py-1.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-                color: '#166534',
-                border: '1px solid #bbf7d0',
+                background: 'linear-gradient(135deg, #13241d, #0f1d18)',
+                color: '#6fe3b8',
+                border: '1px solid #2f5d4a',
               }}
             >
               {salary}
@@ -2548,26 +2625,27 @@ function HeroSection({
           className="flex flex-wrap items-center justify-center gap-2 text-[0.74rem]"
         >
           {[
-            { symbol: '☉', label: sunSign },
-            { symbol: '☽', label: moonSign },
-            ...(ascendant ? [{ symbol: '⬆', label: ascendant }] : []),
-            { symbol: element === 'Fire' ? '🔥' : element === 'Earth' ? '🌍' : element === 'Air' ? '💨' : '💧', label: element },
+            { role: 'Sun', label: sunSign },
+            { role: 'Moon', label: moonSign },
+            ...(ascendant ? [{ role: 'Rising', label: ascendant }] : []),
+            { role: 'Element', label: element },
           ].map((stat) => (
             <motion.span
-              key={stat.label}
+              key={stat.role}
               variants={{
                 hidden: { opacity: 0, y: 8, scale: 0.9 },
                 visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
               }}
-              className="px-3.5 py-1.5 rounded-full text-[#cfc1b1] font-medium"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{
-                background: 'rgba(255,255,255,0.8)',
-                border: '1px solid rgba(212,182,122,0.2)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                backdropFilter: 'blur(4px)',
+                background: 'rgba(22,16,42,0.6)',
+                border: '1px solid rgba(154,126,230,0.28)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
               }}
             >
-              {stat.symbol} {stat.label}
+              <span className="uppercase" style={{ fontSize: '0.54rem', fontWeight: 800, letterSpacing: '0.14em', color: '#9a86c8' }}>{stat.role}</span>
+              <span style={{ color: '#f3ecff', fontWeight: 600, fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.95rem' }}>{stat.label}</span>
             </motion.span>
           ))}
         </motion.div>
@@ -2708,6 +2786,7 @@ function formatSectionContent(raw: string): string {
     .replace(/\n\n/g, '<br /><br />')
     .replace(/ — /g, '. ')
     .replace(/ – /g, '. ')
+    .replace(/[—–]/g, ', ')
     .replace(/^- /gm, '&bull; ')
     .replace(/\n- /g, '<br />&bull; ');
 }
@@ -2930,11 +3009,11 @@ function FirstMeeting({ firstMeeting }: { firstMeeting: { title: string; paragra
       <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#d4b67a] mb-1">
         ✨ First Impressions
       </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#f5efe6] mb-2.5">
-        {firstMeeting.title}
+      <h3 className="font-dm-serif text-[1.2rem] text-[#f3ecff] mb-2.5">
+        {deDash(firstMeeting.title)}
       </h3>
-      <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.75]">
-        {firstMeeting.paragraph}
+      <p className="text-[1.06rem] text-[#ece5ff] leading-[1.65]">
+        {deDash(firstMeeting.paragraph)}
       </p>
     </motion.div>
   );

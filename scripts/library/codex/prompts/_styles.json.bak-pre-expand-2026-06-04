@@ -1,0 +1,182 @@
+{
+  "_meta": {
+    "description": "Canvas style library for Little Souls portraits. Each style has a render brief Codex uses when generating canvas-frame images for FB content.",
+    "version": "1.0",
+    "created": "2026-05-09"
+  },
+  "fine-art-photoreal": {
+    "label": "Fine-Art Photoreal",
+    "render_brief": "Fine-art realistic pet portrait made for canvas. Believable pet anatomy, natural fur detail, accurate eyes, shallow depth of field, soft studio or window light, clean painterly photographic finish. Pet-only Type A portrait, no people, no hands, no room scene, no canvas object, no readable text, no watermark. Must look like a premium realistic canvas portrait, not glossy plastic AI art.",
+    "primary_for": ["library", "realistic", "canvas"]
+  },
+  "studio-canvas-realism": {
+    "label": "Studio Canvas Realism",
+    "render_brief": "Premium studio-realistic canvas portrait. Pet is photographed/painted realistically against a simple tonal backdrop with professional lighting, sharp eyes, tactile fur detail, and subtle canvas-print sensibility. Pet-only Type A portrait, no people, no room, no physical canvas in shot, no readable text, no watermark. Avoid over-smoothed fur, perfect symmetry, and generic AI glamour.",
+    "primary_for": ["library", "realistic", "canvas"]
+  },
+  "cinematic-character-realism": {
+    "label": "Cinematic Character Realism",
+    "render_brief": "Realistic cinematic pet portrait with character styling. Believable fur, natural eyes, costume or prop details integrated like a premium film still, dramatic but tasteful lighting, shallow depth and canvas-ready finish. Pet-only Type A portrait, no people, no room, no physical canvas, no readable text, no watermark. Use archetypes only; no recognisable film/TV/game/comic IP.",
+    "primary_for": ["library", "realistic", "character"]
+  },
+  "natural-light-canvas": {
+    "label": "Natural-Light Canvas",
+    "render_brief": "Natural-light realistic pet portrait for canvas. Soft outdoor or window light, believable coat texture, relaxed pet expression, clean background, gentle depth of field, premium editorial realism. Pet-only Type A portrait, no room set, no people, no phone snapshot comedy, no physical canvas object, no readable text, no watermark.",
+    "primary_for": ["library", "realistic", "canvas"]
+  },
+  "watercolour-floral": {
+    "label": "Watercolour Floral",
+    "render_brief": "Soft watercolour painting with washy edges. Pet rendered with gentle pigment fades, warm cream paper background. Wildflowers (lavender, daisies, cornflowers, soft yellows) wrap loosely around the lower half of the composition. Pet's eyes carry the most detail. Pet name written in handwritten cursive serif at the bottom centre. Frame: thin warm-wood floater frame.",
+    "primary_for": ["clover", "memorial-gentle"]
+  },
+  "oil-on-linen": {
+    "label": "Oil on Linen",
+    "render_brief": "Classical oil painting style on visible linen weave. Low-key chiaroscuro — dramatic single-source light from one side, deep shadows on the opposite. Warm muted background (burnt sienna, deep umber). Pet rendered with thick brushstroke texture, especially in fur and around eyes. Pet name in tasteful serif at bottom right. Frame: dark walnut with subtle gilt inner edge.",
+    "primary_for": ["atlas", "mochi"]
+  },
+  "soft-pastel": {
+    "label": "Soft Pastel",
+    "render_brief": "Pastel chalk on textured paper. Soft, tender rendering — feathered edges, no hard lines. Warm cream-pink background. Pet's grey muzzle and eyes get the most detail; the rest fades into the cream. Pet name in handwritten cursive at bottom left. Frame: pale cream with soft gilt edge — gentle, not heavy.",
+    "primary_for": ["hazel", "memorial-gentle"]
+  },
+  "renaissance-oil": {
+    "label": "Renaissance Oil",
+    "render_brief": "Aged oil painting in the manner of 17th-century Dutch animal portraiture. Pet rendered with dignity and weight — head and chest filling the frame, eyes catching a single highlight. Background: deep velvet green or claret, slight visible canvas weave. Pet name in formal Roman serif on a small brass plaque at bottom. Frame: ornate gilt with carved corner detail.",
+    "primary_for": ["mochi", "breed-aristocrat"]
+  },
+  "pop-art": {
+    "label": "Pop Art",
+    "render_brief": "Andy Warhol-style four-panel grid OR single-panel high-contrast pop. Bright saturated palette — magenta, cyan, yellow, orange. Bold black outlines around pet shape. Background flat colour, no gradient. Pet name in chunky sans-serif caps at bottom. Frame: clean black floater.",
+    "primary_for": ["beans"]
+  },
+  "royal-oil": {
+    "label": "Royal Oil",
+    "render_brief": "Pet dressed in mock-historical royal regalia (crown, cape, ruff) painted in the style of a court portrait. Heavy oil texture, gold-trimmed accents. Deep maroon or navy background. Pet's expression dignified — never silly. Pet name in elaborate serif at bottom. Frame: heavy carved gilt.",
+    "primary_for": ["beans", "regal-breed-feature"]
+  },
+  "cowboy-poster": {
+    "label": "Cowboy Poster",
+    "render_brief": "Old west wanted-poster aesthetic. Sepia-toned, distressed paper texture. Pet centred, eyes intense. Bold serif headline at top ('WANTED' or pet name in caps). Subtitle below in smaller western type. Frame: dark distressed wood, slightly rough edges.",
+    "primary_for": ["beans", "characterful-feature"]
+  },
+  "folk-linocut": {
+    "label": "Folk Linocut",
+    "render_brief": "Hand-carved folk linocut print. Bold black carved linework, visible ink grain, limited palette of cream, navy, rust, ochre, and warm tan. Decorative folk motifs can frame the pet, but the pet remains the subject. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "cats", "heirloom"]
+  },
+  "mid-century-gouache": {
+    "label": "Mid-Century Gouache",
+    "render_brief": "Mid-century gouache illustration with flat confident shapes, matte paint texture, warm retro palette, simplified but expressive pet anatomy, and strong poster-like composition. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "modern"]
+  },
+  "neon-sign-portrait": {
+    "label": "Neon Sign Portrait",
+    "render_brief": "Stylised neon sign portrait. Pet silhouette and key facial features built from glowing tube-like lines, saturated electric colour, dark simple backdrop, subtle bloom, graphic nightlife energy. Must read as illustration/sign art, not a photo. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "pop"]
+  },
+  "risograph-summer-print": {
+    "label": "Risograph Summer Print",
+    "render_brief": "Bright risograph summer print. Limited ink layers, offset registration, grainy print texture, coral, butter yellow, sea blue, grass green, and cream. Flat graphic shapes with hand-drawn linework. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "bright"]
+  },
+  "claymation-toy": {
+    "label": "Claymation Toy",
+    "render_brief": "Handmade claymation toy portrait. Soft sculpted clay forms, tiny fingerprints, matte stop-motion texture, rounded charming proportions, playful but premium. Must look like a crafted art object, not a plastic 3D render. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "playful"]
+  },
+  "felted-wool-plush": {
+    "label": "Felted Wool Plush",
+    "render_brief": "Needle-felted wool plush portrait. Visible wool fibres, handmade textile texture, rounded soft sculptural forms, warm craft-paper or simple colour background, tactile and cosy. Must not look photographic. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "cosy"]
+  },
+  "ceramic-tile-folk-art": {
+    "label": "Ceramic Tile Folk Art",
+    "render_brief": "Decorative ceramic tile folk art. Glazed surface feel, hand-painted cobalt, terracotta, cream, and green motifs, slight crackle glaze, symmetrical ornamental layout around the pet. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "folk"]
+  },
+  "art-deco-black-gold": {
+    "label": "Art Deco Black Gold",
+    "render_brief": "Art Deco black and gold portrait. Geometric fan shapes, stepped symmetry, polished gold accents, black lacquer mood, elegant theatrical composition. Pet rendered with stylised precision and luxury poster energy. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "luxury"]
+  },
+  "editorial-collage": {
+    "label": "Editorial Collage",
+    "render_brief": "Editorial collage illustration. Layered cut-paper textures, torn magazine shapes, hand-painted gouache detail, visible paper grain, tasteful art-book composition, warm curated colour. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "collage"]
+  },
+  "renaissance-chalk-pastel": {
+    "label": "Renaissance Chalk Pastel",
+    "render_brief": "Renaissance chalk pastel study on tinted paper. Soft red, umber, and white chalk highlights, sfumato shading, visible pastel dust, classical draftsmanship, museum sketchbook finish. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "classical"]
+  },
+  "vintage-victorian": {
+    "label": "Vintage Victorian",
+    "render_brief": "Vintage Victorian pet illustration. Aged paper texture, delicate engraved linework, muted sepia, sage, dusty blue, and cream washes, subtle ornamental botanical flourishes. Antique but clean and premium. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "vintage"]
+  },
+  "cosmic-astrology": {
+    "label": "Cosmic Astrology",
+    "render_brief": "Mystical cosmic astrology portrait. Deep indigo, midnight blue, and hand-painted gold constellations, zodiac-like arcs, subtle star dust, luminous aura, ornate celestial illustration. No real astrological claims or readable symbols. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "celestial"]
+  },
+  "lino-block-print-modern": {
+    "label": "Lino-Block Print Modern",
+    "render_brief": "Modern linocut print with 2-3 ink layers, slight registration offset, chunky hand-carved linework, limited palette (rust, navy, cream, sage or similar), poster confidence. Visible block-print grain. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "modern", "graphic"]
+  },
+  "screenprint-rock-poster": {
+    "label": "Screenprint Rock Poster",
+    "render_brief": "1970s screenprinted rock-poster portrait. Bold halftone dots, hand-cut headline space (no readable text), saturated three-colour ink layers, weathered paper texture, theatrical poster energy. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "graphic", "bold"]
+  },
+  "art-nouveau-stained-glass": {
+    "label": "Art Nouveau Stained Glass",
+    "render_brief": "Art Nouveau stained-glass panel with sinuous leadline curves, floral arabesque borders, luminous jewel-tone glass (cobalt, ruby, emerald, amber). Pet rendered as a glowing central panel, decorative not literal. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "decorative", "heirloom"]
+  },
+  "enamel-pin-design": {
+    "label": "Enamel Pin Design",
+    "render_brief": "Hard-enamel pin badge aesthetic. Clean black metal cloisons separating flat colour fields, glossy enamel finish, simplified iconic pet silhouette, designer-pin charm. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "graphic", "modern"]
+  },
+  "etching-engraving-naturalist": {
+    "label": "Etching / Naturalist Engraving",
+    "render_brief": "Fine line-etched naturalist plate. Crosshatched shading, sepia ink on cream paper, copperplate engraving precision, anatomical dignity with antique scientific charm. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "classical", "antique"]
+  },
+  "mosaic-byzantine-gold": {
+    "label": "Byzantine Gold Mosaic",
+    "render_brief": "Byzantine gold-leaf mosaic portrait. Tessellated tile texture on a gold ground, jewel-tone glass fragments (lapis, emerald, ruby), iconographic stillness, halo-like ornament. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "heirloom", "decorative"]
+  },
+  "woodblock-flat-print": {
+    "label": "Woodblock Flat Print",
+    "render_brief": "Bold flat-colour woodblock-style print. Clean outlines, layered solid colour areas, hand-printed paper texture, decorative pattern in costume or background fields. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "graphic", "decorative"]
+  },
+  "cyanotype-botanical": {
+    "label": "Cyanotype Botanical",
+    "render_brief": "Cyanotype blueprint portrait. Prussian-blue ground, white silhouette with pressed-botanical highlights, vintage photogram tone, antique deckled paper edge. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "vintage", "botanical"]
+  },
+  "storybook-watercolour": {
+    "label": "Storybook Watercolour",
+    "render_brief": "Warm children's-book watercolour illustration. Soft pencil underdrawing, gentle wash bloom, whimsical detail without becoming cartoonish, cream paper margin, picture-book warmth. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "warm", "illustration"]
+  },
+  "paper-cut-silhouette": {
+    "label": "Paper-Cut Silhouette",
+    "render_brief": "Layered paper-cut silhouette portrait. Multiple stacked paper layers casting subtle shadow, intricate filigree edges, limited palette of cream-and-black with one accent colour. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "decorative", "craft"]
+  },
+  "batik-wax-resist": {
+    "label": "Batik Wax-Resist Textile",
+    "render_brief": "Wax-resist textile print aesthetic. Crackled wax-line texture, deep indigo and rust-red ground, ornamental floral fields, hand-dyed cloth feel. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "textile", "craft"]
+  },
+  "scratchboard-noir": {
+    "label": "Scratchboard Noir",
+    "render_brief": "Scratchboard portrait — white scratched lines on a black ground. Fine crosshatch, dramatic high-contrast lighting, etching-precision detail, museum-illustration mood. Pet-only Type A portrait, no room, no canvas object, no physical frame, no readable text.",
+    "primary_for": ["library", "classical", "graphic"]
+  }
+}

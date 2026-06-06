@@ -63,18 +63,18 @@ export function CosmicPlaylist({ petName, report }: CosmicPlaylistProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-5 bg-[#161029] rounded-[14px] border border-[#2a1f47] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-2.5">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#e6c179] mb-2.5">
         🎵 {petName}'s Cosmic Playlist
       </div>
 
       {playlist.map((item, i) => (
         <div
           key={i}
-          className="flex items-center gap-2.5 py-2 border-b border-[#e8ddd0] last:border-b-0"
+          className="flex items-center gap-2.5 py-2 border-b border-[#2a1f47] last:border-b-0 hover:bg-[#1d1538] transition-colors rounded-md"
         >
-          <span className="text-[0.7rem] font-bold text-[#9a8578] w-5">
+          <span className="text-[0.7rem] font-bold text-[#9a86c8] w-5">
             {String(i + 1).padStart(2, '0')}
           </span>
           <a
@@ -91,13 +91,13 @@ export function CosmicPlaylist({ petName, report }: CosmicPlaylistProps) {
               >
                 <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
               </svg>
-              <span className="text-[0.82rem] font-semibold text-[#3d2f2a] group-hover:underline decoration-[#1DB954]/40 underline-offset-2">
+              <span className="text-[0.82rem] font-semibold text-[#f3ecff] group-hover:underline decoration-[#1DB954]/40 underline-offset-2">
                 {item.title}
               </span>
             </div>
-            <div className="text-[0.7rem] text-[#9a8578] ml-5">{item.artist}</div>
+            <div className="text-[0.7rem] text-[#9a86c8] ml-5">{item.artist}</div>
           </a>
-          <span className="text-[0.62rem] text-[#c4a265] font-semibold uppercase tracking-[0.5px]">
+          <span className="text-[0.62rem] text-[#e6c179] font-semibold uppercase tracking-[0.5px]">
             {item.vibe}
           </span>
         </div>

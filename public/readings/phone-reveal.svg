@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Phone soul reading reveal</title>
+  <desc id="desc">A hand holding a phone with a pet birth chart reveal on screen.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#fbf6ef"/>
+      <stop offset="1" stop-color="#fbeae8"/>
+    </linearGradient>
+    <linearGradient id="rose" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#bf524a"/>
+      <stop offset="1" stop-color="#9c3d36"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="34%" r="55%">
+      <stop offset="0" stop-color="#fff8df"/>
+      <stop offset="0.55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f7efe6"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="26" stdDeviation="30" flood-color="#1c1c1c" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="960" height="1200" fill="url(#bg)"/>
+  <circle cx="190" cy="140" r="130" fill="#fbeae8" opacity="0.75"/>
+  <circle cx="790" cy="1020" r="220" fill="#faf6ed" opacity="0.95"/>
+  <g opacity="0.28" stroke="#c4a265" stroke-width="3" fill="none">
+    <path d="M120 300c86-52 176-54 270-6"/>
+    <path d="M590 198c82 18 140 62 174 132"/>
+    <path d="M210 950c124 34 238 26 342-24"/>
+  </g>
+  <g filter="url(#shadow)" transform="translate(285 92) rotate(-4 195 405)">
+    <rect x="0" y="0" width="390" height="810" rx="58" fill="#1c1c1c"/>
+    <rect x="23" y="26" width="344" height="758" rx="42" fill="url(#glow)"/>
+    <rect x="150" y="44" width="92" height="8" rx="4" fill="#1c1c1c" opacity="0.35"/>
+    <circle cx="195" cy="322" r="151" fill="none" stroke="#c4a265" stroke-width="2.2" opacity="0.7"/>
+    <circle cx="195" cy="322" r="104" fill="none" stroke="#c4a265" stroke-width="1.4" opacity="0.48"/>
+    <circle cx="195" cy="322" r="58" fill="#fbeae8" opacity="0.75"/>
+    <path d="M146 334c9-67 84-95 124-43 29 38 7 95-42 116-45 20-89-27-82-73z" fill="#c78354"/>
+    <path d="M130 300c-11-48 48-52 57-15M248 276c27-32 73 7 36 45" fill="#c78354"/>
+    <circle cx="171" cy="330" r="8" fill="#1c1c1c"/>
+    <circle cx="225" cy="327" r="8" fill="#1c1c1c"/>
+    <path d="M185 365c21 16 38 12 51-7" stroke="#1c1c1c" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <g stroke="#c4a265" stroke-width="1.6" opacity="0.9">
+      <path d="M195 171v302M44 322h302M88 215l214 214M302 215 88 429"/>
+    </g>
+    <g fill="#c4a265">
+      <circle cx="195" cy="171" r="5"/><circle cx="346" cy="322" r="5"/><circle cx="195" cy="473" r="5"/><circle cx="44" cy="322" r="5"/>
+      <circle cx="88" cy="215" r="4"/><circle cx="302" cy="215" r="4"/><circle cx="302" cy="429" r="4"/><circle cx="88" cy="429" r="4"/>
+    </g>
+    <rect x="78" y="548" width="234" height="18" rx="9" fill="#1c1c1c" opacity="0.14"/>
+    <rect x="94" y="588" width="202" height="11" rx="5.5" fill="#c4a265" opacity="0.45"/>
+    <rect x="116" y="617" width="158" height="11" rx="5.5" fill="#c4a265" opacity="0.32"/>
+    <rect x="112" y="678" width="166" height="48" rx="24" fill="url(#rose)"/>
+  </g>
+  <path d="M227 878c44-68 127-98 212-89 58 6 91 31 86 64-6 42-65 50-111 47l-94-6 22 142c8 50-74 69-98 22-31-61-51-127-17-180z" fill="#e8c6a7"/>
+  <path d="M305 889c52 11 110 13 164 4" stroke="#d7a883" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+</svg>

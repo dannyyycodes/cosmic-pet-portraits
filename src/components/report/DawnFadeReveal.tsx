@@ -27,9 +27,9 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
         initial={reducedMotion ? false : { background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }}
         animate={
           reducedMotion
-            ? { background: 'linear-gradient(180deg, #FFFDF5 0%, #faf6ef 100%)' }
+            ? { background: 'linear-gradient(180deg, #2a1f47 0%, #120e26 100%)' }
             : inView
-            ? { background: 'linear-gradient(180deg, #FFFDF5 0%, #faf6ef 100%)' }
+            ? { background: 'linear-gradient(180deg, #2a1f47 0%, #120e26 100%)' }
             : { background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }
         }
         transition={reducedMotion ? { duration: 0 } : { duration: 1.6, ease: [0.65, 0, 0.35, 1], delay: 0.4 }}
@@ -61,7 +61,7 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
           initial={{ opacity: 0, y: 18, color: '#faf6ef' }}
           animate={
             inView
-              ? { opacity: 1, y: 0, color: '#3d2f2a' }
+              ? { opacity: 1, y: 0, color: '#fdf3d8' }
               : { opacity: 0, y: 18, color: '#faf6ef' }
           }
           transition={{
@@ -78,7 +78,7 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
         {subWhisper && (
           <motion.p
             initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 0.9, color: '#6a4d40' } : { opacity: 0 }}
+            animate={inView ? { opacity: 0.9, color: '#d8c5f5' } : { opacity: 0 }}
             transition={{ duration: 0.9, delay: 1.4 }}
             className="relative mt-4 italic max-w-[380px]"
             style={{ fontFamily: 'Cormorant, serif', fontSize: '1rem' }}

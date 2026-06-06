@@ -57,9 +57,9 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
       aria-label="Report chapter navigation"
     >
       {/* The rail */}
-      <div className="relative w-px h-[60vh] bg-[#c4a265]/15 rounded-full overflow-hidden">
+      <div className="relative w-px h-[60vh] bg-[#9a7ee6]/20 rounded-full overflow-hidden">
         <motion.div
-          className="absolute inset-0 origin-bottom bg-[#c4a265]"
+          className="absolute inset-0 origin-bottom bg-[#e6c179]"
           style={{ scaleY }}
         />
       </div>
@@ -70,7 +70,7 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
           <button
             key={c.anchor}
             onClick={() => scrollTo(c.anchor)}
-            className="pointer-events-auto group relative flex items-center justify-center w-6 h-6 -mx-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4a265] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDF5]"
+            className="pointer-events-auto group relative flex items-center justify-center w-6 h-6 -mx-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e6c179] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0810]"
             aria-label={`Jump to ${c.title}`}
             aria-current={i === active ? 'true' : undefined}
           >
@@ -78,11 +78,11 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
               className={
                 'block rounded-full transition-all duration-300 ' +
                 (i === active
-                  ? 'w-2.5 h-2.5 bg-[#c4a265] shadow-[0_0_12px_rgba(196,162,101,0.6)]'
-                  : 'w-1.5 h-1.5 bg-[#c4a265]/40 group-hover:bg-[#c4a265]/70')
+                  ? 'w-2.5 h-2.5 bg-[#e6c179] shadow-[0_0_12px_rgba(230,193,121,0.6)]'
+                  : 'w-1.5 h-1.5 bg-[#9a7ee6]/40 group-hover:bg-[#e6c179]/70')
               }
             />
-            <span className="absolute right-5 whitespace-nowrap text-[0.68rem] tracking-wider uppercase text-[#5a4a42]/70 opacity-0 group-hover:opacity-100 transition-opacity font-sans bg-[#FFFDF5]/90 px-2 py-1 rounded border border-[#c4a265]/20">
+            <span className="absolute right-5 whitespace-nowrap text-[0.68rem] tracking-wider uppercase text-[#d8c5f5]/80 opacity-0 group-hover:opacity-100 transition-opacity font-sans bg-[#161029]/90 px-2 py-1 rounded border border-[#9a7ee6]/20">
               {String(c.number).padStart(2, '0')} · {c.title}
             </span>
           </button>
@@ -90,9 +90,9 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
       </div>
 
       {/* Chapter counter (current / total) */}
-      <div className="mt-3 text-[0.6rem] tracking-[0.2em] uppercase text-[#c4a265] font-sans pointer-events-none">
+      <div className="mt-3 text-[0.6rem] tracking-[0.2em] uppercase text-[#e6c179] font-sans pointer-events-none">
         {String(active + 1).padStart(2, '0')}
-        <span className="text-[#c4a265]/40"> / {String(chapters.length).padStart(2, '0')}</span>
+        <span className="text-[#e6c179]/40"> / {String(chapters.length).padStart(2, '0')}</span>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { zodiacSigns } from '@/lib/zodiac';
 import { AuraVisual } from './AuraVisual';
+import { auraColorName } from './cosmic/colorName';
 
 interface AuraPortraitProps {
   aura: { primary: string; secondary: string; meaning: string };
@@ -88,10 +89,12 @@ export function AuraPortrait({
       variants={s.variants}
       className="mx-4 my-6 max-w-[520px] sm:mx-auto relative"
       style={{
-        background: '#ffffff',
+        background: 'rgba(22,16,42,0.72)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
         borderRadius: '18px',
-        border: '1px solid #e8ddd0',
-        boxShadow: '0 2px 12px rgba(61,47,42,0.07)',
+        border: '1px solid rgba(154,126,230,0.18)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.45), 0 0 60px rgba(154,126,230,0.10)',
         padding: '36px 24px 28px',
         textAlign: 'center',
         overflow: 'hidden',
@@ -104,7 +107,7 @@ export function AuraPortrait({
           fontWeight: 700,
           letterSpacing: '2.5px',
           textTransform: 'uppercase',
-          color: '#c4a265',
+          color: '#e6c179',
           marginBottom: '6px',
         }}
       >
@@ -115,13 +118,13 @@ export function AuraPortrait({
         style={{
           fontSize: '1.35rem',
           fontFamily: 'DM Serif Display, serif',
-          color: '#3d2f2a',
+          color: '#f3ecff',
           margin: '0 0 28px',
           lineHeight: 1.3,
         }}
       >
-        {aura.primary}
-        {aura.secondary ? ` with ${aura.secondary}` : ''}
+        {auraColorName(aura.primary)}
+        {aura.secondary ? ` & ${auraColorName(aura.secondary)}` : ''}
       </h2>
 
       {/* The cosmic frame — scales down on phones so it never overflows */}
@@ -235,9 +238,9 @@ export function AuraPortrait({
               top: 14,
               right: 18,
               fontSize: 28,
-              color: '#c4a265',
+              color: '#e6c179',
               textShadow: `0 0 12px ${primaryColor}66`,
-              filter: 'drop-shadow(0 0 6px rgba(196,162,101,0.4))',
+              filter: 'drop-shadow(0 0 6px rgba(230,193,121,0.45))',
             }}
           >
             {zodiacIcon}
@@ -250,7 +253,7 @@ export function AuraPortrait({
         style={{
           fontSize: '0.9rem',
           lineHeight: 1.8,
-          color: '#5a4a42',
+          color: '#d8c5f5',
           maxWidth: 380,
           margin: '0 auto 20px',
           fontStyle: 'italic',
@@ -262,25 +265,25 @@ export function AuraPortrait({
       {/* Color pills */}
       <div className="flex flex-wrap gap-2.5 justify-center">
         {[
-          { label: 'Primary', name: aura.primary, color: primaryColor },
+          { label: 'Primary', name: auraColorName(aura.primary), color: primaryColor },
           aura.secondary
-            ? { label: 'Secondary', name: aura.secondary, color: secondaryColor }
+            ? { label: 'Secondary', name: auraColorName(aura.secondary), color: secondaryColor }
             : null,
         ]
           .filter((x): x is { label: string; name: string; color: string } => !!x)
           .map((p) => (
             <div
               key={p.label}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#f5efe6] border border-[#e8ddd0] px-3 py-1"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#1d1538] border border-[#2a1f47] px-3 py-1"
             >
               <span
                 className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ background: p.color, boxShadow: `0 0 4px ${p.color}80` }}
               />
-              <span className="text-[0.68rem] font-semibold tracking-wider uppercase text-[#9a8578]">
+              <span className="text-[0.68rem] font-semibold tracking-wider uppercase text-[#9a86c8]">
                 {p.label}
               </span>
-              <span className="text-[0.78rem] font-medium text-[#3d2f2a] capitalize">
+              <span className="text-[0.78rem] font-medium text-[#f3ecff] capitalize">
                 {p.name}
               </span>
             </div>

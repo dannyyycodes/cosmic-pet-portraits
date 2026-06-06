@@ -1,0 +1,564 @@
+{
+  "breedSubjects": [
+    {
+      "species": "dog",
+      "breed": "German Shepherd",
+      "furColor": "black and tan with saddle pattern",
+      "eyeColor": "dark brown",
+      "earShape": "erect triangular",
+      "distinguishing": "classic black saddle marking over back"
+    },
+    {
+      "species": "dog",
+      "breed": "French Bulldog",
+      "furColor": "white with brindle facial markings",
+      "eyeColor": "dark brown",
+      "earShape": "erect triangular bat ears",
+      "distinguishing": "flat brachycephalic face with wrinkled muzzle"
+    },
+    {
+      "species": "dog",
+      "breed": "Golden Retriever",
+      "furColor": "golden with lighter cream feathering on chest and neck",
+      "eyeColor": "dark brown",
+      "earShape": "drop",
+      "distinguishing": "long feathered coat with gentle expression"
+    },
+    {
+      "species": "dog",
+      "breed": "Dachshund",
+      "furColor": "Black and tan with tan markings on eyebrows, muzzle, chest, and legs",
+      "eyeColor": "Dark brown",
+      "earShape": "Drop ears, long and pendulous",
+      "distinguishing": "Elongated body with short legs characteristic of breed"
+    },
+    {
+      "species": "dog",
+      "breed": "Alaskan Malamute",
+      "furColor": "black and white with tan markings",
+      "eyeColor": "brown",
+      "earShape": "erect triangular",
+      "distinguishing": "distinctive facial mask with white blaze"
+    },
+    {
+      "species": "cat",
+      "breed": "Domestic Longhair",
+      "furColor": "Orange/ginger tabby with lighter cream underparts",
+      "eyeColor": "Amber/golden yellow",
+      "earShape": "Erect triangular with tufts",
+      "distinguishing": "Long fluffy coat with prominent ear tufts"
+    },
+    {
+      "species": "cat",
+      "breed": "Domestic Shorthair",
+      "furColor": "brown tabby with black stripes",
+      "eyeColor": "yellow-green",
+      "earShape": "erect triangular",
+      "distinguishing": "classic mackerel tabby pattern with M-marking on forehead"
+    },
+    {
+      "species": "cat",
+      "breed": "Domestic Longhair",
+      "furColor": "silver-gray tabby with white markings",
+      "eyeColor": "yellow-green",
+      "earShape": "erect triangular",
+      "distinguishing": "fluffy long coat with prominent white chest ruff"
+    }
+  ],
+  "singleResults": [
+    {
+      "breed": "German Shepherd",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": null,
+      "error": "500: {\"detail\":[{\"loc\":[\"body\"],\"msg\":\"Downstream service error\",\"type\":\"downstream_service_error\",\"url\":\"https://docs.fal.ai/errors#downstream_service_error\",\"input\":{\"prompt\":\"Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique",
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, black and tan with saddle pattern fur pattern, dark brown eyes, erect triangular ear shape, classic black saddle marking over back.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "German Shepherd",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a994086/5kik0WLWhYm5pXYE7aP7G_TdiRjPKZ.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, black and tan with saddle pattern fur pattern, dark brown eyes, erect triangular ear shape, classic black saddle marking over back.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "German Shepherd",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a994086/DqHUrg6c-kn6adCAtjydf_HAnrK9EB.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, black and tan with saddle pattern fur pattern, dark brown eyes, erect triangular ear shape, classic black saddle marking over back.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "German Shepherd",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a994086/y3aH1mv4BsL8gfxxB6B_j_i7IMmd5V.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, black and tan with saddle pattern fur pattern, dark brown eyes, erect triangular ear shape, classic black saddle marking over back.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "German Shepherd",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a994086/JwRQT3Hy-AcCZGe5WOrhk_eBnh8PGA.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, black and tan with saddle pattern fur pattern, dark brown eyes, erect triangular ear shape, classic black saddle marking over back.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "German Shepherd",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a99408a/Cu01EFslmyoUehoFCzTMj_4uubzdVO.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the German Shepherd silhouette and breed characteristics, black and tan with saddle pattern fur pattern, dark brown eyes, erect triangular ear shape, classic black saddle marking over back.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Rex\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "French Bulldog",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a99408c/JW4o9Um7Me0dIif_K8zaw_Q5A1H3at.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the French Bulldog silhouette and breed characteristics, white with brindle facial markings fur pattern, dark brown eyes, erect triangular bat ears ear shape, flat brachycephalic face with wrinkled muzzle.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Bella\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "French Bulldog",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a99408c/uI9nVkYUGjuvIg7cRgj2N_5Ygs7h6d.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the French Bulldog silhouette and breed characteristics, white with brindle facial markings fur pattern, dark brown eyes, erect triangular bat ears ear shape, flat brachycephalic face with wrinkled muzzle.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Bella\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "French Bulldog",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a99408c/_FTZPXAbZ4ZIaUfbBYN4Y_TzNoPuYu.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the French Bulldog silhouette and breed characteristics, white with brindle facial markings fur pattern, dark brown eyes, erect triangular bat ears ear shape, flat brachycephalic face with wrinkled muzzle.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Bella\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "French Bulldog",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a99408d/NL9uxns7qNMU1KDPECq8P_ZLb3fqaP.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the French Bulldog silhouette and breed characteristics, white with brindle facial markings fur pattern, dark brown eyes, erect triangular bat ears ear shape, flat brachycephalic face with wrinkled muzzle.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Bella\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "French Bulldog",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a994090/dMUaiEFKtHdWuh7UF19MC_5LUJVRVh.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the French Bulldog silhouette and breed characteristics, white with brindle facial markings fur pattern, dark brown eyes, erect triangular bat ears ear shape, flat brachycephalic face with wrinkled muzzle.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Bella\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "French Bulldog",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a994092/iqCYpiQpVXnasNBI8N2NR_W8BSDdeR.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the French Bulldog silhouette and breed characteristics, white with brindle facial markings fur pattern, dark brown eyes, erect triangular bat ears ear shape, flat brachycephalic face with wrinkled muzzle.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Bella\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Golden Retriever",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a994092/lioZsRrAYqaw2PYslqutb_J0eeIXKp.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Golden Retriever silhouette and breed characteristics, golden with lighter cream feathering on chest and neck fur pattern, dark brown eyes, drop ear shape, long feathered coat with gentle expression.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Milo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Golden Retriever",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a994092/BTQNOZDeHYxb1bVXcD37X_PctXc2fO.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Golden Retriever silhouette and breed characteristics, golden with lighter cream feathering on chest and neck fur pattern, dark brown eyes, drop ear shape, long feathered coat with gentle expression.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Milo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Golden Retriever",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a994093/KNHT3Jyg_gGcwbB_lBvKy_xbKE5zqj.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Golden Retriever silhouette and breed characteristics, golden with lighter cream feathering on chest and neck fur pattern, dark brown eyes, drop ear shape, long feathered coat with gentle expression.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Milo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Golden Retriever",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a994095/xuDct1_swRxkq_0ItDFXE_qXz8XtgP.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Golden Retriever silhouette and breed characteristics, golden with lighter cream feathering on chest and neck fur pattern, dark brown eyes, drop ear shape, long feathered coat with gentle expression.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Milo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Golden Retriever",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a994098/mYF5MkhQgm8MJA417uRV7_9JY4jvXr.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Golden Retriever silhouette and breed characteristics, golden with lighter cream feathering on chest and neck fur pattern, dark brown eyes, drop ear shape, long feathered coat with gentle expression.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Milo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Golden Retriever",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a994098/_XGYnPEQ48PNcO2wvGEze_6JrRFDi3.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Golden Retriever silhouette and breed characteristics, golden with lighter cream feathering on chest and neck fur pattern, dark brown eyes, drop ear shape, long feathered coat with gentle expression.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Milo\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dachshund",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a994098/7xcMONd0VnAyBP6Y3iuEZ_mGPnM04Z.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Dachshund silhouette and breed characteristics, Black and tan with tan markings on eyebrows, muzzle, chest, and legs fur pattern, Dark brown eyes, Drop ears, long and pendulous ear shape, Elongated body with short legs characteristic of breed.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Daisy\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dachshund",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a994099/tYItTkWCgbatsysvIEBEL_SgW0mDyW.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Dachshund silhouette and breed characteristics, Black and tan with tan markings on eyebrows, muzzle, chest, and legs fur pattern, Dark brown eyes, Drop ears, long and pendulous ear shape, Elongated body with short legs characteristic of breed.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Daisy\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dachshund",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a99409c/iKl8nk_VOv1XJxoZq3k7u_Ic4LWbh8.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Dachshund silhouette and breed characteristics, Black and tan with tan markings on eyebrows, muzzle, chest, and legs fur pattern, Dark brown eyes, Drop ears, long and pendulous ear shape, Elongated body with short legs characteristic of breed.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Daisy\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dachshund",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a99409e/KqfNNu4T9Z1Y9ysT6fdS8_62DG5Yxf.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Dachshund silhouette and breed characteristics, Black and tan with tan markings on eyebrows, muzzle, chest, and legs fur pattern, Dark brown eyes, Drop ears, long and pendulous ear shape, Elongated body with short legs characteristic of breed.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Daisy\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dachshund",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a99409f/QAZ8J2m0vTctnmiHAeXVH_qhSEjfHH.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Dachshund silhouette and breed characteristics, Black and tan with tan markings on eyebrows, muzzle, chest, and legs fur pattern, Dark brown eyes, Drop ears, long and pendulous ear shape, Elongated body with short legs characteristic of breed.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Daisy\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Dachshund",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a99409f/EbpSzmlzTwL2Pz1MvO8Op_zJgx8KWY.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Dachshund silhouette and breed characteristics, Black and tan with tan markings on eyebrows, muzzle, chest, and legs fur pattern, Dark brown eyes, Drop ears, long and pendulous ear shape, Elongated body with short legs characteristic of breed.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Daisy\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Husky",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a99409f/-Pvbb3_tzkQR1bYoks6JM_yV7net6A.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Alaskan Malamute silhouette and breed characteristics, black and white with tan markings fur pattern, brown eyes, erect triangular ear shape, distinctive facial mask with white blaze.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Luna\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Husky",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a9940a2/x0l_fwwwQM4iHnlcitwCt_yw0NhtQh.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Alaskan Malamute silhouette and breed characteristics, black and white with tan markings fur pattern, brown eyes, erect triangular ear shape, distinctive facial mask with white blaze.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Luna\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Husky",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a9940a4/fWAb93uekb4QB3lmys2kV_laD76Bcg.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Alaskan Malamute silhouette and breed characteristics, black and white with tan markings fur pattern, brown eyes, erect triangular ear shape, distinctive facial mask with white blaze.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Luna\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Husky",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a9940a4/XczoT4dcQaiLhQXD85dfz_7yoXP0tI.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Alaskan Malamute silhouette and breed characteristics, black and white with tan markings fur pattern, brown eyes, erect triangular ear shape, distinctive facial mask with white blaze.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Luna\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Husky",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a9940a4/aUBla8dX5NqaSCmeLVZs__iJiCm0nO.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Alaskan Malamute silhouette and breed characteristics, black and white with tan markings fur pattern, brown eyes, erect triangular ear shape, distinctive facial mask with white blaze.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Luna\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Husky",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a9940a5/wFmXYgr-KTSIdS1Di2-4G_DHtXfZpA.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Alaskan Malamute silhouette and breed characteristics, black and white with tan markings fur pattern, brown eyes, erect triangular ear shape, distinctive facial mask with white blaze.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Luna\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Persian Cat",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a9940a7/YCq6VswLl_8T3LD6Guiva_CywQzyjV.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, Orange/ginger tabby with lighter cream underparts fur pattern, Amber/golden yellow eyes, Erect triangular with tufts ear shape, Long fluffy coat with prominent ear tufts.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Mochi\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Persian Cat",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a9940a9/9cxj-lJfWFzt6pzDgHpGY_tXYwtKi3.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, Orange/ginger tabby with lighter cream underparts fur pattern, Amber/golden yellow eyes, Erect triangular with tufts ear shape, Long fluffy coat with prominent ear tufts.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Mochi\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Persian Cat",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a9940ab/x1q64LnqhIthdgCauIup-_WbunVzqX.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, Orange/ginger tabby with lighter cream underparts fur pattern, Amber/golden yellow eyes, Erect triangular with tufts ear shape, Long fluffy coat with prominent ear tufts.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Mochi\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Persian Cat",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a9940ab/3tQW_7eKl-qVrrrQzxL7H_RhXoXz87.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, Orange/ginger tabby with lighter cream underparts fur pattern, Amber/golden yellow eyes, Erect triangular with tufts ear shape, Long fluffy coat with prominent ear tufts.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Mochi\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Persian Cat",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a9940ab/3YbtlT0ZMqBf_RvrbRLoE_VRHARem4.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, Orange/ginger tabby with lighter cream underparts fur pattern, Amber/golden yellow eyes, Erect triangular with tufts ear shape, Long fluffy coat with prominent ear tufts.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Mochi\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Persian Cat",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": null,
+      "error": "500: {\"detail\":[{\"loc\":[\"body\"],\"msg\":\"Downstream service error\",\"type\":\"downstream_service_error\",\"url\":\"https://docs.fal.ai/errors#downstream_service_error\",\"input\":{\"prompt\":\"Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique",
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, Orange/ginger tabby with lighter cream underparts fur pattern, Amber/golden yellow eyes, Erect triangular with tufts ear shape, Long fluffy coat with prominent ear tufts.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Mochi\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Tabby Cat",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a9940ad/IXC7sO3R9k68PqKMM4Xgl_Wi1u38OB.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Shorthair silhouette and breed characteristics, brown tabby with black stripes fur pattern, yellow-green eyes, erect triangular ear shape, classic mackerel tabby pattern with M-marking on forehead.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Tabby Cat",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a9940af/byYPv42k8fK3UGmI7Gjbv_VgFUgKpv.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Shorthair silhouette and breed characteristics, brown tabby with black stripes fur pattern, yellow-green eyes, erect triangular ear shape, classic mackerel tabby pattern with M-marking on forehead.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Tabby Cat",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a9940b1/ELZepyJGDr3W1gEcLb3yE_hfjjzbSz.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Shorthair silhouette and breed characteristics, brown tabby with black stripes fur pattern, yellow-green eyes, erect triangular ear shape, classic mackerel tabby pattern with M-marking on forehead.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Tabby Cat",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a9940b2/HWjGTAGnbvu9a3GA_eX2j_3zxICwDw.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Shorthair silhouette and breed characteristics, brown tabby with black stripes fur pattern, yellow-green eyes, erect triangular ear shape, classic mackerel tabby pattern with M-marking on forehead.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Tabby Cat",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a9940b3/0VOTVZ4rA2EhQqQmg5u9k_ibDKYoP9.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Shorthair silhouette and breed characteristics, brown tabby with black stripes fur pattern, yellow-green eyes, erect triangular ear shape, classic mackerel tabby pattern with M-marking on forehead.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Tabby Cat",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a9940b4/JuFpFiGwCPgwaR7t60T7z_LxZf1kb3.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Shorthair silhouette and breed characteristics, brown tabby with black stripes fur pattern, yellow-green eyes, erect triangular ear shape, classic mackerel tabby pattern with M-marking on forehead.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Maine Coon",
+      "style": "Watercolour Floral",
+      "styleId": "watercolour",
+      "url": "https://v3b.fal.media/files/b/0a9940b5/VTmkNb05jiY0m_wogXefn_OEe7huus.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, silver-gray tabby with white markings fur pattern, yellow-green eyes, erect triangular ear shape, fluffy long coat with prominent white chest ruff.\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\nRender the name \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Maine Coon",
+      "style": "Renaissance Royal",
+      "styleId": "renaissance",
+      "url": "https://v3b.fal.media/files/b/0a9940b7/mATjmYmybKvGZJ-oE8NAv_rzFJC63A.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, silver-gray tabby with white markings fur pattern, yellow-green eyes, erect triangular ear shape, fluffy long coat with prominent white chest ruff.\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\nRender the name \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Maine Coon",
+      "style": "Cowboy Western",
+      "styleId": "cowboy",
+      "url": "https://v3b.fal.media/files/b/0a9940b8/4HYXTimcQUDWk4fFkQalt_4A8BAnT1.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, silver-gray tabby with white markings fur pattern, yellow-green eyes, erect triangular ear shape, fluffy long coat with prominent white chest ruff.\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\nRender the name \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Maine Coon",
+      "style": "Pop Art Lichtenstein",
+      "styleId": "popart",
+      "url": "https://v3b.fal.media/files/b/0a9940b9/iQtG5hK5P9EzMy1MfoazO_a4cRYYvt.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, silver-gray tabby with white markings fur pattern, yellow-green eyes, erect triangular ear shape, fluffy long coat with prominent white chest ruff.\nApply this artistic transformation: 1960s Lichtenstein-style pop art with bold black outlines, Ben-Day dots, flat primary colours.\nRender the name \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Maine Coon",
+      "style": "Pixar 3D",
+      "styleId": "pixar",
+      "url": "https://v3b.fal.media/files/b/0a9940ba/KyAU6HM9gFiI5kaAdVqOS_4Zzj1bnR.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, silver-gray tabby with white markings fur pattern, yellow-green eyes, erect triangular ear shape, fluffy long coat with prominent white chest ruff.\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\nRender the name \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "breed": "Maine Coon",
+      "style": "Vogue Magazine",
+      "styleId": "magazine",
+      "url": "https://v3b.fal.media/files/b/0a9940bb/v6FXyIqQd3CODi3Nxqsv3_4WTVNIFx.png",
+      "error": null,
+      "prompt": "Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.\nSpecifically preserve: the Domestic Longhair silhouette and breed characteristics, silver-gray tabby with white markings fur pattern, yellow-green eyes, erect triangular ear shape, fluffy long coat with prominent white chest ruff.\nApply this artistic transformation: editorial vogue magazine cover with bold typography and dramatic studio lighting.\nRender the name \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    }
+  ],
+  "multiResults": [
+    {
+      "label": "Two dogs (Shepherd + Golden)",
+      "count": 2,
+      "breeds": [
+        "German Shepherd",
+        "Golden Retriever"
+      ],
+      "names": [
+        "Rex",
+        "Milo"
+      ],
+      "style": "Watercolour Floral",
+      "url": "https://v3b.fal.media/files/b/0a9940c1/cmfpOLcz0ZaWgGmDG-zUu_8SJYRujR.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 2 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds.\n\nPet 1 (named \"Rex\"): a German Shepherd, black and tan with saddle pattern, dark brown eyes, classic black saddle marking over back.\nPet 2 (named \"Milo\"): a Golden Retriever, golden with lighter cream feathering on chest and neck, dark brown eyes, long feathered coat with gentle expression.\n\nApply this artistic transformation: watercolour floral pet portrait with soft botanical wreath frame and pastel washes.\n\nRender the names \"Rex\" and \"Milo\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "label": "Two cats (Persian + Tabby)",
+      "count": 2,
+      "breeds": [
+        "Persian Cat",
+        "Tabby Cat"
+      ],
+      "names": [
+        "Mochi",
+        "Whiskers"
+      ],
+      "style": "Renaissance Royal",
+      "url": "https://v3b.fal.media/files/b/0a9940c1/HxZiIRWrQjDXbqEo0xWOn_LvgBzTBu.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 2 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds.\n\nPet 1 (named \"Mochi\"): a Domestic Longhair, Orange/ginger tabby with lighter cream underparts, Amber/golden yellow eyes, Long fluffy coat with prominent ear tufts.\nPet 2 (named \"Whiskers\"): a Domestic Shorthair, brown tabby with black stripes, yellow-green eyes, classic mackerel tabby pattern with M-marking on forehead.\n\nApply this artistic transformation: renaissance oil painting of the pet in noble royal regalia, chiaroscuro lighting, museum quality.\n\nRender the names \"Mochi\" and \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "label": "Mixed (Dachshund + Maine Coon)",
+      "count": 2,
+      "breeds": [
+        "Dachshund",
+        "Maine Coon"
+      ],
+      "names": [
+        "Daisy",
+        "Cooper"
+      ],
+      "style": "Cowboy Western",
+      "url": "https://v3b.fal.media/files/b/0a9940c7/C_I7NKIGudiB5cDnA4wJH_ql8zsKjZ.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 2 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds.\n\nPet 1 (named \"Daisy\"): a Dachshund, Black and tan with tan markings on eyebrows, muzzle, chest, and legs, Dark brown eyes, Elongated body with short legs characteristic of breed.\nPet 2 (named \"Cooper\"): a Domestic Longhair, silver-gray tabby with white markings, yellow-green eyes, fluffy long coat with prominent white chest ruff.\n\nApply this artistic transformation: vintage western wanted-poster style, sepia tones, distressed paper texture, hand-stamped serif typography.\n\nRender the names \"Daisy\" and \"Cooper\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    },
+    {
+      "label": "Three pets (Husky + Frenchie + Tabby)",
+      "count": 3,
+      "breeds": [
+        "Husky",
+        "French Bulldog",
+        "Tabby Cat"
+      ],
+      "names": [
+        "Luna",
+        "Bella",
+        "Whiskers"
+      ],
+      "style": "Pixar 3D",
+      "url": "https://v3b.fal.media/files/b/0a9940c7/Qc1HqnZROF5kHgqBEZsPA_Uf2yQCt5.png",
+      "error": null,
+      "prompt": "Use the exact pets shown across the source images. Create a single canvas portrait featuring all 3 pets together, each rendered with their own breed, markings, eye colour, and unique features preserved exactly as in the source photos. Do not merge them into hybrids. Do not change any of their breeds.\n\nPet 1 (named \"Luna\"): a Alaskan Malamute, black and white with tan markings, brown eyes, distinctive facial mask with white blaze.\nPet 2 (named \"Bella\"): a French Bulldog, white with brindle facial markings, dark brown eyes, flat brachycephalic face with wrinkled muzzle.\nPet 3 (named \"Whiskers\"): a Domestic Shorthair, brown tabby with black stripes, yellow-green eyes, classic mackerel tabby pattern with M-marking on forehead.\n\nApply this artistic transformation: Pixar-style 3D-animated film hero shot with soft global illumination and expressive eyes.\n\nRender the names \"Luna\" and \"Bella\" and \"Whiskers\" in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.\n\nOutput: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art."
+    }
+  ],
+  "breeds": [
+    {
+      "name": "German Shepherd",
+      "petName": "Rex",
+      "url": "https://aduibsyrnenzobuyetmn.supabase.co/storage/v1/object/public/pet-photos/admin-test/german-shepherd-1778145655837.webp"
+    },
+    {
+      "name": "French Bulldog",
+      "petName": "Bella",
+      "url": "https://images.pexels.com/photos/33766745/pexels-photo-33766745.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Golden Retriever",
+      "petName": "Milo",
+      "url": "https://images.pexels.com/photos/35439661/pexels-photo-35439661.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Dachshund",
+      "petName": "Daisy",
+      "url": "https://images.pexels.com/photos/35297038/pexels-photo-35297038.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Husky",
+      "petName": "Luna",
+      "url": "https://images.pexels.com/photos/27073914/pexels-photo-27073914.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Persian Cat",
+      "petName": "Mochi",
+      "url": "https://images.pexels.com/photos/36563775/pexels-photo-36563775.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Tabby Cat",
+      "petName": "Whiskers",
+      "url": "https://images.pexels.com/photos/7556880/pexels-photo-7556880.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    {
+      "name": "Maine Coon",
+      "petName": "Cooper",
+      "url": "https://images.pexels.com/photos/32126021/pexels-photo-32126021.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    }
+  ]
+}
