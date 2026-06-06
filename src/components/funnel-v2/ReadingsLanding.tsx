@@ -1491,7 +1491,7 @@ function CheckoutSection({
 // cat opens the series; the rest let the images talk. Captions added per-shot.
 const GALLERY_SHOTS = [
   {
-    src: "/readings/hero/cockapoo-reading-tablet-real-preview.webp",
+    src: "/readings/hero/cockapoo-reading-tablet-cockapoo-match.webp",
     alt: "Cockapoo cuddled beside a person reading a Little Souls soul reading on a tablet",
     caption: "Made for reading with them close.",
     width: 1672,
