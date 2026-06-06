@@ -1491,18 +1491,18 @@ function CheckoutSection({
 // cat opens the series; the rest let the images talk. Captions added per-shot.
 const GALLERY_SHOTS = [
   {
+    src: "/readings/hero/cockapoo-reading-tablet-real-preview.webp",
+    alt: "Cockapoo cuddled beside a person reading a Little Souls soul reading on a tablet",
+    caption: "Made for reading with them close.",
+    width: 1672,
+    height: 941,
+  },
+  {
     src: "/readings/hero/black-cat-galaxy-eye.webp",
     alt: "Black cat with a faint galaxy reflected in one eye",
     caption: "Discover the soul behind those eyes.",
     width: 1672,
     height: 941,
-  },
-  {
-    src: "/readings/hero/cockapoo-reading-tablet.webp",
-    alt: "Cockapoo beside a human holding a glowing celestial reading",
-    caption: "Made for reading with them close.",
-    width: 1672,
-    height: 942,
   },
   {
     src: "/readings/hero/birth-chart-tablet-pet-nearby.png",
@@ -1846,6 +1846,13 @@ function CosmicStyles() {
         .ls-gallery-item--tall {
           grid-column: auto;
           aspect-ratio: 4 / 5;
+        }
+        .ls-gallery-item--lead {
+          flex-basis: min(92vw, 420px);
+          aspect-ratio: 16 / 11;
+        }
+        .ls-gallery-item--lead img {
+          object-position: 48% center;
         }
         .ls-gallery-item--wide {
           flex-basis: min(84vw, 380px);
