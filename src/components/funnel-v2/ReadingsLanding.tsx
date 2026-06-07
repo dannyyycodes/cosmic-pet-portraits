@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
+import { CompactReviews } from "./CompactReviews";
 import { supabase } from "@/integrations/supabase/client";
 
 const C = {
@@ -456,7 +457,8 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
-      <TestimonialsSection />
+      <CompactReviews row={1} />
+      <CompactReviews row={2} />
       <WhatItIsSection />
       <BirthSkyJourney />
       <QuietMomentSection />
