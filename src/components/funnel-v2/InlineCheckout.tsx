@@ -1455,20 +1455,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             line-height: 1.4;
           }
           .cosmic-checkout .flex[role="radiogroup"] button {
-            min-width: 112px;
+            min-width: 0 !important;
+            height: 40px !important;
+            padding: 0 16px !important;
+            background: #ffffff !important;
+            border: 1px solid rgba(212,182,122,0.5) !important;
+            border-radius: 9px !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.30) !important;
+          }
+          .cosmic-checkout .flex[role="radiogroup"] button[aria-checked="true"] {
+            border-color: #d4b67a !important;
+            box-shadow: 0 0 0 1px rgba(212,182,122,0.55), 0 6px 18px rgba(0,0,0,0.36) !important;
           }
           .cosmic-checkout [role="radio"] img {
-            display: none !important;
-          }
-          .cosmic-checkout [role="radio"]::after {
-            content: attr(aria-label);
-            color: #141210;
-            font-family: Lato, system-ui, sans-serif;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            white-space: nowrap;
+            max-height: 24px;
+            max-width: 96px;
+            object-fit: contain;
+            display: block;
           }
           .cosmic-preview-backdrop {
             position: fixed;
