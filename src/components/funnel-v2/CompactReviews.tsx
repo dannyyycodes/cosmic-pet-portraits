@@ -206,9 +206,9 @@ const ReviewCard = ({ review }: { review: Review }) => (
     className="review-marquee-card flex-shrink-0 rounded-xl p-4"
     style={{
       width: 320,
-      background: "#fff",
-      border: "1px solid rgba(0,0,0,0.05)",
-      boxShadow: "0 1px 8px rgba(0,0,0,0.03)",
+      background: "linear-gradient(180deg, rgba(245,239,230,0.05), rgba(5,4,7,0.20))",
+      border: "1px solid rgba(212,182,122,0.22)",
+      boxShadow: "0 10px 26px rgba(0,0,0,0.32)",
     }}
   >
     <div className="flex items-center gap-2.5 mb-2.5">
@@ -216,7 +216,7 @@ const ReviewCard = ({ review }: { review: Review }) => (
         src={`/breeds/${review.breed}-${review.img}.jpg`}
         alt=""
         className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-        style={{ border: "2px solid var(--cream3, #f3eadb)" }}
+        style={{ border: "2px solid rgba(212,182,122,0.4)" }}
         onError={(e) => {
           const el = e.currentTarget;
           el.style.display = "none";
@@ -227,17 +227,17 @@ const ReviewCard = ({ review }: { review: Review }) => (
       <div
         className="w-9 h-9 rounded-full items-center justify-center flex-shrink-0 hidden"
         style={{
-          background: "linear-gradient(135deg, var(--cream3, #f3eadb), var(--sand, #d6c8b6))",
+          background: "linear-gradient(135deg, rgba(212,182,122,0.25), rgba(124,92,214,0.25))",
           fontFamily: "Caveat, cursive",
           fontSize: "0.9rem",
-          color: "var(--earth, #6e6259)",
+          color: "#ececf2",
         }}
       >
         {review.name.charAt(0)}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--ink, #1f1c18)" }}>
+          <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "#ffffff" }}>
             {review.name}
           </span>
           <span
@@ -256,13 +256,13 @@ const ReviewCard = ({ review }: { review: Review }) => (
             </svg>
           </span>
         </div>
-        <p style={{ fontSize: "0.72rem", color: "var(--muted, #958779)" }}>{review.pet}</p>
+        <p style={{ fontSize: "0.72rem", color: "#c8c8d2" }}>{review.pet}</p>
       </div>
       <div className="flex gap-0.5 flex-shrink-0">
         {[1, 2, 3, 4, 5].map((s) => (
           <svg key={s} width="12" height="12" viewBox="0 0 20 20" aria-hidden="true">
             <path
-              fill="#c4a265"
+              fill="#d4b67a"
               d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
             />
           </svg>
@@ -274,7 +274,7 @@ const ReviewCard = ({ review }: { review: Review }) => (
         fontFamily: "Cormorant, Georgia, serif",
         fontStyle: "italic",
         fontSize: "0.92rem",
-        color: "var(--earth, #6e6259)",
+        color: "#ececf2",
         lineHeight: 1.55,
       }}
     >
@@ -318,7 +318,7 @@ export const CompactReviews = ({ row = 1 }: { row?: 1 | 2 }) => {
       ref={ref}
       className="relative py-2 sm:py-3 overflow-hidden"
       style={{
-        background: "var(--cream, #FFFDF5)",
+        background: "transparent",
       }}
     >
       <PetWallpaper row={row} />
