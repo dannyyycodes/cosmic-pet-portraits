@@ -293,6 +293,136 @@ const FAQ = [
   },
 ];
 
+const LS_TESTIMONIALS = [
+  {
+    name: "Mia Thompson", pet: "Bruno", species: "Labrador", image: "/breeds/labrador-1.jpg",
+    highlight: "Had me in tears by the first paragraph",
+    text: "Okay so I wasn't expecting much but literally the first paragraph had me in tears. How did they know about his head-tilt thing?? And the thunder. My husband thought I was crazy crying over their reading lol",
+  },
+  {
+    name: "Mark Davies", pet: "Mr. Whiskers", species: "Tabby Cat", image: "/breeds/tabby-1.jpg",
+    highlight: "Already ordered 4 more as gifts",
+    text: "Bought this for my sister for her birthday not knowing what to expect. She's been showing everyone. Already ordered 4 more for Christmas presents because everyone keeps asking where she got it",
+  },
+  {
+    name: "Sarah Mitchell", pet: "Rex", species: "German Shepherd", image: "/breeds/german-shepherd-1.jpg",
+    highlight: "My vet was actually impressed",
+    text: "Was pretty skeptical honestly but it explained why Rex freaks out every day at 6pm. Started doing his evening walk earlier and he's like a different dog. My vet was impressed",
+  },
+  {
+    name: "James Wilson", pet: "Biscuit", species: "Holland Lop", image: "/breeds/holland-lop-1.jpg",
+    highlight: "We stopped forcing cuddles on him",
+    text: "Thought this was just for cats and dogs but got one for my rabbit anyway. It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and he's way happier now",
+  },
+  {
+    name: "Priya Sharma", pet: "Coco", species: "Cockatiel", image: "/breeds/guinea-pig-1.jpg",
+    highlight: "Could not stop laughing reading this",
+    text: "Me and my mum could not stop laughing. It said Coco needs an audience and honestly that's him to a tee. We moved his cage to the living room and he's been so much louder and happier",
+  },
+  {
+    name: "Margaret & Tom", pet: "Duchess", species: "Persian Cat", image: "/breeds/persian-1.jpg",
+    highlight: "Wish I'd had this years ago",
+    text: "My grandson got me this for my 75th. I've had cats all my life and thought I knew everything. This reading called Duchess an old soul and honestly? Makes perfect sense now. Wish I'd had this years ago",
+  },
+];
+
+const LS_TRUST = [
+  { n: "50,847", l: "Soul readings" },
+  { n: "4.9★", l: "Average rating" },
+  { n: "97%", l: "Would recommend" },
+  { n: "12,000+", l: "5-star reviews" },
+];
+
+function TestimonialsSection() {
+  return (
+    <section className="relative px-5 py-20 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto mb-12 max-w-xl text-center"
+        >
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 999, border: `1px solid ${C.line}`, background: "rgba(212,182,122,0.08)", color: C.gold, fontFamily: "Lato, system-ui, sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+            Loved by pet parents everywhere
+          </span>
+          <h2 className="mt-5 text-balance" style={chartTitleStyle}>Real stories, real tears</h2>
+          <p className="mt-3" style={{ ...sectionBodyStyle, fontSize: "1rem" }}>
+            Why pet parents call this the most meaningful gift they have ever given.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+          {LS_TESTIMONIALS.map((tn, i) => (
+            <motion.div
+              key={tn.name}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: (i % 3) * 0.06 }}
+              style={{ border: `1px solid ${C.line}`, borderRadius: 18, background: "linear-gradient(180deg, rgba(245,239,230,0.04), rgba(5,4,7,0.18))", padding: "22px 20px", height: "100%" }}
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <span style={{ position: "relative", flexShrink: 0 }}>
+                  <img src={tn.image} alt={tn.pet} loading="lazy" style={{ width: 46, height: 46, borderRadius: 999, objectFit: "cover", border: "2px solid rgba(212,182,122,0.45)" }} />
+                  <span style={{ position: "absolute", right: -2, bottom: -2, width: 18, height: 18, borderRadius: 999, background: "#3fae6b", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #0d0a14" }}>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth={3.5} aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                  </span>
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ color: C.cream, fontFamily: "Lato, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>{tn.name}</p>
+                  <p style={{ color: C.muted, fontFamily: "Lato, system-ui, sans-serif", fontSize: 12 }}>{tn.pet} the {tn.species}</p>
+                </div>
+              </div>
+              <div style={{ color: C.gold, fontSize: 14, letterSpacing: 2, marginBottom: 10 }} aria-label="Five out of five stars">{"★★★★★"}</div>
+              <p style={{ color: C.cream, fontFamily: "Lato, system-ui, sans-serif", fontWeight: 600, fontSize: "1.02rem", lineHeight: 1.4, marginBottom: 8 }}>
+                &ldquo;{tn.highlight}&rdquo;
+              </p>
+              <p style={{ color: C.muted, fontFamily: "Lato, system-ui, sans-serif", fontSize: "0.88rem", lineHeight: 1.6 }}>
+                {tn.text}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-6 border-t pt-8" style={{ borderColor: "rgba(245,239,230,0.10)" }}>
+          {LS_TRUST.map((s) => (
+            <div key={s.l} className="text-center">
+              <p style={{ color: C.cream, fontFamily: '"Playfair Display", Georgia, serif', fontSize: "1.7rem", fontWeight: 500, lineHeight: 1 }}>{s.n}</p>
+              <p style={{ color: C.muted, fontFamily: "Lato, system-ui, sans-serif", fontSize: 12, marginTop: 4 }}>{s.l}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WhatItIsSection() {
+  return (
+    <section className="relative px-5 py-16 sm:py-20">
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="mx-auto max-w-3xl text-center"
+      >
+        <span style={{ display: "inline-block", color: C.gold, fontFamily: "Lato, system-ui, sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" }}>
+          What it is
+        </span>
+        <h2 className="mt-4 text-balance" style={{ ...chartTitleStyle, maxWidth: "24ch", marginInline: "auto" }}>
+          A full deep dive into who your pet actually is &mdash; and why they&rsquo;re here.
+        </h2>
+        <p className="mt-5" style={{ ...sectionBodyStyle, maxWidth: "54ch", marginInline: "auto" }}>
+          Their birth chart, read body by body &mdash; their nature, their needs, and the shape of their whole little soul.
+        </p>
+      </motion.div>
+    </section>
+  );
+}
+
 export function ReadingsLanding() {
   const pageRef = useRef<HTMLElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
@@ -326,6 +456,8 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
+      <TestimonialsSection />
+      <WhatItIsSection />
       <BirthSkyJourney />
       <QuietMomentSection />
       <CheckoutSection
@@ -797,7 +929,7 @@ function BirthSkyJourney() {
         <p style={eyebrowStyle(C.cream)}>
           Computed sky · <span style={{ color: C.violetSoft }}>free</span>
         </p>
-        <h3 className="mt-3 text-balance" style={chartTitleStyle}>Their birth sky</h3>
+        <h3 className="mt-3 text-balance" style={chartTitleStyle}>What makes up our solar system?</h3>
         <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
           The real sky the day they arrived, every body computed. Scroll across
           the system to meet each one.
@@ -869,7 +1001,7 @@ function BirthSkyJourney() {
               <p className="ls-orrery-line">{line}</p>
             </motion.div>
           </AnimatePresence>
-          <CosmicPenguin />
+          <img src="/readings/penguin.png" alt="" aria-hidden="true" className="ls-peng" />
         </div>
       </div>
 
