@@ -938,9 +938,47 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     const wasPrice = tier.id === "basic" ? prices.wasBasic : prices.wasPremium;
     const minusDisabled = qty <= 1;
     const atMax = qty >= MAX_PETS;
-    const cosmicFeatures = intent === "core"
-      ? ["Birth sky, 30+ sections", "Their emotional blueprint", "SoulSpeak included"]
-      : ["Your chart beside theirs", "Where you mirror", "Why you found each other"];
+    const featureGroups = intent === "core"
+      ? [
+          {
+            label: "The reading",
+            items: [
+              "Full astrological breakdown, 30+ sections",
+              "How they love, learn, heal, hope, fear — and what makes them most themselves",
+            ],
+          },
+          {
+            label: "Kept forever",
+            items: [
+              "Their photo becomes part of the reveal",
+              "Yours forever — revisit anytime, any device",
+            ],
+          },
+          {
+            label: "Extras",
+            items: [
+              "Bonus sections written just for them",
+              "SoulSpeak — talk from inside their reading",
+              "1 month of weekly horoscopes",
+            ],
+          },
+        ]
+      : [
+          {
+            label: "Everything in Soul Reading",
+            items: [
+              "All 30+ sections, photo, SoulSpeak, horoscopes & lifetime access",
+            ],
+          },
+          {
+            label: "The bond",
+            items: [
+              "Your chart against theirs — where you align, where you challenge, why you were paired",
+              "Where your energies meet, mirror, and balance",
+              "The soul-reasons you found each other",
+            ],
+          },
+        ];
 
     return (
       <article
@@ -966,14 +1004,21 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           <span>{fmt(wasPrice)}</span>
         </div>
 
-        <ul className="cosmic-feature-list">
-          {cosmicFeatures.map((feature) => (
-            <li key={`${tier.id}-${feature}`}>
-              <span aria-hidden="true">✓</span>
-              <p>{feature}</p>
-            </li>
+        <div className="cosmic-feature-stack">
+          {featureGroups.map((group) => (
+            <div className="cosmic-feature-group" key={`${tier.id}-${group.label}`}>
+              <p className="cosmic-feature-label">{group.label}</p>
+              <ul className="cosmic-feature-list">
+                {group.items.map((feature) => (
+                  <li key={`${tier.id}-${feature}`}>
+                    <span aria-hidden="true">✓</span>
+                    <p>{feature}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
 
         <div className="cosmic-stepper" onClick={(e) => e.stopPropagation()}>
           <span>Readings</span>
@@ -1199,6 +1244,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.07em;
+            text-transform: uppercase;
+          }
+          .cosmic-feature-stack {
+            display: grid;
+          }
+          .cosmic-feature-group + .cosmic-feature-group {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(245,239,230,0.12);
+          }
+          .cosmic-feature-label {
+            margin: 0 0 9px;
+            color: #d4b67a;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.13em;
             text-transform: uppercase;
           }
           .cosmic-stepper {
@@ -1588,7 +1650,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             <p className="cosmic-refund">
               If the reading does not feel like them, we refund every cent.
             </p>
-            <PaymentBrandLogos />
+            <CosmicPaymentRail />
             <div style={{ marginTop: 18 }}>
               <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
             </div>
@@ -2534,6 +2596,94 @@ const PaymentBrandLogos = () => (
     <KlarnaLogo />
     <VisaLogo />
     <MastercardLogo />
+  </div>
+);
+
+/* ──────── Cosmic payment rail ────────
+ * Dark-mode trust row. The white BadgeWrap chips above read as floating
+ * white boxes on the cosmic panel, so cosmic mode uses this instead: one
+ * bordered rail, marks in their real brand colours at equal height. */
+const RAIL_MARK_STYLE: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: 30,
+  padding: "0 11px",
+};
+const RAIL_SVG_STYLE: CSSProperties = { height: 18, width: "auto", display: "block" };
+
+const CosmicPaymentRail = () => (
+  <div className="flex justify-center mt-5">
+    <div
+      className="flex flex-wrap items-center justify-center"
+      style={{
+        border: "1px solid rgba(212,182,122,0.22)",
+        borderRadius: 12,
+        background: "rgba(5,4,7,0.45)",
+        padding: 6,
+      }}
+    >
+      <span
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          padding: "8px 13px",
+          color: "#c8c8d2",
+          fontFamily: "Lato, system-ui, sans-serif",
+          fontSize: "0.74rem",
+          fontWeight: 700,
+          letterSpacing: "0.03em",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#66bd7a" strokeWidth={1.8} aria-hidden="true">
+          <rect x="5" y="10.5" width="14" height="9" rx="1.5" />
+          <path d="M8 10.5V7a4 4 0 018 0v3.5" />
+        </svg>
+        Secured checkout
+      </span>
+      <span aria-hidden="true" style={{ width: 1, height: 22, background: "rgba(245,239,230,0.12)" }} />
+
+      <span style={RAIL_MARK_STYLE} role="img" aria-label="Visa">
+        <svg viewBox="0 0 48 16" style={RAIL_SVG_STYLE} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <text x="0" y="13" fontFamily="Arial, sans-serif" fontWeight="800" fontStyle="italic" fontSize="15" fill="#ffffff" letterSpacing="-0.5">VISA</text>
+        </svg>
+      </span>
+      <span style={RAIL_MARK_STYLE} role="img" aria-label="Mastercard">
+        <svg viewBox="0 0 40 24" style={RAIL_SVG_STYLE} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="16" cy="12" r="9" fill="#EB001B" />
+          <circle cx="26" cy="12" r="9" fill="#F79E1B" />
+          <path d="M21 5.2a9 9 0 010 13.6 9 9 0 010-13.6z" fill="#FF5F00" />
+        </svg>
+      </span>
+      <span style={RAIL_MARK_STYLE} role="img" aria-label="American Express">
+        <svg viewBox="0 0 44 22" style={RAIL_SVG_STYLE} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="44" height="22" rx="3" fill="#2E77BC" />
+          <text x="22" y="14" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="8.5" fill="#ffffff">AMEX</text>
+        </svg>
+      </span>
+      <span style={RAIL_MARK_STYLE} role="img" aria-label="Apple Pay">
+        <svg viewBox="0 0 50 22" style={RAIL_SVG_STYLE} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="#ffffff" d="M9.2 6.3c-.5.6-1.3 1-2.1.95-.1-.84.3-1.72.76-2.27.5-.6 1.36-1.03 2.06-1.06.08.87-.26 1.74-.72 2.38zM10 7.4c-1.14-.07-2.11.65-2.65.65-.55 0-1.38-.62-2.28-.6-1.17.02-2.26.68-2.86 1.74-1.22 2.12-.32 5.25.87 6.97.58.85 1.27 1.8 2.18 1.76.87-.03 1.2-.56 2.25-.56 1.05 0 1.35.56 2.27.55.94-.02 1.54-.86 2.12-1.71.67-.98.94-1.93.95-1.98-.02-.01-1.83-.71-1.85-2.81-.02-1.76 1.43-2.6 1.5-2.64-.82-1.21-2.1-1.35-2.55-1.38z" />
+          <text x="17" y="15.5" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="11" fill="#ffffff">Pay</text>
+        </svg>
+      </span>
+      <span style={RAIL_MARK_STYLE} role="img" aria-label="Google Pay">
+        <svg viewBox="0 0 56 22" style={RAIL_SVG_STYLE} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <text x="0" y="15.5" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="12">
+            <tspan fill="#4285F4">G</tspan><tspan fill="#EA4335">o</tspan><tspan fill="#FBBC05">o</tspan><tspan fill="#4285F4">g</tspan><tspan fill="#34A853">l</tspan><tspan fill="#EA4335">e</tspan>
+          </text>
+          <text x="36" y="15.5" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="12" fill="#ffffff">Pay</text>
+        </svg>
+      </span>
+      <span style={RAIL_MARK_STYLE} role="img" aria-label="Klarna">
+        <svg viewBox="0 0 54 22" style={RAIL_SVG_STYLE} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="54" height="22" rx="4" fill="#FFB3C7" />
+          <text x="27" y="15" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="10" fill="#0F0F0F">Klarna</text>
+        </svg>
+      </span>
+    </div>
   </div>
 );
 
