@@ -515,6 +515,7 @@ export function ReadingsLanding() {
         onSelectedPriceChange={setSelectedPrice}
       />
       <FaqSection />
+      <ReadingsFooter />
     </main>
   );
 }
@@ -1790,7 +1791,7 @@ function FaqSection() {
     <section id="faq" className="ls-parallax-band relative px-5 py-18 sm:py-28">
       <div className="mx-auto max-w-4xl">
         <SectionIntro
-          eyebrow="Questions"
+          eyebrow="FAQ"
           title="Before you begin."
           body="A few honest answers first."
           centered
@@ -1805,6 +1806,24 @@ function FaqSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ReadingsFooter() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className="ls-footer">
+      <nav className="ls-footer-nav" aria-label="Footer">
+        <a href="/contact" className="ls-footer-link">Contact</a>
+        <a href="#faq" className="ls-footer-link">FAQ</a>
+        <a href="/become-affiliate" className="ls-footer-link">Become an Affiliate</a>
+        <a href="/affiliate/dashboard" className="ls-footer-link">Affiliate Login</a>
+      </nav>
+      <div className="ls-footer-mark">✦&nbsp;&nbsp;Little Souls&nbsp;&nbsp;✦</div>
+      <p className="ls-footer-legal">
+        © {year} Little Souls · <a href="/terms" className="ls-footer-sub">Terms</a> · <a href="/privacy" className="ls-footer-sub">Privacy</a>
+      </p>
+    </footer>
   );
 }
 
@@ -1985,6 +2004,31 @@ function CosmicStyles() {
         .ls-mh-top, .ls-mh-bot { transform: none !important; opacity: 1 !important; filter: none !important; }
         .ls-mh-rule { transform: none !important; opacity: 1 !important; }
       }
+      /* Footer / bottom menu. */
+      .ls-footer {
+        position: relative; z-index: 1; text-align: center;
+        padding: clamp(48px, 7vw, 84px) 20px clamp(40px, 5vw, 60px);
+        border-top: 1px solid rgba(212,182,122,0.18);
+      }
+      .ls-footer-nav {
+        display: flex; flex-wrap: wrap; justify-content: center;
+        gap: clamp(16px, 3vw, 38px); margin-bottom: clamp(26px, 3vw, 38px);
+      }
+      .ls-footer-link {
+        font-family: Lato, system-ui, sans-serif; font-size: 0.95rem; font-weight: 600;
+        letter-spacing: 0.02em; color: rgba(245,239,230,0.82); transition: color 0.25s ease;
+      }
+      .ls-footer-link:hover { color: ${C.gold}; }
+      .ls-footer-mark {
+        font-family: "Playfair Display", Georgia, serif; font-style: italic;
+        color: ${C.gold}; font-size: 1.1rem; letter-spacing: 0.06em;
+      }
+      .ls-footer-legal {
+        margin-top: 12px; font-family: Lato, system-ui, sans-serif;
+        font-size: 0.78rem; letter-spacing: 0.04em; color: rgba(245,239,230,0.4);
+      }
+      .ls-footer-sub { color: rgba(245,239,230,0.55); transition: color 0.25s ease; }
+      .ls-footer-sub:hover { color: ${C.gold}; }
       .ls-reveal {
         opacity: 0;
         transform: translate3d(0, 30px, 0);
