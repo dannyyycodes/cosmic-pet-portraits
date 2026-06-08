@@ -460,7 +460,10 @@ function WhatItIsSection() {
             so it lives in them.
           </motion.span>
         </motion.div>
-        <motion.p className="ls-mh-kicker" {...rise(0.95)}>Their nature, set by the sky of their first breath.</motion.p>
+        <motion.div className="ls-mh-kicker" {...rise(0.95)}>
+          <span className="ls-mh-kicker-mark" aria-hidden="true">✦</span>
+          <p className="ls-mh-kicker-text">Their nature, set by the sky of their first breath.</p>
+        </motion.div>
       </div>
     </section>
   );
@@ -1966,9 +1969,17 @@ function CosmicStyles() {
         mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 72%);
       }
       .ls-mh-kicker {
-        margin-top: clamp(20px, 3vw, 34px);
-        font-family: Lato, system-ui, sans-serif; color: rgba(255,255,255,0.68);
-        font-size: clamp(0.96rem, 1.7vw, 1.2rem); letter-spacing: 0.03em;
+        margin-top: clamp(22px, 3.2vw, 38px);
+        display: grid; justify-items: center; gap: clamp(9px, 1.3vw, 15px);
+      }
+      .ls-mh-kicker-mark {
+        color: #fff; font-size: 0.72rem; letter-spacing: 0.4em; opacity: 0.7;
+        text-shadow: 0 0 12px rgba(255,255,255,0.6);
+      }
+      .ls-mh-kicker-text {
+        font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 500;
+        color: rgba(255,255,255,0.82); font-size: clamp(1.05rem, 2.1vw, 1.5rem);
+        line-height: 1.5; max-width: 32ch; letter-spacing: 0.01em;
       }
       @media (prefers-reduced-motion: reduce) {
         .ls-mh-top, .ls-mh-bot { transform: none !important; opacity: 1 !important; filter: none !important; }
