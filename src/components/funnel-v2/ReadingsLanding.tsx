@@ -945,16 +945,6 @@ function BirthSkyJourney() {
 
   return (
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
-      <div className="ls-orrery-head ls-reveal">
-        <p style={eyebrowStyle(C.cream)}>
-          Computed sky · <span style={{ color: C.violetSoft }}>free</span>
-        </p>
-        <h3 className="mt-3 text-balance" style={chartTitleStyle}>What makes up our solar system?</h3>
-        <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-          The real sky the day they arrived, every body computed. Scroll across
-          the system to meet each one.
-        </p>
-      </div>
 
       <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Birth sky diagram">
         <div className="ls-orrery-stars" aria-hidden="true" />
@@ -1677,12 +1667,6 @@ function QuietMomentSection() {
             </div>
           </article>
         ))}
-        <article className="ls-story-panel ls-story-panel--reveal ls-reveal" style={revealDelay(0.14)}>
-          <div className="ls-story-copy">
-            <h2 className="ls-story-caption" style={galleryCaptionStyle}>The little rituals start to make sense.</h2>
-          </div>
-          <ReadingPreviewStoryVisual />
-        </article>
       </div>
     </section>
   );
