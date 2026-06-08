@@ -420,27 +420,47 @@ function WhatItIsSection() {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const yAbove = useTransform(scrollYProgress, [0, 1], [44, -44]);
-  const yBelow = useTransform(scrollYProgress, [0, 1], [-44, 44]);
-  const yField = useTransform(scrollYProgress, [0, 1], [70, -70]);
-  const ringScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 1.12]);
-  const ringOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.55, 0]);
+  const topY = useTransform(scrollYProgress, [0, 1], [60, -40]);
+  const botY = useTransform(scrollYProgress, [0, 1], [40, -60]);
+
+  const rise = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 46, filter: "blur(7px)" },
+          whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+          viewport: { once: true, margin: "-12%" },
+          transition: { duration: 0.95, ease: [0.16, 1, 0.3, 1] as const, delay },
+        };
 
   return (
-    <section ref={ref} className="ls-above-section ls-parallax-band">
-      <motion.div className="ls-above-field" aria-hidden="true" style={reduce ? undefined : { y: yField }} />
-      <motion.div
-        className="ls-above-ring"
-        aria-hidden="true"
-        style={reduce ? { x: "-50%", y: "-50%" } : { x: "-50%", y: "-50%", scale: ringScale, opacity: ringOpacity }}
-      />
-      <div className="ls-above-inner ls-reveal">
-        <h2 className="ls-above-title">
-          <motion.span className="ls-above-top" style={reduce ? undefined : { y: yAbove }}>As it was written above,</motion.span>
-          <span className="ls-above-rule" aria-hidden="true"><span className="ls-above-glyph">✦</span></span>
-          <motion.span className="ls-above-bottom" style={reduce ? undefined : { y: yBelow }}>so it lives in them.</motion.span>
-        </h2>
-        <p className="ls-above-kicker">Their nature, set by the sky of their first breath.</p>
+    <section ref={ref} className="ls-mh-section ls-parallax-band">
+      <div className="ls-mh-inner">
+        <motion.div style={reduce ? undefined : { y: topY }}>
+          <motion.h2 className="ls-mh-top" {...rise(0)}>As it was written above,</motion.h2>
+        </motion.div>
+        <motion.span
+          className="ls-mh-rule"
+          aria-hidden="true"
+          initial={reduce ? undefined : { scaleX: 0, opacity: 0 }}
+          whileInView={reduce ? undefined : { scaleX: 1, opacity: 1 }}
+          viewport={{ once: true, margin: "-12%" }}
+          transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        />
+        <motion.div style={reduce ? undefined : { y: botY }}>
+          <motion.h2 className="ls-mh-bot" {...rise(0.5)}>so it lives in them.</motion.h2>
+          <motion.span
+            className="ls-mh-reflect"
+            aria-hidden="true"
+            initial={reduce ? undefined : { opacity: 0 }}
+            whileInView={reduce ? undefined : { opacity: 0.14 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.8 }}
+          >
+            so it lives in them.
+          </motion.span>
+        </motion.div>
+        <motion.p className="ls-mh-kicker" {...rise(0.95)}>Their nature, set by the sky of their first breath.</motion.p>
       </div>
     </section>
   );
@@ -1917,58 +1937,42 @@ function CosmicStyles() {
         z-index: 3;
         margin-top: -110px;
       }
-      /* "As above, so below" parallax title section. */
-      .ls-above-section {
+      /* Mirror-horizon title — scroll-reveal + parallax, white text only. */
+      .ls-mh-section {
         position: relative; z-index: 1; overflow: hidden; text-align: center;
-        padding: clamp(78px, 13vw, 168px) 20px;
+        padding: clamp(90px, 15vw, 200px) 20px;
       }
-      .ls-above-inner { position: relative; z-index: 2; max-width: 26ch; margin-inline: auto; }
-      .ls-above-title {
-        display: grid; gap: clamp(8px, 1.4vw, 16px);
-        font-family: "Playfair Display", Georgia, serif; font-weight: 500; line-height: 1.04;
+      .ls-mh-inner { position: relative; z-index: 2; max-width: 26ch; margin-inline: auto; }
+      .ls-mh-top, .ls-mh-bot {
+        font-family: "Playfair Display", Georgia, serif; font-weight: 500; color: #fff;
+        font-size: clamp(2rem, 6.6vw, 4.3rem); line-height: 1.08;
+        text-wrap: balance; will-change: transform, opacity, filter;
+        text-shadow: 0 0 32px rgba(255,255,255,0.10);
       }
-      .ls-above-top, .ls-above-bottom {
-        display: block; font-size: clamp(2rem, 6.4vw, 4.1rem);
-        text-wrap: balance; will-change: transform;
+      .ls-mh-bot { font-style: italic; }
+      .ls-mh-rule {
+        display: block; height: 1px; width: min(72%, 420px);
+        margin: clamp(10px, 1.6vw, 20px) auto;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.92), transparent);
+        box-shadow: 0 0 20px rgba(255,255,255,0.55);
+        transform-origin: center; will-change: transform, opacity;
       }
-      .ls-above-top { color: #efe6d3; }
-      .ls-above-bottom { color: ${C.gold}; font-style: italic; }
-      .ls-above-rule {
-        display: flex; align-items: center; justify-content: center; gap: 14px;
-        width: min(72%, 380px); margin: clamp(4px, 0.8vw, 10px) auto; height: 1px;
+      .ls-mh-reflect {
+        display: block; font-family: "Playfair Display", Georgia, serif; font-style: italic;
+        color: #fff; font-size: clamp(2rem, 6.6vw, 4.3rem); line-height: 1.08;
+        transform: scaleY(-1); margin-top: 3px; opacity: 0.14; pointer-events: none;
+        will-change: opacity;
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 72%);
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 72%);
       }
-      .ls-above-rule::before, .ls-above-rule::after {
-        content: ""; flex: 1; height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(212,182,122,0.55), transparent);
-      }
-      .ls-above-glyph { color: ${C.gold}; font-size: 0.95rem; text-shadow: 0 0 12px rgba(212,182,122,0.85); }
-      .ls-above-kicker {
-        margin-top: clamp(18px, 2.6vw, 30px);
-        font-family: Lato, system-ui, sans-serif; color: rgba(224,218,242,0.72);
-        font-size: clamp(0.96rem, 1.7vw, 1.18rem); letter-spacing: 0.02em;
-      }
-      .ls-above-field {
-        position: absolute; inset: -12% -6%; z-index: 0; pointer-events: none; opacity: 0.55;
-        background-image:
-          radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.85), transparent),
-          radial-gradient(1px 1px at 70% 24%, rgba(212,182,122,0.75), transparent),
-          radial-gradient(1.4px 1.4px at 42% 68%, #fff, transparent),
-          radial-gradient(1px 1px at 84% 60%, rgba(255,255,255,0.6), transparent),
-          radial-gradient(1px 1px at 12% 82%, rgba(212,182,122,0.6), transparent);
-        background-size: 340px 340px; will-change: transform;
-      }
-      .ls-above-ring {
-        position: absolute; left: 50%; top: 50%; z-index: 0; pointer-events: none;
-        width: min(122vw, 880px); aspect-ratio: 1; border-radius: 50%; opacity: 0.4;
-        border: 1px solid rgba(124,92,214,0.28);
-        box-shadow: inset 0 0 90px rgba(124,92,214,0.18), 0 0 70px rgba(124,92,214,0.10);
-        will-change: transform, opacity;
-      }
-      @media (max-width: 768px) {
-        .ls-above-field { display: none; }
+      .ls-mh-kicker {
+        margin-top: clamp(20px, 3vw, 34px);
+        font-family: Lato, system-ui, sans-serif; color: rgba(255,255,255,0.68);
+        font-size: clamp(0.96rem, 1.7vw, 1.2rem); letter-spacing: 0.03em;
       }
       @media (prefers-reduced-motion: reduce) {
-        .ls-above-top, .ls-above-bottom, .ls-above-field { transform: none !important; }
+        .ls-mh-top, .ls-mh-bot { transform: none !important; opacity: 1 !important; filter: none !important; }
+        .ls-mh-rule { transform: none !important; opacity: 1 !important; }
       }
       .ls-reveal {
         opacity: 0;
