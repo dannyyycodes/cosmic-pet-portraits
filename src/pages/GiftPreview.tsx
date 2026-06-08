@@ -249,17 +249,6 @@ function OptionRitual() {
       </div>
 
       <div className="gpv3-scene gpv3-scene--alt">
-        <h2 className="gpv3-h2">What's the moment?</h2>
-        <div className="gpv3-occ">
-          {OCCASIONS.map((o, i) => (
-            <button key={o.label} className={`gpv3-occ-btn ${occ === i ? "is-active" : ""}`} onClick={() => setOcc(i)}>
-              <span className="gpv3-occ-emoji">{o.emoji}</span>{o.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="gpv3-scene">
         <h2 className="gpv3-h2">How deep should it go?</h2>
         <div className="gpv3-tiers">
           {TIERS.map((t, i) => (
