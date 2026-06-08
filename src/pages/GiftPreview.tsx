@@ -245,15 +245,10 @@ function OptionRitual() {
       <span className="gpv-chip">Option 3 · Reveal Ritual</span>
 
       <div className="gpv3-scene">
-        <p className="gpv3-eyebrow">A gift from Little Souls</p>
         <h1 className="gpv3-h1">Some gifts are opened.<br /><span className="gpv3-em">This one is felt.</span></h1>
-        <p className="gpv3-sub">A soul reading for the pet they love — read from the exact sky the day it began.</p>
-        <span className="gpv3-divider" aria-hidden="true">✦</span>
-        <p className="gpv3-scroll">scroll to begin</p>
       </div>
 
       <div className="gpv3-scene gpv3-scene--alt">
-        <p className="gpv3-num">I.</p>
         <h2 className="gpv3-h2">What's the moment?</h2>
         <div className="gpv3-occ">
           {OCCASIONS.map((o, i) => (
@@ -265,7 +260,6 @@ function OptionRitual() {
       </div>
 
       <div className="gpv3-scene">
-        <p className="gpv3-num">II.</p>
         <h2 className="gpv3-h2">How deep should it go?</h2>
         <div className="gpv3-tiers">
           {TIERS.map((t, i) => (
