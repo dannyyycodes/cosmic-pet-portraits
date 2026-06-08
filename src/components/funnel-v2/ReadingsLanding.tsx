@@ -417,25 +417,31 @@ function TestimonialsSection() {
 }
 
 function WhatItIsSection() {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const yAbove = useTransform(scrollYProgress, [0, 1], [44, -44]);
+  const yBelow = useTransform(scrollYProgress, [0, 1], [-44, 44]);
+  const yField = useTransform(scrollYProgress, [0, 1], [70, -70]);
+  const ringScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 1.12]);
+  const ringOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.55, 0]);
+
   return (
-    <section className="relative px-5 py-16 sm:py-20">
+    <section ref={ref} className="ls-above-section ls-parallax-band">
+      <motion.div className="ls-above-field" aria-hidden="true" style={reduce ? undefined : { y: yField }} />
       <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="mx-auto max-w-3xl text-center"
-      >
-        <span style={{ display: "inline-block", color: C.gold, fontFamily: "Lato, system-ui, sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" }}>
-          What this is
-        </span>
-        <h2 className="mt-4 text-balance" style={{ ...chartTitleStyle, maxWidth: "20ch", marginInline: "auto" }}>
-          A soul reading for the pet you love.
+        className="ls-above-ring"
+        aria-hidden="true"
+        style={reduce ? { x: "-50%", y: "-50%" } : { x: "-50%", y: "-50%", scale: ringScale, opacity: ringOpacity }}
+      />
+      <div className="ls-above-inner ls-reveal">
+        <h2 className="ls-above-title">
+          <motion.span className="ls-above-top" style={reduce ? undefined : { y: yAbove }}>As it was written above,</motion.span>
+          <span className="ls-above-rule" aria-hidden="true"><span className="ls-above-glyph">✦</span></span>
+          <motion.span className="ls-above-bottom" style={reduce ? undefined : { y: yBelow }}>so it lives in them.</motion.span>
         </h2>
-        <p className="mt-5" style={{ ...sectionBodyStyle, maxWidth: "54ch", marginInline: "auto" }}>
-          Computed from the exact sky the day they arrived &mdash; their nature, their needs, and the why behind every little thing they do.
-        </p>
-      </motion.div>
+        <p className="ls-above-kicker">Their nature, set by the sky of their first breath.</p>
+      </div>
     </section>
   );
 }
@@ -1910,6 +1916,59 @@ function CosmicStyles() {
         position: relative;
         z-index: 3;
         margin-top: -110px;
+      }
+      /* "As above, so below" parallax title section. */
+      .ls-above-section {
+        position: relative; z-index: 1; overflow: hidden; text-align: center;
+        padding: clamp(78px, 13vw, 168px) 20px;
+      }
+      .ls-above-inner { position: relative; z-index: 2; max-width: 26ch; margin-inline: auto; }
+      .ls-above-title {
+        display: grid; gap: clamp(8px, 1.4vw, 16px);
+        font-family: "Playfair Display", Georgia, serif; font-weight: 500; line-height: 1.04;
+      }
+      .ls-above-top, .ls-above-bottom {
+        display: block; font-size: clamp(2rem, 6.4vw, 4.1rem);
+        text-wrap: balance; will-change: transform;
+      }
+      .ls-above-top { color: #efe6d3; }
+      .ls-above-bottom { color: ${C.gold}; font-style: italic; }
+      .ls-above-rule {
+        display: flex; align-items: center; justify-content: center; gap: 14px;
+        width: min(72%, 380px); margin: clamp(4px, 0.8vw, 10px) auto; height: 1px;
+      }
+      .ls-above-rule::before, .ls-above-rule::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(212,182,122,0.55), transparent);
+      }
+      .ls-above-glyph { color: ${C.gold}; font-size: 0.95rem; text-shadow: 0 0 12px rgba(212,182,122,0.85); }
+      .ls-above-kicker {
+        margin-top: clamp(18px, 2.6vw, 30px);
+        font-family: Lato, system-ui, sans-serif; color: rgba(224,218,242,0.72);
+        font-size: clamp(0.96rem, 1.7vw, 1.18rem); letter-spacing: 0.02em;
+      }
+      .ls-above-field {
+        position: absolute; inset: -12% -6%; z-index: 0; pointer-events: none; opacity: 0.55;
+        background-image:
+          radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.85), transparent),
+          radial-gradient(1px 1px at 70% 24%, rgba(212,182,122,0.75), transparent),
+          radial-gradient(1.4px 1.4px at 42% 68%, #fff, transparent),
+          radial-gradient(1px 1px at 84% 60%, rgba(255,255,255,0.6), transparent),
+          radial-gradient(1px 1px at 12% 82%, rgba(212,182,122,0.6), transparent);
+        background-size: 340px 340px; will-change: transform;
+      }
+      .ls-above-ring {
+        position: absolute; left: 50%; top: 50%; z-index: 0; pointer-events: none;
+        width: min(122vw, 880px); aspect-ratio: 1; border-radius: 50%; opacity: 0.4;
+        border: 1px solid rgba(124,92,214,0.28);
+        box-shadow: inset 0 0 90px rgba(124,92,214,0.18), 0 0 70px rgba(124,92,214,0.10);
+        will-change: transform, opacity;
+      }
+      @media (max-width: 768px) {
+        .ls-above-field { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-above-top, .ls-above-bottom, .ls-above-field { transform: none !important; }
       }
       .ls-reveal {
         opacity: 0;
