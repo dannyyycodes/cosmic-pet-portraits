@@ -209,19 +209,35 @@ const ORBIT_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "u
 // sizes tuned so nothing overlaps on phone or desktop.
 const ORRERY_POS: Record<string, { x: number; y: number }> = {
   sun: { x: 1, y: 58 },
-  mercury: { x: 30, y: 61 }, venus: { x: 38, y: 57 }, earth: { x: 45, y: 53 },
-  moon: { x: 48, y: 52 }, lilith: { x: 48, y: 52 }, northNode: { x: 54, y: 50 },
-  mars: { x: 58, y: 48 }, jupiter: { x: 67, y: 42 }, saturn: { x: 77, y: 37 },
-  chiron: { x: 82, y: 34 }, uranus: { x: 87, y: 31 }, neptune: { x: 92, y: 26 },
-  pluto: { x: 97, y: 22 },
+  mercury: { x: 30, y: 60 }, venus: { x: 35, y: 56 }, earth: { x: 41, y: 52.5 },
+  moon: { x: 46, y: 50 }, lilith: { x: 46, y: 50 }, northNode: { x: 50, y: 47.5 },
+  mars: { x: 55, y: 48 }, jupiter: { x: 65, y: 43 }, saturn: { x: 75, y: 38 },
+  chiron: { x: 81, y: 35 }, uranus: { x: 86, y: 32.5 }, neptune: { x: 92, y: 28 },
+  pluto: { x: 98, y: 24 },
 };
 // Every body (not the Sun) gets its own orbit ring.
 const ORRERY_ORBIT_ALL = ["mercury", "venus", "earth", "moon", "northNode", "mars", "jupiter", "saturn", "chiron", "uranus", "neptune", "pluto"] as const;
 // Diameter as % of the box width (gas giants big, rocky small — real-ish order).
 const ORRERY_DIAM: Record<string, number> = {
-  sun: 50, mercury: 3.6, venus: 5, earth: 5.2, moon: 2.8, mars: 4,
-  jupiter: 11, saturn: 9.5, uranus: 7, neptune: 7, pluto: 3.2,
+  sun: 44, mercury: 3.6, venus: 5, earth: 5.2, moon: 2.8, mars: 4,
+  jupiter: 10, saturn: 8.6, uranus: 5.5, neptune: 5.5, pluto: 3.2,
   chiron: 3, northNode: 3.6, lilith: 2.8,
+};
+// Soft aura colour per body (rgba), sized to fit each orb on render.
+const ORRERY_AURA: Record<string, string> = {
+  mercury: "rgba(196,178,150,0.45)",
+  venus: "rgba(232,201,138,0.5)",
+  earth: "rgba(111,168,214,0.5)",
+  moon: "rgba(207,211,224,0.5)",
+  mars: "rgba(224,121,90,0.5)",
+  jupiter: "rgba(227,180,137,0.5)",
+  saturn: "rgba(234,217,166,0.5)",
+  uranus: "rgba(159,224,230,0.5)",
+  neptune: "rgba(111,143,224,0.5)",
+  pluto: "rgba(184,154,134,0.45)",
+  chiron: "rgba(200,160,230,0.5)",
+  northNode: "rgba(203,180,242,0.55)",
+  lilith: "rgba(150,120,200,0.5)",
 };
 const ORRERY_K = 0.4; // vertical squash of the orbit ellipses
 // Bodies that always show a name label (the classic planets, like the reference).
@@ -1262,7 +1278,7 @@ function OrreryBody({
   return (
     <div
       className={`ls-orrery-body ${active ? "is-active" : ""} ${clickable ? "is-clickable" : ""} ${isSun ? "is-sun" : ""}`}
-      style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: `${diam}%` }}
+      style={{ left: `${pos.x}%`, top: `${pos.y}%`, width: `${diam}%`, ["--aura" as string]: ORRERY_AURA[bodyKey] ?? "rgba(176,142,230,0.5)", ["--bi" as string]: index }}
       onClick={clickable ? () => onPick(index) : undefined}
     >
       <span className="ls-orrery-orb">
@@ -2304,6 +2320,30 @@ function CosmicStyles() {
       /* Lilith = the dark Moon: same body, shadowed (smoothly transitions). */
       .ls-orrery-orb img.is-shadowed { filter: brightness(0.3) saturate(0.55) contrast(1.05); }
       .ls-orrery-body.is-active .ls-orrery-orb img.is-shadowed { filter: brightness(0.4) saturate(0.6) drop-shadow(0 0 12px rgba(124,92,214,0.85)); }
+      /* Per-planet aura glow, sized to fit each orb (colour via --aura). */
+      .ls-orrery-body:not(.is-sun) .ls-orrery-orb::before {
+        content: ""; position: absolute; inset: -38%; border-radius: 50%;
+        background: radial-gradient(circle, var(--aura, rgba(176,142,230,0.5)) 0%, transparent 64%);
+        z-index: -1; pointer-events: none; opacity: 0.4;
+        animation: ls-aura-pulse 6.5s ease-in-out infinite;
+        animation-delay: calc(var(--bi, 0) * 0.5s);
+      }
+      .ls-orrery-body.is-active .ls-orrery-orb::before { opacity: 0.75; inset: -50%; }
+      @keyframes ls-aura-pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.52; } }
+      /* Gentle idle bob so the system never feels frozen (desynced per body). */
+      .ls-orrery-body:not(.is-sun) .ls-orrery-orb {
+        animation: ls-orb-bob 7s ease-in-out infinite;
+        animation-delay: calc(var(--bi, 0) * 0.55s);
+      }
+      @keyframes ls-orb-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4%); } }
+      .ls-orrery-stars { animation: ls-stars-tw 7s ease-in-out infinite; }
+      @keyframes ls-stars-tw { 0%, 100% { opacity: 0.42; } 50% { opacity: 0.6; } }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-orrery-body .ls-orrery-orb,
+        .ls-orrery-body .ls-orrery-orb::before,
+        .ls-orrery-stars { animation: none !important; }
+        .ls-orrery-body .ls-orrery-orb { transform: none !important; }
+      }
       /* (sun corona now lives on .ls-orrery-sunvid::before single soft aura) */
       /* Option 1 sun: real NASA SDO disc with prominences/corona baked into a
          transparent PNG. NO clip — the whole sun + flares show; sized larger than

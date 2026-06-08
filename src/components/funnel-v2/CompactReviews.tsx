@@ -230,9 +230,9 @@ export const CompactReviews = ({ row = 1 }: { row?: 1 | 2 }) => {
         }}
       >
         {row === 1 ? (
-          <MarqueeRow reviews={ROW_1} direction="left" speed={60} />
+          <MarqueeRow reviews={ROW_1} direction="left" speed={120} />
         ) : (
-          <MarqueeRow reviews={ROW_2} direction="right" speed={72} />
+          <MarqueeRow reviews={ROW_2} direction="right" speed={140} />
         )}
       </div>
 
