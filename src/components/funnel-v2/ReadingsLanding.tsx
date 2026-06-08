@@ -427,13 +427,13 @@ function WhatItIsSection() {
         className="mx-auto max-w-3xl text-center"
       >
         <span style={{ display: "inline-block", color: C.gold, fontFamily: "Lato, system-ui, sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" }}>
-          What it is
+          What this is
         </span>
-        <h2 className="mt-4 text-balance" style={{ ...chartTitleStyle, maxWidth: "24ch", marginInline: "auto" }}>
-          A full deep dive into who your pet actually is &mdash; and why they&rsquo;re here.
+        <h2 className="mt-4 text-balance" style={{ ...chartTitleStyle, maxWidth: "20ch", marginInline: "auto" }}>
+          A soul reading for the pet you love.
         </h2>
         <p className="mt-5" style={{ ...sectionBodyStyle, maxWidth: "54ch", marginInline: "auto" }}>
-          Their birth chart, read body by body &mdash; their nature, their needs, and the shape of their whole little soul.
+          Computed from the exact sky the day they arrived &mdash; their nature, their needs, and the why behind every little thing they do.
         </p>
       </motion.div>
     </section>
@@ -478,8 +478,8 @@ export function ReadingsLanding() {
         <CompactReviews row={2} />
       </div>
       <WhatItIsSection />
-      <BirthSkyJourney />
       <QuietMomentSection />
+      <BirthSkyJourney />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -945,6 +945,12 @@ function BirthSkyJourney() {
 
   return (
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
+      <div className="ls-orrery-head ls-reveal">
+        <h3 className="text-balance" style={chartTitleStyle}>The major bodies of influence in our solar system</h3>
+        <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "48ch", marginInline: "auto" }}>
+          Every body in the sky the day they arrived, computed. Scroll across to meet each one.
+        </p>
+      </div>
 
       <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Birth sky diagram">
         <div className="ls-orrery-stars" aria-hidden="true" />
