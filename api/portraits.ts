@@ -28,6 +28,8 @@ import {
   buildPrompt,
   sanitiseAddDetails,
   COMPOSITIONS,
+  getVibe,
+  isValidVibeId,
   type BuildPromptInput,
 } from "../src/components/portraits/styles/styleTheme.js";
 import {
@@ -874,6 +876,88 @@ Rules:
     }
   }
   return fallback;
+}
+
+// ─── Prompt enhancer — turns a thin freeform idea into rich art direction ───
+// The root cause of "generic AI slop": most customers type a 2–4 word idea
+// ("make him a king") which drops straight into gpt-image-2 with no medium,
+// lighting, palette, composition or mood — so the model fills the gaps with its
+// training-data average. This pre-pass expands the thin idea into ONE vivid,
+// tasteful art-direction description, steered by the customer's chosen vibe
+// (taste lane), BEFORE it reaches the image model. The pet's identity is NOT
+// touched here — it stays locked by the KEEP block in buildMultiPetCustomPrompt.
+//
+// Determinism: the enhanced text is persisted (generation_log.metadata) and
+// reused verbatim by the print-master path, so the printed canvas matches the
+// preview the customer approved. Never re-enhanced at print time.
+//
+// Model: Gemini 2.0 Flash via OpenRouter — fast (~1–2s), ~$0.0001/call, already
+// wired (OPENROUTER_KEY). Override with PROMPT_ENHANCER_MODEL. Fails graceful:
+// any error/timeout/no-key → raw prompt + the vibe's static fallback suffix, so
+// a slow enhancer never blocks or degrades a generation below today's baseline.
+const PROMPT_ENHANCER_MODEL = process.env.PROMPT_ENHANCER_MODEL ?? 'google/gemini-2.0-flash-001';
+const ENHANCER_TIMEOUT_MS = 8_000;
+
+async function enhanceCustomPrompt(args: { userPrompt: string; vibeId: string }): Promise<{ enhanced: string; vibeId: string }> {
+  const vibe = getVibe(args.vibeId) ?? getVibe('auto')!;
+  const raw = args.userPrompt.trim();
+  const fallback = raw ? `${raw}. ${vibe.fallbackSuffix}` : raw;
+
+  if (!OPENROUTER_KEY || !raw) {
+    return { enhanced: fallback, vibeId: vibe.id };
+  }
+
+  const systemPrompt = `You are an art director for a premium pet-portrait studio. The customer types a short idea for how to depict their pet; you expand it into ONE rich, specific art-direction description that a generative image model follows to produce framed wall art people are proud to hang.
+
+RULES:
+- Enrich PRESENTATION, not MEANING. Keep the customer's core idea and subject exactly as given. If they said "king", they get a king — you decide medium, lighting, palette, composition, texture, era and mood, not the concept.
+- If the customer's idea is simple or vague, add tasteful art direction; do NOT invent a different scene or escalate it into something they didn't ask for.
+- Treatment to honour: ${vibe.guidance}
+- Describe concretely: medium, lighting, colour palette, composition/framing, texture, mood. Tasteful and coherent.
+- The pet's face must dominate and stay the clear focal point. The background supports it and never competes. Clean and uncluttered.
+- Do NOT describe the pet's breed, fur colour, markings, species or anatomy — its identity is locked separately. Never mention animal features.
+- No filler buzzwords ("masterpiece", "highly detailed", "8k", "ultra", "trending"). No text, words, letters or signatures in the image.
+- Output ONE flowing description, 30–60 words. No preamble, no lists, no quotes, no headings — just the art direction itself.`;
+
+  const userPrompt = `Customer idea: "${raw}"\n\nWrite the single art-direction description now.`;
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ENHANCER_TIMEOUT_MS);
+  try {
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENROUTER_KEY}` },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        model: PROMPT_ENHANCER_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 220,
+        temperature: 0.8,
+      }),
+    });
+    if (!r.ok) {
+      console.warn('[ENHANCER_FALLBACK]', { reason: 'http_not_ok', status: r.status, vibe: vibe.id });
+      return { enhanced: fallback, vibeId: vibe.id };
+    }
+    const d = await r.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const out = (d.choices?.[0]?.message?.content ?? '').trim()
+      .replace(/^["'`]+|["'`]+$/g, '')   // strip stray wrapping quotes
+      .slice(0, 600);
+    if (out.length < 12) {
+      console.warn('[ENHANCER_FALLBACK]', { reason: 'too_short', vibe: vibe.id });
+      return { enhanced: fallback, vibeId: vibe.id };
+    }
+    return { enhanced: out, vibeId: vibe.id };
+  } catch (err) {
+    const isAbort = (err as Error).name === 'AbortError';
+    console.warn('[ENHANCER_FALLBACK]', { reason: isAbort ? 'timeout' : 'exception', errName: (err as Error).name, vibe: vibe.id });
+    return { enhanced: fallback, vibeId: vibe.id };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 interface VariantResult {
@@ -1740,6 +1824,7 @@ async function insertGenerationLog(
     theme_id?: string | null;
     custom_prompt?: string | null;
     status: string;
+    metadata?: Record<string, unknown>;
   },
 ): Promise<string | null> {
   try {
@@ -1753,6 +1838,7 @@ async function insertGenerationLog(
         theme_id: row.theme_id ?? null,
         custom_prompt: row.custom_prompt ?? null,
         status: row.status,
+        ...(row.metadata ? { metadata: row.metadata } : {}),
       })
       .select('id')
       .single();
@@ -1924,12 +2010,17 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     customPrompt?: string;
     petName?: string;
     petNames?: string[];
+    vibe?: string;
   };
   const { styleId, themeId } = body;
   const addDetails = sanitiseAddDetails(body.addDetails ?? "");
   // sanitiseAddDetails already caps at 200 chars — the legacy .slice(0, 400)
   // here was dead code (200 < 400). Removed 2026-05-08.
   const customPrompt = sanitiseAddDetails(body.customPrompt ?? "");
+  // Taste-lane selector (default "auto" → enhancer picks the fitting treatment).
+  // Validated against the VIBES registry so a bad client value can't break the
+  // enhancer's guidance lookup.
+  const vibeId = isValidVibeId(body.vibe) ? body.vibe : 'auto';
 
   // ── Normalise to photos[] / names[] ─────────────────────────────────────
   // Multi-pet path activates if imageUrls is a non-empty array. Otherwise we
@@ -1984,6 +2075,14 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
   const userId = userRes.user.id;
+
+  // ── Prompt enhancer — runs CONCURRENTLY with the Vision pre-pass ────────
+  // Only the freeform path is enhanced (the Style×Theme builder already carries
+  // rich descriptors). Kicked off here so its ~1–2s overlaps Vision's ~12s and
+  // adds ~0 to wall-clock. Failure is graceful inside enhanceCustomPrompt.
+  const enhancePromise: Promise<{ enhanced: string; vibeId: string } | null> = usingCustomPrompt
+    ? enhanceCustomPrompt({ userPrompt: customPrompt, vibeId })
+    : Promise.resolve(null);
 
   // ── Vision pre-pass — BEFORE consuming credits ──────────────────────────
   // Empirical proof (2026-05-07):
@@ -2044,6 +2143,12 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   //    pawtrait_generation_log so support can answer "where's my portrait?"
   //    without grepping Vercel logs. The helpers swallow their own errors,
   //    so logging never blocks the customer's generation.
+  // Resolve the enhanced art-direction text (kicked off concurrently above).
+  // effectiveTransform is what actually gets rendered; customPrompt (the raw
+  // typed idea) stays the verification anchor for the print-master path.
+  const enhanced = await enhancePromise;
+  const effectiveTransform = enhanced?.enhanced || customPrompt;
+
   const t0 = Date.now();
   const generationLogId = await insertGenerationLog(supabase, {
     user_id: userId,
@@ -2053,6 +2158,11 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     theme_id: themeId ?? null,
     custom_prompt: customPrompt || null,
     status: 'pending', // matches CHECK in 20260508_000000_pawtrait_generation_log.sql
+    // Persist the enhanced prompt + chosen vibe so the print master reuses the
+    // EXACT art direction the customer approved (no non-deterministic re-enhance).
+    metadata: enhanced
+      ? { enhanced_prompt: enhanced.enhanced, vibe: enhanced.vibeId }
+      : { vibe: vibeId },
   });
 
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
@@ -2070,7 +2180,7 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     const prompt = buildMultiPetCustomPrompt({
       subjects,
       names,
-      customPrompt,
+      customPrompt: effectiveTransform,
     });
     promptDef = { prompt, negative: negativeWithName, compositionId: COMPOSITIONS[0].id };
   } else {
@@ -3319,10 +3429,17 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
   const aspectLabel = aspect.label;
   const aspectInstruction = `Output: ${aspectLabel} canvas composition at print resolution, painterly cinematic finish, premium polish for framed wall art, edge-to-edge composition with no visible margins, no whitespace borders.`;
 
+  // Reuse the enhanced art direction stored against the matching approved
+  // generation so the print matches the customer's approved preview. Best-effort
+  // — if no enhanced row is found, fall back to the raw customPrompt (legacy
+  // behaviour). Never blocks the print.
+  const ownedForPrompt = await hasOwnedSuccessfulGeneration({ supabase, userId, photos, customPrompt });
+  const transform = ownedForPrompt.enhancedPrompt || customPrompt;
+
   const fullPrompt = buildMultiPetCustomPrompt({
     subjects,
     names,
-    customPrompt,
+    customPrompt: transform,
     aspectInstruction,
   });
 
@@ -3401,19 +3518,28 @@ function sameStringArray(a: unknown, b: string[]): boolean {
     && a.every((value, index) => typeof value === "string" && value === b[index]);
 }
 
+// Pull the persisted enhanced art-direction text from a generation_log row's
+// metadata. Returns undefined for legacy rows (pre-2026-06-08) that have no
+// enhanced_prompt — callers fall back to the raw customPrompt in that case.
+function readEnhancedFromMetadata(metadata: unknown): string | undefined {
+  if (!metadata || typeof metadata !== "object") return undefined;
+  const v = (metadata as Record<string, unknown>).enhanced_prompt;
+  return typeof v === "string" && v.trim().length > 0 ? v : undefined;
+}
+
 async function hasOwnedSuccessfulGeneration(args: {
   supabase: ReturnType<typeof getSupabaseAdmin>;
   userId: string;
   photos: string[];
   customPrompt: string;
   generationId?: string;
-}): Promise<{ ok: boolean; reason?: string; generationId?: string }> {
+}): Promise<{ ok: boolean; reason?: string; generationId?: string; enhancedPrompt?: string }> {
   const { supabase, userId, photos, customPrompt, generationId } = args;
 
   if (generationId) {
     const { data, error } = await supabase
       .from("pawtrait_generation_log")
-      .select("id, source_image_urls, custom_prompt, status")
+      .select("id, source_image_urls, custom_prompt, status, metadata")
       .eq("id", generationId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -3422,13 +3548,13 @@ async function hasOwnedSuccessfulGeneration(args: {
     if (!sameStringArray(data.source_image_urls, photos)) return { ok: false, reason: "generation_photo_mismatch" };
     const generatedPrompt = typeof data.custom_prompt === "string" ? data.custom_prompt : "";
     if (generatedPrompt !== customPrompt) return { ok: false, reason: "generation_prompt_mismatch" };
-    return { ok: true, generationId: data.id as string };
+    return { ok: true, generationId: data.id as string, enhancedPrompt: readEnhancedFromMetadata(data.metadata) };
   }
 
   const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("pawtrait_generation_log")
-    .select("id, source_image_urls, custom_prompt, status")
+    .select("id, source_image_urls, custom_prompt, status, metadata")
     .eq("user_id", userId)
     .eq("status", "success")
     .gte("created_at", windowStart)
@@ -3440,7 +3566,7 @@ async function hasOwnedSuccessfulGeneration(args: {
     return generatedPrompt === customPrompt && sameStringArray(row.source_image_urls, photos);
   });
   if (!match) return { ok: false, reason: "matching_generation_required" };
-  return { ok: true, generationId: match.id as string };
+  return { ok: true, generationId: match.id as string, enhancedPrompt: readEnhancedFromMetadata(match.metadata) };
 }
 
 async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) {
@@ -3531,6 +3657,10 @@ async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) 
       reason: generationOk.reason,
     });
   }
+  // Reuse the EXACT enhanced art direction the customer approved at preview, so
+  // the printed canvas matches what they saw. Legacy rows (no enhanced_prompt)
+  // fall back to the raw customPrompt — identical to pre-2026-06-08 behaviour.
+  const transform = generationOk.enhancedPrompt || customPrompt;
 
   // Vision pre-pass (with cache from generation if same photos)
   const useVision = process.env.USE_SUBJECT_VISION !== 'false';
@@ -3553,7 +3683,7 @@ async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) 
 
   const aspectLabel = aspect.label;
   const aspectInstruction = `Output: ${aspectLabel} canvas composition at print resolution, painterly cinematic finish, premium polish for framed wall art, edge-to-edge composition with no visible margins, no whitespace borders.`;
-  const fullPrompt = buildMultiPetCustomPrompt({ subjects, names, customPrompt, aspectInstruction });
+  const fullPrompt = buildMultiPetCustomPrompt({ subjects, names, customPrompt: transform, aspectInstruction });
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
   const anyName = names.some(n => n.length > 0);
   const negative = anyName

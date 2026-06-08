@@ -47,6 +47,10 @@ export interface PersistedVariant {
 export interface StudioState {
   pets: PersistedPet[];
   prompt: string;
+  /** Taste-lane selector for the AI path — one of the VIBES ids ("auto"
+   *  default). Steers the server-side prompt enhancer; does not limit the
+   *  freeform subject. Added 2026-06-08. */
+  vibe?: string;
   variants: PersistedVariant[];
   selectedVariantUrl: string | null;
   approved: boolean;

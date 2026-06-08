@@ -48,6 +48,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { PetUploadCard, type Pet } from "@/components/portraits/PetUploadCard";
 import { ApprovalGate } from "@/components/portraits/ApprovalGate";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
+import { VIBES } from "@/components/portraits/styles/styleTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/components/portraits/useCredits";
 import { savePetPhoto, loadPetPhoto, clearPetPhoto } from "@/components/portraits/photoSharing";
@@ -648,6 +649,13 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   }
 
   const [prompt, setPrompt] = useState(restoredState?.prompt ?? "");
+  // Taste-lane selector for the AI path. "auto" (default) lets the server-side
+  // enhancer pick the fitting treatment from the typed idea; the other vibes
+  // steer how serious/whimsical/dramatic/graphic the portrait should be. It
+  // never limits the freeform subject — only the tonal direction. Added 2026-06-08.
+  const [vibe, setVibe] = useState<string>(
+    restoredState?.vibe && VIBES.some((v) => v.id === restoredState.vibe) ? restoredState.vibe : "auto",
+  );
   // Studio mode — "ai" = transform with AI (default), "asis" = print the
   // uploaded photo exactly with no AI. The as-is path skips generation +
   // credits entirely and crops the upload to canvas server-side.
@@ -971,6 +979,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     saveStudioState({
       pets: pets.map((p) => ({ id: p.id, name: p.name, noName: p.noName ?? false, photoUrl: p.photoUrl })),
       prompt,
+      vibe,
       variants,
       selectedVariantUrl,
       approved,
@@ -983,7 +992,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       namesOn,
       layout,
     });
-  }, [pets, prompt, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType, mode, namesOn, layout]);
+  }, [pets, prompt, vibe, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType, mode, namesOn, layout]);
 
   // Variant resolution — three paths:
   //   • digital  → DIGITAL_VARIANT (single SKU, no size/frame)
@@ -1104,12 +1113,12 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     onPhaseChange?.(studioPhase);
   }, [studioPhase, onPhaseChange]);
 
-  // Reset approval whenever the prompt changes (any prompt edit invalidates
+  // Reset approval whenever the prompt OR vibe changes (either edit invalidates
   // the prior generation's approval state — same gen no longer represents
   // what the customer wants).
   useEffect(() => {
     setApproved(false);
-  }, [prompt]);
+  }, [prompt, vibe]);
 
   const variantsRef = useRef<HTMLDivElement>(null);
   const approvalRef = useRef<HTMLDivElement>(null);
@@ -1199,6 +1208,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           imageUrls: orderedPets.map((p) => p.photoUrl as string),
           petNames: orderedPets.map(petNameFor),
           customPrompt: prompt.trim(),
+          vibe,
         }),
         signal: ctrl.signal,
       });
@@ -2407,6 +2417,65 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                 </div>
               </div>
             </div>{/* /halo wrapper */}
+
+              {/* ── Vibe picker — taste-lane selector (AI mode only) ──────────
+                  Steers the server-side prompt enhancer so a thin prompt still
+                  yields wall-worthy art. Does NOT limit the subject (that stays
+                  freeform in the box above) — only how serious / whimsical /
+                  dramatic / graphic the result looks. "Auto" is default: the
+                  enhancer reads the idea and picks the fitting treatment. */}
+              {mode === "ai" && (
+                <div className="mt-3">
+                  <div className="flex items-baseline justify-between mb-2 px-0.5">
+                    <p style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 13, fontWeight: 600, color: PALETTE.ink, margin: 0 }}>
+                      Choose a vibe
+                    </p>
+                    <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11.5, color: PALETTE.earthMuted, margin: 0 }}>
+                      Type anything — this sets the look
+                    </p>
+                  </div>
+                  <div
+                    className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5"
+                    style={{ scrollbarWidth: "none" }}
+                    role="radiogroup"
+                    aria-label="Portrait vibe"
+                  >
+                    {VIBES.map((v) => {
+                      const selected = vibe === v.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => setVibe(v.id)}
+                          className="flex-shrink-0 text-left rounded-2xl transition-all"
+                          style={{
+                            width: 132,
+                            padding: "10px 12px",
+                            background: selected ? PALETTE.cream2 : "#ffffff",
+                            border: selected ? `1.5px solid ${PALETTE.rose}` : `1.5px solid ${PALETTE.sand}`,
+                            boxShadow: selected
+                              ? `0 6px 16px ${PALETTE.rose}22, 0 0 0 3px ${PALETTE.rose}14`
+                              : "0 2px 8px rgba(20, 18, 16, 0.04)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <div style={{ fontSize: 19, lineHeight: 1, marginBottom: 6 }} aria-hidden>
+                            {v.emoji}
+                          </div>
+                          <div style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 13, fontWeight: 600, color: selected ? PALETTE.rose : PALETTE.ink, lineHeight: 1.2 }}>
+                            {v.label}
+                          </div>
+                          <div style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11, color: PALETTE.earthMuted, lineHeight: 1.3, marginTop: 2 }}>
+                            {v.blurb}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Upload-first hint when no photo yet — sits below the prompt.
                   Also clarifies that size + frame are picked AFTER variants generate. */}

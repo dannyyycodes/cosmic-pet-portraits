@@ -166,6 +166,108 @@ export function getTheme(id: string) {
   return THEMES.find((t) => t.id === id);
 }
 
+/**
+ * VIBES — the single pre-Generate "how should this look" selector.
+ *
+ * Deliberately NOT an art-medium picker (oil/watercolour/anime…). The axis that
+ * actually controls slop + honours user intent is TASTE DIRECTION: how serious,
+ * whimsical, playful, dramatic, or graphic the portrait should be. The customer
+ * still types ANY subject/scene in the freeform box — the vibe only steers how
+ * far and in which tonal direction the server-side enhancer is allowed to push.
+ *
+ * "auto" is the default: the enhancer reads the typed idea and picks the most
+ * fitting treatment itself, so power users / people who don't care are never
+ * boxed in. The other five give explicit control.
+ *
+ *   label/emoji/blurb → client UI (the cards)
+ *   guidance          → injected into the enhancer's system prompt (server)
+ *   fallbackSuffix    → appended to the raw prompt when the enhancer LLM is
+ *                       unavailable, so output still degrades gracefully.
+ *
+ * Added 2026-06-08 (slop-fix: freeform prompt + intent selector + enhancer).
+ */
+export interface VibeDef {
+  id: string;
+  label: string;
+  emoji: string;
+  blurb: string;
+  guidance: string;
+  fallbackSuffix: string;
+}
+
+export const VIBES: VibeDef[] = [
+  {
+    id: "auto",
+    label: "Auto",
+    emoji: "✨",
+    blurb: "We pick the perfect look",
+    guidance:
+      "Choose the single art treatment that best fits the customer's idea — match its natural tone, whether that is elegant, whimsical, playful, dramatic, or graphic. Commit to ONE coherent medium and mood; do not blend treatments.",
+    fallbackSuffix:
+      "rendered as a tasteful, gallery-grade portrait with a coherent medium, controlled palette, and a clear focal point.",
+  },
+  {
+    id: "classic",
+    label: "Classic Portrait",
+    emoji: "🖼️",
+    blurb: "Timeless gallery oil",
+    guidance:
+      "Render as a timeless, elegant fine-art portrait — oil-on-canvas or refined painterly finish, restrained museum palette, soft directional light, dignified and gallery-grade. Tasteful, never garish or busy.",
+    fallbackSuffix:
+      "rendered as a timeless oil-on-canvas fine-art portrait, restrained museum palette, soft directional light, gallery-grade and dignified.",
+  },
+  {
+    id: "storybook",
+    label: "Storybook",
+    emoji: "📖",
+    blurb: "Soft, whimsical, charming",
+    guidance:
+      "Render as a warm hand-painted storybook illustration — soft watercolour or gouache, gentle light, whimsical and charming, with the polish of a beloved children's-book cover. Cosy, never cluttered.",
+    fallbackSuffix:
+      "rendered as a warm hand-painted storybook illustration, soft watercolour and gouache, gentle light, children's-book-cover polish.",
+  },
+  {
+    id: "funny",
+    label: "Funny Costume",
+    emoji: "😄",
+    blurb: "Playful, cute, polished",
+    guidance:
+      "Render as a playful, characterful portrait with a light comedic touch — cute, expressive and endearing, but cleanly composed and well-lit. Polished and frame-worthy, never crude or low-effort meme.",
+    fallbackSuffix:
+      "rendered as a playful, polished character portrait with a light comedic touch, cute and expressive, cleanly composed and frame-worthy.",
+  },
+  {
+    id: "epic",
+    label: "Epic Fantasy",
+    emoji: "⚔️",
+    blurb: "Dramatic & cinematic",
+    guidance:
+      "Render as a dramatic cinematic fantasy portrait — rich directional lighting, atmosphere and depth, high detail, heroic mood. Still a refined, composed portrait with a clear subject, not chaotic concept art.",
+    fallbackSuffix:
+      "rendered as a dramatic cinematic fantasy portrait, rich directional lighting, atmosphere and depth, heroic mood, refined composition.",
+  },
+  {
+    id: "poster",
+    label: "Modern Poster",
+    emoji: "🎨",
+    blurb: "Bold, clean, graphic",
+    guidance:
+      "Render as a clean modern graphic art print — bold confident shapes, a strong limited palette, flat or lightly textured colour, striking contemporary composition suitable for a framed wall print. Crisp and uncluttered.",
+    fallbackSuffix:
+      "rendered as a clean modern graphic art print, bold shapes, strong limited palette, striking contemporary composition.",
+  },
+];
+
+export function getVibe(id: string | undefined | null): VibeDef | undefined {
+  if (!id) return undefined;
+  return VIBES.find((v) => v.id === id);
+}
+
+/** True when `id` names a real vibe. Used to validate the client-sent value. */
+export function isValidVibeId(id: unknown): id is string {
+  return typeof id === "string" && VIBES.some((v) => v.id === id);
+}
+
 /** 4 micro-varied composition prompts — same identity, 4 different framings. */
 export const COMPOSITIONS = [
   { id: "close-up",   suffix: "Close-up portrait, head and shoulders only, eye-level eye contact." },
