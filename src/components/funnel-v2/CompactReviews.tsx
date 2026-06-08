@@ -1,105 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone,
-  Squirrel, Snail, Rat, Worm, Feather, Egg,
-} from "lucide-react";
-
-/* ── Pet wallpaper — scattered Lucide icons behind the review rows ── */
-type PetItem = {
-  x: number; y: number; size: number; rot: number; op: number;
-  Icon: typeof Cat;
-};
-
-// Row 1 — full coverage across the whole section (y 0-100, x 0-100)
-const WALLPAPER_PETS_ROW1: PetItem[] = [
-  // top edge
-  { x: 4,  y: 8,  size: 30, rot: -12, op: 0.18, Icon: Cat },
-  { x: 18, y: 5,  size: 22, rot: 10,  op: 0.15, Icon: PawPrint },
-  { x: 32, y: 10, size: 28, rot: 6,   op: 0.17, Icon: Rabbit },
-  { x: 46, y: 4,  size: 26, rot: -8,  op: 0.16, Icon: Bird },
-  { x: 60, y: 9,  size: 32, rot: 14,  op: 0.19, Icon: Dog },
-  { x: 74, y: 5,  size: 24, rot: -14, op: 0.15, Icon: Feather },
-  { x: 88, y: 10, size: 28, rot: 8,   op: 0.17, Icon: Rat },
-  // upper-mid
-  { x: 10, y: 30, size: 34, rot: 6,   op: 0.19, Icon: Fish },
-  { x: 26, y: 36, size: 22, rot: -10, op: 0.15, Icon: Bone },
-  { x: 42, y: 28, size: 30, rot: 16,  op: 0.18, Icon: Turtle },
-  { x: 58, y: 34, size: 26, rot: -6,  op: 0.16, Icon: Cat },
-  { x: 74, y: 30, size: 28, rot: 12,  op: 0.17, Icon: Bird },
-  { x: 92, y: 36, size: 24, rot: -16, op: 0.15, Icon: Squirrel },
-  // lower-mid
-  { x: 6,  y: 58, size: 26, rot: -10, op: 0.16, Icon: Snail },
-  { x: 22, y: 62, size: 32, rot: 14,  op: 0.19, Icon: PawPrint },
-  { x: 38, y: 56, size: 24, rot: -8,  op: 0.15, Icon: Worm },
-  { x: 54, y: 62, size: 30, rot: 10,  op: 0.18, Icon: Dog },
-  { x: 70, y: 58, size: 28, rot: -14, op: 0.17, Icon: Fish },
-  { x: 86, y: 62, size: 26, rot: 6,   op: 0.16, Icon: Rabbit },
-  // bottom edge
-  { x: 4,  y: 88, size: 22, rot: 12,  op: 0.15, Icon: Bone },
-  { x: 18, y: 92, size: 28, rot: -8,  op: 0.17, Icon: PawPrint },
-  { x: 32, y: 88, size: 24, rot: 14,  op: 0.15, Icon: Cat },
-  { x: 48, y: 94, size: 30, rot: -12, op: 0.18, Icon: Turtle },
-  { x: 64, y: 88, size: 26, rot: 8,   op: 0.16, Icon: Feather },
-  { x: 78, y: 92, size: 28, rot: -6,  op: 0.17, Icon: Bird },
-  { x: 94, y: 88, size: 22, rot: 10,  op: 0.14, Icon: Rat },
-];
-
-// Row 2 — staggered so the two rows don't mirror
-const WALLPAPER_PETS_ROW2: PetItem[] = [
-  // top edge
-  { x: 8,  y: 6,  size: 28, rot: 10,  op: 0.17, Icon: Rabbit },
-  { x: 22, y: 10, size: 22, rot: -12, op: 0.15, Icon: PawPrint },
-  { x: 38, y: 6,  size: 30, rot: 6,   op: 0.18, Icon: Cat },
-  { x: 54, y: 10, size: 26, rot: -8,  op: 0.16, Icon: Egg },
-  { x: 68, y: 5,  size: 32, rot: 14,  op: 0.19, Icon: Dog },
-  { x: 82, y: 10, size: 24, rot: -6,  op: 0.15, Icon: Snail },
-  { x: 96, y: 5,  size: 26, rot: 12,  op: 0.16, Icon: Feather },
-  // upper-mid
-  { x: 4,  y: 34, size: 30, rot: -14, op: 0.18, Icon: Fish },
-  { x: 18, y: 30, size: 24, rot: 10,  op: 0.15, Icon: Bird },
-  { x: 34, y: 36, size: 32, rot: -4,  op: 0.19, Icon: Turtle },
-  { x: 50, y: 30, size: 26, rot: 16,  op: 0.16, Icon: PawPrint },
-  { x: 66, y: 36, size: 28, rot: -10, op: 0.17, Icon: Rat },
-  { x: 82, y: 30, size: 24, rot: 8,   op: 0.15, Icon: Rabbit },
-  // lower-mid
-  { x: 12, y: 60, size: 30, rot: 12,  op: 0.18, Icon: Dog },
-  { x: 28, y: 56, size: 24, rot: -16, op: 0.15, Icon: Squirrel },
-  { x: 44, y: 62, size: 32, rot: 6,   op: 0.19, Icon: Cat },
-  { x: 60, y: 56, size: 26, rot: -10, op: 0.16, Icon: Bone },
-  { x: 76, y: 62, size: 28, rot: 14,  op: 0.17, Icon: Fish },
-  { x: 92, y: 58, size: 24, rot: -6,  op: 0.15, Icon: Bird },
-  // bottom edge
-  { x: 6,  y: 92, size: 26, rot: -10, op: 0.16, Icon: PawPrint },
-  { x: 20, y: 88, size: 22, rot: 12,  op: 0.14, Icon: Worm },
-  { x: 36, y: 94, size: 30, rot: 6,   op: 0.18, Icon: Turtle },
-  { x: 52, y: 88, size: 24, rot: -8,  op: 0.15, Icon: Egg },
-  { x: 68, y: 92, size: 28, rot: 14,  op: 0.17, Icon: Rabbit },
-  { x: 84, y: 88, size: 26, rot: -14, op: 0.16, Icon: Cat },
-  { x: 96, y: 92, size: 22, rot: 8,   op: 0.14, Icon: Snail },
-];
-
-const PetWallpaper = ({ row }: { row: 1 | 2 }) => {
-  const pets = row === 1 ? WALLPAPER_PETS_ROW1 : WALLPAPER_PETS_ROW2;
-  return (
-    <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {pets.map((p, i) => (
-        <p.Icon
-          key={i}
-          size={p.size}
-          strokeWidth={1.4}
-          style={{
-            position: "absolute",
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            transform: `translate(-50%, -50%) rotate(${p.rot}deg)`,
-            color: "#c4a265",
-            opacity: p.op,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -321,7 +220,6 @@ export const CompactReviews = ({ row = 1 }: { row?: 1 | 2 }) => {
         background: "transparent",
       }}
     >
-      <PetWallpaper row={row} />
       <div
         className="marquee-container transition-all duration-[1400ms]"
         style={{
@@ -332,9 +230,9 @@ export const CompactReviews = ({ row = 1 }: { row?: 1 | 2 }) => {
         }}
       >
         {row === 1 ? (
-          <MarqueeRow reviews={ROW_1} direction="left" speed={200} />
+          <MarqueeRow reviews={ROW_1} direction="left" speed={60} />
         ) : (
-          <MarqueeRow reviews={ROW_2} direction="right" speed={220} />
+          <MarqueeRow reviews={ROW_2} direction="right" speed={72} />
         )}
       </div>
 

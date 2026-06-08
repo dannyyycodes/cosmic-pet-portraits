@@ -457,8 +457,10 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
-      <CompactReviews row={1} />
-      <CompactReviews row={2} />
+      <div className="ls-reviews-float">
+        <CompactReviews row={1} />
+        <CompactReviews row={2} />
+      </div>
       <WhatItIsSection />
       <BirthSkyJourney />
       <QuietMomentSection />
@@ -1896,6 +1898,12 @@ function CosmicStyles() {
       }
       .ls-parallax-band {
         isolation: isolate;
+      }
+      /* Review marquees lifted up to float slightly over the hero video. */
+      .ls-reviews-float {
+        position: relative;
+        z-index: 3;
+        margin-top: -110px;
       }
       .ls-reveal {
         opacity: 0;
@@ -3935,6 +3943,10 @@ function CosmicStyles() {
         }
         .ls-hero-veil {
           display: none;
+        }
+        /* On phones the hero copy sits low; keep reviews below it, not over it. */
+        .ls-reviews-float {
+          margin-top: 0;
         }
         .ls-hero-copy .ls-gold-button,
         .ls-hero-copy .ls-ghost-button {
