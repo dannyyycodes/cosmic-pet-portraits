@@ -134,18 +134,6 @@ export default function BecomeAffiliate() {
     }
   };
 
-  const handleClaimEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const v = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { toast.error('Enter a valid email to claim your free reading'); return; }
-    try {
-      await supabase.from('email_subscribers').insert({ email: v, is_subscribed: true, source: 'become-affiliate-freebie' });
-    } catch { /* non-blocking */ }
-    setStep('form');
-    toast.success('Your free soul reading is reserved. Finish below to get your link.');
-    setTimeout(() => { try { document.getElementById('aff-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { /* noop */ } }, 60);
-  };
-
   const copyReferralLink = () => {
     if (!result) return;
     navigator.clipboard.writeText(`${window.location.origin}/ref/${result.referralCode}`);
@@ -215,17 +203,6 @@ export default function BecomeAffiliate() {
               ))}
             </div>
 
-            <form onSubmit={handleClaimEmail} className="mt-auto pt-6">
-              <label htmlFor="claim-email" className="mb-2 block text-[13px] font-semibold uppercase tracking-[0.14em] text-[#bcae9b]">
-                Start with a free reading for your own pet
-              </label>
-              <div className="flex flex-col gap-2.5 sm:flex-row">
-                <input id="claim-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" maxLength={254} aria-label="Your email" className="ls-aff-field h-12 flex-1" style={inputStyle} onFocus={fieldFocus} onBlur={fieldBlur} />
-                <Button type="submit" className="h-12 shrink-0 rounded-2xl px-5 font-bold text-[#0d0a14] transition hover:bg-[#e0c58d]" style={{ background: C.gold, border: 'none', fontFamily: FONT_BODY }}>
-                  <Sparkles className="mr-2 h-4 w-4" /> Claim
-                </Button>
-              </div>
-            </form>
           </motion.div>
 
           {/* RIGHT: value + calc + signup (info) / form / success */}
