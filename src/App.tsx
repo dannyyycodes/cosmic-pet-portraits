@@ -18,6 +18,7 @@ import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import LandingV2 from "./pages/LandingV2";
 import TitlePreview from "./pages/TitlePreview";
+import GiftPreview from "./pages/GiftPreview";
 import Intake from "./pages/Intake";
 // QuickCheckout React component exists but /checkout routes to checkout.html (the original design)
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -214,6 +215,7 @@ const App = () => (
                   <Route path="/hero-typography" element={<HeroTypographyPreview />} />
                   <Route path="/cards-preview" element={<CardsPreview />} />
                   <Route path="/title-preview" element={<TitlePreview />} />
+                  <Route path="/gift-preview" element={<GiftPreview />} />
                   <Route path="/compatibility" element={<CompatibilityViewer />} />
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
