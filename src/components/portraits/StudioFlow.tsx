@@ -2426,12 +2426,12 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   enhancer reads the idea and picks the fitting treatment. */}
               {mode === "ai" && (
                 <div className="mt-3">
-                  <div className="flex items-baseline justify-between mb-2 px-0.5">
-                    <p style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 13, fontWeight: 600, color: PALETTE.ink, margin: 0 }}>
-                      Choose a vibe
+                  <div className="flex items-baseline justify-between mb-2.5 px-0.5">
+                    <p style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 11, fontWeight: 600, color: PALETTE.earthMuted, letterSpacing: '0.09em', textTransform: 'uppercase', margin: 0 }}>
+                      Art direction
                     </p>
                     <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11.5, color: PALETTE.earthMuted, margin: 0 }}>
-                      Type anything — this sets the look
+                      Type anything — we direct the finish
                     </p>
                   </div>
                   <div
@@ -2461,13 +2461,23 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                             cursor: "pointer",
                           }}
                         >
-                          <div style={{ fontSize: 19, lineHeight: 1, marginBottom: 6 }} aria-hidden>
-                            {v.emoji}
+                          <div className="flex items-center justify-between gap-2" style={{ marginBottom: 4 }}>
+                            <span style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 13.5, fontWeight: 600, color: selected ? PALETTE.rose : PALETTE.ink, lineHeight: 1.2 }}>
+                              {v.label}
+                            </span>
+                            <span
+                              aria-hidden
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 999,
+                                flexShrink: 0,
+                                background: selected ? PALETTE.rose : "transparent",
+                                border: selected ? "none" : `1.5px solid ${PALETTE.sand}`,
+                              }}
+                            />
                           </div>
-                          <div style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 13, fontWeight: 600, color: selected ? PALETTE.rose : PALETTE.ink, lineHeight: 1.2 }}>
-                            {v.label}
-                          </div>
-                          <div style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11, color: PALETTE.earthMuted, lineHeight: 1.3, marginTop: 2 }}>
+                          <div style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11.5, color: PALETTE.earthMuted, lineHeight: 1.35 }}>
                             {v.blurb}
                           </div>
                         </button>
