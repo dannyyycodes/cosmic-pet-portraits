@@ -414,15 +414,18 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
-            Behind every soul, a cosmos.
+            Their soul was written in the stars long before they found you.
           </h1>
+          <p className="ls-reveal mt-6 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "44ch", ...revealDelay(0.16) }}>
+            A reading drawn from the real positions of the planets the moment they arrived — made to deepen the bond you already feel.
+          </p>
           <div className="ls-reveal mt-9 flex flex-col gap-3 sm:flex-row" style={revealDelay(0.24)}>
-            <button onClick={onBegin} className="ls-gold-button ls-violet-button">
-              Begin Their Reading <ArrowRight size={17} />
-            </button>
-            <a href="#computed-sky" className="ls-ghost-button">
-              Compute their sky, free
+            <a href="#computed-sky" className="ls-gold-button ls-violet-button">
+              Open their free reading <ArrowRight size={17} />
             </a>
+            <button onClick={onBegin} className="ls-ghost-button">
+              See the full reading
+            </button>
           </div>
         </div>
       </div>
@@ -626,6 +629,30 @@ function BirthChartPreviewSection() {
 // a tall transparent track of step-triggers drives an IntersectionObserver that
 // lights the bodies one at a time (Sun outward). Next/Prev + dots also navigate.
 // The final step is the existing free-calc form, then a value reveal + hint.
+// The three placements revealed free, fully framed (the emotional core: who
+// they are, what they need, how they love). Everything deeper is the full reading.
+const FREE_KEYS = ["sun", "moon", "venus"] as const;
+const FREE_FRAME: Record<string, string> = {
+  sun: "Their core nature",
+  moon: "Their inner world",
+  venus: "How they love",
+};
+// Shown after the email gate, as the "rest of their sky" payoff (positions only).
+const REST_KEYS = ["mercury", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "chiron", "northNode", "lilith"] as const;
+
+// Locked premium teasers — what the FULL reading opens. Names transformation,
+// not content inventory (GOLDTABLE council copy, 2026-06-16). Never unlocked free.
+const PREMIUM_TEASERS = [
+  { glyph: "✦", title: "The Bond Pattern", line: "The quiet rhythm between you — where trust forms, where distance appears, and how they ask to be met." },
+  { glyph: "☾", title: "Their Hidden Comfort Language", line: "The signs that tell you when they feel safe, chosen, and fully home with you." },
+  { glyph: "♄", title: "The Lesson They Bring You", line: "The recurring friction that's really a curriculum. You'll recognise it the moment you read it." },
+  { glyph: "⚷", title: "The Wound That Became Their Gift", line: "The sensitivity that looks like fear — and is, in truth, their medicine." },
+  { glyph: "☊", title: "The Karmic Contract", line: "Why their soul chose your path to cross, and what they came to teach you." },
+  { glyph: "⚸", title: "The Part That's Only Theirs", line: "The mystery you'll never fully solve — and why that's the deepest trust of all." },
+  { glyph: "✶", title: "Their Soul Archetype", line: "Guardian, mirror, healer, wanderer, witness — the ancient pattern behind their presence." },
+  { glyph: "❂", title: "The Full Celestial Synthesis", line: "Where all thirteen placements become one clear portrait of who they are with you." },
+] as const;
+
 function BirthSkyJourney() {
   const reduce = useReducedMotion();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -637,6 +664,9 @@ function BirthSkyJourney() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [active, setActive] = useState(0);
+  const [unlocked, setUnlocked] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 760);
 
   const total = JOURNEY_SEQ.length;
@@ -727,39 +757,18 @@ function BirthSkyJourney() {
     };
   }, [total]);
 
-  const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
+  // Gate 1 — no email here. Name (optional) + date is all it takes to open the
+  // chart. Email is asked AFTER the first reveal (Gate 2), per GOLDTABLE.
+  const handleOpen = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!date) {
       setStatus("error");
       setMessage("Choose their birth or adoption date first.");
       return;
     }
-    const cleanEmail = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(cleanEmail)) {
-      setStatus("error");
-      setMessage("Enter your email to calculate their free sky.");
-      return;
-    }
     setStatus("loading");
     setMessage("");
     try {
-      try {
-        await supabase.functions.invoke("track-subscriber", {
-          body: {
-            email: cleanEmail,
-            event: "birth_chart_lead",
-            petName: petName.trim() || null,
-            source: "birth_sky_journey",
-          },
-        });
-      } catch (error) {
-        console.warn("[Little Souls] lead capture failed", error);
-      }
-      try {
-        sessionStorage.setItem("ls_chart_email", cleanEmail);
-      } catch {
-        /* ignore */
-      }
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Birth chart request failed: ${response.status}`);
@@ -768,12 +777,44 @@ function BirthSkyJourney() {
       setChart(data);
       setStatus("ready");
       setMessage("");
+      setActive(0);
     } catch (error) {
       console.warn("[Little Souls] birth sky journey failed", error);
       setChart(null);
       setStatus("error");
       setMessage("The sky did not open. Please try again in a moment.");
     }
+  };
+
+  // Gate 2 — after the first three placements, email to save + continue.
+  const handleSaveEmail = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(cleanEmail)) {
+      setEmailMsg("Enter your email to continue the reveal.");
+      return;
+    }
+    setEmailBusy(true);
+    setEmailMsg("");
+    try {
+      await supabase.functions.invoke("track-subscriber", {
+        body: {
+          email: cleanEmail,
+          event: "birth_chart_lead",
+          petName: petName.trim() || null,
+          source: "cosmic_reveal",
+        },
+      });
+    } catch (error) {
+      console.warn("[Little Souls] lead capture failed", error);
+    }
+    try {
+      sessionStorage.setItem("ls_chart_email", cleanEmail);
+    } catch {
+      /* ignore */
+    }
+    setUnlocked(true);
+    setEmailBusy(false);
   };
 
   const scrollToCheckout = () =>
@@ -783,6 +824,10 @@ function BirthSkyJourney() {
   const activeKey = JOURNEY_SEQ[active];
   const meta = PLANET_META[activeKey];
   const line = JOURNEY_LINES[activeKey] ?? meta.line;
+  const sealed = status !== "ready";
+  const name = petName.trim();
+  const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
+    chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
 
   const orbitFor = (px: number, py: number) => {
     const cx = POS.sun.x;
@@ -794,17 +839,32 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
       <div className="ls-orrery-head ls-reveal">
-        <p style={eyebrowStyle(C.cream)}>
-          Computed sky · <span style={{ color: C.violetSoft }}>free</span>
-        </p>
-        <h3 className="mt-3 text-balance" style={chartTitleStyle}>Their birth sky</h3>
-        <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-          The real sky the day they arrived, every body computed. Scroll across
-          the system to meet each one.
-        </p>
+        {sealed ? (
+          <>
+            <p style={eyebrowStyle(C.cream)}>
+              A free reading · <span style={{ color: C.violetSoft }}>opens in moments</span>
+            </p>
+            <h3 className="mt-3 text-balance" style={chartTitleStyle}>Open the sky that shaped them</h3>
+            <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
+              Their name and birth date — that&apos;s all it takes. Their soul chart is drawn
+              from the real positions of the planets the day they arrived.
+            </p>
+          </>
+        ) : (
+          <>
+            <p style={eyebrowStyle(C.cream)}>
+              {name ? `${name}'s sky` : "Their sky"} · <span style={{ color: C.violetSoft }}>now open</span>
+            </p>
+            <h3 className="mt-3 text-balance" style={chartTitleStyle}>The sky the day they arrived</h3>
+            <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
+              Every body computed for {name || "them"}. Move across the system to meet each one.
+            </p>
+          </>
+        )}
       </div>
 
-      <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Birth sky diagram">
+      <div className={`ls-orrery-wrap ${sealed ? "is-sealed" : "is-open"}`}>
+        <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Birth sky diagram" aria-hidden={sealed}>
         <div className="ls-orrery-stars" aria-hidden="true" />
         <div className="ls-orrery-nebula" aria-hidden="true" />
         <motion.div className="ls-orrery-camera" style={reduce ? undefined : { transform: camTransform }}>
@@ -871,48 +931,118 @@ function BirthSkyJourney() {
           </AnimatePresence>
           <CosmicPenguin />
         </div>
-      </div>
+        </div>
 
-      <div className="ls-orrery-pips" role="tablist" aria-label="Bodies">
-        {JOURNEY_SEQ.map((k, i) => (
-          <button
-            key={k}
-            type="button"
-            className={`ls-orrery-pip ${i === active ? "is-active" : ""}`}
-            aria-label={PLANET_META[k].label}
-            onClick={() => setActive(i)}
-          />
-        ))}
-      </div>
-
-      <div className="ls-orrery-formwrap ls-reveal">
-        {status !== "ready" ? (
-          <form className="ls-lead-form ls-lead-form--card" onSubmit={handlePreview}>
-            <span className="ls-orrery-name" style={{ textAlign: "center" }}>Their free sky</span>
-            <div className="ls-lead-row">
-              <div className="ls-lead-field">
-                <label htmlFor="j-name">Their name (optional)</label>
-                <input id="j-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+        {sealed && (
+          <div className="ls-seal-veil">
+            <form className="ls-seal-card ls-reveal" onSubmit={handleOpen}>
+              <span className="ls-seal-glyph" aria-hidden="true">✦</span>
+              <h4 className="ls-seal-title">Open the sky that shaped them</h4>
+              <p className="ls-seal-sub">Enter their name and birth date to begin.</p>
+              <div className="ls-seal-field">
+                <label htmlFor="seal-name">Their name <span>(optional)</span></label>
+                <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
               </div>
-              <div className="ls-lead-field">
-                <label htmlFor="j-date">Birth or adoption date</label>
-                <input id="j-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+              <div className="ls-seal-field">
+                <label htmlFor="seal-date">Birth or adoption date</label>
+                <input id="seal-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
               </div>
-              <div className="ls-lead-field">
-                <label htmlFor="j-email">Your email</label>
-                <input id="j-email" type="email" value={email} autoComplete="email" required placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-              </div>
-            </div>
-            <button type="submit" className="ls-gold-button ls-violet-button" disabled={status === "loading"}>
-              {status === "loading" ? "Reading their sky..." : "Reveal their sky"}
-              {status !== "loading" && <ArrowRight size={17} />}
-            </button>
-            {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-          </form>
-        ) : (
-          <JourneyReveal chart={chart} name={petName.trim()} onBegin={scrollToCheckout} />
+              <p className="ls-seal-help">For rescued souls, use the day they became yours — we read it as their born-to-you chart.</p>
+              <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta" disabled={status === "loading"}>
+                {status === "loading" ? "Opening their chart…" : "Open their chart"}
+                {status !== "loading" && <ArrowRight size={17} />}
+              </button>
+              {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+            </form>
+          </div>
         )}
       </div>
+
+      {!sealed && (
+        <>
+          <div className="ls-orrery-pips" role="tablist" aria-label="Bodies">
+            {JOURNEY_SEQ.map((k, i) => (
+              <button
+                key={k}
+                type="button"
+                className={`ls-orrery-pip ${i === active ? "is-active" : ""}`}
+                aria-label={PLANET_META[k].label}
+                onClick={() => setActive(i)}
+              />
+            ))}
+          </div>
+
+          <div className="ls-reveal-stack ls-reveal">
+            <p className="ls-reveal-eyebrow">{name ? `${name}'s first three placements` : "Their first three placements"}</p>
+            <div className="ls-free-grid">
+              {FREE_KEYS.map((key) => {
+                const b = bodyFor(key);
+                const m = PLANET_META[key];
+                return (
+                  <article key={key} className="ls-free-card">
+                    <span className="ls-free-glyph" aria-hidden="true">{m.glyph}</span>
+                    <span className="ls-free-frame">{FREE_FRAME[key]}</span>
+                    <strong className="ls-free-sign">{b?.sign ? `${m.label} in ${b.sign}` : m.label}</strong>
+                    <small>{JOURNEY_LINES[key]}</small>
+                  </article>
+                );
+              })}
+            </div>
+
+            {!unlocked ? (
+              <form className="ls-gate2 ls-reveal" onSubmit={handleSaveEmail}>
+                <span className="ls-gate2-glyph" aria-hidden="true">✦</span>
+                <h4 className="ls-gate2-title">Their chart has opened.</h4>
+                <p className="ls-gate2-sub">Save this reading to your private path and reveal the rest of their placements.</p>
+                <div className="ls-gate2-row">
+                  <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
+                  <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
+                    {emailBusy ? "Opening…" : "Continue the reveal"}
+                    {!emailBusy && <ArrowRight size={16} />}
+                  </button>
+                </div>
+                {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
+                <p className="ls-gate2-trust">No noise. Just this reading, and your next opening.</p>
+              </form>
+            ) : (
+              <>
+                <p className="ls-reveal-eyebrow ls-reveal-eyebrow--rest">The rest of their sky</p>
+                <div className="ls-sky-grid ls-sky-grid--live">
+                  {REST_KEYS.map((key, i) => (
+                    <PlanetCard key={key} planet={key} body={bodyFor(key)} index={i} />
+                  ))}
+                </div>
+
+                <div className="ls-locked-block">
+                  <p className="ls-locked-eyebrow">What the full reading opens</p>
+                  <div className="ls-teaser-grid">
+                    {PREMIUM_TEASERS.map((t, i) => (
+                      <article key={t.title} className="ls-teaser-card" style={revealDelay(i * 0.04)}>
+                        <span className="ls-teaser-lock" aria-hidden="true">✦</span>
+                        <span className="ls-teaser-glyph" aria-hidden="true">{t.glyph}</span>
+                        <strong className="ls-teaser-title">{t.title}</strong>
+                        <small className="ls-teaser-line">{t.line}</small>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="ls-upsell">
+                  <h4 className="ls-upsell-title">You&apos;ve seen their sky. Now understand what it means between you.</h4>
+                  <p className="ls-upsell-pitch">
+                    The free chart opens their first placements. The full reading turns the whole celestial
+                    pattern into a portrait of their nature, their needs, and the bond only the two of you
+                    share. It doesn&apos;t just describe them — it changes how you meet them.
+                  </p>
+                  <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
+                    Unlock the full reading <ArrowRight size={17} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
     </section>
   );
 }
@@ -3063,6 +3193,131 @@ function CosmicStyles() {
         margin: 0 auto;
       }
       .ls-sky-cta { margin-top: 18px; width: 100%; justify-content: center; }
+
+      /* --- Cosmic reveal funnel: sealed gate -> unseal -> 3 free -> email -> locked -> upsell --- */
+      .ls-orrery-wrap { position: relative; transition: filter 900ms ease, transform 900ms ease; }
+      .ls-orrery-wrap.is-sealed .ls-orrery { filter: brightness(0.42) saturate(0.7) blur(2px); transform: scale(0.985); }
+      .ls-orrery-wrap.is-open .ls-orrery { animation: ls-unseal 1100ms cubic-bezier(0.22,0.7,0.2,1) both; }
+      @keyframes ls-unseal {
+        0% { filter: brightness(0.4) blur(3px); transform: scale(0.985); }
+        100% { filter: none; transform: none; }
+      }
+      .ls-seal-veil {
+        position: absolute; inset: 0; z-index: 5;
+        display: grid; place-items: center; padding: 16px;
+        background: radial-gradient(ellipse at 50% 40%, rgba(13,10,20,0.55), rgba(8,6,11,0.86) 72%);
+        backdrop-filter: blur(2px);
+      }
+      .ls-seal-card {
+        width: 100%; max-width: 440px;
+        display: grid; gap: 12px; justify-items: center; text-align: center;
+        padding: clamp(22px, 4vw, 34px);
+        border: 1px solid ${C.line}; border-radius: 16px;
+        background: linear-gradient(180deg, rgba(21,16,28,0.92), rgba(13,10,20,0.96));
+        box-shadow: 0 30px 90px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(212,182,122,0.06);
+      }
+      .ls-seal-glyph { font-size: 1.6rem; color: ${C.gold}; line-height: 1; }
+      .ls-seal-title {
+        color: ${C.cream}; font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.5rem, 4vw, 2.05rem); font-weight: 500; line-height: 1.1;
+      }
+      .ls-seal-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; }
+      .ls-seal-field { width: 100%; display: grid; gap: 5px; text-align: left; }
+      .ls-seal-field label {
+        color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      }
+      .ls-seal-field label span { color: ${C.muted}; font-weight: 500; text-transform: none; letter-spacing: 0; }
+      .ls-seal-field input {
+        min-height: 48px; width: 100%;
+        border: 1px solid rgba(212,182,122,0.34); border-radius: 8px;
+        background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px;
+        font-family: Lato, system-ui, sans-serif; font-size: 0.95rem;
+      }
+      .ls-seal-field input:focus { outline: none; border-color: ${C.violetSoft}; }
+      .ls-seal-help { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
+      .ls-seal-cta { width: 100%; justify-content: center; margin-top: 4px; }
+
+      .ls-reveal-stack { max-width: 980px; margin: 22px auto 0; padding: 0 4px; display: grid; gap: 22px; }
+      .ls-reveal-eyebrow {
+        text-align: center; color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800;
+        letter-spacing: 0.16em; text-transform: uppercase;
+      }
+      .ls-reveal-eyebrow--rest { margin-top: 6px; color: ${C.gold}; }
+      .ls-free-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      @media (max-width: 720px) { .ls-free-grid { grid-template-columns: 1fr; } }
+      .ls-free-card {
+        display: grid; gap: 6px; justify-items: center; text-align: center;
+        padding: 20px 16px;
+        border: 1px solid ${C.line}; border-radius: 14px;
+        background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
+      }
+      .ls-free-glyph { font-size: 1.5rem; color: ${C.gold}; line-height: 1; }
+      .ls-free-frame {
+        color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif;
+        font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+      }
+      .ls-free-sign { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.22rem; font-weight: 500; line-height: 1.1; }
+      .ls-free-card small { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; line-height: 1.4; }
+
+      .ls-gate2 {
+        display: grid; gap: 10px; justify-items: center; text-align: center;
+        max-width: 520px; margin: 4px auto 0; padding: clamp(22px, 4vw, 30px);
+        border: 1px solid ${C.line}; border-radius: 16px;
+        background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.16), transparent 60%), linear-gradient(180deg, rgba(21,16,28,0.9), rgba(13,10,20,0.95));
+      }
+      .ls-gate2-glyph { font-size: 1.4rem; color: ${C.gold}; }
+      .ls-gate2-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.85rem); font-weight: 500; }
+      .ls-gate2-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.9rem; line-height: 1.45; max-width: 380px; }
+      .ls-gate2-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; width: 100%; max-width: 440px; margin-top: 4px; }
+      @media (max-width: 520px) { .ls-gate2-row { grid-template-columns: 1fr; } }
+      .ls-gate2-row input {
+        min-height: 48px; width: 100%;
+        border: 1px solid rgba(212,182,122,0.34); border-radius: 8px;
+        background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px;
+        font-family: Lato, system-ui, sans-serif;
+      }
+      .ls-gate2-row input:focus { outline: none; border-color: ${C.violetSoft}; }
+      .ls-gate2-trust { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; letter-spacing: 0.02em; }
+
+      .ls-locked-block { display: grid; gap: 14px; }
+      .ls-locked-eyebrow {
+        text-align: center; color: ${C.gold};
+        font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800;
+        letter-spacing: 0.16em; text-transform: uppercase;
+      }
+      .ls-teaser-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      @media (max-width: 900px) { .ls-teaser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 520px) { .ls-teaser-grid { grid-template-columns: 1fr; } }
+      .ls-teaser-card {
+        position: relative; overflow: hidden;
+        display: grid; gap: 6px; padding: 18px 16px;
+        border: 1px solid ${C.line}; border-radius: 14px;
+        background: linear-gradient(180deg, rgba(21,16,28,0.6), rgba(13,10,20,0.82));
+      }
+      .ls-teaser-card::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(180deg, transparent 40%, rgba(13,10,20,0.5));
+      }
+      .ls-teaser-lock { position: absolute; top: 12px; right: 12px; z-index: 1; color: ${C.gold}; font-size: 0.8rem; opacity: 0.8; }
+      .ls-teaser-glyph { color: ${C.gold}; font-size: 1.3rem; line-height: 1; }
+      .ls-teaser-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.02rem; font-weight: 500; line-height: 1.15; }
+      .ls-teaser-line { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.4; filter: blur(2.6px); user-select: none; }
+
+      .ls-upsell {
+        display: grid; gap: 14px; justify-items: center; text-align: center;
+        max-width: 640px; margin: 8px auto 0; padding: clamp(26px, 4vw, 38px);
+        border: 1px solid rgba(212,182,122,0.3); border-radius: 18px;
+        background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.18), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.92), rgba(13,10,20,0.96));
+      }
+      .ls-upsell-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 500; line-height: 1.12; }
+      .ls-upsell-pitch { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.96rem; line-height: 1.55; max-width: 540px; }
+      .ls-upsell-cta { margin-top: 4px; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-orrery-wrap.is-open .ls-orrery { animation: none !important; }
+        .ls-orrery-wrap { transition: none !important; }
+      }
       .ls-story-section {
         background:
           radial-gradient(ellipse at 78% 18%, rgba(94,70,122,0.22), transparent 34%),
