@@ -187,8 +187,10 @@ export default function PawtraitArt() {
         }),
       });
       const co = await coRes.json().catch(() => ({}));
-      if (!coRes.ok || !co?.invoiceUrl) throw new Error(co?.error || `checkout failed (HTTP ${coRes.status})`);
-      window.location.href = co.invoiceUrl as string;
+      // Provider-agnostic: Stripe path returns `url`, Shopify returns `invoiceUrl`.
+      const redirectUrl = co?.url ?? co?.invoiceUrl;
+      if (!coRes.ok || !redirectUrl) throw new Error(co?.error || `checkout failed (HTTP ${coRes.status})`);
+      window.location.href = redirectUrl as string;
     } catch (e) {
       toast.error(`Couldn't start checkout: ${(e as Error).message?.slice(0, 120) || "unknown error"}. Try again.`, { duration: 8000 });
       setBuying(null);

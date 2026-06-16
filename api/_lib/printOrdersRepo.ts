@@ -480,6 +480,27 @@ export async function cancelGelatoOrder(
   }
 }
 
+/**
+ * Look up ALL print_orders rows for a Stripe payment intent (refund cancel).
+ * One Stripe charge/PI can cover multiple line items, so this returns an array.
+ * Rows store the PI at metadata.stripe.paymentIntentId (set by
+ * reconstructFromSession). Non-portrait charges (e.g. credit packs) match
+ * nothing → caller no-ops.
+ */
+export async function getPrintOrdersByStripePaymentIntent(
+  paymentIntentId: string,
+): Promise<PrintOrderRow[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("print_orders")
+    .select("*")
+    .eq("metadata->stripe->>paymentIntentId", paymentIntentId);
+  if (error) {
+    throw new Error(`getPrintOrdersByStripePaymentIntent failed: ${error.message}`);
+  }
+  return (data ?? []) as PrintOrderRow[];
+}
+
 /** Look up a print_orders row by Shopify (order, line item) for refund cancel. */
 export async function getPrintOrderByShopifyLine(
   shopifyOrderId: string,

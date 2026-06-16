@@ -67,8 +67,9 @@ export default function PortraitsTemplates() {
         body: JSON.stringify({ currency: "GBP", items: cart, consent: consent ?? undefined }),
       });
       const data = await res.json();
-      if (!res.ok || !data.invoiceUrl) throw new Error(data.error || "Checkout failed");
-      window.location.href = data.invoiceUrl;
+      const redirectUrl = data.url ?? data.invoiceUrl;
+      if (!res.ok || !redirectUrl) throw new Error(data.error || "Checkout failed");
+      window.location.href = redirectUrl;
     } catch (e) {
       setCheckoutError((e as Error).message);
       setCheckoutBusy(false);

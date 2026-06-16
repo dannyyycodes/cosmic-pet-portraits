@@ -27,6 +27,12 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createDraftOrder, shopifyConfigured, type DraftOrderLineItem } from "../_lib/shopifyAdmin.js";
+import {
+  buildStripeCartSession,
+  cartHasGiftCard,
+  CheckoutValidationError,
+  type CartItemBody as StripeCartItemBody,
+} from "../_lib/stripeCartCheckout.js";
 
 // ─── Locked variant map (mirrors productLineup.ts) ─────────────────────
 type ProductTypeKey = "digital" | "canvas" | "framed-canvas" | "gift-card" | "mug" | "tote" | "tee" | "hoodie";
@@ -242,9 +248,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method Not Allowed" });
   }
-  if (!shopifyConfigured()) {
-    return res.status(500).json({ error: "Shopify Admin env not configured." });
-  }
 
   const b = (req.body ?? {}) as CheckoutBody;
 
@@ -255,6 +258,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "items[] required (at least 1)" });
   if (b.items.length > 20)
     return res.status(400).json({ error: "max 20 items per order" });
+
+  // ─── Provider switch (Stripe-checkout-switch) ──────────────────────────
+  // CHECKOUT_PROVIDER defaults to "shopify" (zero behaviour change). When set
+  // to "stripe", pawtraits carts go through Stripe Checkout so the ACTUAL
+  // artwork shows in each line-item box. Gift-card carts ALWAYS stay on Shopify
+  // regardless of the flag — Stripe can't mint a redeemable gift code.
+  const provider = (process.env.CHECKOUT_PROVIDER ?? "shopify").toLowerCase();
+  if (provider === "stripe" && !cartHasGiftCard(b.items as StripeCartItemBody[])) {
+    // Empty when no geo header → resolveZone() fails safe to HIGH (never GB),
+    // so a stripped header never under-charges a high-ship buyer.
+    const country =
+      ((req.headers["x-vercel-ip-country"] as string | undefined) ??
+        (req.headers["cf-ipcountry"] as string | undefined) ??
+        "") || "";
+    const origin = configuredReturnOrigin();
+    const cartId = `paw_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    try {
+      const { url } = await buildStripeCartSession({
+        items: b.items as StripeCartItemBody[],
+        consent: b.consent,
+        country,
+        origin,
+        cartId,
+      });
+      return res.status(200).json({ url, invoiceUrl: url, itemCount: b.items.length });
+    } catch (err) {
+      if (err instanceof CheckoutValidationError) {
+        return res.status(err.status).json({ error: err.message });
+      }
+      console.error("[/api/cart/checkout][stripe]", err);
+      return res.status(500).json({ error: "Checkout creation failed", detail: (err as Error).message });
+    }
+  }
+
+  // ─── Shopify path (default) ────────────────────────────────────────────
+  if (!shopifyConfigured()) {
+    return res.status(500).json({ error: "Shopify Admin env not configured." });
+  }
 
   let requiresCanvasConsent = false;
   let requiresReadingConsent = false;
@@ -548,6 +589,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       invoiceUrl: draft.invoiceUrl,
+      // Provider-agnostic alias so the frontend can read data.url ?? data.invoiceUrl.
+      url: draft.invoiceUrl,
       draftOrderId: draft.id,
       name: draft.name,
       itemCount: b.items.length,

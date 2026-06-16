@@ -12,6 +12,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getStripe, priceIdForSku } from "./_lib/stripe.js";
 import { getSupabaseAdmin } from "./_lib/supabaseAdmin.js";
+import {
+  buildStripeCartSession,
+  cartHasGiftCard,
+  CheckoutValidationError,
+  type CartItemBody as StripeCartItemBody,
+  type ConsentBody as StripeConsentBody,
+} from "./_lib/stripeCartCheckout.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -25,8 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return await handleCheckout(req, res);
       case "portal":
         return await handlePortal(req, res);
+      case "cart-checkout":
+        return await handleCartCheckout(req, res);
       default:
-        return res.status(400).json({ error: `Unknown action: ${action}. Valid: checkout|portal` });
+        return res.status(400).json({ error: `Unknown action: ${action}. Valid: checkout|portal|cart-checkout` });
     }
   } catch (err) {
     // Defensive: ALWAYS return JSON so the client's res.json() doesn't choke
@@ -116,6 +125,58 @@ async function handleCheckout(req: VercelRequest, res: VercelResponse) {
   });
 
   return res.status(200).json({ url: session.url });
+}
+
+// ─── Stripe-checkout-switch: guest pawtraits cart → Checkout Session ──────
+// No auth (guest cart). Lives here (not a new api file) to respect the Vercel
+// Hobby 12-function cap. Same validation + server-locked pricing as
+// api/cart/checkout.ts via the shared buildStripeCartSession builder.
+const CART_CHECKOUT_ALLOWED_ORIGINS = new Set([
+  "https://www.littlesouls.app",
+  "https://littlesouls.app",
+]);
+
+async function handleCartCheckout(req: VercelRequest, res: VercelResponse) {
+  const body = (req.body ?? {}) as {
+    items?: StripeCartItemBody[];
+    consent?: StripeConsentBody;
+  };
+  // GBP-only: the locked price table is GBP. A client `currency` is ignored.
+  if (!Array.isArray(body.items) || body.items.length === 0) {
+    return res.status(400).json({ error: "items[] required (at least 1)" });
+  }
+  if (cartHasGiftCard(body.items)) {
+    return res.status(400).json({ error: "gift-card carts must use the Shopify checkout" });
+  }
+
+  // Empty when no geo header → resolveZone() fails safe to HIGH (never GB),
+  // so a stripped header never under-charges a high-ship buyer.
+  const country =
+    ((req.headers["x-vercel-ip-country"] as string | undefined) ??
+      (req.headers["cf-ipcountry"] as string | undefined) ??
+      "") || "";
+
+  const headerOrigin = (req.headers.origin as string | undefined) ?? "";
+  const origin = CART_CHECKOUT_ALLOWED_ORIGINS.has(headerOrigin)
+    ? headerOrigin
+    : process.env.CHECKOUT_RETURN_ORIGIN ?? process.env.PUBLIC_SITE_URL ?? "https://www.littlesouls.app";
+  const cartId = `paw_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+
+  try {
+    const { url } = await buildStripeCartSession({
+      items: body.items,
+      consent: body.consent,
+      country,
+      origin,
+      cartId,
+    });
+    return res.status(200).json({ url, invoiceUrl: url, itemCount: body.items.length });
+  } catch (err) {
+    if (err instanceof CheckoutValidationError) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    throw err; // bubble to the router's catch → JSON 500
+  }
 }
 
 async function handlePortal(req: VercelRequest, res: VercelResponse) {

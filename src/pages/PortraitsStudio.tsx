@@ -255,8 +255,9 @@ export default function PortraitsStudio() {
         body: JSON.stringify({ currency: "GBP", items: cart }),
       });
       const data = await res.json();
-      if (!res.ok || !data.invoiceUrl) throw new Error(data.error || "Checkout failed");
-      window.location.href = data.invoiceUrl;
+      const redirectUrl = data.url ?? data.invoiceUrl;
+      if (!res.ok || !redirectUrl) throw new Error(data.error || "Checkout failed");
+      window.location.href = redirectUrl;
     } catch (e) {
       setCheckoutError((e as Error).message);
       setCheckoutBusy(false);

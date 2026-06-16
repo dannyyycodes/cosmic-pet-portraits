@@ -922,8 +922,9 @@ const Portraits = () => {
         }),
       });
       const data = await res.json();
-      if (!res.ok || !data.invoiceUrl) throw new Error(data.error || "Checkout failed");
-      window.location.href = data.invoiceUrl;
+      const redirectUrl = data.url ?? data.invoiceUrl;
+      if (!res.ok || !redirectUrl) throw new Error(data.error || "Checkout failed");
+      window.location.href = redirectUrl;
     } catch (err) {
       // Never show the customer raw API gibberish (`items[3]: …`, `properties.…`).
       // Map to plain, actionable English; log the real error for us. (2026-06-01)

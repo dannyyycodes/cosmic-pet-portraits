@@ -33,6 +33,20 @@ import {
 import { runDigitalFulfillment } from "./digitalFulfillment.js";
 import { getSupabaseAdmin } from "./supabaseAdmin.js";
 
+/**
+ * Deterministic, replay-stable positive int from a string (FNV-1a 32-bit).
+ * Used to derive a unique numeric storage id for Stripe digital orders whose
+ * ids are strings (cs_/li_). Same input → same output across cron re-runs.
+ */
+function hashToSafeInt(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0) || 1;
+}
+
 export interface RunCanvasFulfillmentArgs {
   row: PrintOrderRow;
   orderId: number;
@@ -301,10 +315,32 @@ export async function runCanvasFulfillmentForRow(row: PrintOrderRow): Promise<vo
     const meta2 = (row.metadata ?? {}) as {
       previewUrl?: string | null;
       printMasterPath?: string | null;
+      lsLineIndex?: string | null;
+      stripe?: { sessionId?: string | null } | null;
     };
+    // Stripe-checkout-switch FIX: Stripe ids are strings (cs_/li_) → Number()
+    // is NaN → both collapse to 0 → storage path becomes ls-0-0.png (collision
+    // across every Stripe digital order). When the ids aren't numeric, derive a
+    // STABLE numeric pair from the Stripe session id + ls_line_index so each
+    // line gets a unique, replay-stable storage path. Shopify orders keep their
+    // real numeric ids unchanged.
+    const stripeSessionId = meta2.stripe?.sessionId ?? null;
+    const digitalOrderId = Number.isFinite(orderId)
+      ? orderId
+      : stripeSessionId
+        ? hashToSafeInt(stripeSessionId)
+        : 0;
+    const lsIndex = Number(meta2.lsLineIndex);
+    const digitalLineId = Number.isFinite(lineItemNum)
+      ? lineItemNum
+      : Number.isFinite(lsIndex) && lsIndex >= 0
+        ? lsIndex + 1 // +1 so index 0 never collapses to the 0 sentinel
+        : stripeSessionId
+          ? hashToSafeInt(`${stripeSessionId}:${row.shopify_line_item_id ?? ""}`)
+          : 0;
     const result = await runDigitalFulfillment({
-      shopifyOrderId: Number.isFinite(orderId) ? orderId : 0,
-      shopifyLineItemId: Number.isFinite(lineItemNum) ? lineItemNum : 0,
+      shopifyOrderId: digitalOrderId,
+      shopifyLineItemId: digitalLineId,
       customerEmail: cron.customerEmail,
       // Prefer secure private path (post-2026-05-12). Fall back to URL for legacy.
       printMasterPath: meta2.printMasterPath ?? null,

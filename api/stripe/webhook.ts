@@ -29,6 +29,13 @@ import type Stripe from "stripe";
 import { getStripe, priceIdToTier, TOKENS_PER_PERIOD, DOWNLOAD_CREDITS_PER_PERIOD, PACK_TOKENS } from "../_lib/stripe.js";
 import { getSupabaseAdmin } from "../_lib/supabaseAdmin.js";
 import { capiPurchase } from "../_lib/metaCapi.js";
+import { reconstructFromSession } from "./_lib/reconstructFromSession.js";
+import {
+  getPrintOrdersByStripePaymentIntent,
+  updatePrintOrder,
+  cancelGelatoOrder,
+  recordHighSeverityFailure,
+} from "../_lib/printOrdersRepo.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -109,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutCompleted(session);
+        await handleCheckoutCompleted(session, event);
         // Fire Meta CAPI Purchase (no-op if META_PIXEL_ID/META_CAPI_TOKEN unset).
         // Wrapped in try/catch so a CAPI failure never causes Stripe to retry the webhook.
         try {
@@ -287,7 +294,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, event: Stripe.Event) {
   // Only handle one-off packs / canvas SKUs here (mode='payment').
   // Subscriptions are handled by customer.subscription.* events.
   if (session.mode !== "payment") return;
@@ -305,6 +312,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const isCanvasOrder = await detectCanvasSku(session);
   if (isCanvasOrder) {
     await schedulePawtraitTouchpoints(session);
+    // Stripe-checkout-switch: reconstruct print_orders + soul-reading rows from
+    // the session line metadata so the existing cron + n8n pipeline fulfils it
+    // UNCHANGED. Only fires for sessions built by stripeCartCheckout.ts
+    // (metadata.product_line === "portrait"). Idempotent — safe on replay.
+    await reconstructFromSession(session, event);
   }
 
   if (!customerId) return;
@@ -493,22 +505,92 @@ async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
 }
 
 async function handleChargeRefunded(charge: Stripe.Charge) {
-  // Refund triage: log so ops can spot it. We do NOT auto-claw-back credits
-  // because (a) tokens may already be spent on generated portraits, (b) for
-  // canvas refunds the tokens path is decoupled. Manual intervention from
-  // ops via Supabase admin if a refund warrants a credit clawback.
   const customerId = typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
+  const pi =
+    typeof charge.payment_intent === "string"
+      ? charge.payment_intent
+      : charge.payment_intent?.id ?? null;
+
   console.warn(
-    "[stripe/webhook] charge.refunded — manual review required",
+    "[stripe/webhook] charge.refunded",
     JSON.stringify({
       chargeId: charge.id,
-      paymentIntentId: charge.payment_intent,
+      paymentIntentId: pi,
       amount: charge.amount_refunded,
       currency: charge.currency,
       customer: customerId,
       reason: charge.refunds?.data[0]?.reason ?? null,
     }),
   );
+
+  // Stripe-checkout-switch (C2 parity): a refunded portrait must NOT keep
+  // printing/shipping. Mirror the Shopify refund canvas branch but at the
+  // charge level — one charge can cover several lines.
+  if (!pi) return;
+  let rows;
+  try {
+    rows = await getPrintOrdersByStripePaymentIntent(pi);
+  } catch (err) {
+    console.error(
+      "[stripe/webhook] refund_lookup_failed",
+      JSON.stringify({ pi, error: err instanceof Error ? err.message : String(err) }),
+    );
+    return;
+  }
+  if (!rows.length) return; // non-portrait charge (credit pack, sub) → ignore
+
+  const at = new Date().toISOString();
+  for (const po of rows) {
+    try {
+      if (["pending", "manual_review", "failed"].includes(po.status)) {
+        // Not yet at Gelato (or digital not yet delivered) — just cancel.
+        await updatePrintOrder({
+          printOrderId: po.id,
+          status: "canceled",
+          lastError: `Stripe refund (charge ${charge.id})`,
+          metadataMerge: { canceledByRefund: { chargeId: charge.id, paymentIntentId: pi, at } },
+        });
+      } else if (["submitted", "printed"].includes(po.status) && po.gelato_order_id) {
+        const cx = await cancelGelatoOrder(po.gelato_order_id);
+        await updatePrintOrder({
+          printOrderId: po.id,
+          status: cx.ok ? "canceled" : po.status,
+          metadataMerge: {
+            refundCancelAttempt: { chargeId: charge.id, gelatoOrderId: po.gelato_order_id, result: cx, at },
+          },
+        });
+        await recordHighSeverityFailure({
+          printOrderId: po.id,
+          shopifyOrderId: po.shopify_order_id,
+          shopifyLineItemId: po.shopify_line_item_id,
+          sku: po.sku,
+          stage: "refund_cancel",
+          message: cx.ok
+            ? `Stripe refund — Gelato cancel ACCEPTED (was ${po.status}). Verify it didn't already ship.`
+            : `Stripe refund at Gelato (${po.status}) — cancel FAILED: ${cx.detail ?? "unknown"}. Manual recall needed.`,
+          details: { chargeId: charge.id, paymentIntentId: pi, gelatoOrderId: po.gelato_order_id, cancelResult: cx },
+        });
+      } else {
+        // shipped / delivered / canceled — terminal. Audit + alert only.
+        await recordHighSeverityFailure({
+          printOrderId: po.id,
+          shopifyOrderId: po.shopify_order_id,
+          shopifyLineItemId: po.shopify_line_item_id,
+          sku: po.sku,
+          stage: "refund_after_ship",
+          message: `Stripe refund but portrait already ${po.status} — customer keeps refund AND product. Ops decision needed.`,
+          details: { chargeId: charge.id, paymentIntentId: pi, status: po.status },
+        });
+      }
+    } catch (err) {
+      // Never 500 here — that would abort the remaining lines and make Stripe
+      // replay the whole event. Log + continue.
+      console.error(
+        "[stripe/webhook] refund_cancel_failed",
+        JSON.stringify({ printOrderId: po.id, pi, error: err instanceof Error ? err.message : String(err) }),
+      );
+    }
+  }
 }
 
 async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
