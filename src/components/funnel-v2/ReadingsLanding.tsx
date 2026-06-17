@@ -632,6 +632,55 @@ const FREE_FRAME: Record<string, string> = {
   moon: "How they feel safe",
   venus: "How they show love",
 };
+
+// Sign-true free-card lines for the three placements owners care about most.
+// Honest to each sign's real archetype (Sun = identity, Moon = what soothes them,
+// Venus = how they show love), present tense, ungendered for unnamed pets. Falls
+// back to the planet-meaning line in JOURNEY_LINES if a sign is ever missing.
+const SIGN_LINES: Record<string, Record<string, string>> = {
+  sun: {
+    Aries: "First through every door, last to back down. The want is loud and immediate, and they expect you to keep up.",
+    Taurus: "Slow to move, impossible to rush. Comfort is a need, not a treat, and the loyalty settles in like weight on the bed.",
+    Gemini: "Two moods before breakfast, curious about everything. They read the room, then change it.",
+    Cancer: "Tender at the core, ruled by whoever feels like home. Their whole world is the people in it.",
+    Leo: "Built for the best seat in the house, and they let you know when it is taken. The warmth is real, and it wants an audience of one. You.",
+    Virgo: "Watchful and particular, quietly in charge of the routine. They notice the thing you moved.",
+    Libra: "Happiest when the room is calm and the bond is even. They mirror your mood back, softer.",
+    Scorpio: "All or nothing, and they decide which. What they give, they give completely, and they remember everything.",
+    Sagittarius: "Born mid-adventure, nose to the wind. Fences are suggestions and the world is theirs to sniff.",
+    Capricorn: "Serious for their age, steady under pressure. They earn their place, then hold it.",
+    Aquarius: "Their own creature on their own clock. Affection on their terms, and odd, better terms than yours.",
+    Pisces: "Soft-edged and tuned to feeling, yours before they are their own. They wait at the door and mean it.",
+  },
+  moon: {
+    Aries: "Settles by doing, not sitting. Burn the energy off and the calm follows.",
+    Taurus: "Safe means warm, fed, and exactly where they always sleep. Move the bed and you will hear about it.",
+    Gemini: "Needs something to watch and someone to chatter at. Boredom is their only real fear.",
+    Cancer: "Wants you close and the routine kept. A small sulk over a skipped cuddle is not unusual.",
+    Leo: "Feels safest when seen. A little praise resets their whole day.",
+    Virgo: "Calms when the order is right. A clean bowl in the same spot, and the world is fine.",
+    Libra: "Settles in pairs, unsettles alone. They borrow their calm from yours.",
+    Scorpio: "Watches from somewhere high, then decides you are safe. Once it decides, it does not change its mind.",
+    Sagittarius: "Needs room and a horizon. A long walk does more than any blanket.",
+    Capricorn: "Steadies on a schedule they can trust. Surprises are not a gift to them.",
+    Aquarius: "Comforted by space, not smothering. They come to you, and that is the rule.",
+    Pisces: "Soothed by quiet and your nearness. Loud days send them under the bed.",
+  },
+  venus: {
+    Aries: "Loves head-on. Crashes into you, then waits, tail going, for the same back.",
+    Taurus: "Shows love by leaning their whole weight on you and refusing to move.",
+    Gemini: "Brings you things and talks the whole time. Attention is the love language.",
+    Cancer: "Loves by guarding. Follows you room to room and frets when you leave.",
+    Leo: "Loves out loud and expects it back with interest. Generous, and a little theatrical.",
+    Virgo: "Shows love by staying close while you work. Missing nothing, asking for nothing.",
+    Libra: "Loves to be near and in tune. Gives back the softness it wants.",
+    Scorpio: "Picks one person and keeps picking them. That is you, and it is for life.",
+    Sagittarius: "Loves by including you in the fun. The door is open, come on, keep up.",
+    Capricorn: "Undemonstrative and completely dependable. The love is in the showing up.",
+    Aquarius: "Loves on a slant. Sits one cushion away, which from them is devotion.",
+    Pisces: "Loves by melting into you. No edge between their mood and yours.",
+  },
+};
 // Shown after the email gate, as the "rest of their sky" payoff (positions only).
 const REST_KEYS = ["mercury", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "chiron", "northNode", "lilith"] as const;
 
@@ -1492,7 +1541,7 @@ function BirthSkyJourney() {
                     {FREE_FRAME[key]}
                   </span>
                   <strong className="ls-free-sign">{b?.sign ? `${m.label} in ${b.sign}${deg}` : m.label}</strong>
-                  <small>{JOURNEY_LINES[key]}</small>
+                  <small>{(b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key]}</small>
                 </article>
               );
             })}
