@@ -1553,43 +1553,48 @@ function pickJourneyVoice(): SpeechSynthesisVoice | null {
   }
 }
 
-type Beat = { scene: number; text: string; focus?: string; rate?: number; font?: "caveat" };
+type Beat = { scene: number; text: string; focus?: string; rate?: number; font?: "caveat"; audio?: string };
 
 function buildBeats(chart: PetBirthChart, name: string): Beat[] {
-  const el = chart.dominantElement || "";
+  const el = (chart.dominantElement || "").trim();
+  const elc = el.toLowerCase();
   const sline = (k: keyof typeof PLANET_META) => {
     const b = chart[k as keyof PetBirthChart] as ChartBody | undefined;
     return (b?.sign && SIGN_LINES[k]?.[b.sign]) || JOURNEY_LINES[k] || PLANET_META[k].line;
   };
+  const sig = (k: keyof typeof PLANET_META) => {
+    const b = chart[k as keyof PetBirthChart] as ChartBody | undefined;
+    return (b?.sign || "").toLowerCase();
+  };
   const nm = name.trim();
   return [
-    { scene: 1, text: nm ? `This is the sky the night ${nm} arrived.` : "This is the sky the night they arrived." },
-    { scene: 1, text: "Real positions. The actual sky, read for them." },
-    { scene: 2, text: "Thirteen places in the sky. Each one says something true about who they are." },
-    { scene: 2, text: "We read three with you now. Quietly, one at a time." },
-    { scene: 3, focus: "sun", text: nm ? `First, the Sun. This is who ${nm} is at the centre, before the world asks anything of them.` : "First, the Sun. This is who they are at the centre, before the world asks anything of them." },
-    { scene: 3, focus: "sun", text: sline("sun") },
-    { scene: 3, focus: "sun", text: "You have watched this in them since the first day, even if you never had a word for it." },
-    { scene: 4, focus: "moon", rate: 0.86, text: nm ? `Now the Moon. This is ${nm}'s inner weather. How they feel safe, and how they ask for comfort.` : "Now the Moon. This is their inner weather. How they feel safe, and how they ask for comfort." },
-    { scene: 4, focus: "moon", rate: 0.86, text: sline("moon") },
-    { scene: 4, focus: "moon", rate: 0.86, font: "caveat", text: "When they come to you at night, this is the part of them doing the choosing." },
-    { scene: 5, focus: "venus", text: nm ? `And Venus. This is how ${nm} loves, and the kind of love they reach for back.` : "And Venus. This is how they love, and the kind of love they reach for back." },
-    { scene: 5, focus: "venus", text: sline("venus") },
-    { scene: 5, focus: "venus", text: "The way they love you was never random. It was written up there before you met." },
-    { scene: 6, text: "Three placements in, and a pattern is already showing." },
-    { scene: 6, text: nm ? `${nm} is a ${el}-led soul.` : `They are a ${el}-led soul.` },
-    { scene: 6, text: ELEMENT_LINE[el] || "Their element runs all the way through them." },
-    { scene: 7, text: "That is three. There are ten more." },
-    { scene: 7, text: "Mars, where their courage lives. Saturn, what they carry, and what steadies them." },
-    { scene: 7, text: "Mercury, how they read a room. Chiron, the tender place they came in carrying." },
-    { scene: 7, text: "And the rest. The parts of them you feel every day and have never had named." },
-    { scene: 7, text: nm ? `We measured all of ${nm}. Right now, you are seeing three.` : "We measured all of them. Right now, you are seeing three." },
-    { scene: 8, text: "The lines between them are how all of it talks to each other." },
-    { scene: 8, text: "The full reading is where they stop being thirteen facts and start being one whole creature." },
-    { scene: 8, text: "And the face they show the world, once you can tell us the hour they were born." },
-    { scene: 9, text: nm ? `You came here to find out who ${nm} really is.` : "You came here to find out who they really are." },
-    { scene: 9, text: "These three say it is real. The other ten say how deep it goes." },
-    { scene: 9, text: "You have met three of them tonight. The rest are right here, when you are ready." },
+    { scene: 1, audio: "s1a", text: nm ? `This is the sky the night ${nm} arrived.` : "This is the sky the night they arrived." },
+    { scene: 1, audio: "s1b", text: "Real positions. The actual sky, read for them." },
+    { scene: 2, audio: "s2a", text: "Thirteen places in the sky. Each one says something true about who they are." },
+    { scene: 2, audio: "s2b", text: "We read three with you now. Quietly, one at a time." },
+    { scene: 3, focus: "sun", audio: "s3a", text: nm ? `First, the Sun. This is who ${nm} is at the centre, before the world asks anything of them.` : "First, the Sun. This is who they are at the centre, before the world asks anything of them." },
+    { scene: 3, focus: "sun", audio: `sun-${sig("sun")}`, text: sline("sun") },
+    { scene: 3, focus: "sun", audio: "s3c", text: "You have watched this in them since the first day, even if you never had a word for it." },
+    { scene: 4, focus: "moon", rate: 0.86, audio: "s4a", text: nm ? `Now the Moon. This is ${nm}'s inner weather. How they feel safe, and how they ask for comfort.` : "Now the Moon. This is their inner weather. How they feel safe, and how they ask for comfort." },
+    { scene: 4, focus: "moon", rate: 0.86, audio: `moon-${sig("moon")}`, text: sline("moon") },
+    { scene: 4, focus: "moon", rate: 0.86, font: "caveat", audio: "s4c", text: "When they come to you at night, this is the part of them doing the choosing." },
+    { scene: 5, focus: "venus", audio: "s5a", text: nm ? `And Venus. This is how ${nm} loves, and the kind of love they reach for back.` : "And Venus. This is how they love, and the kind of love they reach for back." },
+    { scene: 5, focus: "venus", audio: `venus-${sig("venus")}`, text: sline("venus") },
+    { scene: 5, focus: "venus", audio: "s5c", text: "The way they love you was never random. It was written up there before you met." },
+    { scene: 6, audio: "s6a", text: "Three placements in, and a pattern is already showing." },
+    { scene: 6, audio: `s6b-${elc}`, text: nm ? `${nm} is a ${el}-led soul.` : `They are a ${el}-led soul.` },
+    { scene: 6, audio: `el-${elc}`, text: ELEMENT_LINE[el] || "Their element runs all the way through them." },
+    { scene: 7, audio: "s7a", text: "That is three. There are ten more." },
+    { scene: 7, audio: "s7b", text: "Mars, where their courage lives. Saturn, what they carry, and what steadies them." },
+    { scene: 7, audio: "s7c", text: "Mercury, how they read a room. Chiron, the tender place they came in carrying." },
+    { scene: 7, audio: "s7d", text: "And the rest. The parts of them you feel every day and have never had named." },
+    { scene: 7, audio: "s7e", text: nm ? `We measured all of ${nm}. Right now, you are seeing three.` : "We measured all of them. Right now, you are seeing three." },
+    { scene: 8, audio: "s8a", text: "The lines between them are how all of it talks to each other." },
+    { scene: 8, audio: "s8b", text: "The full reading is where they stop being thirteen facts and start being one whole creature." },
+    { scene: 8, audio: "s8c", text: "And the face they show the world, once you can tell us the hour they were born." },
+    { scene: 9, audio: "s9a", text: nm ? `You came here to find out who ${nm} really is.` : "You came here to find out who they really are." },
+    { scene: 9, audio: "s9b", text: "These three say it is real. The other ten say how deep it goes." },
+    { scene: 9, audio: "s9c", text: "You have met three of them tonight. The rest are right here, when you are ready." },
   ];
 }
 
@@ -1624,6 +1629,7 @@ function CosmicJourney({
   const [email, setEmail] = useState("");
   const [offerMsg, setOfferMsg] = useState("");
   const infoBtnRef = useRef<HTMLButtonElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   // Load the soothing female voice (voices arrive async) + stop speech on unmount.
@@ -1638,7 +1644,9 @@ function CosmicJourney({
     };
   }, [hasSpeech]);
 
-  // The narration + auto-advance engine.
+  // The narration + auto-advance engine. Primary voice = pre-rendered Kokoro audio
+  // clips (high quality, free, same on every device). Falls back to the browser
+  // voice if a clip cannot play, and to a plain timer when muted or no audio.
   useEffect(() => {
     if (!started || !playing || ended || infoOpen) return;
     const b = BEATS[i];
@@ -1656,11 +1664,12 @@ function CosmicJourney({
         else setI(i + 1);
       }, 650);
     };
-    const useTimer = muted || !hasSpeech;
-    if (useTimer) {
+    const timerOnly = () => {
       const dur = Math.max(2600, Math.min(9000, (b.text.length / 12) * 1000));
       t1 = window.setTimeout(advance, dur);
-    } else {
+    };
+    const speakBrowser = () => {
+      if (!hasSpeech) { timerOnly(); return; }
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(b.text);
@@ -1672,16 +1681,38 @@ function CosmicJourney({
         u.onend = advance;
         u.onerror = advance;
         window.speechSynthesis.speak(u);
-        // safety net if the engine never fires onend
         t1 = window.setTimeout(advance, Math.max(7000, (b.text.length / 8) * 1000 + 3500));
       } catch {
-        t1 = window.setTimeout(advance, 3500);
+        timerOnly();
       }
+    };
+
+    if (muted) {
+      timerOnly();
+    } else if (audioRef.current && b.audio) {
+      const a = audioRef.current;
+      try {
+        a.pause();
+        a.onended = advance;
+        a.onerror = () => { if (!advanced) speakBrowser(); };
+        a.src = `/readings/voice/${b.audio}.mp3`;
+        a.currentTime = 0;
+        const pr = a.play();
+        if (pr && typeof pr.catch === "function") pr.catch(() => { if (!advanced) speakBrowser(); });
+        t1 = window.setTimeout(advance, 16000); // safety if 'ended' never fires
+      } catch {
+        speakBrowser();
+      }
+    } else {
+      speakBrowser();
     }
+
     return () => {
       cancelled = true;
       clearTimeout(t1);
       clearTimeout(t2);
+      const a = audioRef.current;
+      if (a) { try { a.pause(); a.onended = null; a.onerror = null; } catch { /* ignore */ } }
       if (hasSpeech) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } }
     };
   }, [i, started, playing, muted, ended, infoOpen, nonce, BEATS, hasSpeech, voice]);
@@ -1744,6 +1775,7 @@ function CosmicJourney({
 
   return (
     <div className="ls-journey" onClick={(e) => { if (e.target === e.currentTarget && !showOffer) goNext(); }}>
+      <audio ref={audioRef} preload="auto" aria-hidden="true" />
       <div className={`ls-journey-stage ${showOffer ? "is-dim" : ""}`}>
         <NatalWheel
           chart={chart}
