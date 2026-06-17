@@ -938,6 +938,8 @@ function NatalWheel({
   reduce,
   onInfo,
   infoBtnRef,
+  focusKey = null,
+  hideInfo = false,
 }: {
   chart: PetBirthChart;
   name: string;
@@ -945,6 +947,8 @@ function NatalWheel({
   reduce: boolean;
   onInfo: () => void;
   infoBtnRef?: RefObject<HTMLButtonElement>;
+  focusKey?: string | null;
+  hideInfo?: boolean;
 }) {
   const SIZE = 440;
   const cx = SIZE / 2;
@@ -1086,16 +1090,20 @@ function NatalWheel({
           const meta = PLANET_META[p.key];
           const gp = wheelPolar(cx, cy, rGlyph, glyphLon[p.key]);
           const tickEnd = wheelPolar(cx, cy, rZodInner - 3, p.lon);
+          const isFocus = focusKey === p.key;
+          const dimmed = focusKey != null && !isFocus;
+          const drawDelay = focusKey == null ? beat(0.55 + i * 0.09) : 0;
           return (
             <motion.g
               key={p.key}
               initial={reduce ? false : { opacity: 0, scale: 0 }}
-              animate={reduce ? {} : { opacity: 1, scale: 1 }}
-              transition={{ duration: beat(0.42), delay: beat(0.55 + i * 0.09), ease: [0.34, 1.3, 0.6, 1] }}
+              animate={reduce ? {} : { opacity: dimmed ? 0.13 : 1, scale: isFocus ? 1.22 : 1 }}
+              transition={{ duration: focusKey == null ? beat(0.42) : 0.55, delay: drawDelay, ease: focusKey == null ? [0.34, 1.3, 0.6, 1] : [0.22, 0.7, 0.2, 1] }}
               style={{ transformOrigin: `${gp.x}px ${gp.y}px` }}
             >
+              {isFocus && <circle cx={gp.x} cy={gp.y} r={27} fill={tone} opacity={0.16} />}
               <line x1={gp.x} y1={gp.y} x2={tickEnd.x} y2={tickEnd.y} stroke={tone} strokeOpacity={0.4} strokeWidth={0.8} strokeDasharray="2 2" />
-              <circle cx={gp.x} cy={gp.y} r={13} fill="#0a0712" stroke={tone} strokeWidth={1.4} filter="url(#lsWheelGlow)" />
+              <circle cx={gp.x} cy={gp.y} r={13} fill="#0a0712" stroke={tone} strokeWidth={isFocus ? 2 : 1.4} filter="url(#lsWheelGlow)" />
               <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={tone} fontSize={13} className="ls-wheel-planetglyph">
                 {meta?.glyph}
               </text>
@@ -1127,10 +1135,12 @@ function NatalWheel({
         </motion.g>
       </svg>
 
-      <button ref={infoBtnRef} type="button" className="ls-wheel-info" onClick={onInfo} aria-label="What each planet means">
-        <span className="ls-wheel-info-mark" aria-hidden="true">i</span>
-        What each planet means
-      </button>
+      {!hideInfo && (
+        <button ref={infoBtnRef} type="button" className="ls-wheel-info" onClick={onInfo} aria-label="What each planet means">
+          <span className="ls-wheel-info-mark" aria-hidden="true">i</span>
+          What each planet means
+        </button>
+      )}
     </div>
   );
 }
@@ -1505,6 +1515,305 @@ function OrreryInfoOverlay({
   );
 }
 
+// One honest line per dominant element, spoken on the element-stamp beat.
+const ELEMENT_LINE: Record<string, string> = {
+  Fire: "Fire runs hot and quick. They live out loud, and they warm whatever room they are in.",
+  Earth: "Earth is steady and real. They trust what they can touch, and once they settle they stay.",
+  Water: "Water feels everything. They read you through their heart, and they remember how it felt.",
+  Air: "Air lives in the mind. Curious, social, always half a thought ahead of you.",
+};
+
+// Pick a calm, local, English voice for the narration. Falls back gracefully.
+function pickJourneyVoice(): SpeechSynthesisVoice | null {
+  try {
+    const vs = window.speechSynthesis.getVoices() || [];
+    const pref = ["Samantha", "Karen", "Serena", "Fiona", "Moira", "Tessa", "Google UK English Female", "Google US English"];
+    for (const n of pref) {
+      const v = vs.find((x) => x.name === n);
+      if (v) return v;
+    }
+    return vs.find((v) => v.localService && /^en/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
+  } catch {
+    return null;
+  }
+}
+
+type Beat = { scene: number; text: string; focus?: string; rate?: number; font?: "caveat" };
+
+function buildBeats(chart: PetBirthChart, name: string): Beat[] {
+  const el = chart.dominantElement || "";
+  const sline = (k: keyof typeof PLANET_META) => {
+    const b = chart[k as keyof PetBirthChart] as ChartBody | undefined;
+    return (b?.sign && SIGN_LINES[k]?.[b.sign]) || JOURNEY_LINES[k] || PLANET_META[k].line;
+  };
+  const nm = name.trim();
+  return [
+    { scene: 1, text: nm ? `This is the sky the night ${nm} arrived.` : "This is the sky the night they arrived." },
+    { scene: 1, text: "Real positions. The actual sky, read for them." },
+    { scene: 2, text: "Thirteen places in the sky. Each one says something true about who they are." },
+    { scene: 2, text: "We read three with you now. Quietly, one at a time." },
+    { scene: 3, focus: "sun", text: nm ? `First, the Sun. This is who ${nm} is at the centre, before the world asks anything of them.` : "First, the Sun. This is who they are at the centre, before the world asks anything of them." },
+    { scene: 3, focus: "sun", text: sline("sun") },
+    { scene: 3, focus: "sun", text: "You have watched this in them since the first day, even if you never had a word for it." },
+    { scene: 4, focus: "moon", rate: 0.86, text: nm ? `Now the Moon. This is ${nm}'s inner weather. How they feel safe, and how they ask for comfort.` : "Now the Moon. This is their inner weather. How they feel safe, and how they ask for comfort." },
+    { scene: 4, focus: "moon", rate: 0.86, text: sline("moon") },
+    { scene: 4, focus: "moon", rate: 0.86, font: "caveat", text: "When they come to you at night, this is the part of them doing the choosing." },
+    { scene: 5, focus: "venus", text: nm ? `And Venus. This is how ${nm} loves, and the kind of love they reach for back.` : "And Venus. This is how they love, and the kind of love they reach for back." },
+    { scene: 5, focus: "venus", text: sline("venus") },
+    { scene: 5, focus: "venus", text: "The way they love you was never random. It was written up there before you met." },
+    { scene: 6, text: "Three placements in, and a pattern is already showing." },
+    { scene: 6, text: nm ? `${nm} is a ${el}-led soul.` : `They are a ${el}-led soul.` },
+    { scene: 6, text: ELEMENT_LINE[el] || "Their element runs all the way through them." },
+    { scene: 7, text: "That is three. There are ten more." },
+    { scene: 7, text: "Mars, where their courage lives. Saturn, what they carry, and what steadies them." },
+    { scene: 7, text: "Mercury, how they read a room. Chiron, the tender place they came in carrying." },
+    { scene: 7, text: "And the rest. The parts of them you feel every day and have never had named." },
+    { scene: 7, text: nm ? `We measured all of ${nm}. Right now, you are seeing three.` : "We measured all of them. Right now, you are seeing three." },
+    { scene: 8, text: "The lines between them are how all of it talks to each other." },
+    { scene: 8, text: "The full reading is where they stop being thirteen facts and start being one whole creature." },
+    { scene: 8, text: "And the face they show the world, once you can tell us the hour they were born." },
+    { scene: 9, text: nm ? `You came here to find out who ${nm} really is.` : "You came here to find out who they really are." },
+    { scene: 9, text: "These three say it is real. The other ten say how deep it goes." },
+    { scene: 9, text: "You have met three of them tonight. The rest are right here, when you are ready." },
+  ];
+}
+
+// The animated, voice-narrated journey. A scene machine over the real wheel: the
+// voice reads one beat, the wheel focuses that planet, and on voice-end it breathes
+// then advances. Captions are the source of truth (works fully muted + reduced-motion).
+function CosmicJourney({
+  chart,
+  name,
+  bornLabel,
+  reduce,
+  onLead,
+  onCheckout,
+}: {
+  chart: PetBirthChart;
+  name: string;
+  bornLabel: string;
+  reduce: boolean;
+  onLead: (email: string) => void;
+  onCheckout: () => void;
+}) {
+  const BEATS = useMemo(() => buildBeats(chart, name), [chart, name]);
+  const hasSpeech = typeof window !== "undefined" && "speechSynthesis" in window;
+
+  const [started, setStarted] = useState(false);
+  const [i, setI] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(false);
+  const [ended, setEnded] = useState(false);
+  const [nonce, setNonce] = useState(0);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [offerMsg, setOfferMsg] = useState("");
+  const infoBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Prime voices + always stop speech on unmount.
+  useEffect(() => {
+    if (hasSpeech) {
+      try { window.speechSynthesis.getVoices(); } catch { /* ignore */ }
+    }
+    return () => { if (hasSpeech) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } } };
+  }, [hasSpeech]);
+
+  // The narration + auto-advance engine.
+  useEffect(() => {
+    if (!started || !playing || ended || infoOpen) return;
+    const b = BEATS[i];
+    if (!b) return;
+    let cancelled = false;
+    let advanced = false;
+    let t1 = 0;
+    let t2 = 0;
+    const advance = () => {
+      if (cancelled || advanced) return;
+      advanced = true;
+      t2 = window.setTimeout(() => {
+        if (cancelled) return;
+        if (i >= BEATS.length - 1) setEnded(true);
+        else setI(i + 1);
+      }, 650);
+    };
+    const useTimer = muted || !hasSpeech;
+    if (useTimer) {
+      const dur = Math.max(2600, Math.min(9000, (b.text.length / 12) * 1000));
+      t1 = window.setTimeout(advance, dur);
+    } else {
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(b.text);
+        u.rate = b.rate ?? 0.92;
+        u.pitch = 1.0;
+        u.volume = 1.0;
+        const v = pickJourneyVoice();
+        if (v) u.voice = v;
+        u.onend = advance;
+        u.onerror = advance;
+        window.speechSynthesis.speak(u);
+        // safety net if the engine never fires onend
+        t1 = window.setTimeout(advance, Math.max(7000, (b.text.length / 8) * 1000 + 3500));
+      } catch {
+        t1 = window.setTimeout(advance, 3500);
+      }
+    }
+    return () => {
+      cancelled = true;
+      clearTimeout(t1);
+      clearTimeout(t2);
+      if (hasSpeech) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } }
+    };
+  }, [i, started, playing, muted, ended, infoOpen, nonce, BEATS, hasSpeech]);
+
+  const begin = (withSound: boolean) => {
+    setMuted(!withSound);
+    try { localStorage.setItem("ls_journey_sound", withSound ? "1" : "0"); } catch { /* ignore */ }
+    if (withSound && hasSpeech) {
+      try { const p = new SpeechSynthesisUtterance(" "); p.volume = 0; window.speechSynthesis.speak(p); } catch { /* ignore */ }
+    }
+    setStarted(true);
+    setPlaying(true);
+    setI(0);
+    setEnded(false);
+  };
+
+  const goNext = () => {
+    if (i >= BEATS.length - 1) setEnded(true);
+    else setI(i + 1);
+  };
+  const goPrev = () => { setEnded(false); setI((x) => Math.max(0, x - 1)); };
+  const replay = () => setNonce((n) => n + 1);
+  const toggleSound = () => setMuted((m) => { const next = !m; try { localStorage.setItem("ls_journey_sound", next ? "0" : "1"); } catch { /* ignore */ } return next; });
+  const jumpToScene = (scene: number) => {
+    const idx = BEATS.findIndex((b) => b.scene === scene);
+    if (idx >= 0) { setEnded(false); setI(idx); }
+  };
+
+  const submitOffer = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(clean)) { setOfferMsg("Add your email to open the full reading."); return; }
+    onLead(clean);
+    onCheckout();
+  };
+
+  const beat = BEATS[i] || BEATS[0];
+  const scene = ended ? 9 : beat.scene;
+  const focusKey = ended ? null : beat.focus ?? null;
+  const showOffer = ended;
+  const SCENES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  // Scene 0: the begin gate (the gesture that lets the voice play).
+  if (!started) {
+    return (
+      <div className="ls-journey ls-journey--start">
+        <NatalWheel chart={chart} name={name} bornLabel={bornLabel} reduce={reduce} onInfo={() => { /* noop pre-start */ }} hideInfo />
+        <div className="ls-start">
+          <p className="ls-start-eyebrow">Their chart is drawn</p>
+          <h3 className="ls-start-name">{name || "Their sky"}</h3>
+          <p className="ls-start-sub">Born under the real sky on {bornLabel}.</p>
+          <button type="button" className="ls-gold-button ls-violet-button ls-start-cta" onClick={() => begin(true)}>
+            Begin with sound <ArrowRight size={17} />
+          </button>
+          <button type="button" className="ls-start-quiet" onClick={() => begin(false)}>Read it in silence</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ls-journey" onClick={(e) => { if (e.target === e.currentTarget && !showOffer) goNext(); }}>
+      <div className={`ls-journey-stage ${showOffer ? "is-dim" : ""}`}>
+        <NatalWheel
+          chart={chart}
+          name={name}
+          bornLabel={bornLabel}
+          reduce={reduce}
+          focusKey={focusKey}
+          onInfo={() => setInfoOpen(true)}
+          infoBtnRef={infoBtnRef}
+          hideInfo
+        />
+      </div>
+
+      {!showOffer && (
+        <div className="ls-journey-cap" onClick={() => goNext()}>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={i}
+              className={`ls-cap-line ${beat.font === "caveat" ? "is-caveat" : ""}`}
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={reduce ? {} : { opacity: 1, y: 0 }}
+              exit={reduce ? {} : { opacity: 0, y: -8 }}
+              transition={{ duration: reduce ? 0 : 0.4, ease: [0.22, 0.7, 0.2, 1] }}
+            >
+              {beat.text}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      )}
+
+      {showOffer && (
+        <motion.div
+          className="ls-offer"
+          initial={reduce ? false : { opacity: 0, y: 18 }}
+          animate={reduce ? {} : { opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 0.5, ease: [0.22, 0.7, 0.2, 1] }}
+        >
+          <h3 className="ls-offer-title">{name ? `Meet all of ${name}.` : "Meet all of them."}</h3>
+          <p className="ls-offer-stack">
+            You have met three. The full reading opens the rest. What drives them, what they fear, what they have
+            survived, what they dream. How it all connects, where their tension sits, the wild part of them, and the
+            direction this life is moving them toward.
+          </p>
+          <form className="ls-offer-form" onSubmit={submitOffer}>
+            <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (offerMsg) setOfferMsg(""); }} />
+            <button type="submit" className="ls-gold-button ls-violet-button">
+              {name ? `Read all of ${name}` : "Read all of their chart"} <ArrowRight size={17} />
+            </button>
+          </form>
+          {offerMsg && <p className="ls-chart-message is-error">{offerMsg}</p>}
+          <p className="ls-offer-trust">Built from the real sky on {bornLabel}. If it does not sound like them, that is on us.</p>
+          <button type="button" className="ls-start-quiet" onClick={() => { setEnded(false); setI(0); }}>Play it again</button>
+        </motion.div>
+      )}
+
+      {!showOffer && (
+        <>
+          <div className="ls-journey-dots" role="tablist" aria-label="Chapters">
+            {SCENES.map((s) => (
+              <button key={s} type="button" className={`ls-jdot ${scene === s ? "is-active" : ""} ${scene > s ? "is-done" : ""}`} aria-label={`Chapter ${s}`} onClick={() => jumpToScene(s)} />
+            ))}
+          </div>
+          <div className="ls-journey-controls" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="ls-jbtn" onClick={goPrev} aria-label="Previous">‹</button>
+            <button type="button" className="ls-jbtn ls-jbtn--play" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause" : "Play"}>
+              {playing ? "❚❚" : "▶"}
+            </button>
+            <button type="button" className="ls-jbtn" onClick={replay} aria-label="Replay line">↺</button>
+            <button type="button" className="ls-jbtn" onClick={goNext} aria-label="Next">›</button>
+            <button type="button" className="ls-jbtn ls-jbtn--sound" onClick={toggleSound} aria-label={muted ? "Turn sound on" : "Turn sound off"}>
+              {muted ? "Sound off" : "Sound on"}
+            </button>
+          </div>
+        </>
+      )}
+
+      <AnimatePresence initial={false}>
+        {infoOpen && (
+          <OrreryInfoOverlay
+            chart={chart}
+            name={name}
+            reduce={reduce}
+            onClose={() => { setInfoOpen(false); infoBtnRef.current?.focus(); }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function BirthSkyJourney() {
   const reduce = useReducedMotion() ?? false;
   const infoBtnRef = useRef<HTMLButtonElement>(null);
@@ -1559,37 +1868,17 @@ function BirthSkyJourney() {
     }
   };
 
-  // Gate 2 — after the first three placements, email to keep reading the rest.
-  // It captures the lead and shows the rest on screen now. No inbox promise: the
-  // free reading is the chart on this page.
-  const handleSaveEmail = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const cleanEmail = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(cleanEmail)) {
-      setEmailMsg("Add your email to read the rest.");
-      return;
-    }
-    setEmailBusy(true);
-    setEmailMsg("");
-    try {
-      await supabase.functions.invoke("track-subscriber", {
-        body: {
-          email: cleanEmail,
-          event: "birth_chart_lead",
-          petName: petName.trim() || null,
-          source: "cosmic_reveal",
-        },
-      });
-    } catch (error) {
-      console.warn("[Little Souls] lead capture failed", error);
-    }
-    try {
-      sessionStorage.setItem("ls_chart_email", cleanEmail);
-    } catch {
-      /* ignore */
-    }
-    setUnlocked(true);
-    setEmailBusy(false);
+  // Lead capture for the journey's offer (Scene 9): store the email, then the
+  // offer sends them on to the full reading. No on-page unlock, no inbox promise.
+  const handleLead = (rawEmail: string) => {
+    const cleanEmail = rawEmail.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(cleanEmail)) return;
+    supabase.functions
+      .invoke("track-subscriber", {
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_journey" },
+      })
+      .catch((error) => console.warn("[Little Souls] lead capture failed", error));
+    try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
   };
 
   const scrollToCheckout = () =>
@@ -1597,178 +1886,65 @@ function BirthSkyJourney() {
 
   return (
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
-      <div className="ls-orrery-head ls-reveal">
-        {ready ? (
-          <h3 className="text-balance" style={chartTitleStyle}>Drawn from the day they arrived.</h3>
-        ) : (
-          <h3 className="text-balance" style={chartTitleStyle}>
-            The sky the day they were <span style={{ color: C.gold }}>born</span> is still up there.
-          </h3>
-        )}
-      </div>
-
-      <div className="ls-stage">
-        {status === "computing" ? (
-          <ComputeSequence
-            chart={chart}
-            name={name}
-            date={date}
-            reduce={reduce}
-            onDone={() => setStatus("ready")}
-          />
-        ) : ready && chart ? (
-          <NatalWheel
-            chart={chart}
-            name={name}
-            bornLabel={bornLabelFor(date)}
-            reduce={reduce}
-            onInfo={() => setInfoOpen(true)}
-            infoBtnRef={infoBtnRef}
-          />
-        ) : (
-          <form className="ls-seal-card ls-stage-card ls-reveal" onSubmit={handleOpen}>
-            <p className="ls-seal-sub">Name optional. The date does the rest.</p>
-            <div className="ls-seal-field">
-              <label htmlFor="seal-name">Their name <span>(if they have one)</span></label>
-              <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
-            </div>
-            <div className="ls-seal-field">
-              <label htmlFor="seal-date">Birth date, or the day they came home</label>
-              <input
-                id="seal-date"
-                type="date"
-                value={date}
-                max="2030-12-31"
-                onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+      {ready && chart ? (
+        <CosmicJourney
+          chart={chart}
+          name={name}
+          bornLabel={bornLabelFor(date)}
+          reduce={reduce}
+          onLead={handleLead}
+          onCheckout={scrollToCheckout}
+        />
+      ) : (
+        <>
+          <div className="ls-orrery-head ls-reveal">
+            <h3 className="text-balance" style={chartTitleStyle}>
+              The sky the day they were <span style={{ color: C.gold }}>born</span> is still up there.
+            </h3>
+          </div>
+          <div className="ls-stage">
+            {status === "computing" ? (
+              <ComputeSequence
+                chart={chart}
+                name={name}
+                date={date}
+                reduce={reduce}
+                onDone={() => setStatus("ready")}
               />
-            </div>
-            <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
-              Set the chart <ArrowRight size={17} />
-            </button>
-            {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-            <button type="button" className="ls-seal-why" onClick={() => setWhyOpen((v) => !v)} aria-expanded={whyOpen}>
-              Why no time or place?
-            </button>
-            {whyOpen && (
-              <p className="ls-seal-help">
-                Rising sign and houses need the exact minute and town. Planet positions only need the date, so
-                everything on this chart is honest from that alone.
-              </p>
-            )}
-          </form>
-        )}
-      </div>
-
-      {ready && chart && (
-        <AnimatePresence initial={false}>
-          {infoOpen && (
-            <OrreryInfoOverlay
-              chart={chart}
-              name={name}
-              reduce={reduce}
-              onClose={() => {
-                setInfoOpen(false);
-                infoBtnRef.current?.focus();
-              }}
-            />
-          )}
-        </AnimatePresence>
-      )}
-
-      {ready && (
-        <div className="ls-reveal-stack">
-          <p className="ls-wheel-honesty">
-            Every planet sits at its true position for that date. No rising sign here, that one needs the exact
-            minute and place. Everything on this chart is honest from the date alone.
-          </p>
-
-          <div className="ls-chart-table">
-            {FREE_KEYS.map((key) => {
-              const b = bodyFor(key);
-              const m = PLANET_META[key];
-              const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
-              const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
-              return (
-                <article key={key} className="ls-trow is-open">
-                  <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
-                  <div className="ls-trow-main">
-                    <span className="ls-trow-top">
-                      <strong className="ls-trow-name">{m.label}</strong>
-                      {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
-                    </span>
-                    <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
-                    <p className="ls-trow-line">{text}</p>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          {!unlocked && (
-            <form className="ls-gate2" onSubmit={handleSaveEmail}>
-              <h4 className="ls-gate2-title">Three placements free. The rest of the chart is one step away.</h4>
-              <p className="ls-gate2-sub">
-                Add your email and the other ten placements open right here, in full.
-              </p>
-              <div className="ls-gate2-row">
-                <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
-                <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
-                  {emailBusy ? "Opening…" : "Read the rest"}
-                  {!emailBusy && <ArrowRight size={16} />}
+            ) : (
+              <form className="ls-seal-card ls-stage-card ls-reveal" onSubmit={handleOpen}>
+                <p className="ls-seal-sub">Name optional. The date does the rest.</p>
+                <div className="ls-seal-field">
+                  <label htmlFor="seal-name">Their name <span>(if they have one)</span></label>
+                  <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+                </div>
+                <div className="ls-seal-field">
+                  <label htmlFor="seal-date">Birth date, or the day they came home</label>
+                  <input
+                    id="seal-date"
+                    type="date"
+                    value={date}
+                    max="2030-12-31"
+                    onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                  />
+                </div>
+                <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
+                  Set the chart <ArrowRight size={17} />
                 </button>
-              </div>
-              {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
-              <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
-            </form>
-          )}
-
-          <div className="ls-chart-table">
-            {REST_KEYS.map((key) => {
-              const b = bodyFor(key);
-              const m = PLANET_META[key];
-              const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
-              const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
-              return (
-                <article key={key} className={`ls-trow ${unlocked ? "is-open" : "is-locked"}`}>
-                  <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
-                  <div className="ls-trow-main">
-                    <span className="ls-trow-top">
-                      <strong className="ls-trow-name">{m.label}</strong>
-                      {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
-                    </span>
-                    <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
-                    <p className="ls-trow-line">{text}</p>
-                  </div>
-                  {!unlocked && <span className="ls-trow-lock">Email to read</span>}
-                </article>
-              );
-            })}
+                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+                <button type="button" className="ls-seal-why" onClick={() => setWhyOpen((v) => !v)} aria-expanded={whyOpen}>
+                  Why no time or place?
+                </button>
+                {whyOpen && (
+                  <p className="ls-seal-help">
+                    Rising sign and houses need the exact minute and town. Planet positions only need the date, so
+                    everything on this chart is honest from that alone.
+                  </p>
+                )}
+              </form>
+            )}
           </div>
-
-          <div className="ls-locked-block">
-            <p className="ls-locked-eyebrow">What the full reading opens</p>
-            <div className="ls-teaser-grid">
-              {PREMIUM_TEASERS.map((t, i) => (
-                <article key={t.title} className="ls-teaser-card" style={revealDelay(i * 0.04)}>
-                  <strong className="ls-teaser-title">{t.title}</strong>
-                  <small className="ls-teaser-line">{t.line}</small>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <div className="ls-upsell">
-            <h4 className="ls-upsell-title">You&apos;ve seen their sky. Now understand what it means between you.</h4>
-            <p className="ls-upsell-pitch">
-              The free chart opens every placement they were born under. The full reading turns the whole celestial
-              pattern into a portrait of their nature, their needs, and the bond only the two of you share. It
-              doesn&apos;t just describe them. It changes how you meet them.
-            </p>
-            <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
-              Read {name || "their"} full reading <ArrowRight size={17} />
-            </button>
-          </div>
-        </div>
+        </>
       )}
     </section>
   );
@@ -4387,6 +4563,40 @@ function CosmicStyles() {
       .ls-trow-line { margin: 3px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.9rem; line-height: 1.5; transition: filter 300ms ease; }
       .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px); user-select: none; }
       .ls-trow-lock { position: absolute; top: 14px; right: 16px; color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
+
+      /* === The narrated journey ============================================ */
+      .ls-journey { position: relative; width: 100%; max-width: 720px; margin: clamp(16px,4vw,36px) auto 0; display: grid; justify-items: center; gap: 16px; }
+      .ls-journey-stage { width: 100%; display: grid; justify-items: center; pointer-events: none; transition: opacity 500ms ease, filter 500ms ease; }
+      .ls-journey-stage.is-dim { opacity: 0.2; filter: blur(2px); pointer-events: none; }
+      .ls-journey-cap { min-height: 140px; display: grid; place-items: center; padding: 4px 8px; cursor: pointer; width: 100%; }
+      .ls-cap-line { margin: 0; max-width: 24ch; text-align: center; color: ${C.cream}; font-family: "Cormorant", "Playfair Display", Georgia, serif; font-size: clamp(1.55rem, 5.4vw, 2.35rem); line-height: 1.32; font-weight: 500; }
+      .ls-cap-line.is-caveat { font-family: "Caveat", cursive; color: ${C.goldSoft}; font-size: clamp(1.8rem, 6.4vw, 2.7rem); line-height: 1.2; }
+      .ls-journey-dots { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 260px; }
+      .ls-jdot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(224,218,242,0.2); cursor: pointer; transition: transform .25s ease, background .25s ease; }
+      .ls-jdot.is-done { background: rgba(212,182,122,0.5); }
+      .ls-jdot.is-active { background: ${C.goldSoft}; transform: scale(1.5); }
+      .ls-journey-controls { display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid ${C.line}; border-radius: 999px; background: rgba(13,10,20,0.6); }
+      .ls-jbtn { min-width: 44px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.95rem; cursor: pointer; transition: color 180ms ease, background 180ms ease; }
+      .ls-jbtn:hover { color: ${C.gold}; }
+      .ls-jbtn--play { background: ${C.violet}; color: ${C.cream}; min-width: 50px; }
+      .ls-jbtn--play:hover { background: ${C.violetSoft}; color: ${C.cream}; }
+      .ls-jbtn--sound { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; }
+      .ls-start { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; border-radius: 20px; padding: 24px; background: radial-gradient(ellipse at 50% 45%, rgba(13,10,20,0.5), rgba(8,6,11,0.88) 72%); }
+      .ls-start-eyebrow { color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+      .ls-start-name { margin: 4px 0 0; color: ${C.goldSoft}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2.4rem, 9vw, 4rem); line-height: 1; }
+      .ls-start-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; }
+      .ls-start-cta { margin-top: 14px; }
+      .ls-start-quiet { background: none; border: 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 2px; }
+      .ls-start-quiet:hover { color: ${C.creamDim}; }
+      .ls-offer { width: 100%; max-width: 560px; display: grid; justify-items: center; text-align: center; gap: 12px; padding: clamp(22px,4vw,34px); border: 1px solid rgba(212,182,122,0.3); border-radius: 18px; background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.18), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.94), rgba(13,10,20,0.97)); }
+      .ls-offer-title { color: ${C.cream}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(1.9rem, 5.4vw, 2.7rem); line-height: 1.05; }
+      .ls-offer-stack { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.05rem, 3vw, 1.3rem); line-height: 1.5; max-width: 46ch; }
+      .ls-offer-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; width: 100%; max-width: 460px; margin-top: 6px; }
+      .ls-offer-form input { min-height: 48px; width: 100%; border: 1px solid rgba(212,182,122,0.34); border-radius: 8px; background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px; font-family: Lato, system-ui, sans-serif; }
+      .ls-offer-form input:focus { outline: none; border-color: ${C.violetSoft}; }
+      .ls-offer-trust { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.02rem; max-width: 44ch; }
+      @media (max-width: 520px) { .ls-offer-form { grid-template-columns: 1fr; } }
+      @media (prefers-reduced-motion: reduce) { .ls-journey-stage { transition: none !important; } }
       .ls-info-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .ls-info-back {
         display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
