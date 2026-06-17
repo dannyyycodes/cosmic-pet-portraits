@@ -414,18 +414,15 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
-            Their soul was written in the stars long before they found you.
+            Behind every soul, a cosmos.
           </h1>
-          <p className="ls-reveal mt-6 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "44ch", ...revealDelay(0.16) }}>
-            A reading drawn from the real positions of the planets the moment they arrived — made to deepen the bond you already feel.
-          </p>
           <div className="ls-reveal mt-9 flex flex-col gap-3 sm:flex-row" style={revealDelay(0.24)}>
-            <a href="#computed-sky" className="ls-gold-button ls-violet-button">
-              Open their free reading <ArrowRight size={17} />
-            </a>
-            <button onClick={onBegin} className="ls-ghost-button">
-              See the full reading
+            <button onClick={onBegin} className="ls-gold-button ls-violet-button">
+              Begin Their Reading <ArrowRight size={17} />
             </button>
+            <a href="#computed-sky" className="ls-ghost-button">
+              Compute their sky, free
+            </a>
           </div>
         </div>
       </div>
@@ -643,13 +640,13 @@ const REST_KEYS = ["mercury", "mars", "jupiter", "saturn", "uranus", "neptune", 
 // Locked premium teasers — what the FULL reading opens. Names transformation,
 // not content inventory (GOLDTABLE council copy, 2026-06-16). Never unlocked free.
 const PREMIUM_TEASERS = [
-  { glyph: "✦", title: "The Bond Pattern", line: "The quiet rhythm between you — where trust forms, where distance appears, and how they ask to be met." },
+  { glyph: "✦", title: "The Bond Pattern", line: "The quiet rhythm between you. Where trust forms, where distance appears, and how they ask to be met." },
   { glyph: "☾", title: "Their Hidden Comfort Language", line: "The signs that tell you when they feel safe, chosen, and fully home with you." },
   { glyph: "♄", title: "The Lesson They Bring You", line: "The recurring friction that's really a curriculum. You'll recognise it the moment you read it." },
-  { glyph: "⚷", title: "The Wound That Became Their Gift", line: "The sensitivity that looks like fear — and is, in truth, their medicine." },
+  { glyph: "⚷", title: "The Wound That Became Their Gift", line: "The sensitivity that looks like fear but is, in truth, their medicine." },
   { glyph: "☊", title: "The Karmic Contract", line: "Why their soul chose your path to cross, and what they came to teach you." },
-  { glyph: "⚸", title: "The Part That's Only Theirs", line: "The mystery you'll never fully solve — and why that's the deepest trust of all." },
-  { glyph: "✶", title: "Their Soul Archetype", line: "Guardian, mirror, healer, wanderer, witness — the ancient pattern behind their presence." },
+  { glyph: "⚸", title: "The Part That's Only Theirs", line: "The mystery you'll never fully solve, and why that's the deepest trust of all." },
+  { glyph: "✶", title: "Their Soul Archetype", line: "Guardian, mirror, healer, wanderer, witness. The ancient pattern behind their presence." },
   { glyph: "❂", title: "The Full Celestial Synthesis", line: "Where all thirteen placements become one clear portrait of who they are with you." },
 ] as const;
 
@@ -769,11 +766,15 @@ function BirthSkyJourney() {
     setStatus("loading");
     setMessage("");
     try {
+      // Hold the loading animation on screen long enough to feel like the sky is
+      // being calculated, even when the chart returns in a few hundred ms.
+      const minSpin = new Promise((resolve) => setTimeout(resolve, reduce ? 0 : 2200));
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Birth chart request failed: ${response.status}`);
       const data = (await response.json()) as PetBirthChart;
       if (!data?.sun) throw new Error("Birth chart response was incomplete.");
+      await minSpin;
       setChart(data);
       setStatus("ready");
       setMessage("");
@@ -828,6 +829,10 @@ function BirthSkyJourney() {
   const name = petName.trim();
   const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
     chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
+  const activeBody = bodyFor(activeKey);
+  const activePlacement = activeBody?.sign
+    ? `${SIGN_GLYPHS[activeBody.sign] ?? ""} ${activeBody.sign}${typeof activeBody.degree === "number" ? ` ${Math.round(activeBody.degree)}°` : ""}`.trim()
+    : null;
 
   const orbitFor = (px: number, py: number) => {
     const cx = POS.sun.x;
@@ -846,8 +851,8 @@ function BirthSkyJourney() {
             </p>
             <h3 className="mt-3 text-balance" style={chartTitleStyle}>Open the sky that shaped them</h3>
             <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-              Their name and birth date — that&apos;s all it takes. Their soul chart is drawn
-              from the real positions of the planets the day they arrived.
+              Just their name and birth date. We compute their real birth chart from the
+              planet positions the day they arrived.
             </p>
           </>
         ) : (
@@ -857,7 +862,7 @@ function BirthSkyJourney() {
             </p>
             <h3 className="mt-3 text-balance" style={chartTitleStyle}>The sky the day they arrived</h3>
             <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-              Every body computed for {name || "them"}. Move across the system to meet each one.
+              Their real planet positions, computed for {name || "them"}. Move across the system to see where each one sits.
             </p>
           </>
         )}
@@ -926,7 +931,8 @@ function BirthSkyJourney() {
                 <span className="ls-orrery-bubble-glyph">{meta.glyph}</span>
                 <span className="ls-orrery-name">{meta.label}</span>
               </span>
-              <p className="ls-orrery-line">{line}</p>
+              {activePlacement && <strong className="ls-orrery-placement">{activePlacement}</strong>}
+              <p className="ls-orrery-line ls-orrery-line--info">{line}</p>
             </motion.div>
           </AnimatePresence>
           <CosmicPenguin />
@@ -935,25 +941,37 @@ function BirthSkyJourney() {
 
         {sealed && (
           <div className="ls-seal-veil">
-            <form className="ls-seal-card ls-reveal" onSubmit={handleOpen}>
-              <span className="ls-seal-glyph" aria-hidden="true">✦</span>
-              <h4 className="ls-seal-title">Open the sky that shaped them</h4>
-              <p className="ls-seal-sub">Enter their name and birth date to begin.</p>
-              <div className="ls-seal-field">
-                <label htmlFor="seal-name">Their name <span>(optional)</span></label>
-                <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+            {status === "loading" ? (
+              <div className="ls-seal-loading" role="status" aria-live="polite">
+                <div className="ls-seal-orbit" aria-hidden="true">
+                  <span className="ls-seal-core" />
+                  <span className="ls-seal-ring ls-seal-ring-1"><i /></span>
+                  <span className="ls-seal-ring ls-seal-ring-2"><i /></span>
+                  <span className="ls-seal-ring ls-seal-ring-3"><i /></span>
+                </div>
+                <p className="ls-seal-loading-text">Calculating {name || "their"} sky…</p>
+                <p className="ls-seal-loading-sub">Placing every planet for {date || "their day"}.</p>
               </div>
-              <div className="ls-seal-field">
-                <label htmlFor="seal-date">Birth or adoption date</label>
-                <input id="seal-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-              </div>
-              <p className="ls-seal-help">For rescued souls, use the day they became yours — we read it as their born-to-you chart.</p>
-              <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta" disabled={status === "loading"}>
-                {status === "loading" ? "Opening their chart…" : "Open their chart"}
-                {status !== "loading" && <ArrowRight size={17} />}
-              </button>
-              {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-            </form>
+            ) : (
+              <form className="ls-seal-card ls-reveal" onSubmit={handleOpen}>
+                <span className="ls-seal-glyph" aria-hidden="true">✦</span>
+                <h4 className="ls-seal-title">Open the sky that shaped them</h4>
+                <p className="ls-seal-sub">Enter their name and birth date to begin.</p>
+                <div className="ls-seal-field">
+                  <label htmlFor="seal-name">Their name <span>(optional)</span></label>
+                  <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+                </div>
+                <div className="ls-seal-field">
+                  <label htmlFor="seal-date">Birth or adoption date</label>
+                  <input id="seal-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
+                </div>
+                <p className="ls-seal-help">For rescued souls, use the day they became yours. We read it as their born-to-you chart.</p>
+                <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
+                  Open their chart <ArrowRight size={17} />
+                </button>
+                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+              </form>
+            )}
           </div>
         )}
       </div>
@@ -1032,7 +1050,7 @@ function BirthSkyJourney() {
                   <p className="ls-upsell-pitch">
                     The free chart opens their first placements. The full reading turns the whole celestial
                     pattern into a portrait of their nature, their needs, and the bond only the two of you
-                    share. It doesn&apos;t just describe them — it changes how you meet them.
+                    share. It doesn&apos;t just describe them. It changes how you meet them.
                   </p>
                   <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
                     Unlock the full reading <ArrowRight size={17} />
@@ -3237,6 +3255,41 @@ function CosmicStyles() {
       .ls-seal-field input:focus { outline: none; border-color: ${C.violetSoft}; }
       .ls-seal-help { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
       .ls-seal-cta { width: 100%; justify-content: center; margin-top: 4px; }
+
+      /* loading animation between gate submit and the reveal */
+      .ls-seal-loading { display: grid; gap: 16px; justify-items: center; text-align: center; padding: 30px 22px; }
+      .ls-seal-orbit { position: relative; width: 136px; height: 136px; }
+      .ls-seal-core {
+        position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+        border-radius: 50%; background: radial-gradient(circle at 40% 35%, ${C.goldSoft}, ${C.gold} 60%, ${C.goldDeep});
+        box-shadow: 0 0 24px rgba(212,182,122,0.7); animation: ls-corepulse 2.2s ease-in-out infinite;
+      }
+      .ls-seal-ring { position: absolute; border: 1px solid rgba(212,182,122,0.22); border-radius: 50%; }
+      .ls-seal-ring i {
+        position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; margin-left: -4px;
+        border-radius: 50%; background: ${C.violetSoft}; box-shadow: 0 0 10px rgba(154,126,230,0.9);
+      }
+      .ls-seal-ring-1 { inset: 8px; animation: ls-spin 2.6s linear infinite; }
+      .ls-seal-ring-2 { inset: 34px; animation: ls-spin 3.8s linear infinite reverse; }
+      .ls-seal-ring-2 i { background: ${C.goldSoft}; box-shadow: 0 0 10px rgba(240,217,159,0.9); }
+      .ls-seal-ring-3 { inset: 56px; animation: ls-spin 5.4s linear infinite; }
+      .ls-seal-ring-3 i { width: 6px; height: 6px; background: ${C.cream}; }
+      @keyframes ls-spin { to { transform: rotate(360deg); } }
+      @keyframes ls-corepulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+      .ls-seal-loading-text { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.95rem); line-height: 1.1; }
+      .ls-seal-loading-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.85rem; }
+
+      /* the REAL placement shown on the solar-system bubble; generic meaning sits under it */
+      .ls-orrery-placement {
+        display: block; color: ${C.goldSoft};
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(1.35rem, 3.2vw, 2rem); font-weight: 600; line-height: 1.04; margin: 3px 0 1px;
+      }
+      .ls-orrery-line--info { color: ${C.muted} !important; font-size: clamp(0.88rem, 1.6vw, 1.08rem) !important; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ls-seal-ring, .ls-seal-core { animation: none !important; }
+      }
 
       .ls-reveal-stack { max-width: 980px; margin: 22px auto 0; padding: 0 4px; display: grid; gap: 22px; }
       .ls-reveal-eyebrow {
