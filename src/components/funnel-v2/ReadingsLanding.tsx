@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, FormEvent, RefObject } from "react";
+import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
@@ -327,13 +327,11 @@ export function ReadingsLanding() {
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
       <BirthSkyJourney />
-      <QuietMomentSection />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
         onSelectedPriceChange={setSelectedPrice}
       />
-      <FaqSection />
     </main>
   );
 }
@@ -630,9 +628,9 @@ function BirthChartPreviewSection() {
 // they are, what they need, how they love). Everything deeper is the full reading.
 const FREE_KEYS = ["sun", "moon", "venus"] as const;
 const FREE_FRAME: Record<string, string> = {
-  sun: "Their core nature",
-  moon: "Their inner world",
-  venus: "How they love",
+  sun: "The core of who they are",
+  moon: "How they feel safe",
+  venus: "How they show love",
 };
 // Shown after the email gate, as the "rest of their sky" payoff (positions only).
 const REST_KEYS = ["mercury", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto", "chiron", "northNode", "lilith"] as const;
@@ -650,20 +648,446 @@ const PREMIUM_TEASERS = [
   { glyph: "❂", title: "The Full Celestial Synthesis", line: "Where all thirteen placements become one clear portrait of who they are with you." },
 ] as const;
 
-function BirthSkyJourney() {
-  const reduce = useReducedMotion();
-  const boxRef = useRef<HTMLDivElement>(null);
+// ── Real natal wheel ────────────────────────────────────────────────────────
+// A bespoke gold-on-night zodiac wheel drawn straight from the VSOP87 placements.
+// Date-only data gives true ecliptic longitudes (no invented rising sign), so the
+// wheel and its aspect web are fully honest. Premium and restrained; it draws on
+// cinematically and collapses to an instant render under prefers-reduced-motion.
+const WHEEL_ZODIAC = [
+  { name: "Aries", glyph: "♈", start: 0, element: "Fire" },
+  { name: "Taurus", glyph: "♉", start: 30, element: "Earth" },
+  { name: "Gemini", glyph: "♊", start: 60, element: "Air" },
+  { name: "Cancer", glyph: "♋", start: 90, element: "Water" },
+  { name: "Leo", glyph: "♌", start: 120, element: "Fire" },
+  { name: "Virgo", glyph: "♍", start: 150, element: "Earth" },
+  { name: "Libra", glyph: "♎", start: 180, element: "Air" },
+  { name: "Scorpio", glyph: "♏", start: 210, element: "Water" },
+  { name: "Sagittarius", glyph: "♐", start: 240, element: "Fire" },
+  { name: "Capricorn", glyph: "♑", start: 270, element: "Earth" },
+  { name: "Aquarius", glyph: "♒", start: 300, element: "Air" },
+  { name: "Pisces", glyph: "♓", start: 330, element: "Water" },
+] as const;
+const WHEEL_SIGN_INDEX: Record<string, number> = Object.fromEntries(
+  WHEEL_ZODIAC.map((z, i) => [z.name, i]),
+);
+const WHEEL_BODIES = [
+  "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
+  "uranus", "neptune", "pluto", "chiron", "northNode", "lilith",
+] as const;
+// Restrained 3-tone palette: luminaries gold, planets violet, points cream.
+const WHEEL_TONE: Record<string, string> = {
+  sun: "#f0d99f", moon: "#f0d99f",
+  mercury: "#b9a4ee", venus: "#b9a4ee", mars: "#b9a4ee", jupiter: "#b9a4ee",
+  saturn: "#b9a4ee", uranus: "#b9a4ee", neptune: "#b9a4ee", pluto: "#b9a4ee",
+  chiron: "#e9e4f2", northNode: "#e9e4f2", lilith: "#e9e4f2",
+};
+// Major Ptolemaic aspects with conventional orbs. Harmonious = gold, hard = violet.
+const WHEEL_ASPECTS = [
+  { name: "conjunction", angle: 0, orb: 7, kind: "soft" },
+  { name: "sextile", angle: 60, orb: 4, kind: "soft" },
+  { name: "square", angle: 90, orb: 6, kind: "hard" },
+  { name: "trine", angle: 120, orb: 6, kind: "soft" },
+  { name: "opposition", angle: 180, orb: 7, kind: "hard" },
+] as const;
 
-  const [petName, setPetName] = useState("");
-  const [date, setDate] = useState("");
-  const [email, setEmail] = useState("");
-  const [chart, setChart] = useState<PetBirthChart | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [message, setMessage] = useState("");
+function wheelLongitude(b?: ChartBody): number | null {
+  if (!b?.sign) return null;
+  const idx = WHEEL_SIGN_INDEX[b.sign];
+  if (idx === undefined) return null;
+  return idx * 30 + (typeof b.degree === "number" ? b.degree : 0);
+}
+function wheelPolar(cx: number, cy: number, r: number, deg: number) {
+  // 0 deg Aries at 9 o'clock, counter-clockwise (standard chart orientation).
+  const a = ((180 - deg) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+}
+function wheelArc(cx: number, cy: number, r: number, a0: number, a1: number) {
+  const s = wheelPolar(cx, cy, r, a0);
+  const e = wheelPolar(cx, cy, r, a1);
+  const large = a1 - a0 <= 180 ? 0 : 1;
+  return `M ${s.x.toFixed(2)} ${s.y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${e.x.toFixed(2)} ${e.y.toFixed(2)}`;
+}
+function computeWheelAspects(points: { key: string; lon: number }[]) {
+  const out: { a: string; b: string; kind: string; lonA: number; lonB: number }[] = [];
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      let d = Math.abs(points[i].lon - points[j].lon) % 360;
+      if (d > 180) d = 360 - d;
+      for (const asp of WHEEL_ASPECTS) {
+        if (Math.abs(d - asp.angle) <= asp.orb) {
+          out.push({ a: points[i].key, b: points[j].key, kind: asp.kind, lonA: points[i].lon, lonB: points[j].lon });
+          break;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function NatalWheel({
+  chart,
+  name,
+  bornLabel,
+  reduce,
+  onInfo,
+  infoBtnRef,
+}: {
+  chart: PetBirthChart;
+  name: string;
+  bornLabel: string;
+  reduce: boolean;
+  onInfo: () => void;
+  infoBtnRef?: RefObject<HTMLButtonElement>;
+}) {
+  const SIZE = 440;
+  const cx = SIZE / 2;
+  const cy = SIZE / 2;
+  const rZodOuter = 202;
+  const rZodInner = 168;
+  const rTick = rZodInner;
+  const rGlyph = 140;
+  const rAspect = 118;
+  const rHub = 60;
+
+  const placed = WHEEL_BODIES
+    .map((key) => {
+      const lon = wheelLongitude(chart[key as keyof PetBirthChart] as ChartBody | undefined);
+      return lon === null ? null : { key: key as string, lon };
+    })
+    .filter((p): p is { key: string; lon: number } => p !== null);
+
+  // Collision spread for the glyph ring only (aspect anchors stay at true lon).
+  const sorted = [...placed].sort((a, b) => a.lon - b.lon);
+  const glyphLon: Record<string, number> = {};
+  const minGap = 13;
+  let prev = -Infinity;
+  for (const p of sorted) {
+    let g = p.lon;
+    if (g - prev < minGap) g = prev + minGap;
+    glyphLon[p.key] = g;
+    prev = g;
+  }
+
+  const aspects = computeWheelAspects(placed);
+  const dom = chart.dominantElement;
+  const sunSignIdx = chart.sun?.sign != null ? (WHEEL_SIGN_INDEX[chart.sun.sign] ?? -1) : -1;
+  const beat = (i: number) => (reduce ? 0 : i);
+
+  return (
+    <div className="ls-wheel">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="ls-wheel-svg" role="img" aria-label={`${name || "Their"} birth chart`}>
+        <defs>
+          <radialGradient id="lsWheelHub" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(124,92,214,0.28)" />
+            <stop offset="100%" stopColor="rgba(124,92,214,0)" />
+          </radialGradient>
+          <filter id="lsWheelGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="2.2" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Center wash */}
+        <circle cx={cx} cy={cy} r={rAspect + 6} fill="url(#lsWheelHub)" />
+
+        {/* Zodiac ring */}
+        <motion.g
+          initial={reduce ? false : { opacity: 0, scale: 0.92, rotate: -8 }}
+          animate={reduce ? {} : { opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: beat(0.7), ease: [0.22, 0.7, 0.2, 1] }}
+          style={{ transformOrigin: `${cx}px ${cy}px` }}
+        >
+          <circle cx={cx} cy={cy} r={rZodOuter} fill="none" stroke="rgba(212,182,122,0.5)" strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={rZodInner} fill="none" stroke="rgba(212,182,122,0.32)" strokeWidth={1} />
+          {WHEEL_ZODIAC.map((z, i) => {
+            const a0 = z.start;
+            const a1 = z.start + 30;
+            const mid = z.start + 15;
+            const gp = wheelPolar(cx, cy, (rZodOuter + rZodInner) / 2, mid);
+            const d0 = wheelPolar(cx, cy, rZodInner, a0);
+            const d1 = wheelPolar(cx, cy, rZodOuter, a0);
+            const isSunSign = i === sunSignIdx;
+            const fill = isSunSign
+              ? "rgba(212,182,122,0.14)"
+              : i % 2 === 0
+              ? "rgba(212,182,122,0.05)"
+              : "rgba(124,92,214,0.06)";
+            return (
+              <g key={z.name}>
+                <path
+                  d={`${wheelArc(cx, cy, rZodOuter, a0, a1)} L ${wheelPolar(cx, cy, rZodInner, a1).x.toFixed(2)} ${wheelPolar(cx, cy, rZodInner, a1).y.toFixed(2)} ${wheelArc(cx, cy, rZodInner, a1, a0).replace("M", "L").split("A")[0]} A ${rZodInner} ${rZodInner} 0 0 0 ${d0.x.toFixed(2)} ${d0.y.toFixed(2)} Z`}
+                  fill={fill}
+                />
+                <line x1={d0.x} y1={d0.y} x2={d1.x} y2={d1.y} stroke="rgba(212,182,122,0.28)" strokeWidth={0.75} />
+                <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={isSunSign ? "#f0d99f" : "#d4b67a"} fontSize={16} className="ls-wheel-signglyph">
+                  {z.glyph}
+                </text>
+              </g>
+            );
+          })}
+        </motion.g>
+
+        {/* Degree ticks */}
+        <motion.g
+          initial={reduce ? false : { opacity: 0 }}
+          animate={reduce ? {} : { opacity: 1 }}
+          transition={{ duration: beat(0.5), delay: beat(0.45) }}
+        >
+          {Array.from({ length: 72 }).map((_, i) => {
+            const deg = i * 5;
+            const major = i % 6 === 0;
+            const len = major ? 8 : 4;
+            const a = wheelPolar(cx, cy, rTick, deg);
+            const b = wheelPolar(cx, cy, rTick - len, deg);
+            return (
+              <line key={deg} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="rgba(245,239,230,0.26)" strokeWidth={major ? 1.1 : 0.5} />
+            );
+          })}
+        </motion.g>
+
+        {/* Aspect web */}
+        <g>
+          {aspects.map((asp, i) => {
+            const pa = wheelPolar(cx, cy, rAspect, asp.lonA);
+            const pb = wheelPolar(cx, cy, rAspect, asp.lonB);
+            const stroke = asp.kind === "hard" ? "rgba(154,126,230,0.5)" : "rgba(212,182,122,0.42)";
+            return (
+              <motion.line
+                key={`${asp.a}-${asp.b}-${i}`}
+                x1={pa.x}
+                y1={pa.y}
+                x2={pb.x}
+                y2={pb.y}
+                stroke={stroke}
+                strokeWidth={0.9}
+                strokeDasharray={asp.kind === "hard" ? "3 4" : undefined}
+                initial={reduce ? false : { pathLength: 0, opacity: 0 }}
+                animate={reduce ? {} : { pathLength: 1, opacity: 1 }}
+                transition={{ duration: beat(0.5), delay: beat(1.15 + i * 0.03), ease: "easeOut" }}
+              />
+            );
+          })}
+          <circle cx={cx} cy={cy} r={rAspect} fill="none" stroke="rgba(245,239,230,0.12)" strokeWidth={0.6} />
+        </g>
+
+        {/* Planets */}
+        {placed.map((p, i) => {
+          const tone = WHEEL_TONE[p.key] ?? "#e9e4f2";
+          const meta = PLANET_META[p.key];
+          const gp = wheelPolar(cx, cy, rGlyph, glyphLon[p.key]);
+          const tickEnd = wheelPolar(cx, cy, rZodInner - 3, p.lon);
+          return (
+            <motion.g
+              key={p.key}
+              initial={reduce ? false : { opacity: 0, scale: 0 }}
+              animate={reduce ? {} : { opacity: 1, scale: 1 }}
+              transition={{ duration: beat(0.42), delay: beat(0.55 + i * 0.09), ease: [0.34, 1.3, 0.6, 1] }}
+              style={{ transformOrigin: `${gp.x}px ${gp.y}px` }}
+            >
+              <line x1={gp.x} y1={gp.y} x2={tickEnd.x} y2={tickEnd.y} stroke={tone} strokeOpacity={0.4} strokeWidth={0.8} strokeDasharray="2 2" />
+              <circle cx={gp.x} cy={gp.y} r={13} fill="#0a0712" stroke={tone} strokeWidth={1.4} filter="url(#lsWheelGlow)" />
+              <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={tone} fontSize={13} className="ls-wheel-planetglyph">
+                {meta?.glyph}
+              </text>
+            </motion.g>
+          );
+        })}
+
+        {/* Center medallion */}
+        <motion.g
+          initial={reduce ? false : { opacity: 0 }}
+          animate={reduce ? {} : { opacity: 1 }}
+          transition={{ duration: beat(0.5), delay: beat(1.0) }}
+        >
+          <circle cx={cx} cy={cy} r={rHub} fill="rgba(8,6,14,0.82)" stroke="rgba(212,182,122,0.3)" strokeWidth={1} />
+          <text x={cx} y={cy - 16} textAnchor="middle" fill="#f0d99f" fontSize={15} className="ls-wheel-centername">
+            {name || dom || "Their sky"}
+          </text>
+          <line x1={cx - 19} y1={cy - 4} x2={cx + 19} y2={cy - 4} stroke="#d4b67a" strokeWidth={1.4} />
+          {bornLabel && (
+            <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(245,239,230,0.66)" fontSize={9.5} className="ls-wheel-centerborn">
+              BORN {bornLabel}
+            </text>
+          )}
+          {dom && (
+            <text x={cx} y={cy + 25} textAnchor="middle" fill="#d4b67a" fontSize={9.5} className="ls-wheel-centerdom">
+              {dom} element
+            </text>
+          )}
+        </motion.g>
+      </svg>
+
+      <button ref={infoBtnRef} type="button" className="ls-wheel-info" onClick={onInfo} aria-label="What each planet means">
+        <span className="ls-wheel-info-mark" aria-hidden="true">i</span>
+        What each planet means
+      </button>
+    </div>
+  );
+}
+
+const COMPUTE_MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+function bornLabelFor(date: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return "";
+  return `${Number(m[3])} ${COMPUTE_MON[Number(m[2]) - 1]} ${m[1]}`;
+}
+
+// A number that count-tweens up to its real value (motion value, not setState),
+// so the compute readouts read like live measurement, not a printed label.
+function DegCount({ value, reduce }: { value: number; reduce: boolean }) {
+  const mv = useMotionValue(0);
+  const out = useTransform(mv, (v) => Math.round(v));
+  useEffect(() => {
+    if (reduce) {
+      mv.set(value);
+      return;
+    }
+    const controls = animate(mv, value, { duration: 0.55, ease: "easeOut" });
+    return () => controls.stop();
+  }, [value, reduce, mv]);
+  return <motion.span>{out}</motion.span>;
+}
+
+// The cinematic "measuring the sky" sequence. Every line names a real operation
+// (locate, measure, thread the angles) and the numbers shown are the real values
+// the engine returned, so a skeptic who knows their pet is a Leo sees it land and
+// believes the rest. It holds on "measuring the angles" until the chart resolves,
+// never inventing a value to fill time. Collapses to a single line on reduced motion.
+function ComputeSequence({
+  chart,
+  name,
+  date,
+  reduce,
+  onDone,
+}: {
+  chart: PetBirthChart | null;
+  name: string;
+  date: string;
+  reduce: boolean;
+  onDone: () => void;
+}) {
+  const [step, setStep] = useState(0);
+  // Finish timers live in a ref, not an effect cleanup, so the setStep(4)
+  // re-render does not cancel the pending onDone before it fires.
+  const finishTimers = useRef<number[]>([]);
+  const startedFinish = useRef(false);
+
+  // Timed advance to the "measuring the angles" hold (step 3).
+  useEffect(() => {
+    if (reduce) return;
+    const ids = [
+      window.setTimeout(() => setStep(1), 600),
+      window.setTimeout(() => setStep(2), 1300),
+      window.setTimeout(() => setStep(3), 2000),
+    ];
+    return () => ids.forEach((id) => clearTimeout(id));
+  }, [reduce]);
+
+  // Finish only once the real chart has landed, so the wheel always has data.
+  useEffect(() => {
+    if (startedFinish.current) return;
+    if (reduce) {
+      if (!chart) return;
+      startedFinish.current = true;
+      finishTimers.current.push(window.setTimeout(onDone, 460));
+      return;
+    }
+    if (!chart || step !== 3) return;
+    startedFinish.current = true;
+    finishTimers.current.push(window.setTimeout(() => setStep(4), 650));
+    finishTimers.current.push(window.setTimeout(onDone, 1300));
+  }, [chart, step, reduce, onDone]);
+
+  useEffect(() => () => finishTimers.current.forEach((id) => clearTimeout(id)), []);
+
+  const sun = chart?.sun;
+  const moon = chart?.moon;
+  const aspectCount = useMemo(() => {
+    if (!chart) return 0;
+    const pts = WHEEL_BODIES
+      .map((k) => {
+        const lon = wheelLongitude(chart[k as keyof PetBirthChart] as ChartBody | undefined);
+        return lon === null ? null : { key: k as string, lon };
+      })
+      .filter((p): p is { key: string; lon: number } => p !== null);
+    return computeWheelAspects(pts).length;
+  }, [chart]);
+
+  if (reduce) {
+    return (
+      <div className="ls-compute" role="status" aria-live="polite">
+        <div className="ls-compute-dust" aria-hidden="true" />
+        <span className="ls-compute-mote is-lit" aria-hidden="true" />
+        <p className="ls-compute-line">Setting the chart for that date.</p>
+      </div>
+    );
+  }
+
+  const lines = [
+    "Reading the date.",
+    "Finding the Sun.",
+    "Then the Moon.",
+    "Measuring the angles between them.",
+    name ? `The chart for ${name}.` : "The chart, honest from the date alone.",
+  ];
+
+  let readout: ReactNode = null;
+  if (step === 1 && sun?.sign) {
+    readout = (
+      <>Sun · <DegCount value={Math.round(sun.degree ?? 0)} reduce={reduce} />° {sun.sign}</>
+    );
+  } else if (step === 2 && moon?.sign) {
+    readout = (
+      <>Moon · <DegCount value={Math.round(moon.degree ?? 0)} reduce={reduce} />° {moon.sign}</>
+    );
+  } else if (step === 3) {
+    readout = (
+      <><DegCount value={aspectCount} reduce={reduce} /> angles found</>
+    );
+  }
+
+  return (
+    <div className="ls-compute" role="status" aria-live="polite">
+      <div className="ls-compute-dust" aria-hidden="true" />
+      <span className={`ls-compute-mote ${step >= 1 ? "is-lit" : ""}`} aria-hidden="true" />
+      <div className="ls-compute-readout">{readout}</div>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={step}
+          className="ls-compute-line"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25, ease: [0.22, 0.7, 0.2, 1] }}
+        >
+          {lines[step]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// The solar-system orrery, now a secondary explainer opened by the 'i' on the
+// wheel. It keeps the guided camera, the per-body guide bubble and the pips, and
+// adds dialog framing (Esc / back / backdrop close, body-scroll lock, focus to the
+// back control). The wheel stays the proof; this is the footnote that explains it.
+function OrreryInfoOverlay({
+  chart,
+  name,
+  reduce,
+  onClose,
+}: {
+  chart: PetBirthChart;
+  name: string;
+  reduce: boolean;
+  onClose: () => void;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const [active, setActive] = useState(0);
-  const [unlocked, setUnlocked] = useState(false);
-  const [emailBusy, setEmailBusy] = useState(false);
-  const [emailMsg, setEmailMsg] = useState("");
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 760);
 
   const total = JOURNEY_SEQ.length;
@@ -676,10 +1100,21 @@ function BirthSkyJourney() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Layout positions. On mobile the vertical climb is flattened to a gentle,
-  // steady ramp (the steep diagonal reads badly on a tall box). POS = base
-  // (pre-rotation, used to draw each orbit through its planet), RPOS = the same
-  // points rotated -7° about the sun so the bodies sit exactly on those rings.
+  // Dialog plumbing: lock background scroll, close on Esc, focus the back control.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
   const { POS, RPOS } = useMemo(() => {
     const ramp = isMobile ? 0.5 : 1;
     const cyBase = ORRERY_POS.sun.y;
@@ -698,7 +1133,6 @@ function BirthSkyJourney() {
     return { POS, RPOS };
   }, [isMobile]);
 
-  // Smooth camera that eases to centre the active body (guided tour, not scroll-jack).
   const camX = useSpring(0, { stiffness: 80, damping: 22, mass: 0.6 });
   const camY = useSpring(0, { stiffness: 80, damping: 22, mass: 0.6 });
   const camS = useSpring(1, { stiffness: 80, damping: 22, mass: 0.6 });
@@ -715,9 +1149,6 @@ function BirthSkyJourney() {
     camS.set(zoom);
   }, [active, isMobile, reduce, camX, camY, camS, RPOS]);
 
-  // Step through bodies only when the gesture is OVER the diagram. At either end
-  // the gesture passes through, so the page scrolls on past the section. The
-  // diagram carries data-lenis-prevent so global smooth-scroll leaves it alone.
   useEffect(() => {
     const el = boxRef.current;
     if (!el) return;
@@ -754,8 +1185,152 @@ function BirthSkyJourney() {
     };
   }, [total]);
 
-  // Gate 1 — no email here. Name (optional) + date is all it takes to open the
-  // chart. Email is asked AFTER the first reveal (Gate 2), per GOLDTABLE.
+  const orbitFor = (px: number, py: number) => {
+    const cx = POS.sun.x;
+    const cy = POS.sun.y;
+    const rx = Math.hypot(px - cx, (py - cy) / ORRERY_K);
+    return { cx, cy, rx, ry: rx * ORRERY_K };
+  };
+
+  const ease = [0.22, 0.7, 0.2, 1] as const;
+  const activeKey = JOURNEY_SEQ[active];
+  const meta = PLANET_META[activeKey];
+  const line = JOURNEY_LINES[activeKey] ?? meta.line;
+  const activeBody = chart[activeKey as keyof PetBirthChart] as ChartBody | undefined;
+  const activePlacement = activeBody?.sign
+    ? `${SIGN_GLYPHS[activeBody.sign] ?? ""} ${activeBody.sign}${typeof activeBody.degree === "number" ? ` ${Math.round(activeBody.degree)}°` : ""}`.trim()
+    : null;
+
+  return (
+    <motion.div
+      className="ls-info-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="What each planet means"
+      initial={reduce ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={reduce ? {} : { opacity: 0 }}
+      transition={{ duration: reduce ? 0 : 0.2 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="ls-info-panel">
+        <div className="ls-info-bar">
+          <button ref={closeRef} type="button" className="ls-info-back" onClick={onClose}>
+            <span aria-hidden="true">‹</span> Back to the chart
+          </button>
+          <span className="ls-info-title">{name ? `${name}'s sky, planet by planet` : "Their sky, planet by planet"}</span>
+        </div>
+
+        <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Solar system explainer">
+          <div className="ls-orrery-stars" aria-hidden="true" />
+          <div className="ls-orrery-nebula" aria-hidden="true" />
+          <motion.div className="ls-orrery-camera" style={reduce ? undefined : { transform: camTransform }}>
+            <svg className="ls-orrery-orbits" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              {(ORRERY_ORBIT_ALL as readonly string[]).map((k) => {
+                const o = orbitFor(POS[k].x, POS[k].y);
+                return (
+                  <ellipse
+                    key={k}
+                    cx={o.cx}
+                    cy={o.cy}
+                    rx={o.rx}
+                    ry={o.ry}
+                    transform={`rotate(-7 ${o.cx} ${o.cy})`}
+                    className={activeKey === k ? "is-active" : ""}
+                  />
+                );
+              })}
+            </svg>
+            {RENDER_ORDER.map((k) => {
+              const isMoon = k === "moon";
+              const moonDark = isMoon && activeKey === "lilith";
+              const bodyActive = activeKey === k || moonDark;
+              const jumpIndex = (JOURNEY_SEQ as readonly string[]).indexOf(k);
+              return (
+                <OrreryBody
+                  key={k}
+                  bodyKey={k}
+                  pos={RPOS[k]}
+                  diam={ORRERY_DIAM[k] ?? 4}
+                  active={bodyActive}
+                  dark={moonDark}
+                  showLabel={ORRERY_LABELLED.has(k) || activeKey === k}
+                  index={jumpIndex}
+                  onPick={(i) => i >= 0 && setActive(i)}
+                />
+              );
+            })}
+          </motion.div>
+          <span className="ls-orrery-hint" aria-hidden="true">
+            {isMobile ? "swipe to explore" : "scroll to explore"}
+          </span>
+          <div className="ls-orrery-guide">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeKey}
+                className="ls-orrery-bubble"
+                initial={reduce ? false : { opacity: 0, y: 12, scale: 0.95 }}
+                animate={reduce ? {} : { opacity: 1, y: 0, scale: 1 }}
+                exit={reduce ? {} : { opacity: 0, y: -8, scale: 0.97 }}
+                transition={{ duration: reduce ? 0 : 0.32, ease }}
+              >
+                <span className="ls-orrery-bubble-head">
+                  <span className="ls-orrery-bubble-glyph">{meta.glyph}</span>
+                  <span className="ls-orrery-name">{meta.label}</span>
+                </span>
+                {activePlacement && <strong className="ls-orrery-placement">{activePlacement}</strong>}
+                <p className="ls-orrery-line ls-orrery-line--info">{line}</p>
+              </motion.div>
+            </AnimatePresence>
+            <CosmicPenguin />
+          </div>
+        </div>
+
+        <div className="ls-orrery-pips" role="tablist" aria-label="Bodies">
+          {JOURNEY_SEQ.map((k, i) => (
+            <button
+              key={k}
+              type="button"
+              className={`ls-orrery-pip ${i === active ? "is-active" : ""}`}
+              aria-label={PLANET_META[k].label}
+              onClick={() => setActive(i)}
+            />
+          ))}
+        </div>
+
+        <p className="ls-info-note">
+          No rising sign here. That one honestly needs the exact minute and place of birth. Everything on the
+          wheel comes from the date alone, and all of it is real.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function BirthSkyJourney() {
+  const reduce = useReducedMotion() ?? false;
+  const infoBtnRef = useRef<HTMLButtonElement>(null);
+
+  const [petName, setPetName] = useState("");
+  const [date, setDate] = useState("");
+  const [email, setEmail] = useState("");
+  const [chart, setChart] = useState<PetBirthChart | null>(null);
+  const [status, setStatus] = useState<"idle" | "computing" | "ready" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
+  const [whyOpen, setWhyOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+
+  const name = petName.trim();
+  const ready = status === "ready";
+  const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
+    chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
+
+  // Gate 1 — name (optional) + date opens the chart. Fetch fires in parallel with
+  // the compute animation; an 8s abort keeps us off a spinner-of-death. Email is
+  // asked AFTER the first three placements (Gate 2).
   const handleOpen = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!date) {
@@ -763,36 +1338,37 @@ function BirthSkyJourney() {
       setMessage("Choose their birth or adoption date first.");
       return;
     }
-    setStatus("loading");
+    setStatus("computing");
     setMessage("");
+    setChart(null);
+    setUnlocked(false);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
     try {
-      // Hold the loading animation on screen long enough to feel like the sky is
-      // being calculated, even when the chart returns in a few hundred ms.
-      const minSpin = new Promise((resolve) => setTimeout(resolve, reduce ? 0 : 2200));
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Birth chart request failed: ${response.status}`);
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as PetBirthChart;
-      if (!data?.sun) throw new Error("Birth chart response was incomplete.");
-      await minSpin;
+      if (!data?.sun) throw new Error("incomplete");
       setChart(data);
-      setStatus("ready");
-      setMessage("");
-      setActive(0);
     } catch (error) {
-      console.warn("[Little Souls] birth sky journey failed", error);
+      console.warn("[Little Souls] birth chart failed", error);
       setChart(null);
       setStatus("error");
-      setMessage("The sky did not open. Please try again in a moment.");
+      setMessage("The sky did not answer. Try the date again.");
+    } finally {
+      clearTimeout(timeout);
     }
   };
 
-  // Gate 2 — after the first three placements, email to save + continue.
+  // Gate 2 — after the first three placements, email to keep reading the rest.
+  // It captures the lead and shows the rest on screen now. No inbox promise: the
+  // free reading is the chart on this page.
   const handleSaveEmail = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const cleanEmail = email.trim().toLowerCase();
     if (!/.+@.+\..+/.test(cleanEmail)) {
-      setEmailMsg("Enter your email to continue the reveal.");
+      setEmailMsg("Add your email to read the rest.");
       return;
     }
     setEmailBusy(true);
@@ -821,246 +1397,177 @@ function BirthSkyJourney() {
   const scrollToCheckout = () =>
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const ease = [0.22, 0.7, 0.2, 1] as const;
-  const activeKey = JOURNEY_SEQ[active];
-  const meta = PLANET_META[activeKey];
-  const line = JOURNEY_LINES[activeKey] ?? meta.line;
-  const sealed = status !== "ready";
-  const name = petName.trim();
-  const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
-    chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
-  const activeBody = bodyFor(activeKey);
-  const activePlacement = activeBody?.sign
-    ? `${SIGN_GLYPHS[activeBody.sign] ?? ""} ${activeBody.sign}${typeof activeBody.degree === "number" ? ` ${Math.round(activeBody.degree)}°` : ""}`.trim()
-    : null;
-
-  const orbitFor = (px: number, py: number) => {
-    const cx = POS.sun.x;
-    const cy = POS.sun.y;
-    const rx = Math.hypot(px - cx, (py - cy) / ORRERY_K);
-    return { cx, cy, rx, ry: rx * ORRERY_K };
-  };
-
   return (
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
       <div className="ls-orrery-head ls-reveal">
-        {sealed ? (
+        {ready ? (
           <>
-            <p style={eyebrowStyle(C.cream)}>
-              A free reading · <span style={{ color: C.violetSoft }}>opens in moments</span>
+            <p style={eyebrowStyle(C.gold)}>
+              {name ? `${name}'s real sky` : "Their real sky"} · computed
             </p>
-            <h3 className="mt-3 text-balance" style={chartTitleStyle}>Open the sky that shaped them</h3>
-            <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-              Just their name and birth date. We compute their real birth chart from the
-              planet positions the day they arrived.
-            </p>
+            <h3 className="mt-3 text-balance" style={chartTitleStyle}>Drawn from the day they arrived.</h3>
           </>
         ) : (
           <>
-            <p style={eyebrowStyle(C.cream)}>
-              {name ? `${name}'s sky` : "Their sky"} · <span style={{ color: C.violetSoft }}>now open</span>
-            </p>
-            <h3 className="mt-3 text-balance" style={chartTitleStyle}>The sky the day they arrived</h3>
+            <p style={eyebrowStyle(C.gold)}>Their real birth chart · free</p>
+            <h3 className="mt-3 text-balance" style={chartTitleStyle}>
+              The sky the day they were <span style={{ color: C.gold }}>born</span> is still up there.
+            </h3>
             <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-              Their real planet positions, computed for {name || "them"}. Move across the system to see where each one sits.
+              Give us their date and every planet lands exactly where it stood that day. No birth time needed.
             </p>
           </>
         )}
       </div>
 
-      <div className={`ls-orrery-wrap ${sealed ? "is-sealed" : "is-open"}`}>
-        <div ref={boxRef} className="ls-orrery" data-lenis-prevent role="group" aria-label="Birth sky diagram" aria-hidden={sealed}>
-        <div className="ls-orrery-stars" aria-hidden="true" />
-        <div className="ls-orrery-nebula" aria-hidden="true" />
-        <motion.div className="ls-orrery-camera" style={reduce ? undefined : { transform: camTransform }}>
-          <svg className="ls-orrery-orbits" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            {(ORRERY_ORBIT_ALL as readonly string[]).map((k) => {
-              const o = orbitFor(POS[k].x, POS[k].y);
-              return (
-                <ellipse
-                  key={k}
-                  cx={o.cx}
-                  cy={o.cy}
-                  rx={o.rx}
-                  ry={o.ry}
-                  transform={`rotate(-7 ${o.cx} ${o.cy})`}
-                  className={activeKey === k ? "is-active" : ""}
-                />
-              );
-            })}
-          </svg>
-          {RENDER_ORDER.map((k) => {
-            // Lilith is the dark Moon: it shares the Moon's body + orbit. When
-            // Lilith is active the Moon stays put and turns shadowed.
-            const isMoon = k === "moon";
-            const moonDark = isMoon && activeKey === "lilith";
-            const bodyActive = activeKey === k || moonDark;
-            const jumpIndex = (JOURNEY_SEQ as readonly string[]).indexOf(k);
-            return (
-              <OrreryBody
-                key={k}
-                bodyKey={k}
-                pos={RPOS[k]}
-                diam={ORRERY_DIAM[k] ?? 4}
-                active={bodyActive}
-                dark={moonDark}
-                showLabel={ORRERY_LABELLED.has(k) || activeKey === k}
-                index={jumpIndex}
-                onPick={(i) => i >= 0 && setActive(i)}
+      <div className="ls-stage">
+        {status === "computing" ? (
+          <ComputeSequence
+            chart={chart}
+            name={name}
+            date={date}
+            reduce={reduce}
+            onDone={() => setStatus("ready")}
+          />
+        ) : ready && chart ? (
+          <NatalWheel
+            chart={chart}
+            name={name}
+            bornLabel={bornLabelFor(date)}
+            reduce={reduce}
+            onInfo={() => setInfoOpen(true)}
+            infoBtnRef={infoBtnRef}
+          />
+        ) : (
+          <form className="ls-seal-card ls-stage-card ls-reveal" onSubmit={handleOpen}>
+            <span className="ls-seal-glyph" aria-hidden="true">✦</span>
+            <p className="ls-seal-sub">Name optional. The date does the rest.</p>
+            <div className="ls-seal-field">
+              <label htmlFor="seal-name">Their name <span>(if they have one)</span></label>
+              <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+            </div>
+            <div className="ls-seal-field">
+              <label htmlFor="seal-date">Birth date, or the day they came home</label>
+              <input
+                id="seal-date"
+                type="date"
+                value={date}
+                max="2030-12-31"
+                onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
               />
-            );
-          })}
-        </motion.div>
-        <span className="ls-orrery-hint" aria-hidden="true">
-          {isMobile ? "swipe to explore" : "scroll to explore"}
-        </span>
-
-        {/* Penguin guide + speech bubble: the info lives ON the diagram, next to
-            the body you scrolled onto, so it's visible without scrolling away. */}
-        <div className="ls-orrery-guide">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={activeKey}
-              className="ls-orrery-bubble"
-              initial={reduce ? false : { opacity: 0, y: 12, scale: 0.95 }}
-              animate={reduce ? {} : { opacity: 1, y: 0, scale: 1 }}
-              exit={reduce ? {} : { opacity: 0, y: -8, scale: 0.97 }}
-              transition={{ duration: reduce ? 0 : 0.32, ease }}
-            >
-              <span className="ls-orrery-bubble-head">
-                <span className="ls-orrery-bubble-glyph">{meta.glyph}</span>
-                <span className="ls-orrery-name">{meta.label}</span>
-              </span>
-              {activePlacement && <strong className="ls-orrery-placement">{activePlacement}</strong>}
-              <p className="ls-orrery-line ls-orrery-line--info">{line}</p>
-            </motion.div>
-          </AnimatePresence>
-          <CosmicPenguin />
-        </div>
-        </div>
-
-        {sealed && (
-          <div className="ls-seal-veil">
-            {status === "loading" ? (
-              <div className="ls-seal-loading" role="status" aria-live="polite">
-                <div className="ls-seal-orbit" aria-hidden="true">
-                  <span className="ls-seal-core" />
-                  <span className="ls-seal-ring ls-seal-ring-1"><i /></span>
-                  <span className="ls-seal-ring ls-seal-ring-2"><i /></span>
-                  <span className="ls-seal-ring ls-seal-ring-3"><i /></span>
-                </div>
-                <p className="ls-seal-loading-text">Calculating {name || "their"} sky…</p>
-                <p className="ls-seal-loading-sub">Placing every planet for {date || "their day"}.</p>
-              </div>
-            ) : (
-              <form className="ls-seal-card ls-reveal" onSubmit={handleOpen}>
-                <span className="ls-seal-glyph" aria-hidden="true">✦</span>
-                <h4 className="ls-seal-title">Open the sky that shaped them</h4>
-                <p className="ls-seal-sub">Enter their name and birth date to begin.</p>
-                <div className="ls-seal-field">
-                  <label htmlFor="seal-name">Their name <span>(optional)</span></label>
-                  <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
-                </div>
-                <div className="ls-seal-field">
-                  <label htmlFor="seal-date">Birth or adoption date</label>
-                  <input id="seal-date" type="date" value={date} max="2030-12-31" onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }} />
-                </div>
-                <p className="ls-seal-help">For rescued souls, use the day they became yours. We read it as their born-to-you chart.</p>
-                <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
-                  Open their chart <ArrowRight size={17} />
-                </button>
-                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-              </form>
+            </div>
+            <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
+              Set the chart <ArrowRight size={17} />
+            </button>
+            {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+            <button type="button" className="ls-seal-why" onClick={() => setWhyOpen((v) => !v)} aria-expanded={whyOpen}>
+              Why no time or place?
+            </button>
+            {whyOpen && (
+              <p className="ls-seal-help">
+                Rising sign and houses need the exact minute and town. Planet positions only need the date, so
+                everything on this chart is honest from that alone.
+              </p>
             )}
-          </div>
+          </form>
         )}
       </div>
 
-      {!sealed && (
-        <>
-          <div className="ls-orrery-pips" role="tablist" aria-label="Bodies">
-            {JOURNEY_SEQ.map((k, i) => (
-              <button
-                key={k}
-                type="button"
-                className={`ls-orrery-pip ${i === active ? "is-active" : ""}`}
-                aria-label={PLANET_META[k].label}
-                onClick={() => setActive(i)}
-              />
-            ))}
+      {ready && (
+        <div className="ls-reveal-stack ls-reveal">
+          <p className="ls-wheel-honesty">
+            Every planet sits at its true position for that date. No rising sign here, that one needs the exact
+            minute and place. Everything on this wheel is honest from the date alone.
+          </p>
+          <p className="ls-reveal-eyebrow">{name ? `${name}'s first three placements` : "Their first three placements"}</p>
+          <div className="ls-free-grid">
+            {FREE_KEYS.map((key) => {
+              const b = bodyFor(key);
+              const m = PLANET_META[key];
+              const deg = typeof b?.degree === "number" ? `, ${Math.round(b.degree)}°` : "";
+              return (
+                <article key={key} className="ls-free-card">
+                  <span className="ls-free-head">
+                    <span className="ls-free-glyph" aria-hidden="true">{m.glyph}</span>
+                    {FREE_FRAME[key]}
+                  </span>
+                  <strong className="ls-free-sign">{b?.sign ? `${m.label} in ${b.sign}${deg}` : m.label}</strong>
+                  <small>{JOURNEY_LINES[key]}</small>
+                </article>
+              );
+            })}
           </div>
 
-          <div className="ls-reveal-stack ls-reveal">
-            <p className="ls-reveal-eyebrow">{name ? `${name}'s first three placements` : "Their first three placements"}</p>
-            <div className="ls-free-grid">
-              {FREE_KEYS.map((key) => {
-                const b = bodyFor(key);
-                const m = PLANET_META[key];
-                return (
-                  <article key={key} className="ls-free-card">
-                    <span className="ls-free-glyph" aria-hidden="true">{m.glyph}</span>
-                    <span className="ls-free-frame">{FREE_FRAME[key]}</span>
-                    <strong className="ls-free-sign">{b?.sign ? `${m.label} in ${b.sign}` : m.label}</strong>
-                    <small>{JOURNEY_LINES[key]}</small>
-                  </article>
-                );
-              })}
-            </div>
+          {!unlocked ? (
+            <form className="ls-gate2 ls-reveal" onSubmit={handleSaveEmail}>
+              <span className="ls-gate2-glyph" aria-hidden="true">✦</span>
+              <h4 className="ls-gate2-title">Three placements is where most readings stop.</h4>
+              <p className="ls-gate2-sub">
+                The full sky has ten more, and the angles between them are where {name ? `${name} takes` : "they take"} shape.
+                Add your email and read the rest now.
+              </p>
+              <div className="ls-gate2-row">
+                <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
+                <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
+                  {emailBusy ? "Opening…" : "Read the rest"}
+                  {!emailBusy && <ArrowRight size={16} />}
+                </button>
+              </div>
+              {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
+              <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
+            </form>
+          ) : (
+            <>
+              <p className="ls-reveal-eyebrow ls-reveal-eyebrow--rest">The rest of their sky</p>
+              <div className="ls-sky-grid ls-sky-grid--live">
+                {REST_KEYS.map((key, i) => (
+                  <PlanetCard key={key} planet={key} body={bodyFor(key)} index={i} />
+                ))}
+              </div>
 
-            {!unlocked ? (
-              <form className="ls-gate2 ls-reveal" onSubmit={handleSaveEmail}>
-                <span className="ls-gate2-glyph" aria-hidden="true">✦</span>
-                <h4 className="ls-gate2-title">Their chart has opened.</h4>
-                <p className="ls-gate2-sub">Save this reading to your private path and reveal the rest of their placements.</p>
-                <div className="ls-gate2-row">
-                  <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
-                  <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
-                    {emailBusy ? "Opening…" : "Continue the reveal"}
-                    {!emailBusy && <ArrowRight size={16} />}
-                  </button>
-                </div>
-                {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
-                <p className="ls-gate2-trust">No noise. Just this reading, and your next opening.</p>
-              </form>
-            ) : (
-              <>
-                <p className="ls-reveal-eyebrow ls-reveal-eyebrow--rest">The rest of their sky</p>
-                <div className="ls-sky-grid ls-sky-grid--live">
-                  {REST_KEYS.map((key, i) => (
-                    <PlanetCard key={key} planet={key} body={bodyFor(key)} index={i} />
+              <div className="ls-locked-block">
+                <p className="ls-locked-eyebrow">What the full reading opens</p>
+                <div className="ls-teaser-grid">
+                  {PREMIUM_TEASERS.map((t, i) => (
+                    <article key={t.title} className="ls-teaser-card" style={revealDelay(i * 0.04)}>
+                      <span className="ls-teaser-lock" aria-hidden="true">✦</span>
+                      <span className="ls-teaser-glyph" aria-hidden="true">{t.glyph}</span>
+                      <strong className="ls-teaser-title">{t.title}</strong>
+                      <small className="ls-teaser-line">{t.line}</small>
+                    </article>
                   ))}
                 </div>
+              </div>
 
-                <div className="ls-locked-block">
-                  <p className="ls-locked-eyebrow">What the full reading opens</p>
-                  <div className="ls-teaser-grid">
-                    {PREMIUM_TEASERS.map((t, i) => (
-                      <article key={t.title} className="ls-teaser-card" style={revealDelay(i * 0.04)}>
-                        <span className="ls-teaser-lock" aria-hidden="true">✦</span>
-                        <span className="ls-teaser-glyph" aria-hidden="true">{t.glyph}</span>
-                        <strong className="ls-teaser-title">{t.title}</strong>
-                        <small className="ls-teaser-line">{t.line}</small>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="ls-upsell">
-                  <h4 className="ls-upsell-title">You&apos;ve seen their sky. Now understand what it means between you.</h4>
-                  <p className="ls-upsell-pitch">
-                    The free chart opens their first placements. The full reading turns the whole celestial
-                    pattern into a portrait of their nature, their needs, and the bond only the two of you
-                    share. It doesn&apos;t just describe them. It changes how you meet them.
-                  </p>
-                  <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
-                    Unlock the full reading <ArrowRight size={17} />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </>
+              <div className="ls-upsell">
+                <h4 className="ls-upsell-title">You&apos;ve seen their sky. Now understand what it means between you.</h4>
+                <p className="ls-upsell-pitch">
+                  The free chart opens their first placements. The full reading turns the whole celestial
+                  pattern into a portrait of their nature, their needs, and the bond only the two of you
+                  share. It doesn&apos;t just describe them. It changes how you meet them.
+                </p>
+                <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
+                  Read {name || "their"} full reading <ArrowRight size={17} />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       )}
+
+      <AnimatePresence>
+        {infoOpen && chart && (
+          <OrreryInfoOverlay
+            chart={chart}
+            name={name}
+            reduce={reduce}
+            onClose={() => {
+              setInfoOpen(false);
+              infoBtnRef.current?.focus();
+            }}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
@@ -3556,6 +4063,125 @@ function CosmicStyles() {
       .ls-chart-message.is-error {
         color: ${C.goldSoft};
       }
+
+      /* === Free reading: stage + cinematic compute + natal wheel + info ===== */
+      .ls-stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: min(100%, 1060px);
+        min-height: clamp(420px, 64vw, 540px);
+        margin: clamp(22px, 4vw, 44px) auto 0;
+      }
+      .ls-stage-card { margin-inline: auto; }
+      .ls-seal-why {
+        background: none; border: 0; padding: 2px 0; cursor: pointer;
+        color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem;
+        text-decoration: underline; text-underline-offset: 3px;
+      }
+      .ls-seal-why:hover { color: ${C.goldSoft}; }
+
+      .ls-compute {
+        position: relative;
+        width: min(92vw, 460px);
+        aspect-ratio: 1;
+        max-height: 520px;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid ${C.line};
+        background: radial-gradient(ellipse at 50% 42%, ${C.cosmos2}, ${C.cosmos} 72%);
+      }
+      .ls-compute-dust {
+        position: absolute; inset: 0; opacity: 0.5;
+        background-image:
+          radial-gradient(1px 1px at 20% 24%, rgba(245,239,230,0.7), transparent),
+          radial-gradient(1px 1px at 70% 30%, rgba(245,239,230,0.5), transparent),
+          radial-gradient(1.4px 1.4px at 44% 66%, #fff, transparent),
+          radial-gradient(1px 1px at 82% 62%, rgba(245,239,230,0.5), transparent),
+          radial-gradient(1px 1px at 16% 78%, rgba(245,239,230,0.6), transparent),
+          radial-gradient(1.2px 1.2px at 58% 18%, #fff, transparent);
+        background-size: 260px 260px;
+        animation: ls-twinkle 3.6s ease-in-out infinite;
+      }
+      @keyframes ls-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+      .ls-compute-mote {
+        position: absolute; top: 42%; left: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 35%, ${C.goldSoft}, ${C.gold} 60%, ${C.goldDeep});
+        box-shadow: 0 0 26px rgba(212,182,122,0.75);
+        opacity: 0.5; transform: scale(0.7);
+        transition: opacity 400ms ease, transform 400ms ease;
+        animation: ls-corepulse 3s ease-in-out infinite;
+      }
+      .ls-compute-mote.is-lit { opacity: 1; transform: scale(1); }
+      .ls-compute-readout {
+        position: absolute; top: 57%; left: 0; right: 0; min-height: 1.2em; text-align: center;
+        color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem;
+        letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+      }
+      .ls-compute-line {
+        position: absolute; bottom: 14%; left: 0; right: 0; margin: 0; padding: 0 24px; text-align: center;
+        color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.98rem; line-height: 1.4;
+      }
+
+      .ls-wheel { display: grid; justify-items: center; gap: 16px; }
+      .ls-wheel-svg { width: min(92vw, 460px); height: auto; aspect-ratio: 1; display: block; }
+      .ls-wheel-signglyph, .ls-wheel-planetglyph {
+        font-family: "Noto Sans Symbols2", "Segoe UI Symbol", "Apple Symbols", system-ui, sans-serif;
+      }
+      .ls-wheel-centername { font-family: "Playfair Display", Georgia, serif; letter-spacing: 0.01em; }
+      .ls-wheel-centerborn, .ls-wheel-centerdom {
+        font-family: Lato, system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
+      }
+      .ls-wheel-info {
+        display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px;
+        border-radius: 999px; border: 1px solid rgba(212,182,122,0.4); background: rgba(13,10,20,0.6);
+        color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem; cursor: pointer;
+        transition: border-color 200ms ease, color 200ms ease;
+      }
+      .ls-wheel-info:hover { border-color: ${C.gold}; color: ${C.gold}; }
+      .ls-wheel-info-mark {
+        display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+        border: 1px solid rgba(212,182,122,0.6); font-family: "Playfair Display", Georgia, serif;
+        font-size: 0.8rem; line-height: 1; font-style: italic;
+      }
+      .ls-wheel-honesty {
+        max-width: 50ch; margin: 0 auto; text-align: center; color: ${C.muted};
+        font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; line-height: 1.5;
+      }
+
+      .ls-free-head {
+        display: inline-flex; align-items: center; gap: 8px; color: ${C.creamDim};
+        font-family: Lato, system-ui, sans-serif; font-size: 0.68rem; font-weight: 800;
+        letter-spacing: 0.12em; text-transform: uppercase;
+      }
+      .ls-free-glyph { font-size: 1.05rem; color: ${C.gold}; line-height: 1; }
+      .ls-free-sign { font-size: clamp(1.15rem, 3.4vw, 1.45rem); font-variant-numeric: tabular-nums; }
+
+      .ls-info-overlay {
+        position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px;
+        background: rgba(6,5,11,0.86); backdrop-filter: blur(4px);
+      }
+      .ls-info-panel {
+        position: relative; width: min(100%, 980px); max-height: 92dvh; overflow: auto;
+        display: grid; gap: 14px; padding: clamp(14px, 3vw, 24px);
+        border: 1px solid rgba(124,92,214,0.24); border-radius: 20px;
+        background: linear-gradient(180deg, rgba(21,16,28,0.96), rgba(10,8,16,0.98));
+        box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+      }
+      .ls-info-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .ls-info-back {
+        display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
+        border-radius: 8px; border: 1px solid ${C.line}; background: transparent; cursor: pointer;
+        color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem;
+      }
+      .ls-info-back:hover { border-color: rgba(212,182,122,0.56); }
+      .ls-info-title { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; text-align: right; }
+      .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.5; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-compute-dust, .ls-compute-mote { animation: none !important; }
+      }
+
       .ls-checkout-shell {
         background:
           radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.13), transparent 40%),
