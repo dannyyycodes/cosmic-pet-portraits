@@ -1136,9 +1136,9 @@ function NatalWheel({
       </svg>
 
       {!hideInfo && (
-        <button ref={infoBtnRef} type="button" className="ls-wheel-info" onClick={onInfo} aria-label="What each planet means">
+        <button ref={infoBtnRef} type="button" className="ls-wheel-info" onClick={onInfo} aria-label="Explore the solar system">
           <span className="ls-wheel-info-mark" aria-hidden="true">i</span>
-          What each planet means
+          Explore the solar system
         </button>
       )}
     </div>
@@ -1431,7 +1431,7 @@ function OrreryInfoOverlay({
     >
       <div className="ls-info-panel">
         <div className="ls-info-bar">
-          <span className="ls-info-title">What each planet means</span>
+          <span className="ls-info-title">The solar system, planet by planet</span>
           <button ref={closeRef} type="button" className="ls-info-back" onClick={onClose}>
             Close
           </button>
@@ -1930,20 +1930,120 @@ function BirthSkyJourney() {
     try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
   };
 
+  // Skim-table email wall: captures the lead AND unlocks the rest of the placements
+  // on the page (for people who skim instead of watching the journey to the end).
+  const handleSaveEmail = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(cleanEmail)) { setEmailMsg("Add your email to read the rest."); return; }
+    setEmailBusy(true);
+    setEmailMsg("");
+    supabase.functions
+      .invoke("track-subscriber", {
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_skim" },
+      })
+      .catch((error) => console.warn("[Little Souls] lead capture failed", error));
+    try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
+    setUnlocked(true);
+    setEmailBusy(false);
+  };
+
   const scrollToCheckout = () =>
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
       {ready && chart ? (
-        <CosmicJourney
-          chart={chart}
-          name={name}
-          bornLabel={bornLabelFor(date)}
-          reduce={reduce}
-          onLead={handleLead}
-          onCheckout={scrollToCheckout}
-        />
+        <>
+          <CosmicJourney
+            chart={chart}
+            name={name}
+            bornLabel={bornLabelFor(date)}
+            reduce={reduce}
+            onLead={handleLead}
+            onCheckout={scrollToCheckout}
+          />
+
+          {/* Skim-worthy breakdown for people who do not watch the journey. The
+              email wall sits EARLY (after the three free placements), and the rest
+              of the chart unlocks in place. */}
+          <div className="ls-reveal-stack ls-skim">
+            <p className="ls-reveal-eyebrow">{name ? `${name}'s chart, in their own words` : "Their chart, in their own words"}</p>
+            <div className="ls-chart-table">
+              {FREE_KEYS.map((key) => {
+                const b = bodyFor(key);
+                const m = PLANET_META[key];
+                const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
+                const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
+                return (
+                  <article key={key} className="ls-trow is-open">
+                    <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
+                    <div className="ls-trow-main">
+                      <span className="ls-trow-top">
+                        <strong className="ls-trow-name">{m.label}</strong>
+                        {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
+                      </span>
+                      <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
+                      <p className="ls-trow-line">{text}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            {!unlocked && (
+              <form className="ls-gate2" onSubmit={handleSaveEmail}>
+                <h4 className="ls-gate2-title">Read all thirteen placements.</h4>
+                <p className="ls-gate2-sub">
+                  Three are open above. Add your email and the rest of {name || "their"} chart opens right here.
+                </p>
+                <div className="ls-gate2-row">
+                  <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
+                  <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
+                    {emailBusy ? "Opening…" : "Read the rest"}
+                    {!emailBusy && <ArrowRight size={16} />}
+                  </button>
+                </div>
+                {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
+                <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
+              </form>
+            )}
+
+            <div className="ls-chart-table">
+              {REST_KEYS.map((key) => {
+                const b = bodyFor(key);
+                const m = PLANET_META[key];
+                const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
+                const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
+                return (
+                  <article key={key} className={`ls-trow ${unlocked ? "is-open" : "is-locked"}`}>
+                    <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
+                    <div className="ls-trow-main">
+                      <span className="ls-trow-top">
+                        <strong className="ls-trow-name">{m.label}</strong>
+                        {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
+                      </span>
+                      <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
+                      <p className="ls-trow-line">{text}</p>
+                    </div>
+                    {!unlocked && <span className="ls-trow-lock">Email to read</span>}
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="ls-upsell">
+              <h4 className="ls-upsell-title">You&apos;ve met {name || "them"}. Now understand what it means between you.</h4>
+              <p className="ls-upsell-pitch">
+                This is every placement they were born under. The full reading turns the whole pattern into a
+                portrait of their nature, their needs, and the bond only the two of you share.
+              </p>
+              <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
+                Read {name || "their"} full reading <ArrowRight size={17} />
+              </button>
+            </div>
+          </div>
+        </>
       ) : (
         <>
           <div className="ls-stage">
@@ -4692,6 +4792,7 @@ function CosmicStyles() {
       .ls-info-back:hover { border-color: rgba(212,182,122,0.56); }
       .ls-info-title { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; }
       .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.5; }
+      .ls-skim { width: min(100%, 760px); margin: clamp(30px,7vw,72px) auto 0; padding-top: clamp(24px,5vw,44px); border-top: 1px solid rgba(212,182,122,0.16); }
       @media (prefers-reduced-motion: reduce) {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
