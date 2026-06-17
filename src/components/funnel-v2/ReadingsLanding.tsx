@@ -1569,9 +1569,9 @@ function buildBeats(chart: PetBirthChart, name: string): Beat[] {
   const nm = name.trim();
   return [
     { scene: 1, audio: "s1a", text: nm ? `This is the sky the night ${nm} arrived.` : "This is the sky the night they arrived." },
-    { scene: 1, audio: "s1b", text: "Real positions. The actual sky, read for them." },
-    { scene: 2, audio: "s2a", text: "Thirteen places in the sky. Each one says something true about who they are." },
-    { scene: 2, audio: "s2b", text: "We read three with you now. Quietly, one at a time." },
+    { scene: 1, audio: "s1b", text: "The real positions. The actual sky, the night they came to you." },
+    { scene: 2, audio: "s2a", text: "Thirteen places in the sky. Each one holds something true about who they are." },
+    { scene: 2, audio: "s2b", text: "We will open three of them now, gently, one at a time. The full reading is where all thirteen come together." },
     { scene: 3, focus: "sun", audio: "s3a", text: nm ? `First, the Sun. This is who ${nm} is at the centre, before the world asks anything of them.` : "First, the Sun. This is who they are at the centre, before the world asks anything of them." },
     { scene: 3, focus: "sun", audio: `sun-${sig("sun")}`, text: sline("sun") },
     { scene: 3, focus: "sun", audio: "s3c", text: "You have watched this in them since the first day, even if you never had a word for it." },
@@ -1585,16 +1585,16 @@ function buildBeats(chart: PetBirthChart, name: string): Beat[] {
     { scene: 6, audio: `s6b-${elc}`, text: nm ? `${nm} is a ${el}-led soul.` : `They are a ${el}-led soul.` },
     { scene: 6, audio: `el-${elc}`, text: ELEMENT_LINE[el] || "Their element runs all the way through them." },
     { scene: 7, audio: "s7a", text: "That is three. There are ten more." },
-    { scene: 7, audio: "s7b", text: "Mars, where their courage lives. Saturn, what they carry, and what steadies them." },
-    { scene: 7, audio: "s7c", text: "Mercury, how they read a room. Chiron, the tender place they came in carrying." },
+    { scene: 7, audio: "s7b", text: "Mars, the seat of their courage. Saturn, what they carry, and what steadies them." },
+    { scene: 7, audio: "s7c", text: "Mercury, how they size up a room. Chiron, the tender place they came in carrying." },
     { scene: 7, audio: "s7d", text: "And the rest. The parts of them you feel every day and have never had named." },
     { scene: 7, audio: "s7e", text: nm ? `We measured all of ${nm}. Right now, you are seeing three.` : "We measured all of them. Right now, you are seeing three." },
     { scene: 8, audio: "s8a", text: "The lines between them are how all of it talks to each other." },
     { scene: 8, audio: "s8b", text: "The full reading is where they stop being thirteen facts and start being one whole creature." },
-    { scene: 8, audio: "s8c", text: "And the face they show the world, once you can tell us the hour they were born." },
+    { scene: 8, audio: "s8c", text: "And the deeper shape only the full reading draws, where it all comes together." },
     { scene: 9, audio: "s9a", text: nm ? `You came here to find out who ${nm} really is.` : "You came here to find out who they really are." },
     { scene: 9, audio: "s9b", text: "These three say it is real. The other ten say how deep it goes." },
-    { scene: 9, audio: "s9c", text: "You have met three of them tonight. The rest are right here, when you are ready." },
+    { scene: 9, audio: "s9c", text: "You have met three of them tonight. The full reading is where you meet all of who they are." },
   ];
 }
 
@@ -1695,7 +1695,7 @@ function CosmicJourney({
         a.pause();
         a.onended = advance;
         a.onerror = () => { if (!advanced) speakBrowser(); };
-        a.src = `/readings/voice/k2/${b.audio}.mp3`;
+        a.src = `/readings/voice/k3/${b.audio}.mp3`;
         a.currentTime = 0;
         const pr = a.play();
         if (pr && typeof pr.catch === "function") pr.catch(() => { if (!advanced) speakBrowser(); });

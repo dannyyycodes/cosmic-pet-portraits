@@ -10,7 +10,7 @@ from kokoro_onnx import Kokoro
 
 MODEL = os.path.expanduser(r"~/.cache/kokoro/kokoro-v1.0.onnx")
 VOICES = os.path.expanduser(r"~/.cache/kokoro/voices-v1.0.bin")
-OUT = os.path.join(os.path.dirname(__file__), "..", "public", "readings", "voice", "k2")
+OUT = os.path.join(os.path.dirname(__file__), "..", "public", "readings", "voice", "k3")
 OUT = os.path.abspath(OUT)
 VOICE = sys.argv[1] if len(sys.argv) > 1 else "af_heart"
 SPEED = float(sys.argv[2]) if len(sys.argv) > 2 else 0.92
@@ -20,17 +20,17 @@ SUN = {"aries":"First through every door, last to back down. The want is loud an
 MOON = {"aries":"Settles by doing, not sitting. Burn the energy off and the calm follows.","taurus":"Safe means warm, fed, and exactly where they always sleep. Move the bed and you will hear about it.","gemini":"Needs something to watch and someone to chatter at. Boredom is their only real fear.","cancer":"Wants you close and the routine kept. A small sulk over a skipped cuddle is not unusual.","leo":"Feels safest when seen. A little praise resets their whole day.","virgo":"Calms when the order is right. A clean bowl in the same spot, and the world is fine.","libra":"Settles in pairs, unsettles alone. They borrow their calm from yours.","scorpio":"Watches from somewhere high, then decides you are safe. Once it decides, it does not change its mind.","sagittarius":"Needs room and a horizon. A long walk does more than any blanket.","capricorn":"Steadies on a schedule they can trust. Surprises are not a gift to them.","aquarius":"Comforted by space, not smothering. They come to you, and that is the rule.","pisces":"Soothed by quiet and your nearness. Loud days send them under the bed."}
 VENUS = {"aries":"Loves head-on. Crashes into you, then waits, tail going, for the same back.","taurus":"Shows love by leaning their whole weight on you and refusing to move.","gemini":"Brings you things and talks the whole time. Attention is the love language.","cancer":"Loves by guarding. Follows you room to room and frets when you leave.","leo":"Loves out loud and expects it back with interest. Generous, and a little theatrical.","virgo":"Shows love by staying close while you work. Missing nothing, asking for nothing.","libra":"Loves to be near and in tune. Gives back the softness it wants.","scorpio":"Picks one person and keeps picking them. That is you, and it is for life.","sagittarius":"Loves by including you in the fun. The door is open, come on, keep up.","capricorn":"Undemonstrative and completely dependable. The love is in the showing up.","aquarius":"Loves on a slant. Sits one cushion away, which from them is devotion.","pisces":"Loves by melting into you. No edge between their mood and yours."}
 AUDIO = {
- "s1a":"This is the sky the night they arrived.","s1b":"Real positions. The actual sky, read for them.",
- "s2a":"Thirteen places in the sky. Each one says something true about who they are.","s2b":"We read three with you now. Quietly, one at a time.",
+ "s1a":"This is the sky the night they arrived.","s1b":"The real positions. The actual sky, the night they came to you.",
+ "s2a":"Thirteen places in the sky. Each one holds something true about who they are.","s2b":"We will open three of them now, gently, one at a time. The full reading is where all thirteen come together.",
  "s3a":"First, the Sun. This is who they are at the centre, before the world asks anything of them.","s3c":"You have watched this in them since the first day, even if you never had a word for it.",
  "s4a":"Now the Moon. This is their inner weather. How they feel safe, and how they ask for comfort.","s4c":"When they come to you at night, this is the part of them doing the choosing.",
  "s5a":"And Venus. This is how they love, and the kind of love they reach for back.","s5c":"The way they love you was never random. It was written up there before you met.",
  "s6a":"Three placements in, and a pattern is already showing.",
  "s6b-fire":"They are a fire-led soul.","s6b-earth":"They are an earth-led soul.","s6b-water":"They are a water-led soul.","s6b-air":"They are an air-led soul.",
  "el-fire":"Fire runs hot and quick. They live out loud, and they warm whatever room they are in.","el-earth":"Earth is steady and real. They trust what they can touch, and once they settle they stay.","el-water":"Water feels everything. They read you through their heart, and they remember how it felt.","el-air":"Air lives in the mind. Curious, social, always half a thought ahead of you.",
- "s7a":"That is three. There are ten more.","s7b":"Mars, where their courage lives. Saturn, what they carry, and what steadies them.","s7c":"Mercury, how they read a room. Chiron, the tender place they came in carrying.","s7d":"And the rest. The parts of them you feel every day and have never had named.","s7e":"We measured all of them. Right now, you are seeing three.",
- "s8a":"The lines between them are how all of it talks to each other.","s8b":"The full reading is where they stop being thirteen facts and start being one whole creature.","s8c":"And the face they show the world, once you can tell us the hour they were born.",
- "s9a":"You came here to find out who they really are.","s9b":"These three say it is real. The other ten say how deep it goes.","s9c":"You have met three of them tonight. The rest are right here, when you are ready.",
+ "s7a":"That is three. There are ten more.","s7b":"Mars, the seat of their courage. Saturn, what they carry, and what steadies them.","s7c":"Mercury, how they size up a room. Chiron, the tender place they came in carrying.","s7d":"And the rest. The parts of them you feel every day and have never had named.","s7e":"We measured all of them. Right now, you are seeing three.",
+ "s8a":"The lines between them are how all of it talks to each other.","s8b":"The full reading is where they stop being thirteen facts and start being one whole creature.","s8c":"And the deeper shape only the full reading draws, where it all comes together.",
+ "s9a":"You came here to find out who they really are.","s9b":"These three say it is real. The other ten say how deep it goes.","s9c":"You have met three of them tonight. The full reading is where you meet all of who they are.",
 }
 for s, t in SUN.items(): AUDIO[f"sun-{s}"] = t
 for s, t in MOON.items(): AUDIO[f"moon-{s}"] = t
