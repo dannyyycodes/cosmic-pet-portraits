@@ -10,7 +10,7 @@ from kokoro_onnx import Kokoro
 
 MODEL = os.path.expanduser(r"~/.cache/kokoro/kokoro-v1.0.onnx")
 VOICES = os.path.expanduser(r"~/.cache/kokoro/voices-v1.0.bin")
-OUT = os.path.join(os.path.dirname(__file__), "..", "public", "readings", "voice")
+OUT = os.path.join(os.path.dirname(__file__), "..", "public", "readings", "voice", "k2")
 OUT = os.path.abspath(OUT)
 VOICE = sys.argv[1] if len(sys.argv) > 1 else "af_heart"
 SPEED = float(sys.argv[2]) if len(sys.argv) > 2 else 0.92
