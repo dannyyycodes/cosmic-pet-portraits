@@ -1523,16 +1523,31 @@ const ELEMENT_LINE: Record<string, string> = {
   Air: "Air lives in the mind. Curious, social, always half a thought ahead of you.",
 };
 
-// Pick a calm, local, English voice for the narration. Falls back gracefully.
+// Pick the most soothing FEMALE English voice available. Scores neural / "Natural"
+// voices and known female names highest, hard-penalises male voices, prefers a soft
+// en-GB accent. Falls back gracefully if nothing English is installed.
+const VOICE_FEMALE = /(aria|jenny|libby|sonia|michelle|natasha|clara|samantha|karen|serena|moira|tessa|fiona|zira|hazel|susan|catherine|linda|joanna|salli|kimberly|amy|emma|nicole|olivia|ava|allison|victoria|kate|stephanie|female)/i;
+const VOICE_MALE = /(david|mark|george|daniel|fred|alex|rishi|guy|james|ryan|thomas|paul|oliver|arthur|brian|male)/i;
+const VOICE_NICE = /(natural|neural|online|premium|enhanced)/i;
 function pickJourneyVoice(): SpeechSynthesisVoice | null {
   try {
     const vs = window.speechSynthesis.getVoices() || [];
-    const pref = ["Samantha", "Karen", "Serena", "Fiona", "Moira", "Tessa", "Google UK English Female", "Google US English"];
-    for (const n of pref) {
-      const v = vs.find((x) => x.name === n);
-      if (v) return v;
-    }
-    return vs.find((v) => v.localService && /^en/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
+    if (!vs.length) return null;
+    const en = vs.filter((v) => /^en(-|_|$)/i.test(v.lang));
+    const pool = en.length ? en : vs;
+    const score = (v: SpeechSynthesisVoice) => {
+      let s = 0;
+      const n = v.name || "";
+      if (VOICE_NICE.test(n)) s += 6;
+      if (VOICE_FEMALE.test(n)) s += 5;
+      if (VOICE_MALE.test(n)) s -= 12;
+      if (/google uk english female/i.test(n)) s += 5;
+      if (/en-GB/i.test(v.lang)) s += 2;
+      else if (/en-US/i.test(v.lang)) s += 1;
+      if (v.localService) s += 1;
+      return s;
+    };
+    return [...pool].sort((a, b) => score(b) - score(a))[0] || null;
   } catch {
     return null;
   }
@@ -1609,13 +1624,18 @@ function CosmicJourney({
   const [email, setEmail] = useState("");
   const [offerMsg, setOfferMsg] = useState("");
   const infoBtnRef = useRef<HTMLButtonElement>(null);
+  const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
 
-  // Prime voices + always stop speech on unmount.
+  // Load the soothing female voice (voices arrive async) + stop speech on unmount.
   useEffect(() => {
-    if (hasSpeech) {
-      try { window.speechSynthesis.getVoices(); } catch { /* ignore */ }
-    }
-    return () => { if (hasSpeech) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } } };
+    if (!hasSpeech) return;
+    const load = () => setVoice(pickJourneyVoice());
+    load();
+    try { window.speechSynthesis.onvoiceschanged = load; } catch { /* ignore */ }
+    return () => {
+      try { window.speechSynthesis.onvoiceschanged = null; } catch { /* ignore */ }
+      try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
+    };
   }, [hasSpeech]);
 
   // The narration + auto-advance engine.
@@ -1644,11 +1664,11 @@ function CosmicJourney({
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(b.text);
-        u.rate = b.rate ?? 0.92;
-        u.pitch = 1.0;
+        u.rate = b.rate ?? 0.9;
+        u.pitch = 1.06;
         u.volume = 1.0;
-        const v = pickJourneyVoice();
-        if (v) u.voice = v;
+        const v = voice ?? pickJourneyVoice();
+        if (v) { u.voice = v; u.lang = v.lang; }
         u.onend = advance;
         u.onerror = advance;
         window.speechSynthesis.speak(u);
@@ -1664,7 +1684,7 @@ function CosmicJourney({
       clearTimeout(t2);
       if (hasSpeech) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } }
     };
-  }, [i, started, playing, muted, ended, infoOpen, nonce, BEATS, hasSpeech]);
+  }, [i, started, playing, muted, ended, infoOpen, nonce, BEATS, hasSpeech, voice]);
 
   const begin = (withSound: boolean) => {
     setMuted(!withSound);
