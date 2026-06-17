@@ -1415,7 +1415,7 @@ function OrreryInfoOverlay({
     >
       <div className="ls-info-panel">
         <div className="ls-info-bar">
-          <span className="ls-info-title">{name ? `${name}'s sky, planet by planet` : "Their sky, planet by planet"}</span>
+          <span className="ls-info-title">What each planet means</span>
           <button ref={closeRef} type="button" className="ls-info-back" onClick={onClose}>
             Close
           </button>
@@ -1478,7 +1478,6 @@ function OrreryInfoOverlay({
                   <span className="ls-orrery-bubble-glyph">{meta.glyph}</span>
                   <span className="ls-orrery-name">{meta.label}</span>
                 </span>
-                {activePlacement && <strong className="ls-orrery-placement">{activePlacement}</strong>}
                 <p className="ls-orrery-line ls-orrery-line--info">{line}</p>
               </motion.div>
             </AnimatePresence>
@@ -1600,22 +1599,11 @@ function BirthSkyJourney() {
     <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
       <div className="ls-orrery-head ls-reveal">
         {ready ? (
-          <>
-            <p style={eyebrowStyle(C.gold)}>
-              {name ? `${name}'s real sky` : "Their real sky"} · computed
-            </p>
-            <h3 className="mt-3 text-balance" style={chartTitleStyle}>Drawn from the day they arrived.</h3>
-          </>
+          <h3 className="text-balance" style={chartTitleStyle}>Drawn from the day they arrived.</h3>
         ) : (
-          <>
-            <p style={eyebrowStyle(C.gold)}>Their real birth chart · free</p>
-            <h3 className="mt-3 text-balance" style={chartTitleStyle}>
-              The sky the day they were <span style={{ color: C.gold }}>born</span> is still up there.
-            </h3>
-            <p className="mt-3 text-pretty" style={{ ...sectionBodyStyle, maxWidth: "46ch", marginInline: "auto" }}>
-              Give us their date and every planet lands exactly where it stood that day. No birth time needed.
-            </p>
-          </>
+          <h3 className="text-balance" style={chartTitleStyle}>
+            The sky the day they were <span style={{ color: C.gold }}>born</span> is still up there.
+          </h3>
         )}
       </div>
 
@@ -1688,36 +1676,39 @@ function BirthSkyJourney() {
       )}
 
       {ready && (
-        <div className="ls-reveal-stack ls-reveal">
+        <div className="ls-reveal-stack">
           <p className="ls-wheel-honesty">
             Every planet sits at its true position for that date. No rising sign here, that one needs the exact
-            minute and place. Everything on this wheel is honest from the date alone.
+            minute and place. Everything on this chart is honest from the date alone.
           </p>
-          <p className="ls-reveal-eyebrow">{name ? `${name}'s first three placements` : "Their first three placements"}</p>
-          <div className="ls-free-grid">
+
+          <div className="ls-chart-table">
             {FREE_KEYS.map((key) => {
               const b = bodyFor(key);
               const m = PLANET_META[key];
-              const deg = typeof b?.degree === "number" ? `, ${Math.round(b.degree)}°` : "";
+              const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
+              const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
               return (
-                <article key={key} className="ls-free-card">
-                  <span className="ls-free-head">
-                    <span className="ls-free-glyph" aria-hidden="true">{m.glyph}</span>
-                    {FREE_FRAME[key]}
-                  </span>
-                  <strong className="ls-free-sign">{b?.sign ? `${m.label} in ${b.sign}${deg}` : m.label}</strong>
-                  <small>{(b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key]}</small>
+                <article key={key} className="ls-trow is-open">
+                  <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
+                  <div className="ls-trow-main">
+                    <span className="ls-trow-top">
+                      <strong className="ls-trow-name">{m.label}</strong>
+                      {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
+                    </span>
+                    <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
+                    <p className="ls-trow-line">{text}</p>
+                  </div>
                 </article>
               );
             })}
           </div>
 
-          {!unlocked ? (
-            <form className="ls-gate2 ls-reveal" onSubmit={handleSaveEmail}>
-              <h4 className="ls-gate2-title">Three placements is where most readings stop.</h4>
+          {!unlocked && (
+            <form className="ls-gate2" onSubmit={handleSaveEmail}>
+              <h4 className="ls-gate2-title">Three placements free. The rest of the chart is one step away.</h4>
               <p className="ls-gate2-sub">
-                The full sky has ten more, and the angles between them are where {name ? `${name} takes` : "they take"} shape.
-                Add your email and read the rest now.
+                Add your email and the other ten placements open right here, in full.
               </p>
               <div className="ls-gate2-row">
                 <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
@@ -1729,53 +1720,54 @@ function BirthSkyJourney() {
               {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
               <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
             </form>
-          ) : (
-            <>
-              <p className="ls-reveal-eyebrow ls-reveal-eyebrow--rest">{name ? `${name}'s full chart, every placement` : "Their full chart, every placement"}</p>
-              <div className="ls-breakdown-grid">
-                {PLANET_ORDER.map((key) => {
-                  const b = bodyFor(key);
-                  const m = PLANET_META[key];
-                  const deg = typeof b?.degree === "number" ? `, ${Math.round(b.degree)}°` : "";
-                  const body = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
-                  return (
-                    <article key={key} className="ls-free-card ls-breakdown-card">
-                      <span className="ls-free-head">
-                        <span className="ls-free-glyph" aria-hidden="true">{m.glyph}</span>
-                        {PLANET_FRAME[key] ?? m.label}
-                      </span>
-                      <strong className="ls-free-sign">{b?.sign ? `${m.label} in ${b.sign}${deg}` : m.label}</strong>
-                      <small>{body}</small>
-                    </article>
-                  );
-                })}
-              </div>
-
-              <div className="ls-locked-block">
-                <p className="ls-locked-eyebrow">What the full reading opens</p>
-                <div className="ls-teaser-grid">
-                  {PREMIUM_TEASERS.map((t, i) => (
-                    <article key={t.title} className="ls-teaser-card" style={revealDelay(i * 0.04)}>
-                      <strong className="ls-teaser-title">{t.title}</strong>
-                      <small className="ls-teaser-line">{t.line}</small>
-                    </article>
-                  ))}
-                </div>
-              </div>
-
-              <div className="ls-upsell">
-                <h4 className="ls-upsell-title">You&apos;ve seen their sky. Now understand what it means between you.</h4>
-                <p className="ls-upsell-pitch">
-                  The free chart opens their first placements. The full reading turns the whole celestial
-                  pattern into a portrait of their nature, their needs, and the bond only the two of you
-                  share. It doesn&apos;t just describe them. It changes how you meet them.
-                </p>
-                <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
-                  Read {name || "their"} full reading <ArrowRight size={17} />
-                </button>
-              </div>
-            </>
           )}
+
+          <div className="ls-chart-table">
+            {REST_KEYS.map((key) => {
+              const b = bodyFor(key);
+              const m = PLANET_META[key];
+              const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
+              const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
+              return (
+                <article key={key} className={`ls-trow ${unlocked ? "is-open" : "is-locked"}`}>
+                  <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
+                  <div className="ls-trow-main">
+                    <span className="ls-trow-top">
+                      <strong className="ls-trow-name">{m.label}</strong>
+                      {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
+                    </span>
+                    <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
+                    <p className="ls-trow-line">{text}</p>
+                  </div>
+                  {!unlocked && <span className="ls-trow-lock">Email to read</span>}
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="ls-locked-block">
+            <p className="ls-locked-eyebrow">What the full reading opens</p>
+            <div className="ls-teaser-grid">
+              {PREMIUM_TEASERS.map((t, i) => (
+                <article key={t.title} className="ls-teaser-card" style={revealDelay(i * 0.04)}>
+                  <strong className="ls-teaser-title">{t.title}</strong>
+                  <small className="ls-teaser-line">{t.line}</small>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="ls-upsell">
+            <h4 className="ls-upsell-title">You&apos;ve seen their sky. Now understand what it means between you.</h4>
+            <p className="ls-upsell-pitch">
+              The free chart opens every placement they were born under. The full reading turns the whole celestial
+              pattern into a portrait of their nature, their needs, and the bond only the two of you share. It
+              doesn&apos;t just describe them. It changes how you meet them.
+            </p>
+            <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
+              Read {name || "their"} full reading <ArrowRight size={17} />
+            </button>
+          </div>
         </div>
       )}
     </section>
@@ -4380,6 +4372,21 @@ function CosmicStyles() {
       .ls-breakdown-card { justify-items: start; text-align: left; }
       .ls-breakdown-card .ls-free-sign { text-align: left; }
       .ls-breakdown-card small { text-align: left; }
+      .ls-chart-table { display: grid; gap: 10px; width: 100%; max-width: 760px; margin: 0 auto; }
+      .ls-trow {
+        position: relative; display: grid; grid-template-columns: auto 1fr; gap: 13px; align-items: start;
+        padding: 14px 16px; border: 1px solid ${C.line}; border-radius: 14px; text-align: left;
+        background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
+      }
+      .ls-trow-glyph { font-family: "Noto Sans Symbols2", "Segoe UI Symbol", "Apple Symbols", system-ui, sans-serif; font-size: 1.4rem; line-height: 1; color: ${C.gold}; padding-top: 3px; }
+      .ls-trow-main { min-width: 0; display: grid; gap: 4px; }
+      .ls-trow-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .ls-trow-name { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.06rem; font-weight: 500; }
+      .ls-trow-sign { color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+      .ls-trow-frame { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+      .ls-trow-line { margin: 3px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.9rem; line-height: 1.5; transition: filter 300ms ease; }
+      .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px); user-select: none; }
+      .ls-trow-lock { position: absolute; top: 14px; right: 16px; color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
       .ls-info-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .ls-info-back {
         display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
