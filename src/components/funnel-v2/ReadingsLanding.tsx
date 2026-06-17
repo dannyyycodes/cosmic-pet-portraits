@@ -980,7 +980,7 @@ function NatalWheel({
   }
 
   const aspects = computeWheelAspects(placed);
-  const dom = chart.dominantElement;
+  const dom = chart.sun?.element || chart.dominantElement;
   const sunSignIdx = chart.sun?.sign != null ? (WHEEL_SIGN_INDEX[chart.sun.sign] ?? -1) : -1;
   const beat = (i: number) => (reduce ? 0 : i);
 
@@ -1556,7 +1556,7 @@ function pickJourneyVoice(): SpeechSynthesisVoice | null {
 type Beat = { scene: number; text: string; focus?: string; rate?: number; font?: "caveat"; audio?: string };
 
 function buildBeats(chart: PetBirthChart, name: string): Beat[] {
-  const el = (chart.dominantElement || "").trim();
+  const el = (chart.sun?.element || chart.dominantElement || "").trim();
   const elc = el.toLowerCase();
   const sline = (k: keyof typeof PLANET_META) => {
     const b = chart[k as keyof PetBirthChart] as ChartBody | undefined;
@@ -1694,11 +1694,12 @@ function CosmicJourney({
       try {
         a.pause();
         a.onended = advance;
-        a.onerror = () => { if (!advanced) speakBrowser(); };
+        a.onerror = () => { if (!cancelled && !advanced) speakBrowser(); };
         a.src = `/readings/voice/k3/${b.audio}.mp3`;
         a.currentTime = 0;
         const pr = a.play();
-        if (pr && typeof pr.catch === "function") pr.catch(() => { if (!advanced) speakBrowser(); });
+        // Ignore the AbortError that pause/seek throws, so pausing never swaps to the browser voice.
+        if (pr && typeof pr.catch === "function") pr.catch((err) => { if (!cancelled && !advanced && !(err && err.name === "AbortError")) speakBrowser(); });
         t1 = window.setTimeout(advance, 16000); // safety if 'ended' never fires
       } catch {
         speakBrowser();
