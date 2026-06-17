@@ -1695,7 +1695,7 @@ function CosmicJourney({
         a.pause();
         a.onended = advance;
         a.onerror = () => { if (!advanced) speakBrowser(); };
-        a.src = `/readings/voice/${b.audio}.mp3?v=2`;
+        a.src = `/readings/voice/k2/${b.audio}.mp3`;
         a.currentTime = 0;
         const pr = a.play();
         if (pr && typeof pr.catch === "function") pr.catch(() => { if (!advanced) speakBrowser(); });
