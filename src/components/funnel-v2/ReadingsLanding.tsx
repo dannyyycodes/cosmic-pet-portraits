@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
@@ -1269,16 +1269,22 @@ function ComputeSequence({
   return (
     <div className="ls-compute" role="status" aria-live="polite">
       <div className="ls-compute-dust" aria-hidden="true" />
-      <span className={`ls-compute-mote ${step >= 1 ? "is-lit" : ""}`} aria-hidden="true" />
+      <div className="ls-compute-instrument" aria-hidden="true">
+        <span className="ls-compute-ring ls-compute-ring-1"><i /></span>
+        <span className="ls-compute-ring ls-compute-ring-2"><i /></span>
+        <span className="ls-compute-ring ls-compute-ring-3" />
+        <span className="ls-compute-sweep" />
+        <span className={`ls-compute-mote ${step >= 1 ? "is-lit" : ""}`} />
+      </div>
       <div className="ls-compute-readout">{readout}</div>
       <AnimatePresence mode="wait">
         <motion.p
           key={step}
           className="ls-compute-line"
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.25, ease: [0.22, 0.7, 0.2, 1] }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.32, ease: [0.22, 0.7, 0.2, 1] }}
         >
           {lines[step]}
         </motion.p>
@@ -1619,10 +1625,10 @@ function CosmicJourney({
   const BEATS = useMemo(() => buildBeats(chart, name), [chart, name]);
   const hasSpeech = typeof window !== "undefined" && "speechSynthesis" in window;
 
-  const [started, setStarted] = useState(false);
+  const [started] = useState(true);
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [ended, setEnded] = useState(false);
   const [nonce, setNonce] = useState(0);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -1718,16 +1724,20 @@ function CosmicJourney({
     };
   }, [i, started, playing, muted, ended, infoOpen, nonce, BEATS, hasSpeech, voice]);
 
-  const begin = (withSound: boolean) => {
-    setMuted(!withSound);
-    try { localStorage.setItem("ls_journey_sound", withSound ? "1" : "0"); } catch { /* ignore */ }
-    if (withSound && hasSpeech) {
-      try { const p = new SpeechSynthesisUtterance(" "); p.volume = 0; window.speechSynthesis.speak(p); } catch { /* ignore */ }
+  // The journey auto-plays muted (captions + animation). This turns the voice on,
+  // inside the user gesture so the browser allows audio playback.
+  const enableSound = () => {
+    try {
+      const a = audioRef.current;
+      if (a) { a.muted = false; const p = a.play(); if (p && typeof p.catch === "function") p.catch(() => {}); }
+    } catch { /* ignore */ }
+    if (hasSpeech) {
+      try { const pr = new SpeechSynthesisUtterance(" "); pr.volume = 0; window.speechSynthesis.speak(pr); } catch { /* ignore */ }
     }
-    setStarted(true);
     setPlaying(true);
-    setI(0);
-    setEnded(false);
+    setMuted(false);
+    setNonce((n) => n + 1);
+    try { localStorage.setItem("ls_journey_sound", "1"); } catch { /* ignore */ }
   };
 
   const goNext = () => {
@@ -1756,24 +1766,6 @@ function CosmicJourney({
   const showOffer = ended;
   const SCENES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-  // Scene 0: the begin gate (the gesture that lets the voice play).
-  if (!started) {
-    return (
-      <div className="ls-journey ls-journey--start">
-        <NatalWheel chart={chart} name={name} bornLabel={bornLabel} reduce={reduce} onInfo={() => { /* noop pre-start */ }} hideInfo />
-        <div className="ls-start">
-          <p className="ls-start-eyebrow">Their chart is drawn</p>
-          <h3 className="ls-start-name">{name || "Their sky"}</h3>
-          <p className="ls-start-sub">Born under the real sky on {bornLabel}.</p>
-          <button type="button" className="ls-gold-button ls-violet-button ls-start-cta" onClick={() => begin(true)}>
-            Begin with sound <ArrowRight size={17} />
-          </button>
-          <button type="button" className="ls-start-quiet" onClick={() => begin(false)}>Read it in silence</button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="ls-journey" onClick={(e) => { if (e.target === e.currentTarget && !showOffer) goNext(); }}>
       <audio ref={audioRef} preload="auto" aria-hidden="true" />
@@ -1786,9 +1778,13 @@ function CosmicJourney({
           focusKey={focusKey}
           onInfo={() => setInfoOpen(true)}
           infoBtnRef={infoBtnRef}
-          hideInfo
         />
       </div>
+      {!showOffer && muted && (
+        <button type="button" className="ls-sound-cta" onClick={enableSound}>
+          <Volume2 size={17} /> Play with sound
+        </button>
+      )}
 
       {!showOffer && (
         <div className="ls-journey-cap" onClick={() => goNext()}>
@@ -4535,25 +4531,41 @@ function CosmicStyles() {
         animation: ls-twinkle 3.6s ease-in-out infinite;
       }
       @keyframes ls-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+      .ls-compute-instrument { position: absolute; top: 41%; left: 50%; width: 176px; height: 176px; transform: translate(-50%, -50%); }
+      .ls-compute-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(212,182,122,0.24); }
+      .ls-compute-ring i { position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: ${C.violetSoft}; box-shadow: 0 0 10px rgba(154,126,230,0.9); }
+      .ls-compute-ring-1 { inset: 0; animation: ls-spin 7s linear infinite; }
+      .ls-compute-ring-2 { inset: 28px; border-color: rgba(212,182,122,0.16); animation: ls-spin 11s linear infinite reverse; }
+      .ls-compute-ring-2 i { background: ${C.goldSoft}; box-shadow: 0 0 10px rgba(240,217,159,0.9); }
+      .ls-compute-ring-3 { inset: 56px; border-style: dashed; border-color: rgba(245,239,230,0.12); }
+      .ls-compute-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(212,182,122,0.3), rgba(212,182,122,0) 30%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%); mask: radial-gradient(circle, transparent 30%, #000 31%); animation: ls-spin 4.5s linear infinite; }
       .ls-compute-mote {
-        position: absolute; top: 42%; left: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+        position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
         border-radius: 50%;
         background: radial-gradient(circle at 40% 35%, ${C.goldSoft}, ${C.gold} 60%, ${C.goldDeep});
-        box-shadow: 0 0 26px rgba(212,182,122,0.75);
-        opacity: 0.5; transform: scale(0.7);
+        box-shadow: 0 0 30px rgba(212,182,122,0.8);
+        opacity: 0.55; transform: scale(0.7);
         transition: opacity 400ms ease, transform 400ms ease;
         animation: ls-corepulse 3s ease-in-out infinite;
       }
       .ls-compute-mote.is-lit { opacity: 1; transform: scale(1); }
       .ls-compute-readout {
-        position: absolute; top: 57%; left: 0; right: 0; min-height: 1.2em; text-align: center;
+        position: absolute; top: 60%; left: 0; right: 0; min-height: 1.2em; text-align: center;
         color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem;
         letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
       }
       .ls-compute-line {
-        position: absolute; bottom: 14%; left: 0; right: 0; margin: 0; padding: 0 24px; text-align: center;
-        color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.98rem; line-height: 1.4;
+        position: absolute; bottom: 13%; left: 0; right: 0; margin: 0; padding: 0 24px; text-align: center;
+        color: ${C.cream}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.15rem, 3.4vw, 1.5rem); line-height: 1.35;
       }
+      .ls-sound-cta {
+        display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px;
+        border: 1px solid rgba(212,182,122,0.5); background: rgba(124,92,214,0.18); color: ${C.goldSoft};
+        font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; cursor: pointer;
+        animation: ls-soundpulse 2.6s ease-in-out infinite;
+      }
+      .ls-sound-cta:hover { background: rgba(124,92,214,0.34); color: ${C.cream}; border-color: ${C.gold}; }
+      @keyframes ls-soundpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(212,182,122,0); } 50% { box-shadow: 0 0 0 7px rgba(212,182,122,0.08); } }
 
       .ls-wheel { display: grid; justify-items: center; gap: 16px; }
       .ls-wheel-svg { width: min(92vw, 460px); height: auto; aspect-ratio: 1; display: block; }
@@ -4686,7 +4698,7 @@ function CosmicStyles() {
       .ls-info-title { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; }
       .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.5; }
       @media (prefers-reduced-motion: reduce) {
-        .ls-compute-dust, .ls-compute-mote { animation: none !important; }
+        .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
 
       .ls-checkout-shell {
