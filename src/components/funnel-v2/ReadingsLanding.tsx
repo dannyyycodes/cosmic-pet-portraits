@@ -1098,7 +1098,7 @@ function NatalWheel({
               key={p.key}
               initial={reduce ? false : { opacity: 0, scale: 0 }}
               animate={reduce ? {} : { opacity: dimmed ? 0.13 : 1, scale: isFocus ? 1.22 : 1 }}
-              transition={{ duration: focusKey == null ? beat(0.42) : 0.55, delay: drawDelay, ease: focusKey == null ? [0.34, 1.3, 0.6, 1] : [0.22, 0.7, 0.2, 1] }}
+              transition={{ duration: focusKey == null ? beat(0.42) : 0.9, delay: drawDelay, ease: focusKey == null ? [0.34, 1.3, 0.6, 1] : [0.22, 0.7, 0.2, 1] }}
               style={{ transformOrigin: `${gp.x}px ${gp.y}px` }}
             >
               {isFocus && <circle cx={gp.x} cy={gp.y} r={27} fill={tone} opacity={0.16} />}
@@ -1695,7 +1695,7 @@ function CosmicJourney({
         a.pause();
         a.onended = advance;
         a.onerror = () => { if (!advanced) speakBrowser(); };
-        a.src = `/readings/voice/${b.audio}.mp3`;
+        a.src = `/readings/voice/${b.audio}.mp3?v=2`;
         a.currentTime = 0;
         const pr = a.play();
         if (pr && typeof pr.catch === "function") pr.catch(() => { if (!advanced) speakBrowser(); });
@@ -1795,10 +1795,10 @@ function CosmicJourney({
             <motion.p
               key={i}
               className={`ls-cap-line ${beat.font === "caveat" ? "is-caveat" : ""}`}
-              initial={reduce ? false : { opacity: 0, y: 10 }}
+              initial={reduce ? false : { opacity: 0, y: 14 }}
               animate={reduce ? {} : { opacity: 1, y: 0 }}
-              exit={reduce ? {} : { opacity: 0, y: -8 }}
-              transition={{ duration: reduce ? 0 : 0.4, ease: [0.22, 0.7, 0.2, 1] }}
+              exit={reduce ? {} : { opacity: 0, y: -10 }}
+              transition={{ duration: reduce ? 0 : 0.75, ease: [0.22, 0.7, 0.2, 1] }}
             >
               {beat.text}
             </motion.p>
@@ -4616,39 +4616,65 @@ function CosmicStyles() {
       .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px); user-select: none; }
       .ls-trow-lock { position: absolute; top: 14px; right: 16px; color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
 
-      /* === The narrated journey ============================================ */
-      .ls-journey { position: relative; width: 100%; max-width: 720px; margin: clamp(16px,4vw,36px) auto 0; display: grid; justify-items: center; gap: 16px; }
-      .ls-journey-stage { width: 100%; display: grid; justify-items: center; pointer-events: none; transition: opacity 500ms ease, filter 500ms ease; }
-      .ls-journey-stage.is-dim { opacity: 0.2; filter: blur(2px); pointer-events: none; }
-      .ls-journey-cap { min-height: 140px; display: grid; place-items: center; padding: 4px 8px; cursor: pointer; width: 100%; }
-      .ls-cap-line { margin: 0; max-width: 24ch; text-align: center; color: ${C.cream}; font-family: "Cormorant", "Playfair Display", Georgia, serif; font-size: clamp(1.55rem, 5.4vw, 2.35rem); line-height: 1.32; font-weight: 500; }
-      .ls-cap-line.is-caveat { font-family: "Caveat", cursive; color: ${C.goldSoft}; font-size: clamp(1.8rem, 6.4vw, 2.7rem); line-height: 1.2; }
-      .ls-journey-dots { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 260px; }
-      .ls-jdot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(224,218,242,0.2); cursor: pointer; transition: transform .25s ease, background .25s ease; }
-      .ls-jdot.is-done { background: rgba(212,182,122,0.5); }
-      .ls-jdot.is-active { background: ${C.goldSoft}; transform: scale(1.5); }
-      .ls-journey-controls { display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid ${C.line}; border-radius: 999px; background: rgba(13,10,20,0.6); }
-      .ls-jbtn { min-width: 44px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.95rem; cursor: pointer; transition: color 180ms ease, background 180ms ease; }
+      /* === The narrated journey (cinematic) =============================== */
+      .ls-journey { position: relative; width: 100%; max-width: 880px; margin: clamp(16px,4vw,40px) auto 0; display: grid; justify-items: center; gap: clamp(20px,3.4vw,34px); padding: clamp(26px,5vw,54px) 16px clamp(20px,3vw,34px); border-radius: 28px; overflow: hidden; isolation: isolate; background: radial-gradient(125% 95% at 50% 6%, #16111e 0%, #0b0813 56%, #07060c 100%); box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 50px 130px rgba(0,0,0,0.55); }
+      .ls-journey > * { position: relative; z-index: 2; }
+      .ls-journey::before { content: ""; position: absolute; inset: -12%; z-index: 0; pointer-events: none; opacity: 0.5;
+        background-image:
+          radial-gradient(1px 1px at 22% 18%, #fff, transparent),
+          radial-gradient(1px 1px at 70% 28%, rgba(255,255,255,0.82), transparent),
+          radial-gradient(1.5px 1.5px at 44% 62%, #fff, transparent),
+          radial-gradient(1px 1px at 16% 80%, rgba(255,255,255,0.68), transparent),
+          radial-gradient(1px 1px at 86% 70%, rgba(255,255,255,0.7), transparent),
+          radial-gradient(1.6px 1.6px at 60% 90%, #fff, transparent),
+          radial-gradient(40% 50% at 28% 30%, rgba(124,92,214,0.12), transparent 70%),
+          radial-gradient(46% 46% at 78% 64%, rgba(94,70,122,0.14), transparent 72%);
+        background-size: 320px 320px, 320px 320px, 320px 320px, 320px 320px, 320px 320px, 320px 320px, 100% 100%, 100% 100%;
+        animation: ls-jdrift 90s linear infinite; }
+      .ls-journey::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: 28px;
+        background: radial-gradient(125% 80% at 50% 40%, transparent 50%, rgba(4,3,8,0.6) 100%); }
+      @keyframes ls-jdrift { to { transform: translate3d(-46px, -34px, 0); } }
+      .ls-journey-stage { position: relative; height: auto; overflow: visible; padding: 0; width: 100%; display: grid; justify-items: center; pointer-events: none; transition: opacity 700ms ease, filter 700ms ease; }
+      .ls-journey-stage.is-dim { opacity: 0.14; filter: blur(3px); }
+      .ls-journey-stage .ls-wheel { position: relative; }
+      .ls-journey-stage .ls-wheel::before { content: ""; position: absolute; inset: -6%; z-index: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(124,92,214,0.22), rgba(212,182,122,0.07) 46%, transparent 70%); animation: ls-jglow 7s ease-in-out infinite; }
+      .ls-journey-stage .ls-wheel-svg { position: relative; z-index: 1; animation: ls-jbreath 9s ease-in-out infinite; }
+      @keyframes ls-jglow { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+      @keyframes ls-jbreath { 0%,100% { transform: scale(1); } 50% { transform: scale(1.014); } }
+      .ls-journey-cap { min-height: clamp(150px,22vh,210px); display: grid; place-items: center; padding: 4px 10px; cursor: pointer; width: 100%; }
+      .ls-cap-line { margin: 0; max-width: 21ch; text-align: center; color: ${C.cream}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.75rem, 5.9vw, 2.85rem); line-height: 1.32; font-weight: 500; letter-spacing: 0.004em; text-shadow: 0 2px 34px rgba(124,92,214,0.35); }
+      .ls-cap-line.is-caveat { font-family: "Caveat", cursive; color: ${C.goldSoft}; font-size: clamp(2.1rem, 7vw, 3.1rem); line-height: 1.2; }
+      .ls-journey-dots { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; max-width: 280px; }
+      .ls-jdot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: rgba(224,218,242,0.16); cursor: pointer; transition: transform .3s ease, background .3s ease; }
+      .ls-jdot.is-done { background: rgba(212,182,122,0.45); }
+      .ls-jdot.is-active { background: ${C.goldSoft}; transform: scale(1.7); }
+      .ls-journey-controls { display: flex; align-items: center; gap: 14px; opacity: 0.55; transition: opacity 250ms ease; }
+      .ls-journey-controls:hover, .ls-journey-controls:focus-within { opacity: 1; }
+      .ls-jbtn { min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 1rem; cursor: pointer; transition: color 200ms ease; }
       .ls-jbtn:hover { color: ${C.gold}; }
-      .ls-jbtn--play { background: ${C.violet}; color: ${C.cream}; min-width: 50px; }
-      .ls-jbtn--play:hover { background: ${C.violetSoft}; color: ${C.cream}; }
-      .ls-jbtn--sound { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; }
-      .ls-start { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; border-radius: 20px; padding: 24px; background: radial-gradient(ellipse at 50% 45%, rgba(13,10,20,0.5), rgba(8,6,11,0.88) 72%); }
-      .ls-start-eyebrow { color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
-      .ls-start-name { margin: 4px 0 0; color: ${C.goldSoft}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2.4rem, 9vw, 4rem); line-height: 1; }
-      .ls-start-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; }
-      .ls-start-cta { margin-top: 14px; }
-      .ls-start-quiet { background: none; border: 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 2px; }
+      .ls-jbtn--play { color: ${C.goldSoft}; font-size: 1.05rem; }
+      .ls-jbtn--sound { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+      .ls-start { position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; border-radius: 28px; padding: 24px; background: radial-gradient(ellipse at 50% 45%, rgba(11,8,18,0.55), rgba(6,5,11,0.92) 72%); }
+      .ls-journey--start .ls-wheel-svg { filter: blur(3px) brightness(0.85); opacity: 0.5; animation: none; }
+      .ls-journey--start .ls-wheel-centername, .ls-journey--start .ls-wheel-centerborn, .ls-journey--start .ls-wheel-centerdom { display: none; }
+      .ls-start-eyebrow { color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+      .ls-start-name { margin: 6px 0 0; color: ${C.goldSoft}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2.6rem, 9.5vw, 4.4rem); line-height: 1; text-shadow: 0 2px 40px rgba(212,182,122,0.3); }
+      .ls-start-sub { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-size: 1.1rem; }
+      .ls-start-cta { margin-top: 16px; }
+      .ls-start-quiet { background: none; border: 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 4px; }
       .ls-start-quiet:hover { color: ${C.creamDim}; }
-      .ls-offer { width: 100%; max-width: 560px; display: grid; justify-items: center; text-align: center; gap: 12px; padding: clamp(22px,4vw,34px); border: 1px solid rgba(212,182,122,0.3); border-radius: 18px; background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.18), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.94), rgba(13,10,20,0.97)); }
-      .ls-offer-title { color: ${C.cream}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(1.9rem, 5.4vw, 2.7rem); line-height: 1.05; }
-      .ls-offer-stack { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.05rem, 3vw, 1.3rem); line-height: 1.5; max-width: 46ch; }
+      .ls-offer { width: 100%; max-width: 560px; display: grid; justify-items: center; text-align: center; gap: 13px; padding: clamp(24px,4vw,38px); border: 1px solid rgba(212,182,122,0.3); border-radius: 20px; background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.2), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.95), rgba(13,10,20,0.98)); box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
+      .ls-offer-title { color: ${C.cream}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2rem, 5.6vw, 2.9rem); line-height: 1.05; }
+      .ls-offer-stack { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.1rem, 3.1vw, 1.35rem); line-height: 1.5; max-width: 46ch; }
       .ls-offer-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; width: 100%; max-width: 460px; margin-top: 6px; }
       .ls-offer-form input { min-height: 48px; width: 100%; border: 1px solid rgba(212,182,122,0.34); border-radius: 8px; background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px; font-family: Lato, system-ui, sans-serif; }
       .ls-offer-form input:focus { outline: none; border-color: ${C.violetSoft}; }
-      .ls-offer-trust { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.02rem; max-width: 44ch; }
+      .ls-offer-trust { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.04rem; max-width: 44ch; }
       @media (max-width: 520px) { .ls-offer-form { grid-template-columns: 1fr; } }
-      @media (prefers-reduced-motion: reduce) { .ls-journey-stage { transition: none !important; } }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-journey-stage { transition: none !important; }
+        .ls-journey::before, .ls-journey-stage .ls-wheel::before, .ls-journey-stage .ls-wheel-svg { animation: none !important; }
+      }
       .ls-info-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .ls-info-back {
         display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
