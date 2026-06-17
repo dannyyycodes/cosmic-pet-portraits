@@ -1946,11 +1946,6 @@ function BirthSkyJourney() {
         />
       ) : (
         <>
-          <div className="ls-orrery-head ls-reveal">
-            <h3 className="text-balance" style={chartTitleStyle}>
-              The sky the day they were <span style={{ color: C.gold }}>born</span> is still up there.
-            </h3>
-          </div>
           <div className="ls-stage">
             {status === "computing" ? (
               <ComputeSequence
