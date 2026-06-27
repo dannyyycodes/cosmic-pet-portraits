@@ -22,6 +22,13 @@ interface FramedCanvasPreviewProps {
   frameColor: FrameColor | null;
   /** Max rendered width in px (keeps tall portraits in-frame on mobile). */
   maxWidth?: number;
+  /**
+   * Force the canvas aspect ratio (CSS "w / h", e.g. "2 / 3"). When set, the
+   * frame shows the artwork's TRUE ratio and never morphs as the size changes —
+   * so the whole piece stays in full frame on every size. Omit to fall back to
+   * the selected size's ratio.
+   */
+  aspectOverride?: string;
 }
 
 // Real wood texture per stain (Codex gpt-image-1, seamless 1024² planks).
@@ -42,9 +49,12 @@ export function FramedCanvasPreview({
   sizeKey,
   frameColor,
   maxWidth = 320,
+  aspectOverride,
 }: FramedCanvasPreviewProps) {
   const size = CANVAS_SIZES.find((s) => s.uid === sizeKey) ?? CANVAS_SIZES[3];
-  const aspect = `${size.inches.w} / ${size.inches.h}`;
+  // Lock to the artwork's true ratio when given, so the full piece always shows
+  // (no per-size re-crop); otherwise mirror the chosen canvas size.
+  const aspect = aspectOverride ?? `${size.inches.w} / ${size.inches.h}`;
 
   // Frame thickness scales a little with the print's long edge so a Statement
   // canvas reads heftier than a Small one.

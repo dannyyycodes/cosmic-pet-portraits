@@ -65,6 +65,25 @@ function detailPpi(srcW: number, srcH: number, inW: number, inH: number): number
   return Math.floor(Math.min((pw / scale) / inW, (ph / scale) / inH));
 }
 
+function gcdInt(a: number, b: number): number {
+  return b === 0 ? a : gcdInt(b, a % b);
+}
+
+// The artwork's true aspect ratio, reduced. Premade library art is uniformly
+// 2:3 (1024×1536), but read it from the row so any future ratio just works.
+function artRatio(r: ArtRow): { rw: number; rh: number; dec: number } {
+  let w = 0;
+  let h = 0;
+  const m = (r.aspect_ratio || "").match(/^\s*(\d+)\s*:\s*(\d+)\s*$/);
+  if (m) { w = parseInt(m[1], 10); h = parseInt(m[2], 10); }
+  else if (r.width > 0 && r.height > 0) { w = r.width; h = r.height; }
+  else { w = 2; h = 3; }
+  const g = gcdInt(w, h) || 1;
+  const rw = w / g;
+  const rh = h / g;
+  return { rw, rh, dec: rw / rh };
+}
+
 function cleanPrompt(raw: string | null | undefined): string {
   if (!raw) return "";
   return raw
@@ -110,6 +129,11 @@ export default function PawtraitArt() {
 
   const framed = frame !== "none";
   const productType = framed ? "framed-canvas" : "canvas";
+
+  // The artwork's true ratio — drives the preview so it always shows the FULL
+  // piece and never changes shape as you switch size (premade art is 2:3).
+  const ratio = useMemo(() => (row ? artRatio(row) : { rw: 2, rh: 3, dec: 2 / 3 }), [row]);
+
   const sizeDef = CANVAS_SIZES.find((s) => s.uid === sizeKey) ?? CANVAS_SIZES[4];
   const frameUpgrade = sizeDef.frameUpgradeGBP;
 
@@ -256,6 +280,7 @@ export default function PawtraitArt() {
                 sizeKey={sizeKey}
                 frameColor={framed ? (frame as FrameColor) : null}
                 maxWidth={540}
+                aspectOverride={`${ratio.rw} / ${ratio.rh}`}
               />
             </div>
 
@@ -345,9 +370,33 @@ export default function PawtraitArt() {
                   {buying === "digital" ? "Starting download checkout…" : `Prefer just the digital file? Download for £${DIGITAL_PRICE} →`}
                 </button>
 
-                <div style={{ marginTop: 18, paddingTop: 18, borderTop: `1px solid ${PALETTE.sand}` }}>
-                  <p style={{ ...body("13.5px"), color: PALETTE.earthMuted, margin: "0 0 8px" }}>Want your own pet in this style?</p>
-                  <Link to={`/pawtraits?style=${encodeURIComponent(row.art_style)}#studio`} style={{ color: PALETTE.rose, fontWeight: 700, ...body("15px") }}>
+                {/* Make-your-own — distinct GOLD callout so it stands out from
+                    the rose "buy this print" without competing for primary. */}
+                <div style={{
+                  marginTop: 24,
+                  padding: "20px 22px",
+                  borderRadius: 18,
+                  background: "linear-gradient(180deg, #fffdf6 0%, #fbf3e3 100%)",
+                  border: `1.5px solid ${PALETTE.goldSoft}`,
+                  boxShadow: "0 8px 26px rgba(196,162,101,0.18)",
+                }}>
+                  <p style={{ ...eyebrow(PALETTE.goldDeep), marginBottom: 7 }}>Make it your own</p>
+                  <p style={{ ...display("20px"), color: PALETTE.ink, margin: "0 0 6px" }}>
+                    Want <em style={{ fontStyle: "italic" }}>your</em> pet in this exact style?
+                  </p>
+                  <p style={{ ...body("13.5px"), color: PALETTE.earth, margin: "0 0 16px", maxWidth: "44ch" }}>
+                    Send one photo and we'll create a one-of-a-kind {prettyArtStyle(row.art_style).toLowerCase()} portrait of your own little soul.
+                  </p>
+                  <Link
+                    to={`/pawtraits?style=${encodeURIComponent(row.art_style)}#studio`}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 8,
+                      background: PALETTE.gold, color: "#fff",
+                      padding: "14px 26px", borderRadius: 999,
+                      ...display("15px"), fontWeight: 700, textDecoration: "none",
+                      boxShadow: "0 10px 24px rgba(196,162,101,0.42)",
+                    }}
+                  >
                     Create your pet's portrait →
                   </Link>
                 </div>
