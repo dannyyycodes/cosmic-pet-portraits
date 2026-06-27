@@ -362,7 +362,7 @@ function AuthorityRow() {
             type="button"
             aria-label="How the reading is calculated"
             aria-expanded={open}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
             onFocus={() => setOpen(true)}
