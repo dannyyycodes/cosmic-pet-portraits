@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<title>Little Souls Reading — upsell concepts</title>
+<title>Little Souls Reading — upsell card</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -17,123 +17,88 @@
     --sand:#e8ddd0; --night:#161a24;
     --disp:'Fraunces',Georgia,serif;
     --ui:'Hanken Grotesk',system-ui,sans-serif;
-    /* warm layered shadows, never flat black */
     --sh-li:0 1px 2px rgba(20,18,16,.05);
-    --sh-card:0 1px 1px rgba(20,18,16,.04), 0 8px 18px -8px rgba(20,18,16,.16), 0 30px 60px -36px rgba(20,18,16,.40);
-    --sh-drawer:0 2px 6px rgba(20,18,16,.05), 0 24px 70px -30px rgba(20,18,16,.30);
-    --sh-btn:0 1px 1px rgba(20,18,16,.10), 0 12px 22px -8px rgba(156,61,54,.45);
-    --sh-img:0 10px 26px -14px rgba(20,18,16,.55);
+    --sh-card:0 1px 1px rgba(20,18,16,.04), 0 10px 22px -10px rgba(20,18,16,.18), 0 40px 70px -42px rgba(20,18,16,.45);
+    --sh-drawer:0 2px 6px rgba(20,18,16,.05), 0 30px 80px -34px rgba(20,18,16,.32);
+    --sh-btn:0 1px 1px rgba(20,18,16,.10), 0 14px 26px -8px rgba(156,61,54,.45);
+    --sh-img:0 8px 18px -10px rgba(20,18,16,.5);
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
-    background:radial-gradient(135% 95% at 12% -5%, #fffefb 0%, var(--cream) 48%, var(--cream2) 100%);
+    background:radial-gradient(135% 90% at 50% -8%, #fffefb 0%, var(--cream) 46%, var(--cream2) 100%);
     color:var(--body); font-family:var(--ui); -webkit-font-smoothing:antialiased;
-    padding:46px 20px 96px; position:relative;
+    padding:48px 20px 100px; position:relative;
   }
-  /* film grain over the whole page (premium texture, not flat) */
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;mix-blend-mode:multiply;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
-  .wrap{max-width:1180px;margin:0 auto;position:relative;z-index:1}
+  .wrap{max-width:560px;margin:0 auto;position:relative;z-index:1}
 
-  .head{max-width:680px;margin:0 auto 44px;text-align:center}
-  .head .kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin:0 0 12px}
-  .head h1{font-family:var(--disp);font-weight:500;color:var(--ink);font-size:clamp(28px,4vw,40px);letter-spacing:-.02em;line-height:1.12;margin:0 0 14px}
-  .head p{font-size:16px;line-height:1.6;color:var(--body);margin:0 auto;max-width:54ch}
-  .head .pick{margin-top:14px;font-size:14px;color:var(--muted-text)}
+  .head{text-align:center;margin:0 auto 34px;max-width:48ch}
+  .head .kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin:0 0 11px}
+  .head h1{font-family:var(--disp);font-weight:500;color:var(--ink);font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;line-height:1.14;margin:0 0 10px}
+  .head p{font-size:15px;line-height:1.55;color:var(--muted-text);margin:0}
 
-  .grid{display:grid;gap:48px 40px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start;justify-items:center;max-width:1180px;margin:0 auto}
-  .slot{width:100%;max-width:404px}
-  .tag{display:flex;align-items:center;gap:10px;margin:0 2px 14px}
-  .tag b{font-family:var(--disp);font-weight:600;color:var(--ink);font-size:16px}
-  .tag span{font-size:12px;color:var(--muted-text);letter-spacing:.03em}
-  .tag i{flex:1;height:1px;background:linear-gradient(90deg,var(--sand),transparent)}
-
-  /* cart drawer context */
-  .drawer{background:#fff;border:1px solid var(--sand);border-radius:22px;padding:14px;box-shadow:var(--sh-drawer)}
-  .drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 12px}
+  /* cart drawer */
+  .drawer{background:#fff;border:1px solid var(--sand);border-radius:24px;padding:15px;box-shadow:var(--sh-drawer);max-width:444px;margin:0 auto}
+  .drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:5px 6px 13px}
   .drawer .dh b{font-family:var(--ui);font-weight:700;color:var(--ink);font-size:13px;letter-spacing:.02em}
-  .drawer .dh .x{width:22px;height:22px;border-radius:50%;border:1px solid var(--sand);color:var(--muted);display:grid;place-items:center;font-size:13px}
-  .drawer .li{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--sand);border-radius:14px;background:var(--cream);box-shadow:var(--sh-li)}
+  .drawer .dh .x{width:23px;height:23px;border-radius:50%;border:1px solid var(--sand);color:var(--muted);display:grid;place-items:center;font-size:14px}
+  .drawer .li{display:flex;gap:12px;align-items:center;padding:11px;border:1px solid var(--sand);border-radius:14px;background:var(--cream);box-shadow:var(--sh-li)}
   .drawer .li img{width:50px;height:50px;border-radius:9px;object-fit:cover;flex:none;background:var(--cream2)}
   .drawer .li .t{font-family:var(--ui);font-weight:700;color:var(--ink);font-size:14px;line-height:1.25}
   .drawer .li .s{font-size:12px;color:var(--muted-text);margin-top:2px}
   .drawer .li .p{margin-left:auto;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;font-size:14px}
-  .joiner{display:flex;align-items:center;gap:8px;margin:14px 4px 12px}
+  .joiner{display:flex;align-items:center;gap:10px;margin:15px 6px 13px}
   .joiner i{flex:1;height:1px;background:var(--sand)}
   .joiner span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
 
-  /* shared card bits */
-  .card{border-radius:18px;overflow:hidden;position:relative}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;cursor:pointer;border-radius:13px;
-    font-family:var(--ui);font-weight:700;font-size:16px;letter-spacing:.005em;min-height:52px;padding:14px 20px;
+  /* the card */
+  .card{border-radius:20px;overflow:hidden;position:relative;background:var(--paper);border:1px solid var(--sand);box-shadow:var(--sh-card)}
+  .hero{position:relative;height:188px;overflow:hidden}
+  .hero img{width:100%;height:100%;object-fit:cover;object-position:50% 62%;display:block}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,15,22,0) 52%,rgba(13,15,22,.5) 100%)}
+  .hero .cap{position:absolute;left:20px;bottom:14px;z-index:1;color:#f1e9da;font-family:var(--disp);font-style:italic;font-weight:400;font-size:14px;letter-spacing:.01em;text-shadow:0 1px 10px rgba(0,0,0,.55)}
+  .hero .cap em{font-style:italic;color:#e7cd96}
+
+  .bd{padding:22px 24px 24px}
+  .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin:0 0 11px}
+  h2.title{font-family:var(--disp);font-weight:600;color:var(--ink);font-size:26px;line-height:1.16;letter-spacing:-.015em;margin:0 0 14px}
+  .lede{font-size:16.5px;line-height:1.6;color:var(--body);margin:0}
+  .lede .you{color:var(--rose);font-weight:600}
+  .lede strong{color:var(--ink);font-weight:600}
+
+  /* proof row: engraved chip + authority */
+  .authrow{display:flex;gap:15px;align-items:center;margin:18px 0 2px;padding:15px;border:1px solid var(--gold-soft);border-radius:14px;
+    background:linear-gradient(180deg,#fffdf6,var(--paper));box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+  .authrow .chip{position:relative;width:64px;height:64px;flex:none;border-radius:8px;overflow:hidden;box-shadow:var(--sh-img);outline:1px solid rgba(196,162,101,.6);outline-offset:-1px}
+  .authrow .chip img{width:100%;height:100%;object-fit:cover;display:block}
+  .authrow .chip::after{content:"";position:absolute;inset:3px;border:1px solid rgba(196,162,101,.5);border-radius:5px;pointer-events:none}
+  .authrow .at{min-width:0}
+  .authrow .at .lab{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;margin:0 0 4px}
+  .authrow .at p{font-size:16px;line-height:1.45;color:var(--body);margin:0}
+  .authrow .at p strong{color:var(--ink);font-weight:600}
+
+  .prow{display:flex;align-items:baseline;gap:11px;margin:22px 0 0}
+  .price{font-family:var(--disp);font-weight:600;color:var(--rose);font-variant-numeric:tabular-nums;line-height:1;font-size:34px}
+  .strike{color:var(--muted-text);text-decoration:line-through;text-decoration-thickness:1.5px;font-weight:600;font-family:var(--disp);font-size:18px}
+  .prow .saving{margin-left:auto;align-self:center;font-size:12px;color:var(--muted-text)}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;cursor:pointer;border-radius:14px;
+    font-family:var(--ui);font-weight:700;font-size:16px;letter-spacing:.005em;min-height:54px;padding:15px 20px;margin-top:14px;
     background:linear-gradient(180deg,#c5564d,var(--rose));color:#fff;box-shadow:var(--sh-btn);
     transition:transform .16s ease, box-shadow .16s ease, background .16s ease}
-  .btn:hover{transform:translateY(-1px);background:var(--rose-deep);box-shadow:0 1px 1px rgba(20,18,16,.1),0 16px 26px -8px rgba(156,61,54,.5)}
+  .btn:hover{transform:translateY(-1px);background:var(--rose-deep);box-shadow:0 1px 1px rgba(20,18,16,.1),0 18px 30px -8px rgba(156,61,54,.5)}
   .btn:focus-visible{outline:3px solid rgba(191,82,74,.4);outline-offset:2px}
-  .btn .arw{font-size:15px}
-  .micro{font-size:13px;color:var(--muted-text);line-height:1.5;margin-top:11px}
-  .micro .lk{color:var(--rose);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(191,82,74,.35);padding-bottom:1px;cursor:pointer}
-  .price{font-family:var(--disp);font-weight:600;color:var(--rose);font-variant-numeric:tabular-nums;line-height:1}
-  .strike{color:var(--muted-text);text-decoration:line-through;text-decoration-thickness:1.5px;font-weight:600;font-family:var(--disp)}
-
-  /* ============ Concept 1 — cosmic photographic ============ */
-  .c1{background:var(--paper);border:1px solid var(--sand);box-shadow:var(--sh-card)}
-  .c1 .hero{position:relative;height:158px;overflow:hidden}
-  .c1 .hero img{width:100%;height:100%;object-fit:cover;object-position:50% 64%;display:block}
-  .c1 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,15,22,0) 46%,rgba(13,15,22,.55) 100%)}
-  .c1 .hero .cap{position:absolute;left:18px;bottom:13px;z-index:1;color:#f3ecdd;font-family:var(--disp);font-style:italic;font-weight:400;font-size:14px;letter-spacing:.01em;text-shadow:0 1px 8px rgba(0,0,0,.5)}
-  .c1 .hero .cap em{font-style:italic;color:#e7cd96}
-  .c1 .bd{padding:20px 22px 22px;position:relative}
-  .c1 h3{font-family:var(--disp);font-weight:600;color:var(--ink);font-size:24px;margin:0 0 11px;letter-spacing:-.01em;line-height:1.12}
-  .c1 p{font-size:16px;line-height:1.56;color:var(--body);margin:0}
-  .c1 p strong{color:var(--ink);font-weight:600}
-  .c1 .prow{display:flex;align-items:baseline;gap:10px;margin:16px 0 0}
-  .c1 .prow .price{font-size:30px}
-  .c1 .prow .strike{font-size:17px}
-  .c1 .btn{margin-top:14px}
-
-  /* ============ Concept 2 — engraved almanac / authority ============ */
-  .c2{background:linear-gradient(180deg,#fffdf7,#fbf5e7);border:1px solid var(--gold-soft);box-shadow:var(--sh-card)}
-  .c2 .bd{padding:22px 22px 22px}
-  .c2 .plate{position:relative;width:108px;height:108px;flex:none;border-radius:8px;overflow:hidden;
-    box-shadow:var(--sh-img);outline:1px solid rgba(196,162,101,.55);outline-offset:-1px}
-  .c2 .plate img{width:100%;height:100%;object-fit:cover;display:block}
-  .c2 .plate::after{content:"";position:absolute;inset:4px;border:1px solid rgba(196,162,101,.5);border-radius:4px;pointer-events:none}
-  .c2 .top{display:flex;gap:16px;align-items:flex-start;margin-bottom:15px}
-  .c2 .top .meta{min-width:0;padding-top:2px}
-  .c2 h3{font-family:var(--disp);font-weight:600;color:var(--ink);font-size:21px;margin:0 0 6px;letter-spacing:-.01em;line-height:1.12}
-  .c2 .auth{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;margin:0}
-  .c2 p.lead{font-size:16px;line-height:1.55;color:var(--body);margin:0 0 15px}
-  .c2 p.lead strong{color:var(--ink);font-weight:600}
-  .c2 ul.det{list-style:none;margin:0 0 18px;padding:0;border-top:1px solid rgba(196,162,101,.3)}
-  .c2 ul.det li{display:flex;gap:11px;align-items:center;font-size:14.5px;color:var(--ink);padding:9px 2px;border-bottom:1px solid rgba(196,162,101,.3)}
-  .c2 ul.det .k{font-family:var(--disp);color:var(--gold-deep);font-weight:600;font-size:13px;font-variant-numeric:tabular-nums;flex:none;width:18px}
-  .c2 .footrow{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
-  .c2 .footrow .price{font-size:28px}
-  .c2 .footrow .strike{font-size:16px}
-  .c2 .footrow small{margin-left:auto;font-size:12px;color:var(--muted-text);align-self:center}
-
-  /* ============ Concept 3 — minimal luxe / foil ============ */
-  .c3{background:var(--cream);border:1px solid var(--sand);box-shadow:var(--sh-card);text-align:center}
-  .c3 .bd{padding:30px 26px 28px}
-  .c3 .keepsake{width:214px;max-width:80%;aspect-ratio:7/5;margin:0 auto 22px;border-radius:12px;overflow:hidden;
-    box-shadow:0 20px 36px -18px rgba(139,111,58,.55), 0 2px 6px rgba(20,18,16,.07), inset 0 0 0 1px rgba(196,162,101,.28)}
-  .c3 .keepsake img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;display:block}
-  .c3 .name{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;margin:0 0 12px}
-  .c3 h3{font-family:var(--disp);font-weight:500;color:var(--ink);font-size:27px;margin:0 0 13px;letter-spacing:-.01em;line-height:1.1}
-  .c3 p{font-size:16px;line-height:1.58;color:var(--body);margin:0 auto;max-width:30ch}
-  .c3 .rule{width:34px;height:1px;background:var(--gold);margin:18px auto;opacity:.7}
-  .c3 .prow{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:0 0 16px}
-  .c3 .prow .price{font-size:34px}
-  .c3 .prow .strike{font-size:18px}
-  .c3 .btn{max-width:230px;margin:0 auto}
-  .c3 .micro{text-align:center}
+  .btn .arw{opacity:.8}
+  .micro{font-size:13px;color:var(--muted-text);line-height:1.5;margin:11px 0 0;text-align:center}
 
   @media(max-width:430px){
-    body{padding:34px 14px 70px}
-    .c2 .top{flex-direction:column;align-items:flex-start;gap:14px}
-    .c2 .plate{width:100%;height:150px}
+    body{padding:32px 13px 72px}
+    .head{margin-bottom:26px}
+    .hero{height:166px}
+    .bd{padding:20px 18px 20px}
+    h2.title{font-size:23px}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
@@ -144,100 +109,47 @@
   <div class="wrap">
     <div class="head">
       <p class="kicker">Little Souls Reading · in-cart upsell</p>
-      <h1>Three premium directions for the reading card</h1>
-      <p>Each one sits in the cart, just under the canvas they are buying. All carry the same truth: the reading is worked out from where every planet really stood the day they were born.</p>
-      <p class="pick">Tell me the number you want (or mix bits of two) and I wire the winner into the real cart.</p>
+      <h1>The one refined card</h1>
+      <p>Single concept, shown where it lives: in the cart, right under their canvas. Say the word and I wire it into the real checkout.</p>
     </div>
 
-    <div class="grid">
-
-      <!-- ========== 1 ========== -->
-      <div class="slot">
-        <div class="tag"><b>1</b><span>Cosmic · the night they were born</span><i></i></div>
-        <div class="drawer">
-          <div class="dh"><b>Your bag</b><span class="x">&times;</span></div>
-          <div class="li">
-            <img src="https://aduibsyrnenzobuyetmn.supabase.co/storage/v1/object/public/pawtrait-library/2026-06/dog/lithuanian-crossstitch/1df1e857-a198-49e9-9f62-5aa684f6cb07-thumb.webp" alt="Fig the Miniature Schnauzer canvas" />
-            <div><div class="t">Fig the Miniature Schnauzer</div><div class="s">Canvas · 16&times;24&Prime;</div></div>
-            <div class="p">£75</div>
-          </div>
-          <div class="joiner"><i></i><span>Add to make it whole</span><i></i></div>
-          <div class="card c1">
-            <div class="hero">
-              <img src="/reading/cosmos.webp" width="1000" height="563" alt="A deep painterly night sky with a warm moon and gold-flecked stars" />
-              <div class="cap">The real sky, <em>the night they were born</em></div>
-            </div>
-            <div class="bd">
-              <h3>Their Little Souls Reading</h3>
-              <p>The canvas keeps their face. The reading keeps their nature: how they love, what calms them, why they are the way they are. <strong>Worked out from the real sky the day they were born</strong>, never a generic star sign.</p>
-              <div class="prow"><span class="price">£40</span><span class="strike">£60</span></div>
-              <button class="btn">Add to my order <span class="arw">·</span> £40</button>
-              <p class="micro">Add their birth date and place now, or on your private page minutes after you order.</p>
-            </div>
-          </div>
-        </div>
+    <div class="drawer">
+      <div class="dh"><b>Your bag</b><span class="x">&times;</span></div>
+      <div class="li">
+        <img src="https://aduibsyrnenzobuyetmn.supabase.co/storage/v1/object/public/pawtrait-library/2026-06/dog/lithuanian-crossstitch/1df1e857-a198-49e9-9f62-5aa684f6cb07-thumb.webp" alt="Fig the Miniature Schnauzer canvas" />
+        <div><div class="t">Fig the Miniature Schnauzer</div><div class="s">Canvas · 16&times;24&Prime;</div></div>
+        <div class="p">£75</div>
       </div>
 
-      <!-- ========== 2 ========== -->
-      <div class="slot">
-        <div class="tag"><b>2</b><span>Almanac · measured, not guessed</span><i></i></div>
-        <div class="drawer">
-          <div class="dh"><b>Your bag</b><span class="x">&times;</span></div>
-          <div class="li">
-            <img src="https://aduibsyrnenzobuyetmn.supabase.co/storage/v1/object/public/pawtrait-library/2026-06/dog/lithuanian-crossstitch/1df1e857-a198-49e9-9f62-5aa684f6cb07-thumb.webp" alt="Fig the Miniature Schnauzer canvas" />
-            <div><div class="t">Fig the Miniature Schnauzer</div><div class="s">Canvas · 16&times;24&Prime;</div></div>
-            <div class="p">£75</div>
-          </div>
-          <div class="joiner"><i></i><span>Add to make it whole</span><i></i></div>
-          <div class="card c2">
-            <div class="bd">
-              <div class="top">
-                <div class="plate"><img src="/reading/almanac.webp" width="520" height="520" alt="An antique engraved celestial chart in gold ink on aged cream paper" /></div>
-                <div class="meta">
-                  <h3>Their Little Souls Reading</h3>
-                  <p class="auth">Measured from the real sky</p>
-                </div>
-              </div>
-              <p class="lead">Most pet horoscopes are invented. This one is <strong>measured</strong>: every planet placed exactly where it stood the day they were born, then read for who they are with you.</p>
-              <ul class="det">
-                <li><span class="k">01</span><span>Their true nature and temperament</span></li>
-                <li><span class="k">02</span><span>The bond between the two of you</span></li>
-                <li><span class="k">03</span><span>What they quietly need from you</span></li>
-              </ul>
-              <div class="footrow"><span class="price">£40</span><span class="strike">£60</span><small>added to this order</small></div>
-              <button class="btn">Add the reading <span class="arw">·</span> £40</button>
-              <p class="micro">A private page, yours minutes after you order. <span class="lk">Add their birth details &rarr;</span></p>
+      <div class="joiner"><i></i><span>One more thing</span><i></i></div>
+
+      <div class="card">
+        <div class="hero">
+          <img src="/reading/cosmos.webp" width="1000" height="563" alt="A deep painterly night sky with a warm moon and gold-flecked stars" />
+          <div class="cap">The real sky, <em>the night they were born</em></div>
+        </div>
+        <div class="bd">
+          <p class="eyebrow">Little Souls Reading</p>
+          <h2 class="title">You know their face by heart. This is the rest of them.</h2>
+          <p class="lede">The reasons behind the moods. Why they chose <span class="you">you</span>, out of everyone. What settles them when nothing else will.</p>
+
+          <div class="authrow">
+            <div class="chip"><img src="/reading/almanac.webp" width="520" height="520" alt="Their birth chart, drawn from the real sky" /></div>
+            <div class="at">
+              <p class="lab">Their real chart</p>
+              <p>Read from where every planet truly stood the day they were born. <strong>Not a star sign.</strong></p>
             </div>
           </div>
+
+          <div class="prow">
+            <span class="price">£40</span>
+            <span class="strike">£60</span>
+            <span class="saving">added to this order</span>
+          </div>
+          <button class="btn">Add their reading <span class="arw">·</span> £40</button>
+          <p class="micro">Opens as a private page, minutes after you order.</p>
         </div>
       </div>
-
-      <!-- ========== 3 ========== -->
-      <div class="slot">
-        <div class="tag"><b>3</b><span>Quiet luxe · gold-foil keepsake</span><i></i></div>
-        <div class="drawer">
-          <div class="dh"><b>Your bag</b><span class="x">&times;</span></div>
-          <div class="li">
-            <img src="https://aduibsyrnenzobuyetmn.supabase.co/storage/v1/object/public/pawtrait-library/2026-06/dog/lithuanian-crossstitch/1df1e857-a198-49e9-9f62-5aa684f6cb07-thumb.webp" alt="Fig the Miniature Schnauzer canvas" />
-            <div><div class="t">Fig the Miniature Schnauzer</div><div class="s">Canvas · 16&times;24&Prime;</div></div>
-            <div class="p">£75</div>
-          </div>
-          <div class="joiner"><i></i><span>Add to make it whole</span><i></i></div>
-          <div class="card c3">
-            <div class="bd">
-              <div class="keepsake"><img src="/reading/emblem.webp" width="760" height="760" alt="A gold-foil embossed crescent moon and stars on cream paper" /></div>
-              <p class="name">Little Souls Reading</p>
-              <h3>Know them, to the day.</h3>
-              <p>Their nature, the bond between you, what they need. Read from the real sky the day they were born.</p>
-              <div class="rule"></div>
-              <div class="prow"><span class="price">£40</span><span class="strike">£60</span></div>
-              <button class="btn">Add <span class="arw">·</span> £40</button>
-              <p class="micro">Yours on a private page, minutes after you order.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </body>
