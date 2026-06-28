@@ -417,6 +417,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 // Called by the orders/paid webhook handler (Phase 4) once the customer has
 // picked a variant + size SKU. Body matches PrintPipelineInput.
 async function handlePrintOrder(req: VercelRequest, res: VercelResponse) {
+  // SECURITY FIX 2026-06-28: this endpoint calls runPrintPipeline → submits a
+  // real canvas to Gelato on the owner's account. It had NO auth/payment check,
+  // so an empty POST returned 400 (missing_fields) not 401 — anyone could POST
+  // sourceImageUrl + shippingAddress and print a canvas on our bill (or just
+  // spam it to drain AuraSR/Gelato cost). There is NO live HTTP caller: the
+  // paid-order flow calls runPrintPipeline in-process via
+  // runCanvasFulfillmentForRow (api/_lib/canvasFulfillment.ts) from the
+  // Shopify/Stripe webhooks + the gelato-worker cron — never over HTTP. So gate
+  // this on a server-only shared secret and FAIL CLOSED: if no secret is
+  // configured, or the header doesn't match, reject before any work happens.
+  const printSecret = process.env.PRINT_ORDER_SECRET || process.env.N8N_BRIDGE_SECRET || "";
+  const providedHeader = req.headers["x-print-secret"];
+  const provided = Array.isArray(providedHeader) ? providedHeader[0] : (providedHeader ?? "");
+  if (!printSecret || provided !== printSecret) {
+    return res.status(403).json({ error: "forbidden" });
+  }
+
   const body = (req.body ?? {}) as Partial<PrintPipelineInput>;
 
   // Validate the required fields up-front so we surface a clear 400 instead of

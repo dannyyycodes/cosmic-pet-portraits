@@ -379,6 +379,21 @@ serve(async (req) => {
 
         console.log("[STRIPE-WEBHOOK] Gift certificate payment completed:", giftCode);
 
+        // SECURITY FIX 2026-06-28: this is the ONLY place a gift becomes paid.
+        // Match by stripe_session_id so every gift row in this session
+        // (multi-recipient orders create one row per recipient, all sharing the
+        // same session id) is marked paid. Until this runs, validate-gift-code
+        // and redeem-gift treat the code as invalid/disabled.
+        const { error: paidErr } = await supabaseClient
+          .from("gift_certificates")
+          .update({ paid: true })
+          .eq("stripe_session_id", session.id);
+        if (paidErr) {
+          console.error("[STRIPE-WEBHOOK] Failed to mark gift certificate(s) paid:", paidErr);
+        } else {
+          console.log("[STRIPE-WEBHOOK] Gift certificate(s) marked paid for session:", session.id);
+        }
+
         // Find the gift certificate by code
         const { data: giftCert, error: fetchError } = await supabaseClient
           .from("gift_certificates")

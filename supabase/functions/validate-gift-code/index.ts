@@ -39,11 +39,22 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from("gift_certificates")
-      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count, gift_pets_json")
+      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count, gift_pets_json, paid")
       .eq("code", input.code.toUpperCase())
       .single();
 
     if (error || !data) {
+      return new Response(JSON.stringify({ error: "Invalid gift code", valid: false }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // SECURITY FIX 2026-06-28: refuse any gift whose payment was never confirmed.
+    // Codes are issued at purchase time but `paid` is only set true by the Stripe
+    // webhook after checkout.session.completed. An unpaid code = abandoned/unpaid
+    // checkout and must not validate as a redeemable gift.
+    if (!data.paid) {
       return new Response(JSON.stringify({ error: "Invalid gift code", valid: false }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,

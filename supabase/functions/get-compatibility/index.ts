@@ -25,9 +25,16 @@ serve(async (req) => {
     const url = new URL(req.url);
     const compatibilityId = url.searchParams.get("id") || (await req.json().catch(() => ({})))?.compatibilityId;
     const shareToken = url.searchParams.get("token");
+    // SECURITY FIX 2026-06-28: pet-pair lookup mode. The frontend (CompatibilityViewer,
+    // CompatibilityOffer) used to resolve a compatibility row by pet pair via a direct
+    // anon `.from('pet_compatibilities')` query — but the RLS fix now blocks anon table
+    // reads. Resolve the row here (service-role) and return ONLY id/status/token, never
+    // the email or reading content.
+    const petAId = url.searchParams.get("petA");
+    const petBId = url.searchParams.get("petB");
 
-    if (!compatibilityId && !shareToken) {
-      return new Response(JSON.stringify({ error: "Missing id or token" }), {
+    if (!compatibilityId && !shareToken && !(petAId && petBId)) {
+      return new Response(JSON.stringify({ error: "Missing id, token, or pet pair" }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
@@ -37,6 +44,37 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    if (petAId && petBId) {
+      const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      // Validate before interpolating into the PostgREST .or() filter (no injection).
+      if (!UUID.test(petAId) || !UUID.test(petBId)) {
+        return new Response(JSON.stringify({ error: "Invalid pet ids" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      const { data: pairRow, error: pairErr } = await supabase
+        .from("pet_compatibilities")
+        .select("id, status, share_token, is_complimentary")
+        .or(`and(pet_report_a_id.eq.${petAId},pet_report_b_id.eq.${petBId}),and(pet_report_a_id.eq.${petBId},pet_report_b_id.eq.${petAId})`)
+        .maybeSingle();
+      if (pairErr || !pairRow) {
+        return new Response(JSON.stringify({ error: "Compatibility not found" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+      return new Response(JSON.stringify({
+        id: pairRow.id,
+        status: pairRow.status,
+        shareToken: pairRow.share_token,
+        isComplimentary: pairRow.is_complimentary,
+      }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     const query = supabase
       .from("pet_compatibilities")
