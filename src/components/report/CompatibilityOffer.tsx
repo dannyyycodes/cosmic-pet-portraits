@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, Heart } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 // priceCentsForPair is kept imported-ish via this comment because the paid
 // compatibility upsell is parked — see PR feat/compat-free-multipet. The
 // paid path (and priceCentsForPair, tiered pricing) stays in `pricing.ts`
@@ -61,14 +60,26 @@ export function CompatibilityOffer({ pets, buyerEmail }: CompatibilityOfferProps
     }
 
     const fetchRow = async () => {
-      const { data } = await supabase
-        .from('pet_compatibilities')
-        .select('id, status, share_token, is_complimentary')
-        .eq('pet_report_a_id', pairA)
-        .eq('pet_report_b_id', pairB)
-        .maybeSingle();
+      // SECURITY FIX 2026-06-28: resolve via the service-role get-compatibility
+      // (petA/petB mode); direct anon reads of pet_compatibilities are now
+      // blocked by RLS. Returns only id/status/token, never email/content.
+      let mapped: CompatRow | null = null;
+      try {
+        const qs = new URLSearchParams({ petA: pairA!, petB: pairB! });
+        const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/get-compatibility?${qs.toString()}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+          },
+        });
+        if (resp.ok) {
+          const j = await resp.json();
+          if (j?.id) mapped = { id: j.id, status: j.status, share_token: j.shareToken ?? null, is_complimentary: j.isComplimentary ?? null };
+        }
+      } catch { /* leave mapped null */ }
       if (!cancelled) {
-        setRow((data as CompatRow | null) ?? null);
+        setRow(mapped);
         setLoaded(true);
       }
     };

@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, petName, species, breed, gender, birthDate, birthTime, location, soulType, superpower, strangerReaction, petPhotoUrl, occasionMode, email, ownerName, ownerBirthDate, ownerBirthTime, ownerBirthLocation, ownerMemory, passedDate, favoriteMemory, rememberedBy } = await req.json();
+    const { reportId, petName, species, breed, gender, birthDate, birthTime, location, soulType, superpower, strangerReaction, petPhotoUrl, occasionMode, email, ownerName, ownerBirthDate, ownerBirthTime, ownerBirthLocation, ownerMemory, passedDate, favoriteMemory, rememberedBy, shareToken } = await req.json();
 
     if (!reportId || !petName || !species) {
       return new Response(JSON.stringify({ error: "Missing required fields: reportId, petName, species" }), {
@@ -34,7 +34,10 @@ serve(async (req) => {
     // Verify report exists and is paid
     const { data: report, error: fetchError } = await supabaseClient
       .from("pet_reports")
-      .select("id, payment_status, email")
+      // SECURITY FIX 2026-06-28: pull report_content + share_token so we can
+      // tell a fresh placeholder report (safe to fill once) apart from a
+      // delivered/claimed reading that must never be overwritten or hijacked.
+      .select("id, payment_status, email, report_content, share_token")
       .eq("id", reportId)
       .single();
 
@@ -51,6 +54,36 @@ serve(async (req) => {
         status: 403,
       });
     }
+
+    // SECURITY FIX 2026-06-28: ownership/lock guard. Report IDs travel in the
+    // public /report?id=<uuid> share links, so a bare payment_status==="paid"
+    // check let ANYONE with a link overwrite/deface a delivered reading, steal
+    // it by reassigning the email, or cancel its horoscope sub via
+    // occasionMode=memorial. The only legitimate writer is the one-time
+    // post-purchase intake fill, which ALWAYS runs BEFORE generation (so
+    // report_content is still null). Once report_content exists the reading is
+    // generated/delivered and is frozen. A caller that proves ownership with a
+    // matching share_token is still allowed to edit (the public link caller
+    // never sends one, so this is purely additive and doesn't break redeem).
+    const providedShareToken = typeof shareToken === "string" ? shareToken.trim() : "";
+    const ownsViaShareToken = !!report.share_token && providedShareToken === report.share_token;
+    if (report.report_content != null && !ownsViaShareToken) {
+      return new Response(JSON.stringify({ error: "This reading has already been created and can no longer be edited." }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    // SECURITY FIX 2026-06-28: never reassign a real email. A report is
+    // "unclaimed" only while its email is still a redeem/checkout placeholder
+    // (or null) — that is the one-time redeem / quick-checkout fill window.
+    // Once a real owner email exists we IGNORE any incoming email so an
+    // attacker can't re-point a paid reading at their own address and steal it.
+    const currentEmail = report.email ? String(report.email).toLowerCase().trim() : "";
+    const currentEmailIsPlaceholder =
+      !currentEmail ||
+      /@redeem\.littlesouls\.app$/.test(currentEmail) ||
+      /@checkout\.temp$/.test(currentEmail);
 
     // Cap user-submitted text lengths so a malicious payload can't blow up
     // the worker or stuff the report JSON with megabytes of junk.
@@ -81,7 +114,14 @@ serve(async (req) => {
     if (strangerReaction) updateData.stranger_reaction = strangerReaction;
     if (petPhotoUrl) updateData.pet_photo_url = petPhotoUrl;
     if (occasionMode) updateData.occasion_mode = occasionMode;
-    if (email) updateData.email = email.toLowerCase().trim();
+    // SECURITY FIX 2026-06-28: only set email on first claim (placeholder/null);
+    // a real existing email is never overwritten. effectiveEmail = the report's
+    // RIGHTFUL email (never the attacker's) for the chat_credits sync below.
+    const incomingEmail = email ? String(email).toLowerCase().trim() : "";
+    if (incomingEmail && currentEmailIsPlaceholder) {
+      updateData.email = incomingEmail;
+    }
+    const effectiveEmail = (updateData.email as string | undefined) || (currentEmailIsPlaceholder ? "" : currentEmail);
     if (ownerName) updateData.owner_name = ownerName.trim().slice(0, 50);
     if (ownerBirthDate) updateData.owner_birth_date = ownerBirthDate;
     if (ownerBirthTime) updateData.owner_birth_time = ownerBirthTime;
@@ -161,14 +201,17 @@ serve(async (req) => {
       }
     }
 
-    // Sync email to chat_credits if email was updated (e.g. redeem flow where email starts as placeholder)
-    if (email) {
-      const normalizedEmail = email.toLowerCase().trim();
+    // Sync email to chat_credits if a real email is known (e.g. redeem / quick-
+    // checkout flow where email starts as a placeholder).
+    // SECURITY FIX 2026-06-28: sync the report's RIGHTFUL email (effectiveEmail),
+    // never an attacker-supplied address — identical effect for the legit fill,
+    // but theft-proof.
+    if (effectiveEmail) {
       await supabaseClient
         .from("chat_credits")
-        .update({ email: normalizedEmail })
+        .update({ email: effectiveEmail })
         .eq("report_id", reportId);
-      console.log("[UPDATE-PET-DATA] Synced email to chat_credits:", normalizedEmail);
+      console.log("[UPDATE-PET-DATA] Synced email to chat_credits:", effectiveEmail);
     }
 
     console.log("[UPDATE-PET-DATA] Updated report:", reportId, "pet:", petName, "species:", species);

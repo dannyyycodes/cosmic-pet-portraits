@@ -133,50 +133,100 @@ serve(async (req) => {
       strangerReaction: report.stranger_reaction ?? '',
     };
 
-    // Use n8n worker for report generation (no timeout limit)
+    // SECURITY FIX 2026-06-28: the n8n handoff used to be fire-and-forget
+    // (.catch only) and this function ALWAYS returned success — a downed n8n
+    // host meant a PAID reading silently never generated. We now AWAIT the n8n
+    // response and check resp.ok; on any failure (or when N8N_REPORT_WEBHOOK_URL
+    // is unset) we fall back to the in-house generator so generation still
+    // happens, and we record a failure marker (never return success) if BOTH
+    // paths fail so the generation-recovery cron can find and retry it.
+    const runInHouseGeneration = async (): Promise<boolean> => {
+      try {
+        const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            petData,
+            reportId,
+            language: report.language || 'en',
+            occasionMode: report.occasion_mode || 'discover',
+          }),
+        });
+        if (!genResponse.ok) {
+          console.error("[BACKGROUND-GEN] In-house generation returned non-OK:", genResponse.status, await genResponse.text().catch(() => ""));
+          return false;
+        }
+        console.log("[BACKGROUND-GEN] In-house generation accepted:", genResponse.status);
+        return true;
+      } catch (err) {
+        console.error("[BACKGROUND-GEN] In-house generation failed:", err);
+        return false;
+      }
+    };
+
+    // Use n8n worker for report generation (no timeout limit) when configured.
     const N8N_WEBHOOK = Deno.env.get("N8N_REPORT_WEBHOOK_URL");
     if (N8N_WEBHOOK) {
       console.log("[BACKGROUND-GEN] Sending to n8n worker:", reportId);
+      let n8nAccepted = false;
+      try {
+        // SECURITY FIX 2026-06-28: await + check resp.ok instead of fire-and-forget.
+        const n8nResp = await fetch(N8N_WEBHOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reportId }),
+          signal: AbortSignal.timeout(15000),
+        });
+        n8nAccepted = n8nResp.ok;
+        if (!n8nResp.ok) {
+          console.error("[BACKGROUND-GEN] n8n handoff returned non-OK:", n8nResp.status, await n8nResp.text().catch(() => ""));
+        }
+      } catch (err) {
+        console.error("[BACKGROUND-GEN] n8n handoff failed:", err);
+      }
 
-      fetch(N8N_WEBHOOK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reportId }),
-      }).catch(err => console.error("[BACKGROUND-GEN] n8n error:", err));
+      if (n8nAccepted) {
+        return new Response(JSON.stringify({ success: true, reportId, worker: "n8n" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      console.warn("[BACKGROUND-GEN] n8n unavailable — falling back to in-house generation:", reportId);
+    } else {
+      console.log("[BACKGROUND-GEN] N8N not configured, using direct generation");
+    }
 
-      return new Response(JSON.stringify({ success: true, reportId, worker: "n8n" }), {
+    // Fallback path: generate in-house (n8n down or not configured).
+    const inHouseOk = await runInHouseGeneration();
+
+    if (!inHouseOk) {
+      // SECURITY FIX 2026-06-28: both handoff paths failed — record a failure
+      // marker so this paid report is NOT left stuck on "generating" forever and
+      // the generation-recovery cron can pick it up and retry. Never return
+      // success on a failed handoff.
+      await supabaseClient
+        .from("pet_reports")
+        .update({
+          report_content: { status: "failed", attempt, error: "generation_handoff_failed", failed_at: new Date().toISOString() },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
+
+      return new Response(JSON.stringify({ success: false, reportId, error: "generation_handoff_failed" }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        status: 200,
+        status: 502,
       });
     }
 
-    // Fallback: direct generation if n8n not configured
-    console.log("[BACKGROUND-GEN] N8N not configured, using direct generation");
-
-    try {
-      const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({
-          petData,
-          reportId,
-          language: report.language || 'en',
-          occasionMode: report.occasion_mode || 'discover',
-        }),
-      });
-      const genResult = await genResponse.text();
-      console.log("[BACKGROUND-GEN] Generation completed:", genResponse.status);
-    } catch (err) {
-      console.error("[BACKGROUND-GEN] Generation failed:", err);
-    }
-
-    // Send confirmation email in background (will arrive after report is ready)
+    // In-house generation accepted — send the confirmation email in the
+    // background (n8n sends its own when it handles the job, so we only do this
+    // on the in-house path).
     sendEmailBackground(supabaseUrl, serviceRoleKey, reportId, report.email, report.pet_name);
 
-    return new Response(JSON.stringify({ success: true, reportId }), {
+    return new Response(JSON.stringify({ success: true, reportId, worker: "in-house" }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });

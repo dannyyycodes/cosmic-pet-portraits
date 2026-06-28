@@ -70,15 +70,20 @@ export default function CompatibilityViewer() {
         // Fresh Stripe return — there's no compatibility row id yet; wait for
         // the webhook to create it, then look it up by the pet pair.
         if (isStripeReturn && !compatId && !token) {
-          const { data: row } = await supabase
-            .from('pet_compatibilities')
-            .select('id, status')
-            .eq('pet_report_a_id', petAFromUrl! < petBFromUrl! ? petAFromUrl! : petBFromUrl!)
-            .eq('pet_report_b_id', petAFromUrl! < petBFromUrl! ? petBFromUrl! : petAFromUrl!)
-            .maybeSingle();
+          // SECURITY FIX 2026-06-28: resolve the row via the service-role
+          // get-compatibility (petA/petB mode) instead of a direct anon table
+          // read — RLS now blocks anon reads of pet_compatibilities.
+          const pairQs = new URLSearchParams({ petA: petAFromUrl!, petB: petBFromUrl! });
+          const pairResp = await fetch(`${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/get-compatibility?${pairQs.toString()}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+            },
+          });
+          const row = pairResp.ok ? await pairResp.json() : null;
           if (row?.id && !cancelled) {
-            const nextUrl = `/compatibility?id=${row.id}`;
-            navigate(nextUrl, { replace: true });
+            navigate(`/compatibility?id=${row.id}`, { replace: true });
           }
           return;
         }
