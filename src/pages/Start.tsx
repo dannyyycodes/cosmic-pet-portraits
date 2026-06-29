@@ -82,13 +82,25 @@ function ensurePlayer(): Promise<LottiePlayer | null> {
   return playerPromise;
 }
 
-// Warm the player at module load (unless reduced-motion) so the brief loader has
-// the dog ready to draw the instant the overlay appears.
+/** Fetch + cache the rose Lottie JSON ONCE so every loader instance draws from a
+ * ready object (no per-mount network fetch), making the dog appear instantly. */
+let dogDataPromise: Promise<unknown | null> | null = null;
+function ensureDogData(): Promise<unknown | null> {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  if (!dogDataPromise) {
+    dogDataPromise = fetch(DOG_SRC).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  }
+  return dogDataPromise;
+}
+
+// Warm the player + the animation data at module load (unless reduced-motion) so
+// the brief loader has the dog ready to draw the instant the overlay appears.
 if (
   typeof window !== "undefined" &&
   !window.matchMedia("(prefers-reduced-motion: reduce)").matches
 ) {
   void ensurePlayer();
+  void ensureDogData();
 }
 
 /**
@@ -105,14 +117,14 @@ function DogCanvas({ size }: { size: number }) {
     let alive = true;
     let anim: { destroy: () => void } | null = null;
 
-    ensurePlayer().then((lottie) => {
-      if (!alive || !ref.current || !lottie) return;
+    Promise.all([ensurePlayer(), ensureDogData()]).then(([lottie, data]) => {
+      if (!alive || !ref.current || !lottie || !data) return;
       anim = lottie.loadAnimation({
         container: ref.current,
         renderer: "svg",
         loop: true,
         autoplay: true,
-        path: DOG_SRC,
+        animationData: data,
         rendererSettings: { preserveAspectRatio: "xMidYMid meet", progressiveLoad: false },
       });
     });
@@ -242,7 +254,7 @@ export default function Start() {
   // The timer owns the navigation, so it never waits on the Lottie player.
   useEffect(() => {
     if (!handoff) return;
-    const t = window.setTimeout(() => navigate({ pathname: handoff, search }), 950);
+    const t = window.setTimeout(() => navigate({ pathname: handoff, search }), 1100);
     return () => window.clearTimeout(t);
   }, [handoff, navigate, search]);
 
