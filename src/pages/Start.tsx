@@ -52,21 +52,32 @@ type LottiePlayer = {
   loadAnimation: (cfg: Record<string, unknown>) => { destroy: () => void };
 };
 
+/** Self-hosted lottie-web light (SVG) build, vendored so it loads from our own
+ * origin. The site CSP only allows scripts from 'self', so a same-origin file is
+ * the reliable path (a CDN import is blocked). */
+const DOG_PLAYER_SRC = "/start/lottie_light.min.js";
+
 /**
- * Lazy-load the lottie-web SVG player ONCE, from a pinned CDN build. The light
- * SVG renderer is pure JS (no WASM), so it draws the rose dog reliably across
- * origins and stays out of the app bundle entirely, so first paint / LCP is
- * never charged for it. Returns a cached promise; failure resolves null so the
- * loader degrades to a clean cream fade and navigation is never blocked.
+ * Lazy-load the lottie-web SVG player ONCE, by injecting the vendored script the
+ * first time the loader is needed. The light SVG renderer is pure JS (no WASM)
+ * and stays out of the app bundle, so first paint / LCP is never charged for it.
+ * Returns a cached promise; failure resolves null so the loader degrades to a
+ * clean cream fade and navigation is never blocked.
  */
 let playerPromise: Promise<LottiePlayer | null> | null = null;
 function ensurePlayer(): Promise<LottiePlayer | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
   if (!playerPromise) {
-    const cdn = "https://esm.sh/lottie-web@5.12.2/build/player/lottie_light";
-    playerPromise = import(/* @vite-ignore */ cdn)
-      .then((m) => ((m as { default?: LottiePlayer }).default ?? (m as unknown as LottiePlayer)))
-      .catch(() => null);
+    playerPromise = new Promise<LottiePlayer | null>((resolve) => {
+      const w = window as unknown as { lottie?: LottiePlayer };
+      if (w.lottie) return resolve(w.lottie);
+      const s = document.createElement("script");
+      s.src = DOG_PLAYER_SRC;
+      s.async = true;
+      s.onload = () => resolve(w.lottie ?? null);
+      s.onerror = () => resolve(null);
+      document.head.appendChild(s);
+    });
   }
   return playerPromise;
 }
