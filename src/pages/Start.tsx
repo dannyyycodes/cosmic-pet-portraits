@@ -1,7 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useRef, useState } from "react";
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import type { ComponentType, CSSProperties, MouseEvent, ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Moon, Frame } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 
 /**
  * /start — the fork / splash page.
@@ -52,18 +52,65 @@ const C = {
   goldSoft: "#d4b67a",
 };
 
-const DOORS = [
+type DoorIcon = ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
+
+/**
+ * Bespoke ORNATE picture-frame icon for the portrait door.
+ *
+ * Drawn as an arched-top classic gallery frame (the silhouette of a hung wall
+ * portrait), NOT a plain square: a nested outer + inner arched moulding reads as
+ * carved/ornate framing, a third gilt-GOLD arch is the visible mat lip, and a
+ * small bust (head + shoulders) sits inside so it is unmistakably a *portrait*.
+ * The arched crown is what separates it from the rejected box.
+ *
+ * Everything is `currentColor` (rose by default, flips to white on the door's
+ * hover state exactly like the Lucide heart) except the mat, locked to brand
+ * gold #c4a265 for the gilt-frame two-tone. Same 24x24 viewBox + stroke
+ * conventions as Lucide so size + strokeWidth stay consistent with the page.
+ */
+function PortraitFrame({ size = 24, strokeWidth = 1.6 }: { size?: number | string; strokeWidth?: number | string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* arched classic moulding — outer + inner line make it ornate, not a box */}
+      <path d="M5.2 9.5a6.8 6.8 0 0 1 13.6 0v9.3a1.2 1.2 0 0 1-1.2 1.2H6.4a1.2 1.2 0 0 1-1.2-1.2Z" />
+      <path d="M6.9 9.6a5.1 5.1 0 0 1 10.2 0v8a.6.6 0 0 1-.6.6H7.5a.6.6 0 0 1-.6-.6Z" />
+      {/* gilt mat / inner border — the gold lip of the frame */}
+      <path d="M8.5 9.7a3.5 3.5 0 0 1 7 0v6.3a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5Z" stroke={C.gold} />
+      {/* the matted subject: a framed bust portrait */}
+      <circle cx="12" cy="10.4" r="1.5" />
+      <path d="M9.4 16c.3-2.3 4.9-2.3 5.2 0" />
+    </svg>
+  );
+}
+
+const DOORS: ReadonlyArray<{
+  key: "reading" | "portrait";
+  href: string;
+  Icon: DoorIcon;
+  title: string;
+  sub: string;
+}> = [
   {
-    key: "reading" as const,
+    key: "reading",
     href: "/",
-    Icon: Moon,
+    Icon: Heart,
     title: "Their Soul Reading",
     sub: "See their birth sky, free.",
   },
   {
-    key: "portrait" as const,
+    key: "portrait",
     href: "/pawtraits",
-    Icon: Frame,
+    Icon: PortraitFrame,
     title: "Their Portrait",
     sub: "Them, framed as the main character.",
   },
