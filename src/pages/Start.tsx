@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { ComponentType, CSSProperties, MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Heart } from "lucide-react";
 
 /**
  * /start — the fork / splash page.
@@ -160,50 +159,9 @@ function usePrefersReducedMotion(): boolean {
   return reduce;
 }
 
-type PillIcon = ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
-
-/**
- * Bespoke ORNATE picture-frame icon for the portrait pill.
- *
- * An arched-top classic gallery frame (the silhouette of a hung wall portrait),
- * NOT a plain square: a nested outer + inner arched moulding reads as
- * carved/ornate framing, a third gilt-GOLD arch is the visible mat lip, and a
- * small bust (head + shoulders) sits inside so it is unmistakably a *portrait*.
- * The arched crown is what separates it from a box.
- *
- * Everything is `currentColor` (rose by default) except the mat, locked to
- * brand gold #c4a265 for the gilt-frame two-tone. Same 24x24 viewBox + stroke
- * conventions as Lucide so size + strokeWidth stay consistent with the page.
- */
-function PortraitFrame({ size = 24, strokeWidth = 1.6 }: { size?: number | string; strokeWidth?: number | string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {/* arched classic moulding — outer + inner line make it ornate, not a box */}
-      <path d="M5.2 9.5a6.8 6.8 0 0 1 13.6 0v9.3a1.2 1.2 0 0 1-1.2 1.2H6.4a1.2 1.2 0 0 1-1.2-1.2Z" />
-      <path d="M6.9 9.6a5.1 5.1 0 0 1 10.2 0v8a.6.6 0 0 1-.6.6H7.5a.6.6 0 0 1-.6-.6Z" />
-      {/* gilt mat / inner border — the gold lip of the frame */}
-      <path d="M8.5 9.7a3.5 3.5 0 0 1 7 0v6.3a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5Z" stroke={C.gold} />
-      {/* the matted subject: a framed bust portrait */}
-      <circle cx="12" cy="10.4" r="1.5" />
-      <path d="M9.4 16c.3-2.3 4.9-2.3 5.2 0" />
-    </svg>
-  );
-}
-
 const PILLS: ReadonlyArray<{
   key: "reading" | "portrait";
   href: string;
-  Icon: PillIcon;
   img: string;
   imgPos: string;
   title: string;
@@ -212,7 +170,6 @@ const PILLS: ReadonlyArray<{
   {
     key: "reading",
     href: "/",
-    Icon: Heart,
     img: "/reading/cosmos.webp",
     imgPos: "72% 56%",
     title: "Their Soul Reading",
@@ -221,7 +178,6 @@ const PILLS: ReadonlyArray<{
   {
     key: "portrait",
     href: "/pawtraits",
-    Icon: PortraitFrame,
     img: "/start/ollie.webp",
     imgPos: "50% 40%",
     title: "Their Portrait",
@@ -308,9 +264,6 @@ export default function Start() {
                   style={{ objectPosition: pill.imgPos }}
                 />
                 {pill.free && <span className="ps-free">Free</span>}
-              </span>
-              <span className="ps-pico" aria-hidden="true">
-                <pill.Icon size={16} strokeWidth={1.7} />
               </span>
               <span className="ps-label">{pill.title}</span>
             </a>
@@ -453,16 +406,6 @@ function StartStyles() {
         box-shadow: 0 4px 12px rgba(146,118,58,0.32);
       }
 
-      /* Tiny rose accent icon above each label (no box) */
-      .ps-pico {
-        display: grid; place-items: center;
-        color: ${C.rose};
-        transition: color 220ms ease, transform 260ms cubic-bezier(0.22,1,0.36,1);
-      }
-      .ps-pill:hover .ps-pico, .ps-pill:focus-visible .ps-pico {
-        color: ${C.roseDeep}; transform: translateY(-1px);
-      }
-
       .ps-label {
         color: ${C.ink};
         font-family: Asap, system-ui, sans-serif;
@@ -519,7 +462,7 @@ function StartStyles() {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .ps-reveal, .ps-pill, .ps-thumb-img, .ps-pico,
+        .ps-reveal, .ps-pill, .ps-thumb-img,
         .ps-loader, .ps-loader-intro, .ps-loader-handoff, .ps-dog {
           animation: none !important;
           transition: none !important;
