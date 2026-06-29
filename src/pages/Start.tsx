@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { ComponentType, CSSProperties, MouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
@@ -19,10 +20,13 @@ import { Heart } from "lucide-react";
  * forwarded onto BOTH pills so conversion tracking survives the fork. The
  * <a href> carries it (graceful no-JS path) and navigate() carries it too.
  *
- * MOTION: a single orchestrated CSS load-reveal, plus a gentle lift/glow on
- * pill hover. No WebGL, no shader background, no warp transition (a richer
- * intro animation is being chosen separately). prefers-reduced-motion strips
- * every animation and keeps the page fully static.
+ * MOTION: a single orchestrated CSS load-reveal for the content, plus a small
+ * rose walking-dog loader (the real Walking Dog Lottie, recoloured to brand
+ * rose) that plays briefly on first paint and again as the hand-off loader when
+ * a pill is tapped, just before we navigate. The Lottie player is lazy-loaded
+ * from a CDN so it never touches first paint. No WebGL, no shader background.
+ * prefers-reduced-motion strips every animation: no dog, instant navigate,
+ * fully static page.
  */
 
 const C = {
@@ -40,6 +44,84 @@ const C = {
   gold: "#c4a265",
   goldSoft: "#d4b67a",
 };
+
+/** Vendored rose-recoloured Walking Dog Lottie (every fill + stroke -> #bf524a). */
+const DOG_SRC = "/start/walking-dog-rose.json";
+
+/**
+ * Lazy-load the dotLottie web component ONCE, from a pinned CDN build. Kept out
+ * of the bundle entirely so first paint / LCP is never charged for it. Returns a
+ * cached promise; failure resolves null so the loader degrades to a clean cream
+ * fade and navigation is never blocked.
+ */
+let playerPromise: Promise<unknown> | null = null;
+function ensurePlayer(): Promise<unknown> {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  if (!playerPromise) {
+    const cdn = "https://esm.sh/@lottiefiles/dotlottie-wc@0.7.2";
+    playerPromise = import(/* @vite-ignore */ cdn).catch(() => null);
+  }
+  return playerPromise;
+}
+
+/**
+ * Mounts a <dotlottie-wc> element imperatively once the player is ready. Going
+ * through the DOM (not JSX/props) sidesteps React 18's custom-element attribute
+ * quirks and the upgrade-timing race, so autoplay/loop are set reliably as real
+ * boolean attributes before the element upgrades.
+ */
+function DogCanvas({ size }: { size: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const host = ref.current;
+    if (!host) return;
+    let alive = true;
+    let el: HTMLElement | null = null;
+
+    ensurePlayer().then(() => {
+      if (!alive || !ref.current) return;
+      el = document.createElement("dotlottie-wc");
+      el.setAttribute("src", DOG_SRC);
+      el.setAttribute("autoplay", "");
+      el.setAttribute("loop", "");
+      el.setAttribute("speed", "1");
+      el.style.width = "100%";
+      el.style.height = "100%";
+      el.style.display = "block";
+      ref.current.appendChild(el);
+    });
+
+    return () => {
+      alive = false;
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    };
+  }, []);
+
+  return (
+    <span
+      ref={ref}
+      className="ps-dog"
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    />
+  );
+}
+
+/** Honours the OS reduced-motion setting, live. */
+function usePrefersReducedMotion(): boolean {
+  const read = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [reduce, setReduce] = useState<boolean>(read);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const on = () => setReduce(mq.matches);
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return reduce;
+}
 
 type PillIcon = ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
 
@@ -115,13 +197,41 @@ const delay = (v: string) => ({ ["--d" as string]: v } as CSSProperties);
 export default function Start() {
   const { search } = useLocation();
   const navigate = useNavigate();
+  const reduce = usePrefersReducedMotion();
+
+  // Brief rose-dog splash on first paint (overlays the already-painted page,
+  // then fades out). Skipped entirely under reduced-motion.
+  const [intro, setIntro] = useState<boolean>(() => !reduce);
+  // When set, the hand-off loader is up and we navigate to this href next.
+  const [handoff, setHandoff] = useState<string | null>(null);
+
+  // Lift the intro splash after one short walk beat. Guaranteed by a timer, so
+  // a slow or failed CDN never traps the page behind the overlay.
+  useEffect(() => {
+    if (!intro) return;
+    const t = window.setTimeout(() => setIntro(false), 1200);
+    return () => window.clearTimeout(t);
+  }, [intro]);
+
+  // Hand-off: let the dog finish one walk cycle, then navigate (UTM preserved).
+  // The timer owns the navigation, so it never waits on the Lottie player.
+  useEffect(() => {
+    if (!handoff) return;
+    const t = window.setTimeout(() => navigate({ pathname: handoff, search }), 950);
+    return () => window.clearTimeout(t);
+  }, [handoff, navigate, search]);
 
   // Plain client-side hop. UTM survives both paths: the <a href> carries the
-  // query for no-JS / new-tab, and navigate() carries it for the SPA click.
+  // query for no-JS / new-tab / modified clicks, and navigate() carries it for
+  // the SPA click. With motion, we show the dog loader first, then navigate.
   const choose = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
-    navigate({ pathname: href, search });
+    if (reduce) {
+      navigate({ pathname: href, search });
+      return;
+    }
+    if (!handoff) setHandoff(href);
   };
 
   return (
@@ -170,6 +280,18 @@ export default function Start() {
           ))}
         </nav>
       </section>
+
+      {/* Rose walking-dog loader — first-paint splash + pill-tap hand-off. */}
+      {!reduce && intro && (
+        <div className="ps-loader ps-loader-intro" aria-hidden="true">
+          <DogCanvas size={132} />
+        </div>
+      )}
+      {!reduce && handoff && (
+        <div className="ps-loader ps-loader-handoff" aria-hidden="true">
+          <DogCanvas size={132} />
+        </div>
+      )}
     </div>
   );
 }
@@ -322,8 +444,46 @@ function StartStyles() {
         animation-delay: var(--d, 0s);
       }
 
+      /* Rose walking-dog loader overlay — cream wash matching the page, the
+         recoloured Lottie centered. Intro fades out; hand-off fades in. */
+      .ps-loader {
+        position: fixed; inset: 0; z-index: 40;
+        display: grid; place-items: center;
+        background:
+          radial-gradient(64% 50% at 50% 116%, rgba(191,82,74,0.11), transparent 72%),
+          radial-gradient(52% 40% at 50% -8%, rgba(196,162,101,0.07), transparent 72%),
+          linear-gradient(180deg, ${C.cream} 0%, ${C.white} 46%, ${C.roseSoft} 168%);
+      }
+      .ps-loader-intro {
+        pointer-events: none;
+        animation: ps-loader-out 1150ms ease forwards;
+      }
+      .ps-loader-handoff {
+        pointer-events: auto;
+        animation: ps-loader-in 240ms ease-out forwards;
+      }
+      @keyframes ps-loader-out {
+        0%, 70% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      @keyframes ps-loader-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      /* The dog itself — soft entrance, GPU-only props */
+      .ps-dog {
+        display: block;
+        animation: ps-dog-in 460ms cubic-bezier(0.22,1,0.36,1) both;
+      }
+      @keyframes ps-dog-in {
+        from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.94); }
+        to { opacity: 1; transform: none; }
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .ps-reveal, .ps-pill, .ps-thumb-img, .ps-pico {
+        .ps-reveal, .ps-pill, .ps-thumb-img, .ps-pico,
+        .ps-loader, .ps-loader-intro, .ps-loader-handoff, .ps-dog {
           animation: none !important;
           transition: none !important;
         }
