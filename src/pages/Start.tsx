@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, MouseEvent } from "react";
+import { Component, lazy, Suspense, useEffect, useRef, useState } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, Frame } from "lucide-react";
+import { ArrowRight, Moon, Frame } from "lucide-react";
 
 /**
  * /start — the fork / splash page.
@@ -16,12 +16,24 @@ import { ArrowRight, Sparkles, Frame } from "lucide-react";
  *
  * ATTRIBUTION: the incoming query string (?utm_source=...&utm_medium=...) is
  * forwarded onto BOTH doors so conversion tracking survives the fork. The
- * <a href> carries it (graceful no-JS path) and navigate() carries it too.
+ * <a href> carries it (graceful no-JS path) and navigate() carries it too,
+ * including through the warp hand-off.
  *
- * MOTION (intentionally restrained this pass — real premium animation assets
- * drop in later): a clean staggered entrance, a very subtle warm parallax on
- * two soft glows, a tasteful door hover, and a simple fade on selection before
- * navigating. prefers-reduced-motion = instant + static.
+ * MOTION — REAL animation pass (Paper Shaders, GPU, colour-prop driven):
+ *  1. Ambient  : MeshGradient living rose/gold light behind the page.
+ *  2. Door glow: PulsingBorder rose/gold halo on hover/focus (per door).
+ *  3. Hand-off : Warp veil swallows the page on tap, then navigates.
+ *  4. Loader   : the reading hand-off carries a gold-shimmer "Reading their
+ *                stars" line over the warp.
+ * PERF: LCP paint is the plain CSS cream gradient. Every shader canvas
+ * lazy-mounts AFTER first paint and is code-split out of the first-paint
+ * bundle. prefers-reduced-motion = static cream background + instant navigate
+ * (no shaders, no warp).
+ *
+ * LICENSE: @paper-design/shaders(-react) is PolyForm Shield 1.0.0
+ * (https://polyformproject.org/licenses/shield/1.0.0). Permitted: any
+ * non-competing use; Little Souls does not compete with Paper. Notice mirrored
+ * in /public/THIRD-PARTY-LICENSES.txt.
  */
 
 const C = {
@@ -44,7 +56,7 @@ const DOORS = [
   {
     key: "reading" as const,
     href: "/",
-    Icon: Sparkles,
+    Icon: Moon,
     title: "Their Soul Reading",
     sub: "See their birth sky, free.",
   },
@@ -57,11 +69,43 @@ const DOORS = [
   },
 ];
 
+// Paper Shaders — code-split out of the /start first-paint bundle. One module,
+// one chunk; the three lazy components share it (loaded once, after first paint).
+// Imported via the static-re-export wrapper so Rollup tree-shakes to just these
+// three shaders (not all ~30 in the package).
+const loadShaders = () => import("@/lib/paper-shaders");
+const MeshGradient = lazy(() => loadShaders().then((m) => ({ default: m.MeshGradient })));
+const PulsingBorder = lazy(() => loadShaders().then((m) => ({ default: m.PulsingBorder })));
+const Warp = lazy(() => loadShaders().then((m) => ({ default: m.Warp })));
+
+/** Shaders are pure enhancement: if WebGL is missing or a canvas throws, the
+ *  CSS base layer carries the page. Render nothing on failure. */
+class ShaderBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
+function SafeShader({ children }: { children: ReactNode }) {
+  return (
+    <ShaderBoundary>
+      <Suspense fallback={null}>{children}</Suspense>
+    </ShaderBoundary>
+  );
+}
+
+const delay = (v: string) => ({ ["--d" as string]: v } as CSSProperties);
+
 export default function Start() {
   const { search } = useLocation();
   const navigate = useNavigate();
-  const pageRef = useRef<HTMLDivElement>(null);
-  const [leaving, setLeaving] = useState(false);
+  const [ambient, setAmbient] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [leavingKey, setLeavingKey] = useState<string | null>(null);
   const pending = useRef<string | null>(null);
   const timer = useRef<number | null>(null);
 
@@ -69,28 +113,18 @@ export default function Start() {
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Subtle warm parallax: pointer drives --px / --py on the page (soft glows only).
+  // Mount the ambient shader ONLY after first paint (LCP = the CSS cream
+  // gradient). Double rAF guarantees at least one painted frame first.
   useEffect(() => {
-    const page = pageRef.current;
-    if (!page || typeof window === "undefined") return;
-    if (prefersReduced()) return;
-    let frame = 0;
-    let tx = 0;
-    let ty = 0;
-    const apply = () => {
-      frame = 0;
-      page.style.setProperty("--px", tx.toFixed(3));
-      page.style.setProperty("--py", ty.toFixed(3));
-    };
-    const onPointer = (e: PointerEvent) => {
-      tx = e.clientX / window.innerWidth - 0.5;
-      ty = e.clientY / window.innerHeight - 0.5;
-      if (!frame) frame = window.requestAnimationFrame(apply);
-    };
-    window.addEventListener("pointermove", onPointer, { passive: true });
+    if (typeof window === "undefined" || prefersReduced()) return;
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => setAmbient(true));
+    });
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      window.removeEventListener("pointermove", onPointer);
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
     };
   }, []);
 
@@ -102,49 +136,72 @@ export default function Start() {
     const to = pending.current;
     if (to != null) {
       pending.current = null;
-      navigate({ pathname: to, search });
+      navigate({ pathname: to, search }); // UTM preserved through the hand-off
     }
   };
 
-  const choose = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+  const choose = (e: MouseEvent<HTMLAnchorElement>, href: string, key: string) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     if (prefersReduced()) {
       navigate({ pathname: href, search });
       return;
     }
-    if (leaving) {
+    if (leavingKey) {
       go();
       return;
     }
     pending.current = href;
-    setLeaving(true);
-    timer.current = window.setTimeout(go, 300);
+    setLeavingKey(key);
+    // reading carries a readable line, so hold it a touch longer
+    timer.current = window.setTimeout(go, key === "reading" ? 820 : 700);
   };
 
-  useEffect(() => () => {
-    if (timer.current) window.clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    },
+    []
+  );
+
+  const leaving = leavingKey != null;
 
   return (
-    <div ref={pageRef} className={`ps-page${leaving ? " is-leaving" : ""}`}>
+    <div className={`ps-page${leaving ? " is-leaving" : ""}`}>
       <StartStyles />
 
-      <div className="ps-glow ps-glow--rose" aria-hidden="true" />
-      <div className="ps-glow ps-glow--gold" aria-hidden="true" />
+      {ambient && (
+        <SafeShader>
+          <MeshGradient
+            className="ps-mesh"
+            colors={[C.cream, C.roseSoft, C.rose, C.gold]}
+            distortion={0.8}
+            swirl={0.5}
+            speed={0.22}
+            maxPixelCount={2_073_600}
+            style={{
+              position: "fixed",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 0,
+              pointerEvents: "none",
+            }}
+          />
+        </SafeShader>
+      )}
 
       <section className="ps-inner">
-        <p className="ps-brand ps-reveal" style={{ ["--d" as string]: "0s" } as CSSProperties}>
-          <span className="ps-brand-mark" aria-hidden="true">&#10022;</span>
+        <p className="ps-brand ps-reveal" style={delay("0s")}>
           Little Souls
         </p>
 
-        <h1 className="ps-title ps-reveal" style={{ ["--d" as string]: "0.07s" } as CSSProperties}>
+        <h1 className="ps-title ps-reveal" style={delay("0.07s")}>
           What are you
           <span className="ps-title-accent">looking for?</span>
         </h1>
 
-        <p className="ps-sub ps-reveal" style={{ ["--d" as string]: "0.15s" } as CSSProperties}>
+        <p className="ps-sub ps-reveal" style={delay("0.15s")}>
           Two ways to hold them closer.
         </p>
 
@@ -153,12 +210,48 @@ export default function Start() {
             <a
               key={door.key}
               href={`${door.href}${search}`}
-              onClick={(e) => choose(e, door.href)}
+              onClick={(e) => choose(e, door.href, door.key)}
+              onPointerEnter={() => {
+                if (!prefersReduced()) setHovered(door.key);
+              }}
+              onPointerLeave={() => setHovered((h) => (h === door.key ? null : h))}
+              onFocus={() => {
+                if (!prefersReduced()) setHovered(door.key);
+              }}
+              onBlur={() => setHovered((h) => (h === door.key ? null : h))}
               className="ps-door ps-reveal"
-              style={{ ["--d" as string]: `${0.24 + i * 0.08}s` } as CSSProperties}
+              style={delay(`${0.24 + i * 0.08}s`)}
             >
+              {hovered === door.key && (
+                <SafeShader>
+                  <PulsingBorder
+                    className="ps-door-glow"
+                    colors={
+                      door.key === "reading" ? [C.rose, C.gold] : [C.gold, C.rose]
+                    }
+                    colorBack="rgba(255,253,251,0)"
+                    roundness={0.2}
+                    thickness={0.045}
+                    softness={1}
+                    intensity={0.55}
+                    bloom={0.55}
+                    spots={4}
+                    spotSize={0.35}
+                    pulse={0.12}
+                    smoke={0}
+                    speed={1.1}
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: 18,
+                      pointerEvents: "none",
+                      zIndex: 0,
+                    }}
+                  />
+                </SafeShader>
+              )}
               <span className="ps-orb" aria-hidden="true">
-                <door.Icon size={22} strokeWidth={1.75} />
+                <door.Icon size={22} strokeWidth={1.6} />
               </span>
               <span className="ps-door-body">
                 <span className="ps-door-title">{door.title}</span>
@@ -169,6 +262,33 @@ export default function Start() {
           ))}
         </nav>
       </section>
+
+      {leaving && (
+        <div className="ps-warp" aria-hidden="true">
+          <SafeShader>
+            <Warp
+              className="ps-warp-canvas"
+              colors={
+                leavingKey === "reading"
+                  ? [C.rose, C.gold, C.cream]
+                  : [C.gold, C.rose, C.cream]
+              }
+              proportion={0.4}
+              softness={0.9}
+              swirl={0.8}
+              speed={1.1}
+              style={{ position: "fixed", inset: 0, width: "100%", height: "100%" }}
+            />
+          </SafeShader>
+          {leavingKey === "reading" && (
+            <p className="ps-warp-text">
+              <span className="ps-plaque">
+                <span className="ps-shine">Reading their stars</span>
+              </span>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -177,7 +297,6 @@ function StartStyles() {
   return (
     <style>{`
       .ps-page {
-        --px: 0; --py: 0;
         position: relative;
         min-height: 100svh;
         min-height: 100dvh;
@@ -194,24 +313,14 @@ function StartStyles() {
         isolation: isolate;
       }
 
-      /* Soft warm depth glows (subtle parallax) */
-      .ps-glow {
-        position: absolute; z-index: 0; pointer-events: none;
-        border-radius: 50%; filter: blur(8px);
-        will-change: transform;
-        transition: transform 360ms cubic-bezier(0.22,1,0.36,1);
+      /* Ambient MeshGradient — fades in over the cream LCP paint, kept subtle */
+      .ps-mesh {
+        opacity: 0;
+        animation: ps-mesh-in 1100ms ease forwards;
       }
-      .ps-glow--rose {
-        width: 60vw; max-width: 520px; aspect-ratio: 1;
-        top: -14%; left: -12%;
-        background: radial-gradient(circle, rgba(191,82,74,0.10), transparent 64%);
-        transform: translate3d(calc(var(--px) * 22px), calc(var(--py) * 22px), 0);
-      }
-      .ps-glow--gold {
-        width: 54vw; max-width: 460px; aspect-ratio: 1;
-        bottom: -16%; right: -12%;
-        background: radial-gradient(circle, rgba(196,162,101,0.12), transparent 64%);
-        transform: translate3d(calc(var(--px) * -16px), calc(var(--py) * -16px), 0);
+      @keyframes ps-mesh-in {
+        from { opacity: 0; }
+        to { opacity: 0.52; }
       }
 
       .ps-inner {
@@ -221,14 +330,13 @@ function StartStyles() {
       }
       .is-leaving .ps-inner { opacity: 0; transform: scale(0.985); }
 
-      /* Brand mark — rose, like the pawtraits nav lockup */
+      /* Brand wordmark — rose, like the pawtraits nav lockup (no glyph) */
       .ps-brand {
-        display: inline-flex; align-items: center; gap: 9px;
+        display: inline-block;
         margin: 0; color: ${C.rose};
         font-family: Assistant, system-ui, sans-serif;
         font-size: 13px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
       }
-      .ps-brand-mark { color: ${C.rose}; font-size: 14px; line-height: 1; }
 
       /* Headline — Asap ink + one Cormorant-italic rose line (pawtraits signature) */
       .ps-title {
@@ -262,6 +370,7 @@ function StartStyles() {
 
       .ps-door {
         position: relative;
+        overflow: hidden;
         display: flex; align-items: center; gap: 15px;
         min-height: 96px; padding: 18px 18px;
         border-radius: 18px;
@@ -280,6 +389,11 @@ function StartStyles() {
         outline: none;
       }
       .ps-door:focus-visible { box-shadow: 0 0 0 3px rgba(191,82,74,0.35), 0 22px 50px rgba(191,82,74,0.16); }
+
+      /* Door content sits above the PulsingBorder canvas */
+      .ps-door > .ps-orb,
+      .ps-door > .ps-door-body,
+      .ps-door > .ps-door-arrow { position: relative; z-index: 1; }
 
       .ps-orb {
         flex: none; width: 54px; height: 54px; border-radius: 50%;
@@ -311,6 +425,42 @@ function StartStyles() {
         transform: translateX(5px); color: ${C.roseDeep};
       }
 
+      /* Chosen-path warp hand-off */
+      .ps-warp {
+        position: fixed; inset: 0; z-index: 50;
+        opacity: 0;
+        animation: ps-warp-in 200ms ease forwards;
+        background: linear-gradient(180deg, ${C.roseSoft} 0%, ${C.cream} 100%);
+      }
+      @keyframes ps-warp-in { from { opacity: 0; } to { opacity: 1; } }
+      .ps-warp-text {
+        position: absolute; inset: 0; z-index: 2; margin: 0;
+        display: grid; place-items: center;
+      }
+      .ps-plaque {
+        padding: 14px 26px; border-radius: 999px;
+        background: rgba(255,253,251,0.82);
+        -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+        border: 1px solid rgba(196,162,101,0.32);
+        box-shadow: 0 18px 40px rgba(28,28,28,0.10);
+      }
+      .ps-shine {
+        font-family: Assistant, system-ui, sans-serif;
+        font-size: 1.06rem; font-weight: 600; letter-spacing: 0.01em;
+        color: ${C.earth};
+        background: linear-gradient(110deg,
+          ${C.earth} 0%, ${C.earth} 40%, ${C.gold} 50%, ${C.earth} 60%, ${C.earth} 100%);
+        background-size: 220% 100%;
+        background-repeat: no-repeat;
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: ps-shimmer 1.7s linear infinite;
+      }
+      @keyframes ps-shimmer {
+        from { background-position: 160% 0; }
+        to { background-position: -60% 0; }
+      }
+
       /* Entrance reveal */
       @keyframes ps-rise {
         from { opacity: 0; transform: translate3d(0, 14px, 0); }
@@ -324,12 +474,13 @@ function StartStyles() {
       .is-leaving .ps-reveal { animation: none; }
 
       @media (prefers-reduced-motion: reduce) {
-        .ps-glow, .ps-inner, .ps-door, .ps-door-arrow, .ps-orb, .ps-reveal {
+        .ps-inner, .ps-door, .ps-door-arrow, .ps-orb, .ps-reveal, .ps-mesh, .ps-shine, .ps-warp {
           animation: none !important;
           transition: none !important;
         }
         .ps-reveal { opacity: 1; }
-        .ps-glow { transform: none !important; }
+        .ps-mesh { opacity: 0 !important; }
+        .ps-shine { -webkit-text-fill-color: ${C.earth}; color: ${C.earth}; }
       }
     `}</style>
   );
