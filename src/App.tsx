@@ -17,6 +17,7 @@ import { Analytics } from "@vercel/analytics/react";
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
 import LandingV2 from "./pages/LandingV2";
+import Start from "./pages/Start";
 import Intake from "./pages/Intake";
 // QuickCheckout React component exists but /checkout routes to checkout.html (the original design)
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -167,6 +168,7 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<LandingV2 />} />
+                  <Route path="/start" element={<Start />} />
                   <Route path="/legacy" element={<Index />} />
                   <Route path="/v2-map-preview" element={<MapPreview />} />
                   <Route path="/intake" element={<Intake />} />
