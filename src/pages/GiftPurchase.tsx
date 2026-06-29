@@ -776,94 +776,158 @@ export default function GiftPurchase() {
           <ArrowLeft style={{ width: 16, height: 16 }} /> Back
         </Link>
 
-        {/* ── HERO — gift-presentation card with a small gold ornament
-             on top so it reads as a gift artifact, not a generic
-             content panel. Eyebrow names the product clearly. H1 sits
-             on identity-mirror: lets the buyer feel they're the
-             perceptive friend. Single CTA + correct starting price
-             (basic tier = £29, NOT £49). Pet-agnostic and gender-
-             neutral throughout. ── */}
+        {/* ── HERO — "The Handover" (Concept C, Danny-picked 2026-06-28).
+             A phone mockup showing the exact moment their gift opens:
+             the pet's face, the buyer's note, one real reading line.
+             The dog IS the hook. Kicker names the product, H1 puts the
+             buyer in the giver's seat, a real 5-star line carries proof,
+             one CTA drops to the occasion picker. Sacred LS rules held:
+             "soul reading" not report, no AI, "opens like a reveal" not
+             inbox; Bella is a named sample pet so gendering is allowed. ── */}
         <motion.div
+          className="gph-hero"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{
-            position: 'relative',
-            textAlign: 'center', marginBottom: 40,
-            padding: 'clamp(48px, 7vw, 64px) clamp(24px, 4vw, 40px) clamp(40px, 5vw, 48px)',
-            borderRadius: 18,
-            background: 'rgba(245,239,230,0.05)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            border: '1px solid rgba(212,182,122,0.22)',
-            boxShadow: '0 6px 32px rgba(0,0,0,0.4)',
-          }}
         >
-          {/* Gold star ornament — small presentation cue at the top of
-              the card. Reads as a gift artifact, not a content panel. */}
-          <svg
-            aria-hidden="true"
-            width="22"
-            height="22"
-            viewBox="0 0 22 22"
-            style={{
-              position: 'absolute',
-              top: -11,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: '#0d0a14',
-              padding: 4,
-              borderRadius: '50%',
-            }}
-          >
-            <path d="M11 1 L12.8 8.2 L20 9 L12.8 9.8 L11 17 L9.2 9.8 L2 9 L9.2 8.2 Z" fill={C.gold} />
-          </svg>
+          <p className="gph-kicker">A soul reading, made to gift</p>
 
-          {/* Eyebrow — Lato (sans) per DESIGN.md UI-label rule.
-              Cormorant 700 was wrong here (Cormorant is an italic
-              accent serif; misuse at small sizes). */}
-          <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 36 }}>
-            A soul reading &mdash; written for their pet
-          </p>
-
-          {/* H1 — identity-mirror in two beats. Both lines SAME font,
-              SAME size, SAME color — italic on line 2 is the only
-              differentiator (per typographic-hierarchy skill: less
-              size variation, not more). Playfair Display 500 is the
-              brand primary display per DESIGN.md (warmer than
-              DM Serif Display for hero typography). */}
-          <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(2.1rem, 6.6vw, 2.85rem)', color: C.ink, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 36, textWrap: 'balance' }}>
-            You see what their pet means to them.
-            <br />
-            Now they get to read it.
+          <h1 className="gph-h1">
+            Be the one who gave them <span className="it">this</span>.
           </h1>
 
-          {/* CTA — Lato (sans) per DESIGN.md button rule. Slightly
-              tighter padding so the button feels confident, not bloated. */}
+          {/* The handover phone — the gift, mid-open. Cockapoo "Bella". */}
+          <div className="gph-stage" aria-hidden="true">
+            <div className="gph-phone">
+              <span className="gph-notch" />
+              <div className="gph-screen">
+                <span className="gph-glow" />
+                <span className="gph-stars" />
+                <div className="gph-scr">
+                  <span className="gph-badge">A gift, just opened</span>
+                  <span className="gph-avatar">
+                    <img src="/breeds/cockapoo.jpg" alt="Bella the cockapoo" loading="eager" />
+                  </span>
+                  <span className="gph-name">Bella</span>
+                  <span className="gph-sub">Her Soul Reading</span>
+                  <div className="gph-note">
+                    <span className="nl">A note from you</span>
+                    <p className="nt">&ldquo;For you and Bella. The best dog any of us know. x&rdquo;</p>
+                  </div>
+                  <div className="gph-line">
+                    <svg viewBox="0 0 22 22"><path d="M11 2 L12.5 8.5 L19 10 L12.5 11.5 L11 18 L9.5 11.5 L3 10 L9.5 8.5 Z" fill="#d4b67a" /></svg>
+                    <span className="sx"><b>Sun in Leo</b>The best seat in the house, and she knows it.</span>
+                  </div>
+                  <div className="gph-chip">Open her reading</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Real 5-star line (Liam, Cork — from GIFT_REVIEWS). */}
+          <div className="gph-testi">
+            <div className="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p className="q">&ldquo;First time he&rsquo;s been impressed by a gift.&rdquo;</p>
+            <span className="who">Liam, Cork</span>
+          </div>
+
           <button
+            className="gph-cta"
             onClick={() => {
               const el = document.querySelector('[role="radiogroup"][aria-label="Gift occasion"]');
               el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
-            style={{
-              padding: '15px 30px',
-              borderRadius: 50,
-              background: C.rose,
-              color: '#141210',
-              fontFamily: 'Lato, system-ui, sans-serif',
-              fontWeight: 600,
-              fontSize: '0.98rem',
-              letterSpacing: '0.02em',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: `0 8px 24px ${C.roseGlow}`,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-            }}
           >
             <Gift style={{ width: 17, height: 17 }} />
-            Begin their gift &mdash; from {fmt(prices.basic)}
+            Find their gift &middot; from {fmt(prices.basic)}
           </button>
+
+          <style>{`
+            .gph-hero {
+              position: relative; text-align: center; margin-bottom: 40px;
+              padding: clamp(40px,6vw,56px) clamp(20px,4vw,36px) clamp(32px,4vw,40px);
+              border-radius: 18px; background: rgba(245,239,230,0.05);
+              backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+              border: 1px solid rgba(212,182,122,0.22); box-shadow: 0 6px 32px rgba(0,0,0,0.4);
+            }
+            .gph-kicker {
+              font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 600;
+              color: #d4b67a; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 16px;
+            }
+            .gph-h1 {
+              font-family: "Playfair Display", Georgia, serif; font-weight: 500;
+              font-size: clamp(2.1rem,6.6vw,2.85rem); color: #f5efe6; line-height: 1.08;
+              letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+            }
+            .gph-h1 .it { font-style: italic; color: #f0d99f; }
+            .gph-stage { position: relative; display: flex; justify-content: center; margin: 30px 0 4px; }
+            .gph-stage::before {
+              content: ""; position: absolute; width: 74%; height: 74%; top: 12%; left: 13%;
+              border-radius: 50%; background: radial-gradient(circle, rgba(124,92,214,0.32), transparent 66%);
+              filter: blur(26px); z-index: 0;
+            }
+            .gph-phone {
+              position: relative; z-index: 1; width: clamp(240px,70vw,280px); aspect-ratio: 300/620;
+              border-radius: 44px; padding: 12px;
+              background: linear-gradient(160deg,#2a2238,#15101c 60%,#241a30);
+              box-shadow: 0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,182,122,0.2), inset 0 0 0 2px rgba(0,0,0,0.5);
+              animation: gph-float 6s ease-in-out infinite;
+            }
+            @keyframes gph-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+            .gph-screen {
+              position: relative; width: 100%; height: 100%; border-radius: 32px; overflow: hidden;
+              background: linear-gradient(180deg,#120d1a,#1a1228 70%,#0f0b16);
+            }
+            .gph-notch { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 92px; height: 19px; border-radius: 12px; background: #0a0810; z-index: 5; }
+            .gph-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 40% at 50% 22%, rgba(124,92,214,0.28), transparent 60%); pointer-events: none; }
+            .gph-stars {
+              position: absolute; inset: 0; opacity: 0.6; background-image:
+                radial-gradient(1.1px 1.1px at 20% 30%, #fff, transparent),
+                radial-gradient(1px 1px at 70% 22%, #f0d99f, transparent),
+                radial-gradient(1px 1px at 44% 60%, #fff, transparent),
+                radial-gradient(1px 1px at 82% 54%, #fff, transparent),
+                radial-gradient(1px 1px at 30% 80%, #fff, transparent);
+            }
+            .gph-scr { position: relative; z-index: 3; padding: 40px 20px 22px; display: flex; flex-direction: column; align-items: center; text-align: center; height: 100%; }
+            .gph-badge { font-family: Lato, system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.58rem; color: #d4b67a; }
+            .gph-avatar { width: 84px; height: 84px; border-radius: 50%; margin: 14px 0 0; overflow: hidden; border: 2px solid #d4b67a; box-shadow: 0 0 24px rgba(212,182,122,0.3); }
+            .gph-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+            .gph-name { font-family: "Playfair Display", Georgia, serif; font-size: 1.5rem; color: #f5efe6; margin-top: 12px; line-height: 1; }
+            .gph-sub { font-family: Lato, system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.22em; font-size: 0.56rem; color: #c8c8d2; margin-top: 6px; }
+            .gph-note { margin-top: 16px; padding: 12px 13px; border-radius: 13px; background: rgba(212,182,122,0.07); border: 1px solid rgba(212,182,122,0.22); }
+            .gph-note .nl { font-family: Lato, system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.52rem; color: #d4b67a; }
+            .gph-note .nt { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: 0.9rem; color: #ececf2; line-height: 1.34; margin: 5px 0 0; }
+            .gph-line { display: flex; gap: 9px; align-items: flex-start; text-align: left; margin-top: 16px; width: 100%; }
+            .gph-line svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+            .gph-line .sx { font-size: 0.8rem; line-height: 1.3; color: #c8c8d2; }
+            .gph-line .sx b { font-family: "Playfair Display", Georgia, serif; font-style: normal; color: #f5efe6; display: block; font-size: 0.84rem; }
+            .gph-chip { margin-top: auto; width: 100%; padding: 11px 0; border-radius: 30px; background: linear-gradient(180deg,#f0d99f,#d4b67a); color: #1a1410; font-family: Lato, system-ui, sans-serif; font-weight: 600; font-size: 0.82rem; letter-spacing: 0.04em; }
+            .gph-testi { margin: 26px auto 0; max-width: 30ch; }
+            .gph-testi .stars { color: #d4b67a; letter-spacing: 0.14em; font-size: 0.8rem; }
+            .gph-testi .q { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: clamp(1.25rem,4.4vw,1.5rem); line-height: 1.3; color: #ececf2; margin: 8px 0 0; }
+            .gph-testi .who { display: block; margin-top: 8px; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: #c8c8d2; }
+            .gph-cta {
+              display: inline-flex; align-items: center; gap: 10px; margin-top: 26px; cursor: pointer; border: none;
+              font-family: Lato, system-ui, sans-serif; font-weight: 600; letter-spacing: 0.02em; color: #1a1410;
+              background: linear-gradient(180deg,#f0d99f,#d4b67a); border-radius: 50px; min-height: 56px;
+              padding: 0 32px; font-size: 1.02rem; box-shadow: 0 10px 30px rgba(124,92,214,0.3); transition: transform .18s ease;
+            }
+            .gph-cta:hover { transform: translateY(-2px); }
+            .gph-scr > * { opacity: 0; transform: translateY(10px); animation: gph-rise .6s cubic-bezier(.34,1.4,.64,1) forwards; }
+            .gph-scr > *:nth-child(1) { animation-delay: .25s; }
+            .gph-scr > *:nth-child(2) { animation-delay: .4s; }
+            .gph-scr > *:nth-child(3) { animation-delay: .52s; }
+            .gph-scr > *:nth-child(4) { animation-delay: .62s; }
+            .gph-scr > *:nth-child(5) { animation-delay: .74s; }
+            .gph-scr > *:nth-child(6) { animation-delay: .86s; }
+            .gph-scr > *:nth-child(7) { animation-delay: .98s; }
+            @keyframes gph-rise { to { opacity: 1; transform: none; } }
+            @media (max-width: 380px) { .gph-phone { width: clamp(220px,72vw,260px); } }
+            @media (prefers-reduced-motion: reduce) {
+              .gph-phone { animation: none !important; }
+              .gph-scr > * { opacity: 1 !important; transform: none !important; animation: none !important; }
+              .gph-cta { transition: none !important; }
+            }
+          `}</style>
         </motion.div>
 
         {/* ── OCCASION PICKER ── */}
