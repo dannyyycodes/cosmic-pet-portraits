@@ -48,27 +48,42 @@ const C = {
 /** Vendored rose-recoloured Walking Dog Lottie (every fill + stroke -> #bf524a). */
 const DOG_SRC = "/start/walking-dog-rose.json";
 
+type LottiePlayer = {
+  loadAnimation: (cfg: Record<string, unknown>) => { destroy: () => void };
+};
+
 /**
- * Lazy-load the dotLottie web component ONCE, from a pinned CDN build. Kept out
- * of the bundle entirely so first paint / LCP is never charged for it. Returns a
- * cached promise; failure resolves null so the loader degrades to a clean cream
- * fade and navigation is never blocked.
+ * Lazy-load the lottie-web SVG player ONCE, from a pinned CDN build. The light
+ * SVG renderer is pure JS (no WASM), so it draws the rose dog reliably across
+ * origins and stays out of the app bundle entirely, so first paint / LCP is
+ * never charged for it. Returns a cached promise; failure resolves null so the
+ * loader degrades to a clean cream fade and navigation is never blocked.
  */
-let playerPromise: Promise<unknown> | null = null;
-function ensurePlayer(): Promise<unknown> {
+let playerPromise: Promise<LottiePlayer | null> | null = null;
+function ensurePlayer(): Promise<LottiePlayer | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
   if (!playerPromise) {
-    const cdn = "https://esm.sh/@lottiefiles/dotlottie-wc@0.7.2";
-    playerPromise = import(/* @vite-ignore */ cdn).catch(() => null);
+    const cdn = "https://esm.sh/lottie-web@5.12.2/build/player/lottie_light";
+    playerPromise = import(/* @vite-ignore */ cdn)
+      .then((m) => ((m as { default?: LottiePlayer }).default ?? (m as unknown as LottiePlayer)))
+      .catch(() => null);
   }
   return playerPromise;
 }
 
+// Warm the player at module load (unless reduced-motion) so the brief loader has
+// the dog ready to draw the instant the overlay appears.
+if (
+  typeof window !== "undefined" &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+) {
+  void ensurePlayer();
+}
+
 /**
- * Mounts a <dotlottie-wc> element imperatively once the player is ready. Going
- * through the DOM (not JSX/props) sidesteps React 18's custom-element attribute
- * quirks and the upgrade-timing race, so autoplay/loop are set reliably as real
- * boolean attributes before the element upgrades.
+ * Renders the rose walking dog as inline SVG via lottie-web, once the player is
+ * ready. The animation fetches the recoloured JSON itself and loops the
+ * walk-cycle. Destroyed on unmount so no stray timers survive the overlay.
  */
 function DogCanvas({ size }: { size: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -77,24 +92,23 @@ function DogCanvas({ size }: { size: number }) {
     const host = ref.current;
     if (!host) return;
     let alive = true;
-    let el: HTMLElement | null = null;
+    let anim: { destroy: () => void } | null = null;
 
-    ensurePlayer().then(() => {
-      if (!alive || !ref.current) return;
-      el = document.createElement("dotlottie-wc");
-      el.setAttribute("src", DOG_SRC);
-      el.setAttribute("autoplay", "");
-      el.setAttribute("loop", "");
-      el.setAttribute("speed", "1");
-      el.style.width = "100%";
-      el.style.height = "100%";
-      el.style.display = "block";
-      ref.current.appendChild(el);
+    ensurePlayer().then((lottie) => {
+      if (!alive || !ref.current || !lottie) return;
+      anim = lottie.loadAnimation({
+        container: ref.current,
+        renderer: "svg",
+        loop: true,
+        autoplay: true,
+        path: DOG_SRC,
+        rendererSettings: { preserveAspectRatio: "xMidYMid meet", progressiveLoad: false },
+      });
     });
 
     return () => {
       alive = false;
-      if (el && el.parentNode) el.parentNode.removeChild(el);
+      if (anim) anim.destroy();
     };
   }, []);
 
@@ -209,7 +223,7 @@ export default function Start() {
   // a slow or failed CDN never traps the page behind the overlay.
   useEffect(() => {
     if (!intro) return;
-    const t = window.setTimeout(() => setIntro(false), 1200);
+    const t = window.setTimeout(() => setIntro(false), 1400);
     return () => window.clearTimeout(t);
   }, [intro]);
 
@@ -456,14 +470,14 @@ function StartStyles() {
       }
       .ps-loader-intro {
         pointer-events: none;
-        animation: ps-loader-out 1150ms ease forwards;
+        animation: ps-loader-out 1350ms ease forwards;
       }
       .ps-loader-handoff {
         pointer-events: auto;
         animation: ps-loader-in 240ms ease-out forwards;
       }
       @keyframes ps-loader-out {
-        0%, 70% { opacity: 1; }
+        0%, 74% { opacity: 1; }
         100% { opacity: 0; }
       }
       @keyframes ps-loader-in {
