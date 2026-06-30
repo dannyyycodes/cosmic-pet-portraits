@@ -7,9 +7,9 @@ import { useLocation, useNavigate } from "react-router-dom";
  *
  * Every social bio + the "comment SOUL" funnel points here. One warm question,
  * two small premium option pills: a free birth-sky soul reading, or a framed
- * pawtrait. Each pill carries a real thumbnail (a rose-on-cream Canis Major
- * star-chart disc for the reading, the Ollie canvas pawtrait for the portrait)
- * so the choice is shown, not just labelled. The star chart plots real
+ * pawtrait. Each pill carries a real thumbnail (a folded cream paper star chart
+ * of Canis Major in rose ink for the reading, the Ollie canvas pawtrait for the
+ * portrait) so the choice is shown, not just labelled. The chart plots real
  * catalogue star positions (Sirius the Dog Star, Mirzam, Wezen, Adhara, Aludra,
  * Furud) so the constellation is astronomically accurate, not a made-up shape.
  *
@@ -236,7 +236,7 @@ const PILLS: ReadonlyArray<{
   {
     key: "reading",
     href: "/",
-    img: "/start/starmap-canismajor.webp",
+    img: "/start/starmap-paper.webp",
     imgPos: "50% 50%",
     title: "Their Soul Reading",
     free: true,
