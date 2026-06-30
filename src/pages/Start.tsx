@@ -19,13 +19,18 @@ import { useLocation, useNavigate } from "react-router-dom";
  * forwarded onto BOTH pills so conversion tracking survives the fork. The
  * <a href> carries it (graceful no-JS path) and navigate() carries it too.
  *
- * MOTION: a single orchestrated CSS load-reveal for the content, plus a small
- * rose walking-dog loader (the real Walking Dog Lottie, recoloured to brand
- * rose) that plays briefly on first paint and again as the hand-off loader when
- * a pill is tapped, just before we navigate. The Lottie player is lazy-loaded
- * from a CDN so it never touches first paint. No WebGL, no shader background.
- * prefers-reduced-motion strips every animation: no dog, instant navigate,
- * fully static page.
+ * MOTION: a single orchestrated CSS load-reveal for the content, plus two
+ * hand-off loaders that play just before we navigate. The PORTRAIT pill keeps
+ * the small rose walking-dog Lottie (recoloured to brand rose), which also runs
+ * once on first paint. The SOUL READING pill plays a realistic moon-phases
+ * loader: a real public-domain Moon photo (NASA/GSFC/Arizona State University
+ * LRO nearside mosaic) set in a violet cosmic night, with a soft terminator
+ * shadow sweeping across the cratered disk so it reads as the real Moon moving
+ * through its phases. The moon loader is pure CSS/SVG with a vendored image, no
+ * script. The Lottie player is self-hosted (vendored) so it passes the site CSP
+ * and never touches first paint. No WebGL, no shader background.
+ * prefers-reduced-motion strips every animation: no dog, no phase sweep, instant
+ * navigate, fully static page.
  */
 
 const C = {
@@ -46,6 +51,12 @@ const C = {
 
 /** Vendored rose-recoloured Walking Dog Lottie (every fill + stroke -> #bf524a). */
 const DOG_SRC = "/start/walking-dog-rose.json";
+
+/** Vendored real Moon photo for the Soul Reading tap loader. Public domain:
+ *  NASA/GSFC/Arizona State University LRO nearside mosaic (PD-USGov-NASA, free
+ *  for commercial use), cropped to the lunar disk and optimised. The phase sweep
+ *  is done in pure CSS over this same-origin image (no script, passes the CSP). */
+const MOON_SRC = "/start/moon-phase.webp";
 
 type LottiePlayer = {
   loadAnimation: (cfg: Record<string, unknown>) => { destroy: () => void };
@@ -100,6 +111,9 @@ if (
 ) {
   void ensurePlayer();
   void ensureDogData();
+  // Prime the Moon photo so the reading-tap loader paints instantly.
+  const moonImg = new Image();
+  moonImg.src = MOON_SRC;
 }
 
 /**
@@ -141,6 +155,56 @@ function DogCanvas({ size }: { size: number }) {
       style={{ width: size, height: size }}
       aria-hidden="true"
     />
+  );
+}
+
+/** A few faint stars scattered around the moon (percent positions within the
+ *  loader field, size in px, twinkle delay in s). Subtle on purpose. */
+const STARS: ReadonlyArray<{ x: number; y: number; s: number; d: number }> = [
+  { x: 8, y: 20, s: 2, d: 0.0 },
+  { x: 22, y: 68, s: 2, d: 0.5 },
+  { x: 34, y: 11, s: 3, d: 1.1 },
+  { x: 49, y: 84, s: 2, d: 0.8 },
+  { x: 63, y: 24, s: 2, d: 1.6 },
+  { x: 79, y: 62, s: 3, d: 0.3 },
+  { x: 90, y: 38, s: 2, d: 1.3 },
+  { x: 14, y: 47, s: 2, d: 2.0 },
+  { x: 70, y: 9, s: 2, d: 0.9 },
+  { x: 87, y: 80, s: 2, d: 1.8 },
+  { x: 41, y: 38, s: 3, d: 2.3 },
+  { x: 58, y: 57, s: 2, d: 1.4 },
+];
+
+/**
+ * Realistic moon-phases loader for the Soul Reading tap. A vendored public-domain
+ * Moon photo sits in a violet cosmic night with a soft purple halo and faint
+ * stars; a soft terminator shadow sweeps across the cratered disk so it reads as
+ * the real Moon moving through its phases. Pure CSS, no script. Decorative.
+ */
+function MoonLoader() {
+  return (
+    <div className="ps-loader ps-loader-moon" aria-hidden="true">
+      <div className="psm-field">
+        {STARS.map((st, i) => (
+          <span
+            key={i}
+            className="psm-star"
+            style={{
+              left: `${st.x}%`,
+              top: `${st.y}%`,
+              width: st.s,
+              height: st.s,
+              animationDelay: `${st.d}s`,
+            }}
+          />
+        ))}
+        <span className="psm-halo" aria-hidden="true" />
+        <span className="psm-moon">
+          <img className="psm-moon-photo" src={MOON_SRC} alt="" decoding="async" />
+          <span className="psm-moon-shadow" />
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -195,8 +259,13 @@ export default function Start() {
   // Brief rose-dog splash on first paint (overlays the already-painted page,
   // then fades out). Skipped entirely under reduced-motion.
   const [intro, setIntro] = useState<boolean>(() => !reduce);
-  // When set, the hand-off loader is up and we navigate to this href next.
-  const [handoff, setHandoff] = useState<string | null>(null);
+  // When set, the hand-off loader is up and we navigate to this href next. The
+  // kind picks the loader: the reading tap plays the moon-phase loader, the
+  // portrait tap keeps the rose walking dog.
+  const [handoff, setHandoff] = useState<{
+    href: string;
+    kind: "reading" | "portrait";
+  } | null>(null);
 
   // Lift the intro splash after one short walk beat. Guaranteed by a timer, so
   // a slow or failed CDN never traps the page behind the overlay.
@@ -206,25 +275,34 @@ export default function Start() {
     return () => window.clearTimeout(t);
   }, [intro]);
 
-  // Hand-off: let the dog finish one walk cycle, then navigate (UTM preserved).
-  // The timer owns the navigation, so it never waits on the Lottie player.
+  // Hand-off: let the loader play one beat, then navigate (UTM preserved). The
+  // moon phase sweep gets a touch longer so the phases are appreciable; the dog
+  // finishes one walk cycle. The timer owns navigation, never waits on a player.
   useEffect(() => {
     if (!handoff) return;
-    const t = window.setTimeout(() => navigate({ pathname: handoff, search }), 1100);
+    const ms = handoff.kind === "reading" ? 1700 : 1100;
+    const t = window.setTimeout(
+      () => navigate({ pathname: handoff.href, search }),
+      ms,
+    );
     return () => window.clearTimeout(t);
   }, [handoff, navigate, search]);
 
   // Plain client-side hop. UTM survives both paths: the <a href> carries the
   // query for no-JS / new-tab / modified clicks, and navigate() carries it for
   // the SPA click. With motion, we show the dog loader first, then navigate.
-  const choose = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+  const choose = (
+    e: MouseEvent<HTMLAnchorElement>,
+    href: string,
+    kind: "reading" | "portrait",
+  ) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     if (reduce) {
       navigate({ pathname: href, search });
       return;
     }
-    if (!handoff) setHandoff(href);
+    if (!handoff) setHandoff({ href, kind });
   };
 
   return (
@@ -250,7 +328,7 @@ export default function Start() {
             <a
               key={pill.key}
               href={`${pill.href}${search}`}
-              onClick={(e) => choose(e, pill.href)}
+              onClick={(e) => choose(e, pill.href, pill.key)}
               className="ps-pill ps-reveal"
               style={delay(`${0.22 + i * 0.07}s`)}
             >
@@ -271,13 +349,17 @@ export default function Start() {
         </nav>
       </section>
 
-      {/* Rose walking-dog loader — first-paint splash + pill-tap hand-off. */}
+      {/* First-paint rose walking-dog splash. */}
       {!reduce && intro && (
         <div className="ps-loader ps-loader-intro" aria-hidden="true">
           <DogCanvas size={132} />
         </div>
       )}
-      {!reduce && handoff && (
+
+      {/* Pill-tap hand-off loader: realistic moon phases for the reading,
+          the rose walking dog for the portrait. */}
+      {!reduce && handoff?.kind === "reading" && <MoonLoader />}
+      {!reduce && handoff?.kind === "portrait" && (
         <div className="ps-loader ps-loader-handoff" aria-hidden="true">
           <DogCanvas size={132} />
         </div>
@@ -461,13 +543,95 @@ function StartStyles() {
         to { opacity: 1; transform: none; }
       }
 
+      /* ── Soul Reading tap loader: realistic moon phases in a violet night ── */
+      .ps-loader-moon {
+        --d: clamp(132px, 42vw, 168px);
+        background:
+          radial-gradient(52% 38% at 50% 40%, rgba(124,92,214,0.32), transparent 70%),
+          radial-gradient(135% 100% at 50% 30%, #5e467a 0%, #44315c 44%, #2c2142 76%, #1b1430 100%);
+        animation: ps-loader-in 260ms ease-out forwards;
+      }
+      .psm-field {
+        position: relative;
+        width: min(86vw, 360px); aspect-ratio: 1 / 1;
+        display: grid; place-items: center;
+      }
+      /* a few faint stars */
+      .psm-star {
+        position: absolute; display: block; border-radius: 50%;
+        background: #efeafc; opacity: 0.18;
+        box-shadow: 0 0 4px 1px rgba(224,214,250,0.7);
+        transform: translate(-50%, -50%);
+        animation: psm-twinkle 4s ease-in-out infinite;
+      }
+      @keyframes psm-twinkle { 0%, 100% { opacity: 0.16; } 50% { opacity: 0.85; } }
+
+      /* soft purple cosmic glow behind the moon */
+      .psm-halo {
+        position: absolute; z-index: 1; display: block;
+        width: calc(var(--d) * 1.92); height: calc(var(--d) * 1.92);
+        border-radius: 50%;
+        background: radial-gradient(circle,
+          rgba(160,132,236,0.42) 0%,
+          rgba(124,92,214,0.24) 32%,
+          rgba(94,70,122,0.10) 52%,
+          rgba(60,44,84,0.0) 70%);
+        animation: psm-breathe 5.6s ease-in-out infinite;
+      }
+      @keyframes psm-breathe {
+        0%, 100% { transform: scale(1); opacity: 0.85; }
+        50% { transform: scale(1.07); opacity: 1; }
+      }
+
+      /* the real cratered moon disk, silver-grey */
+      .psm-moon {
+        position: relative; z-index: 2; display: block;
+        width: var(--d); height: var(--d);
+        border-radius: 50%; overflow: hidden; isolation: isolate;
+        box-shadow: 0 0 0 1px rgba(216,208,232,0.10), 0 14px 46px rgba(10,7,22,0.6);
+      }
+      .psm-moon-photo {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; display: block;
+        filter: brightness(1.05) contrast(1.04);
+      }
+      /* limb darkening so the disk reads as a sphere */
+      .psm-moon::after {
+        content: ""; position: absolute; inset: 0; border-radius: 50%;
+        z-index: 3; pointer-events: none;
+        box-shadow: inset 0 0 20px 6px rgba(7,5,15,0.5);
+      }
+      /* soft terminator shadow sweeping across the disk = the phases */
+      .psm-moon-shadow {
+        position: absolute; top: 50%; left: 50%; z-index: 2; display: block;
+        width: 132%; height: 132%; border-radius: 50%;
+        transform: translate(-50%, -50%) translateX(112%);
+        background: radial-gradient(circle at 50% 50%,
+          rgba(11,8,20,0.96) 0%,
+          rgba(12,9,22,0.95) 42%,
+          rgba(16,12,28,0.82) 53%,
+          rgba(20,15,34,0.40) 63%,
+          rgba(24,18,40,0.0) 73%);
+        will-change: transform;
+        animation: psm-sweep 6.2s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+      }
+      @keyframes psm-sweep {
+        0% { transform: translate(-50%, -50%) translateX(112%); }
+        50% { transform: translate(-50%, -50%) translateX(-112%); }
+        100% { transform: translate(-50%, -50%) translateX(112%); }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .ps-reveal, .ps-pill, .ps-thumb-img,
-        .ps-loader, .ps-loader-intro, .ps-loader-handoff, .ps-dog {
+        .ps-loader, .ps-loader-intro, .ps-loader-handoff, .ps-dog,
+        .ps-loader-moon, .psm-halo, .psm-star, .psm-moon-shadow {
           animation: none !important;
           transition: none !important;
         }
         .ps-reveal { opacity: 1; }
+        /* degrade to a single static full moon if ever shown */
+        .psm-moon-shadow { display: none; }
+        .psm-halo { opacity: 0.9; }
       }
     `}</style>
   );
