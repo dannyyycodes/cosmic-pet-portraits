@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, type ReactNode, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getReferralCode } from "@/lib/referralTracking";
+import { getUtm } from "@/lib/utm";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { HeartsBackdrop } from "./HeartsBackdrop";
 
@@ -453,7 +454,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         session_id: sessionId,
         event_type: eventType,
         page_path: "/v2",
-        event_data: { ...eventData, funnel_v2_variant: funnelV2Variant } as never,
+        event_data: { ...eventData, ...getUtm(), funnel_v2_variant: funnelV2Variant } as never,
         user_agent: navigator.userAgent,
         referrer: document.referrer || null,
       }]);

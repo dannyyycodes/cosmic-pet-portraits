@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useUtmCapture } from "@/hooks/useUtmCapture";
 
 /**
  * /start — the fork / splash page.
@@ -257,6 +258,11 @@ export default function Start() {
   const { search } = useLocation();
   const navigate = useNavigate();
   const reduce = usePrefersReducedMotion();
+
+  // Persist any incoming utm_* first-party on mount, BEFORE the user forks to a
+  // door, so a visit/lead/sale traces back to the exact account that drove it.
+  // Analytics-only; does not affect the query the pills forward.
+  useUtmCapture();
 
   // Brief rose-dog splash on first paint (overlays the already-painted page,
   // then fades out). Skipped entirely under reduced-motion.

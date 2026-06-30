@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
+import { getUtm, getLandingAvenue } from '@/lib/utm';
 
 // Generate or retrieve session ID
 const getSessionId = () => {
@@ -45,6 +46,11 @@ export const usePageAnalytics = (pagePath: string) => {
         ...(eventData as Record<string, unknown> || {}),
         ab_variant: abVariant,
         ...(funnelV2Variant ? { funnel_v2_variant: funnelV2Variant } : {}),
+        // Per-account attribution: which account drove this visit, plus the
+        // coarse landing avenue. getUtm() returns only the keys that have a
+        // value, so absent params add nothing to the payload.
+        ...getUtm(),
+        landing_avenue: getLandingAvenue(pagePath),
       };
       
       await supabase.from('page_analytics').insert([{

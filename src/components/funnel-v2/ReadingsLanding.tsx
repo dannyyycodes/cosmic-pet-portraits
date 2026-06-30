@@ -5,6 +5,7 @@ import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, us
 import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
 import { supabase } from "@/integrations/supabase/client";
+import { getUtm } from "@/lib/utm";
 
 const C = {
   ink: "#141210",
@@ -465,6 +466,9 @@ function BirthChartPreviewSection() {
             event: "birth_chart_lead",
             petName: name || null,
             source: "birth_chart_preview",
+            // Per-account attribution: which account drove this lead. Passed
+            // from the client; the edge function is untouched.
+            utm: getUtm(),
           },
         });
       } catch (error) {
@@ -1924,7 +1928,7 @@ function BirthSkyJourney() {
     if (!/.+@.+\..+/.test(cleanEmail)) return;
     supabase.functions
       .invoke("track-subscriber", {
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_journey" },
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_journey", utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
     try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
@@ -1940,7 +1944,7 @@ function BirthSkyJourney() {
     setEmailMsg("");
     supabase.functions
       .invoke("track-subscriber", {
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_skim" },
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_skim", utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
     try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
