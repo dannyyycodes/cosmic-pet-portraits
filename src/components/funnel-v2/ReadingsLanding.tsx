@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { InlineCheckout } from "./InlineCheckout";
+import { CosmicBridge } from "./CosmicBridge";
 import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 
@@ -327,7 +328,7 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
-      <BridgeToForm />
+      <CosmicBridge />
       <BirthSkyJourney />
       <CheckoutSection
         checkoutRef={checkoutRef}
@@ -430,56 +431,9 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
   );
 }
 
-// Emotional bridge between the hero and the free-reading form. The approved passage
-// is broken into natural BEATS (words unchanged) that reveal one at a time as the
-// reader scrolls — each fades, un-blurs and rises like a memory resolving, with
-// generous whitespace so they land separately. The birth-chart turn lifts brighter;
-// the final gold line hands the eye into the "Set the chart" gate below.
-// CSP-safe: reuses the first-party .ls-reveal IntersectionObserver (no CDN, no library)
-// and pure CSS transitions. Reduced-motion shows every beat instantly, no motion.
-const BRIDGE_BEATS = [
-  "We think we know the small heart at our feet.",
-  "You are the safest part of their day, and they are the steadiest part of yours, a devotion poured out in full and asking nothing back.",
-  "Yet inside that warm, wordless body is a true self they carry alone, the one thing they would tell you if only they could speak.",
-  "You have sensed it for years, a whole person you can feel but never quite hear.",
-  "Their birth chart is where it finally comes through: an exact map of who they are, calculated from the real positions of the planets at the precise moment they came home to you, read to the degree the way any life is charted.",
-  "Others who have read one say it was like hearing their friend speak for the very first time.",
-] as const;
-
-function BridgeToForm() {
-  return (
-    <section className="ls-parallax-band relative px-5" style={{ paddingTop: "clamp(74px, 11vw, 134px)", paddingBottom: "clamp(6px, 1.6vw, 16px)" }}>
-      <div className="mx-auto" style={{ maxWidth: 660, textAlign: "center" }}>
-        <div
-          className="ls-reveal"
-          aria-hidden="true"
-          style={{
-            ...revealDelay(0.04),
-            width: 52,
-            height: 1,
-            margin: "0 auto clamp(30px, 6vw, 52px)",
-            background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
-            opacity: 0.85,
-          }}
-        />
-        <div className="ls-bridge-passage">
-          {BRIDGE_BEATS.map((beat, i) => (
-            <p
-              key={i}
-              className={`ls-reveal ls-bridge-beat text-pretty${i === 4 ? " ls-bridge-beat--pivot" : ""}`}
-              style={revealDelay(Math.min(i * 0.04, 0.16))}
-            >
-              {beat}
-            </p>
-          ))}
-          <p className="ls-reveal ls-bridge-beat ls-bridge-beat--gold text-pretty" style={revealDelay(0.05)}>
-            Set the chart and finally hear what they have been carrying.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
+// The emotional bridge between the hero and the "Set the chart" form is now the
+// Cinematic Cosmos scroll experience — see ./CosmicBridge.tsx (self-hosted GSAP +
+// moon, the nine approved beats, and the real Monty natal wheel drawn on scroll).
 
 function BirthChartPreviewSection() {
   const [petName, setPetName] = useState("");
