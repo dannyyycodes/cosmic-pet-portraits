@@ -327,6 +327,7 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
+      <BridgeToForm />
       <BirthSkyJourney />
       <CheckoutSection
         checkoutRef={checkoutRef}
@@ -424,6 +425,49 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
             </a>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// Emotional bridge between the hero and the free-reading form. A single flowing,
+// featured passage (Playfair on the near-black cosmos) whose final gold line hands
+// the eye straight into the "Set the chart" gate below. Copy is fixed and approved;
+// scroll-reveal reuses .ls-reveal (reduced-motion safe).
+function BridgeToForm() {
+  return (
+    <section className="ls-parallax-band relative px-5" style={{ paddingTop: "clamp(74px, 11vw, 134px)", paddingBottom: "clamp(6px, 1.6vw, 16px)" }}>
+      <div className="mx-auto" style={{ maxWidth: 640, textAlign: "center" }}>
+        <div
+          className="ls-reveal"
+          aria-hidden="true"
+          style={{
+            ...revealDelay(0.04),
+            width: 52,
+            height: 1,
+            margin: "0 auto 34px",
+            background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
+            opacity: 0.85,
+          }}
+        />
+        <p
+          className="ls-reveal text-pretty"
+          style={{
+            ...revealDelay(0.12),
+            margin: 0,
+            color: C.creamDim,
+            fontFamily: '"Playfair Display", Georgia, serif',
+            fontWeight: 400,
+            fontSize: "clamp(1.24rem, 2.5vw, 1.6rem)",
+            lineHeight: 1.66,
+            letterSpacing: "-0.006em",
+          }}
+        >
+          We think we know the small heart at our feet. You are the safest part of their day, and they are the steadiest part of yours, a devotion poured out in full and asking nothing back. Yet inside that warm, wordless body is a true self they carry alone, the one thing they would tell you if only they could speak. You have sensed it for years, a whole person you can feel but never quite hear. Their birth chart is where it finally comes through: an exact map of who they are, calculated from the real positions of the planets at the precise moment they came home to you, read to the degree the way any life is charted. Others who have read one say it was like hearing their friend speak for the very first time.{" "}
+          <span style={{ color: C.goldSoft, fontWeight: 500 }}>
+            Set the chart and finally hear what they have been carrying.
+          </span>
+        </p>
       </div>
     </section>
   );
