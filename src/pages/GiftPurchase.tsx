@@ -1,14 +1,16 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2,
   ChevronRight, Users, User, Sparkles, Star, Shield, Clock,
   Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone, Feather,
+  Orbit, Lock, CalendarDays, CalendarHeart, ScrollText, BookOpen, PenLine,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
+import gsap from 'gsap';
 
 type DeliveryMethod = 'email' | 'link';
 type GiftTier = 'essential' | 'portrait';
@@ -270,6 +272,751 @@ function WallpaperBackdrop() {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   GIFT PAGE v7 — approved moonlit presentation.
+   These components render the marketing shell (moonlit sky, hero,
+   trust, three steps, wax-envelope reveal, gift experience, proof,
+   reassurance, closing, footer). The interactive purchase funnel
+   (occasion picker + selectable tier cards + 3-step flow) is preserved
+   below and rendered INSIDE this shell. Fonts: Playfair Display +
+   Newsreader. Navy #0d0a14 / gold #d4b67a / ivory #f4ece0.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const GIFT7 = {
+  moon: 'https://content.littlesouls.app/viral-pet-media/giftart/moon-full.webp',
+  seal: 'https://content.littlesouls.app/viral-pet-media/giftart/wax-seal-blank.webp',
+  foil: 'https://content.littlesouls.app/viral-pet-media/giftart/gold-foil-tile.webp',
+  // Same-origin breed assets (ship in public/breeds → dist/breeds). Relative
+  // so they always resolve against whatever origin serves the app, with no
+  // cross-subdomain DNS dependency on a revenue page.
+  bella: '/breeds/cockapoo.jpg',
+  review: {
+    golden: '/breeds/golden-retriever.jpg',
+    collie: '/breeds/border-collie.jpg',
+    aussie: '/breeds/australian-shepherd.jpg',
+    siamese: '/breeds/siamese.jpg',
+  },
+};
+
+function MoonlitSky() {
+  return (
+    <div className="sky" aria-hidden="true">
+      <span className="moon-wrap">
+        <img className="moon" src={GIFT7.moon} alt="" decoding="async" loading="lazy" />
+      </span>
+    </div>
+  );
+}
+
+/* ── hero device: the pet's natal-chart wheel, drawn glyph-free ── */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(name: string, attrs: Record<string, string | number>) {
+  const n = document.createElementNS(SVGNS, name);
+  for (const k in attrs) n.setAttribute(k, String(attrs[k]));
+  return n;
+}
+function polar(cx: number, cy: number, r: number, deg: number): [number, number] {
+  const a = (deg * Math.PI) / 180;
+  return [cx + r * Math.cos(a), cy - r * Math.sin(a)];
+}
+function buildChart(svg: SVGSVGElement) {
+  svg.innerHTML = '';
+  const GOLD = '#d4b67a';
+  const cx = 150, cy = 150, rOut = 140, rBand = 120, rInner = 92, rHub = 20;
+  svg.appendChild(svgEl('circle', { cx, cy, r: rOut, fill: '#0d0a14' }));
+  [rOut, rBand, rInner].forEach((r, i) => {
+    svg.appendChild(svgEl('circle', { cx, cy, r, fill: 'none', stroke: GOLD, 'stroke-width': i === 0 ? 1.2 : 0.8, 'stroke-opacity': i === 0 ? 0.55 : 0.32 }));
+  });
+  for (let s = 0; s < 12; s++) {
+    const deg = s * 30;
+    const a = polar(cx, cy, rBand, deg), b = polar(cx, cy, rOut, deg);
+    svg.appendChild(svgEl('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: GOLD, 'stroke-width': 0.8, 'stroke-opacity': 0.45 }));
+    const mid = deg + 15;
+    const seeds: [number, number][] = [[mid - 7, 130], [mid + 4, 134], [mid + 9, 127]];
+    let path = '';
+    seeds.forEach((sd, j) => {
+      const p = polar(cx, cy, sd[1], sd[0]);
+      svg.appendChild(svgEl('circle', { cx: p[0].toFixed(1), cy: p[1].toFixed(1), r: 0.9, fill: GOLD, 'fill-opacity': 0.7 }));
+      path += (j === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' ';
+    });
+    svg.appendChild(svgEl('path', { d: path, fill: 'none', stroke: GOLD, 'stroke-width': 0.5, 'stroke-opacity': 0.28 }));
+  }
+  for (let t = 0; t < 12; t++) {
+    const d2 = t * 30 + 15;
+    const ia = polar(cx, cy, rInner, d2), ib = polar(cx, cy, rBand, d2);
+    svg.appendChild(svgEl('line', { x1: ia[0], y1: ia[1], x2: ib[0], y2: ib[1], stroke: GOLD, 'stroke-width': 0.5, 'stroke-opacity': 0.16 }));
+  }
+  const planets = [22, 74, 130, 168, 214, 262, 310, 344];
+  const radii = [70, 84, 62, 88, 66, 80, 58, 86];
+  const pts: [number, number][] = planets.map((deg, i) => polar(cx, cy, radii[i], deg));
+  const aspects = [[0, 3], [1, 5], [2, 6], [4, 7], [0, 5], [3, 6]];
+  aspects.forEach((pair) => {
+    const u = pts[pair[0]], v = pts[pair[1]];
+    svg.appendChild(svgEl('line', { x1: u[0].toFixed(1), y1: u[1].toFixed(1), x2: v[0].toFixed(1), y2: v[1].toFixed(1), stroke: GOLD, 'stroke-width': 0.5, 'stroke-opacity': 0.22 }));
+  });
+  pts.forEach((pp) => {
+    svg.appendChild(svgEl('circle', { cx: pp[0].toFixed(1), cy: pp[1].toFixed(1), r: 4.6, fill: '#0d0a14', stroke: GOLD, 'stroke-width': 0.9, 'stroke-opacity': 0.8 }));
+    svg.appendChild(svgEl('circle', { cx: pp[0].toFixed(1), cy: pp[1].toFixed(1), r: 1.7, fill: GOLD, 'fill-opacity': 0.9 }));
+  });
+  svg.appendChild(svgEl('circle', { cx, cy, r: rHub, fill: 'none', stroke: GOLD, 'stroke-width': 0.7, 'stroke-opacity': 0.4 }));
+  svg.appendChild(svgEl('circle', { cx, cy, r: 4.5, fill: GOLD, 'fill-opacity': 0.92 }));
+  for (let ray = 0; ray < 12; ray++) {
+    const rd = ray * 30;
+    const ra = polar(cx, cy, 8, rd), rb = polar(cx, cy, 14, rd);
+    svg.appendChild(svgEl('line', { x1: ra[0].toFixed(1), y1: ra[1].toFixed(1), x2: rb[0].toFixed(1), y2: rb[1].toFixed(1), stroke: GOLD, 'stroke-width': 0.7, 'stroke-opacity': 0.5 }));
+  }
+}
+
+function Stars({ n = 5 }: { n?: number }) {
+  return (
+    <span className="stars" aria-hidden="true">
+      {Array.from({ length: n }).map((_, i) => <Star key={i} className="lucide" />)}
+    </span>
+  );
+}
+
+function HeroDevice() {
+  const chartRef = useRef<SVGSVGElement>(null);
+  useEffect(() => { if (chartRef.current) buildChart(chartRef.current); }, []);
+  return (
+    <div className="device-stage">
+      <div className="device">
+        <div className="screen">
+          <div className="notch" />
+          <p className="cover-kicker">A Soul Reading</p>
+          <div className="cover-av-wrap">
+            <img className="cover-av" src={GIFT7.bella} alt="Bella the cockapoo" width={72} height={72} loading="eager" decoding="async" />
+          </div>
+          <h3 className="cover-name">Bella</h3>
+          <p className="cover-sign">Sun in Leo</p>
+          <div className="chartwrap">
+            <svg ref={chartRef} className="chart" viewBox="0 0 300 300" role="img" aria-label="A pet's natal birth chart wheel" />
+          </div>
+          <div className="screen-foot">
+            <div className="sf-row"><span className="sf-label">Dominant element</span><span className="sf-val">Fire</span></div>
+            <div className="sf-row"><span className="sf-label">Soul archetype</span><span className="sf-val">The Companion</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type CtaFonts = { fmt: (c: number) => string; prices: { basic: number; wasBasic: number }; onCta: () => void };
+
+function Hero({ fmt, prices, onCta }: CtaFonts) {
+  return (
+    <header className="hero band wrap">
+      <div className="hero-grid">
+        <div className="hero-copy">
+          <p className="eyebrow reveal">A gift for someone who loves their dog or cat</p>
+          <h1 className="reveal">Finally, a gift as deep as their <em>devotion</em>.</h1>
+          <p className="define reveal">A soul reading built from their pet's <b>real birth chart</b>, opened as a private reveal they keep forever.</p>
+          <div className="cta-row reveal">
+            <button type="button" className="btn" onClick={onCta}>Gift a Soul Reading</button>
+            <p className="price-note">from <span className="price">{fmt(prices.basic)}</span><span className="was">{fmt(prices.wasBasic)}</span></p>
+          </div>
+          <div className="rating reveal" style={{ marginTop: 18 }}>
+            <Stars />
+            <span>Loved by people who gift it</span>
+          </div>
+        </div>
+        <HeroDevice />
+      </div>
+    </header>
+  );
+}
+
+function TrustStrip() {
+  return (
+    <section className="trust" data-section>
+      <div className="wrap trust-in">
+        <div className="badges sreveal">
+          <span className="badge"><span className="ic" aria-hidden="true"><Orbit className="lucide" /></span>Built on their pet's real chart</span>
+          <span className="badge"><span className="ic" aria-hidden="true"><Lock className="lucide" /></span>A private reveal, not an inbox</span>
+          <span className="badge"><span className="ic" aria-hidden="true"><CalendarDays className="lucide" /></span>Valid for a full year</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StepsSection() {
+  return (
+    <section className="band wrap" data-section>
+      <div className="shead sreveal">
+        <h2>Three quiet steps</h2>
+        <p>From your sofa to theirs. <strong>No parcels, no postage.</strong></p>
+      </div>
+      <div className="steps">
+        <div className="step sreveal">
+          <span className="ic" aria-hidden="true"><BookOpen className="lucide" /></span>
+          <div><p className="n">One</p><h3>Choose their reading</h3></div>
+        </div>
+        <div className="step sreveal">
+          <span className="ic" aria-hidden="true"><PenLine className="lucide" /></span>
+          <div><p className="n">Two</p><h3>Write your note</h3></div>
+        </div>
+        <div className="step sreveal">
+          <span className="ic" aria-hidden="true"><Send className="lucide" /></span>
+          <div><p className="n">Three</p><h3>Give it your way: link, card, or in person</h3></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GiftExperience() {
+  return (
+    <section className="band wrap" data-section>
+      <div className="shead sreveal">
+        <h2>A gift that arrives like a moment</h2>
+        <p>The part <strong>no card or parcel</strong> can do.</p>
+      </div>
+      <div className="cues">
+        <div className="cue sreveal">
+          <span className="ic" aria-hidden="true"><Gift className="lucide" /></span>
+          <div><h3>Give it your way</h3><p>A private link to text, slip in a card, or hand over. Or emailed to them.</p></div>
+        </div>
+        <div className="cue sreveal">
+          <span className="ic" aria-hidden="true"><CalendarHeart className="lucide" /></span>
+          <div><h3>Valid a full year</h3><p>Give it whenever you like. No postage, no cutoff.</p></div>
+        </div>
+        <div className="cue sreveal">
+          <span className="ic" aria-hidden="true"><ScrollText className="lucide" /></span>
+          <div><h3>They open it like a reveal</h3><p>They add their pet, and the reading unfolds as a private page.</p></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Proof() {
+  const reviews = [
+    { img: GIFT7.review.golden, alt: "Ryan's golden retriever", quote: "I said 'that's her' on the first line. Then it told me why she follows me room to room. I'd never worked that out.", name: 'Ryan', city: 'Austin' },
+    { img: GIFT7.review.collie, alt: "Anna's border collie", quote: 'Nine years with this dog, and it still told me something about her I never knew.', name: 'Anna', city: 'Portland' },
+    { img: GIFT7.review.aussie, alt: "Liam's Australian shepherd", quote: "It put words to what I'd always felt about him but could never explain.", name: 'Liam', city: 'Cork' },
+    { img: GIFT7.review.siamese, alt: "Emily's Siamese cat", quote: "I know her by heart. It knew the parts even I'd missed.", name: 'Emily', city: 'Toronto' },
+  ];
+  return (
+    <section className="band wrap" data-section>
+      <div className="shead sreveal"><h2>What people say after they give it</h2></div>
+      <div className="proof">
+        {reviews.map((r, i) => (
+          <figure className="quote sreveal" key={i}>
+            <span className="mark" aria-hidden="true">&#8220;</span>
+            <blockquote>{r.quote}</blockquote>
+            <figcaption className="who">
+              <img className="who-av" src={r.img} alt={r.alt} width={46} height={46} loading="lazy" decoding="async" />
+              <span className="who-meta"><span className="nm">{r.name}</span><span className="ct">{r.city}</span></span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Reassurance() {
+  return (
+    <section className="band wrap" data-section>
+      <div className="reassure sreveal">
+        <p className="guarantee">Read from their pet's real chart. If it does not feel like them, we make it right.</p>
+        <dl className="faq">
+          <dt>Do I need their pet's details?</dt>
+          <dd>No. They add their pet's name, birth date and photo when they open it.</dd>
+        </dl>
+      </div>
+    </section>
+  );
+}
+
+function Closing({ fmt, prices, onCta }: CtaFonts) {
+  return (
+    <section className="band wrap closing" data-section>
+      <h2 className="sreveal">Give the reading written in their stars.</h2>
+      <div className="cta-row sreveal">
+        <button type="button" className="btn" onClick={onCta}>Gift a Soul Reading</button>
+        <p className="price-note">from <span className="price">{fmt(prices.basic)}</span><span className="was">{fmt(prices.wasBasic)}</span></p>
+      </div>
+      <div className="rating sreveal" style={{ justifyContent: 'center', marginTop: 20 }}>
+        <Stars />
+        <span>Loved by people who gift it</span>
+      </div>
+    </section>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="foot wrap">
+      <span>Little Souls</span>
+      <span className="foot-hair" aria-hidden="true" />
+      <span>read from the day their soul arrived</span>
+    </footer>
+  );
+}
+
+/* ── The wax-envelope reveal. Tap the seal, the flap unfolds, the letter
+   slides out and the sample reading settles in. Self-contained GSAP
+   timeline built on refs. Honours reduced-motion (opens instantly) and
+   degrades to a visible reading if GSAP is unavailable. ── */
+function EnvelopeReveal() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const readingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const btn = btnRef.current;
+    const reading = readingRef.current;
+    if (!root || !btn || !reading) return;
+
+    const seal = btn.querySelector<HTMLElement>('.seal');
+    const glow = btn.querySelector<HTMLElement>('.seal-glow');
+    const flap = root.querySelector<HTMLElement>('.flap');
+    const paper = root.querySelector<HTMLElement>('.paper');
+    const envWrap = root.querySelector<HTMLElement>('.env-wrap');
+    const invite = root.querySelector<HTMLElement>('.invite');
+    const kicker = root.querySelector<HTMLElement>('.gift-kicker');
+
+    // Missing a core piece? Degrade gracefully: show the reading.
+    if (!seal || !glow || !flap || !paper || !envWrap) {
+      reading.style.display = 'block';
+      return;
+    }
+
+    const DECEL = 'cubic-bezier(0.05,0.7,0.1,1)';
+    let opened = false;
+    let idleTween: gsap.core.Timeline | null = null;
+    let master: gsap.core.Timeline | null = null;
+
+    const buildSealed = () => {
+      gsap.set(flap, { rotateX: 0, transformOrigin: '50% 0%' });
+      gsap.set(seal, { yPercent: 0, scale: 1, opacity: 1, transformOrigin: '50% 50%' });
+      gsap.set(paper, { yPercent: 0, scale: 0.96, opacity: 0 });
+      reading.style.display = 'none';
+      gsap.set(reading, { opacity: 0 });
+    };
+    const startIdle = () => {
+      idleTween = gsap.timeline({ repeat: -1, yoyo: true });
+      idleTween.to(seal, { scale: 1.018, duration: 1.9, ease: 'sine.inOut' }, 0)
+               .to(glow, { opacity: 0.85, duration: 1.9, ease: 'sine.inOut' }, 0);
+    };
+    const revealReading = () => {
+      reading.style.display = 'block';
+      void reading.offsetHeight;
+      root.classList.add('is-open');
+      const tlr = gsap.timeline();
+      tlr.fromTo(reading, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: DECEL }, 0);
+      tlr.fromTo(reading.querySelectorAll('.rv'), { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.62, stagger: 0.12, ease: DECEL }, 0.1);
+      tlr.fromTo(reading.querySelectorAll('.loop'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: DECEL }, 0.72);
+      tlr.add(() => { try { kicker?.focus({ preventScroll: true }); } catch { kicker?.focus(); } }, 0.7);
+    };
+    const buildMaster = () => {
+      master = gsap.timeline({ paused: true });
+      master.to(seal, { scale: 1.03, duration: 0.16, ease: DECEL }, 0)
+            .to(seal, { yPercent: -10, scale: 1.12, opacity: 0, duration: 0.42, ease: DECEL }, '>-0.02')
+            .to(glow, { opacity: 0, duration: 0.46, ease: DECEL }, '<');
+      master.addLabel('flap', 0.24);
+      master.to(flap, { rotateX: -165, duration: 0.74, ease: DECEL }, 'flap');
+      master.add(() => { flap.style.zIndex = '0'; }, 'flap+=0.34');
+      master.addLabel('letter', 'flap+=0.56');
+      master.fromTo(paper, { yPercent: 0, scale: 0.96, opacity: 0 }, { yPercent: -46, scale: 1, opacity: 1, duration: 0.5, ease: DECEL }, 'letter');
+      master.to(paper, { yPercent: -94, opacity: 0, duration: 0.5, ease: DECEL }, 'letter+=0.5');
+      master.to(envWrap, { scale: 0.9, opacity: 0.32, y: -10, duration: 0.7, ease: DECEL }, 'letter+=0.08');
+      master.to(invite, { opacity: 0, y: -8, duration: 0.4, ease: DECEL }, 'letter');
+      master.add(revealReading, 'letter+=0.42');
+    };
+    const openInstant = () => {
+      opened = true;
+      btn.setAttribute('aria-expanded', 'true');
+      reading.style.display = 'block';
+      gsap.set(reading, { opacity: 1 });
+      root.classList.add('is-open');
+    };
+    const haptic = () => { try { if (navigator.vibrate) navigator.vibrate([10, 40, 16]); } catch { /* noop */ } };
+    const onActivate = () => {
+      if (opened || !master) return;
+      opened = true;
+      if (idleTween) idleTween.kill();
+      gsap.set(seal, { scale: 1 });
+      haptic();
+      btn.setAttribute('aria-expanded', 'true');
+      master.play();
+    };
+    const onDown = () => { if (!opened) gsap.to(seal, { scale: 0.97, duration: 0.14, ease: DECEL }); };
+    const onUp = () => { if (!opened) gsap.to(seal, { scale: 1, duration: 0.2, ease: DECEL }); };
+    const onCtx = (e: Event) => e.preventDefault();
+
+    btn.addEventListener('click', onActivate);
+    btn.addEventListener('pointerdown', onDown);
+    btn.addEventListener('pointerup', onUp);
+    btn.addEventListener('contextmenu', onCtx);
+
+    let mm: ReturnType<typeof gsap.matchMedia> | null = null;
+    try {
+      mm = gsap.matchMedia();
+      mm.add({ reduce: '(prefers-reduced-motion: reduce)', full: '(prefers-reduced-motion: no-preference)' }, (ctx) => {
+        if (ctx.conditions && ctx.conditions.reduce) { openInstant(); }
+        else { buildSealed(); buildMaster(); startIdle(); }
+      });
+    } catch {
+      reading.style.display = 'block';
+    }
+
+    return () => {
+      btn.removeEventListener('click', onActivate);
+      btn.removeEventListener('pointerdown', onDown);
+      btn.removeEventListener('pointerup', onUp);
+      btn.removeEventListener('contextmenu', onCtx);
+      if (idleTween) idleTween.kill();
+      if (master) master.kill();
+      if (mm) mm.revert();
+    };
+  }, []);
+
+  return (
+    <section className="band wrap env-section" data-section>
+      <div className="shead sreveal">
+        <h2>See what they'll open</h2>
+      </div>
+
+      {/* gold-recolourable glyph sprite for the seal stamp (never a Unicode zodiac char) */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
+        <symbol id="gl-leo" viewBox="0 0 64 64">
+          <path d="M26 47 a9.5 9.5 0 1 1 9.5 -9.5 c0 -10.5 -2 -18.5 8 -20.5 c9.5 -2 16.5 6.5 14 16 c-1.6 6 -6.6 9.6 -12.4 8.4" fill="none" stroke="currentColor" strokeWidth="5.4" strokeLinecap="round" strokeLinejoin="round" />
+        </symbol>
+        <symbol id="gl-paw" viewBox="0 0 64 64">
+          <g fill="currentColor">
+            <ellipse cx="32" cy="42" rx="13" ry="10.5" />
+            <ellipse cx="16" cy="28" rx="5" ry="6.5" />
+            <ellipse cx="27" cy="20" rx="5" ry="7" />
+            <ellipse cx="38" cy="20" rx="5" ry="7" />
+            <ellipse cx="49" cy="28" rx="5" ry="6.5" />
+          </g>
+        </symbol>
+      </svg>
+
+      <div className="scene" ref={rootRef}>
+        <div className="env-wrap">
+          <div className="env">
+            <div className="env-body" aria-hidden="true" />
+            <div className="paper" aria-hidden="true" />
+
+            <button
+              type="button"
+              className="seal-btn"
+              ref={btnRef}
+              aria-expanded="false"
+              aria-controls="gift-reading"
+              aria-label="Break the seal to open Bella's reading"
+            >
+              <span className="seal-glow" aria-hidden="true" />
+              <span className="seal" aria-hidden="true">
+                <img className="seal-img" alt="" src={GIFT7.seal} />
+                <span className="stamp">
+                  <svg className="glyph" viewBox="0 0 64 64" aria-hidden="true"><use href="#gl-leo" /></svg>
+                  <svg className="paw" viewBox="0 0 64 64" aria-hidden="true"><use href="#gl-paw" /></svg>
+                </span>
+              </span>
+            </button>
+
+            <div className="flap" aria-hidden="true">
+              <div className="flap-face front" />
+              <div className="flap-face back">
+                <img className="foil" alt="" src={GIFT7.foil} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="invite">
+          <p className="hint">Made for Bella. Press the seal.</p>
+          <span className="env-cue">Break the seal to open Bella&rsquo;s reading</span>
+        </div>
+
+        <div className="reading" id="gift-reading" ref={readingRef} role="region" aria-label="A sample reading">
+          <div className="keepsake">
+            <p className="gift-kicker rv" tabIndex={-1}>The moment they open it, for their own dog or cat.</p>
+
+            <div className="portrait rv">
+              <span className="glowfield" aria-hidden="true">
+                <span className="halo" />
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <circle className="star" cx="18" cy="20" r="0.9" opacity="0.8" />
+                  <circle className="star" cx="40" cy="8" r="0.6" opacity="0.5" />
+                  <circle className="star" cx="63" cy="11" r="0.8" opacity="0.65" />
+                  <circle className="star" cx="85" cy="24" r="0.7" opacity="0.6" />
+                  <circle className="star" cx="90" cy="48" r="0.85" opacity="0.7" />
+                  <circle className="star" cx="84" cy="73" r="0.6" opacity="0.5" />
+                  <circle className="star" cx="60" cy="88" r="0.75" opacity="0.6" />
+                  <circle className="star" cx="33" cy="86" r="0.9" opacity="0.72" />
+                  <circle className="star" cx="12" cy="38" r="0.6" opacity="0.5" />
+                </svg>
+              </span>
+              <span className="ring">
+                <img src={GIFT7.bella} alt="Bella, a cockapoo, looking up" decoding="async" loading="lazy" />
+              </span>
+            </div>
+            <p className="sample-cap rv">a sample reading</p>
+
+            <div className="env-who rv">
+              <h2 className="petname">Bella</h2>
+              <span className="petsign">a Leo</span>
+            </div>
+
+            <p className="held rv">She came to be your witness.</p>
+
+            <div className="loops rv" role="list" aria-label="What the full reading reveals">
+              <div className="loop" role="listitem"><span className="t">Why she picked you</span><span className="lock" aria-hidden="true"><Lock className="lucide" /></span></div>
+              <div className="loop" role="listitem"><span className="t">How she loves you</span><span className="lock" aria-hidden="true"><Lock className="lucide" /></span></div>
+              <div className="loop" role="listitem"><span className="t">What she needs</span><span className="lock" aria-hidden="true"><Lock className="lucide" /></span></div>
+              <div className="loop" role="listitem"><span className="t">When she&rsquo;s scared</span><span className="lock" aria-hidden="true"><Lock className="lucide" /></span></div>
+              <div className="loop" role="listitem"><span className="t">The thing no one sees</span><span className="lock" aria-hidden="true"><Lock className="lucide" /></span></div>
+            </div>
+
+            <p className="cta-cue rv">Their full reading opens the moment you give it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const GIFT7_CSS = `
+.g7{
+  --navy:#0d0a14;--navy2:#100b18;--card:#17121f;--gold:#d4b67a;--ivory:#f4ece0;
+  --muted:#9a938b;--hair:rgba(212,182,122,.20);--hair2:rgba(212,182,122,.34);
+  --paper-hi:#fbf5e8;--paper-lo:#eee4cf;--max:1080px;
+  color:var(--ivory);
+  font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:1.16rem;line-height:1.62;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+.g7 *{box-sizing:border-box}
+.g7 main,.g7 header,.g7 footer{position:relative;z-index:1}
+.g7 .wrap{max-width:var(--max);margin:0 auto;padding-left:22px;padding-right:22px}
+.g7 .band{padding-top:80px;padding-bottom:80px}
+.g7 .rule{height:1px;background:linear-gradient(90deg,transparent,var(--hair),transparent);max-width:var(--max);margin:0 auto}
+.g7 h1,.g7 h2,.g7 h3,.g7 .disp{font-family:"Playfair Display",Georgia,serif;font-weight:600;letter-spacing:-.01em;line-height:1.08;margin:0}
+.g7 .eyebrow{font-family:"Newsreader",serif;font-weight:600;font-size:.96rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
+.g7 .muted{color:var(--muted)}
+.g7 .gold{color:var(--gold)}
+.g7 strong{font-weight:600;color:var(--ivory)}
+
+.g7 .sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:
+    radial-gradient(1.4px 1.4px at 18% 14%, rgba(244,236,224,.55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 72% 9%, rgba(212,182,122,.45), transparent 60%),
+    radial-gradient(1px 1px at 41% 22%, rgba(244,236,224,.40), transparent 60%),
+    radial-gradient(1.3px 1.3px at 88% 30%, rgba(244,236,224,.35), transparent 60%),
+    radial-gradient(1px 1px at 9% 44%, rgba(212,182,122,.35), transparent 60%),
+    radial-gradient(1.1px 1.1px at 60% 52%, rgba(244,236,224,.30), transparent 60%),
+    radial-gradient(1px 1px at 30% 70%, rgba(244,236,224,.28), transparent 60%),
+    radial-gradient(1.2px 1.2px at 82% 78%, rgba(212,182,122,.30), transparent 60%),
+    radial-gradient(1px 1px at 50% 92%, rgba(244,236,224,.26), transparent 60%),
+    radial-gradient(900px 620px at 82% 2%, rgba(212,182,122,.10), transparent 70%),
+    radial-gradient(760px 560px at 6% 4%, rgba(74,56,108,.13), transparent 72%),
+    linear-gradient(180deg,#16122e 0%,#120e22 22%,#0d0a14 46%,#0d0a14 100%);
+}
+.g7 .moon-wrap{position:absolute;top:5.5%;right:7%;width:clamp(172px,45vw,214px);aspect-ratio:1/1;pointer-events:none}
+.g7 .moon-wrap::after{content:"";position:absolute;inset:-52%;z-index:-1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, rgba(212,182,122,.24) 0%, rgba(212,182,122,.08) 38%, transparent 64%)}
+.g7 .moon{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:.94;
+  -webkit-mask-image:radial-gradient(circle closest-side,#000 68%,rgba(0,0,0,.45) 84%,transparent 100%);
+  mask-image:radial-gradient(circle closest-side,#000 68%,rgba(0,0,0,.45) 84%,transparent 100%);
+  mix-blend-mode:screen;animation:g7moon 9s ease-in-out infinite}
+@keyframes g7moon{0%,100%{opacity:.9}50%{opacity:1}}
+
+.g7 .hero-copy{position:relative}
+.g7 .hero-copy::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+  inset:-34px -12px -20px -12px;border-radius:30px;
+  background:radial-gradient(125% 122% at 50% 20%, rgba(13,10,20,.94) 0%, rgba(13,10,20,.82) 44%, rgba(13,10,20,.36) 74%, rgba(13,10,20,0) 100%)}
+
+.g7 svg.lucide{stroke:var(--gold);stroke-width:1.6;width:24px;height:24px;display:block;fill:none}
+
+.g7 .hero{padding-top:44px;padding-bottom:40px}
+.g7 .hero-grid{display:flex;flex-direction:column;gap:40px;align-items:center}
+.g7 .hero-copy{width:100%;max-width:560px}
+.g7 .hero h1{font-size:clamp(2.55rem,8.6vw,4.15rem);line-height:1.06}
+.g7 .hero h1 em{font-style:normal;color:var(--gold)}
+.g7 .hero .define{font-size:1.28rem;line-height:1.55;color:var(--ivory);font-weight:500;margin:24px 0 0;max-width:40ch}
+.g7 .hero .define b{font-weight:600;color:var(--ivory)}
+.g7 .cta-row{margin-top:32px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.g7 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.55em;min-height:56px;padding:0 32px;border:none;border-radius:999px;cursor:pointer;
+  background:linear-gradient(180deg,#e2c994,#d4b67a);color:#1a130a;
+  font-family:"Playfair Display",serif;font-weight:600;font-size:1.18rem;letter-spacing:.005em;text-decoration:none;white-space:nowrap;
+  box-shadow:0 14px 38px -14px rgba(212,182,122,.65),0 2px 0 rgba(255,255,255,.25) inset;transition:transform .25s ease,box-shadow .25s ease}
+.g7 .btn:hover{transform:translateY(-2px);box-shadow:0 20px 46px -14px rgba(212,182,122,.8)}
+.g7 .price-note{margin:0;font-family:"Newsreader",serif;font-weight:600;font-size:1.08rem;color:var(--muted);letter-spacing:.01em;white-space:nowrap}
+.g7 .price-note .price{font-family:"Playfair Display",serif;font-weight:700;color:var(--gold);font-size:1.22rem;letter-spacing:0}
+.g7 .price-note .was{text-decoration:line-through;color:var(--muted);opacity:.8;margin-left:.34em}
+.g7 .rating{display:flex;align-items:center;gap:12px;color:var(--ivory);font-size:1.06rem}
+.g7 .stars{display:inline-flex;align-items:center;gap:4px;line-height:0}
+.g7 .stars svg.lucide{width:18px;height:18px;display:block;fill:var(--gold);stroke:var(--gold);stroke-width:1.4}
+
+.g7 .device-stage{position:relative;display:flex;justify-content:center;width:100%}
+.g7 .device-stage::before{content:"";position:absolute;width:78%;height:78%;left:11%;top:8%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(212,182,122,.28),rgba(212,182,122,.07) 55%,transparent 72%);filter:blur(8px);z-index:0}
+.g7 .device{position:relative;z-index:1;width:min(338px,86vw);border-radius:40px;padding:11px;
+  background:linear-gradient(160deg,#241c30,#140f1d);border:1px solid var(--hair2);
+  box-shadow:0 40px 90px -40px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.4),inset 0 1px 0 rgba(244,236,224,.06)}
+.g7 .screen{border-radius:30px;overflow:hidden;background:linear-gradient(180deg,#140f1d,#0e0a16);border:1px solid rgba(244,236,224,.06);padding:22px 20px 20px}
+.g7 .notch{width:46%;height:5px;border-radius:99px;background:rgba(244,236,224,.14);margin:0 auto 16px}
+.g7 .cover-kicker{font-family:"Newsreader",serif;font-weight:600;font-size:.86rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 12px}
+.g7 .cover-av-wrap{display:flex;justify-content:center;margin:0 0 10px}
+.g7 .cover-av{width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;border:1px solid rgba(13,10,20,.6);box-shadow:0 0 0 2px var(--gold),0 8px 20px -8px rgba(0,0,0,.7)}
+.g7 .cover-name{font-family:"Playfair Display",serif;font-weight:600;font-size:2rem;text-align:center;margin:0;line-height:1}
+.g7 .cover-sign{font-family:"Newsreader",serif;font-style:italic;font-weight:500;font-size:1.1rem;color:var(--gold);text-align:center;margin:5px 0 0;letter-spacing:.02em}
+.g7 .chartwrap{margin:14px auto 12px;width:100%;max-width:230px}
+.g7 .chart{display:block;width:100%;height:auto}
+.g7 .screen-foot{border-top:1px solid var(--hair);padding-top:13px;margin-top:4px}
+.g7 .sf-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:3px 0}
+.g7 .sf-label{font-family:"Newsreader",serif;font-size:.92rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.g7 .sf-val{font-family:"Playfair Display",serif;font-weight:500;font-size:1.04rem;color:var(--ivory)}
+
+.g7 .trust{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);background:rgba(244,236,224,.012)}
+.g7 .trust-in{padding:30px 0;display:flex;flex-direction:column;gap:22px;align-items:center;text-align:center}
+.g7 .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:16px 34px}
+.g7 .badge{display:inline-flex;align-items:center;gap:11px;color:var(--ivory);font-size:1.08rem;font-weight:500}
+.g7 .badge .ic{width:26px;height:26px;flex:none;display:flex;align-items:center;justify-content:center}
+.g7 .badge .ic svg{width:24px;height:24px}
+
+.g7 .shead{text-align:center;max-width:30ch;margin:0 auto 48px}
+.g7 .shead h2{font-size:clamp(2.05rem,1.4rem + 3.1vw,3.05rem)}
+.g7 .shead p{margin:20px auto 0;color:var(--ivory);font-size:1.2rem;line-height:1.55;max-width:38ch;font-weight:500}
+
+.g7 .steps{display:grid;grid-template-columns:1fr;gap:30px}
+.g7 .step{display:flex;gap:18px;align-items:center}
+.g7 .step .ic{width:54px;height:54px;flex:none;border:1px solid var(--hair2);border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(212,182,122,.05)}
+.g7 .step .ic svg{width:28px;height:28px}
+.g7 .step .n{font-family:"Newsreader",serif;font-weight:600;font-size:.86rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.g7 .step h3{font-size:1.5rem;font-weight:600;margin:0;line-height:1.15}
+
+.g7 .cues{display:grid;grid-template-columns:1fr;gap:18px;max-width:760px;margin:0 auto}
+.g7 .cue{display:flex;gap:16px;align-items:center;padding:24px;border:1px solid var(--hair);border-radius:18px;background:rgba(244,236,224,.012)}
+.g7 .cue .ic{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center}
+.g7 .cue .ic svg{width:30px;height:30px}
+.g7 .cue h3{font-size:1.42rem;font-weight:600;margin:0;line-height:1.15}
+.g7 .cue p{margin:10px 0 0;color:var(--ivory);font-size:1.04rem;line-height:1.46;font-weight:500}
+
+.g7 .proof{display:grid;grid-template-columns:1fr;gap:22px;max-width:980px;margin:0 auto}
+.g7 .quote{background:rgba(244,236,224,.018);border:1px solid var(--hair);border-radius:18px;padding:30px 28px}
+.g7 .quote .mark{color:var(--gold);font-family:"Playfair Display",serif;font-size:2.4rem;line-height:.6;opacity:.7;display:block;height:.5em}
+.g7 .quote blockquote{font-family:"Playfair Display",serif;font-style:italic;font-weight:500;font-size:1.5rem;line-height:1.3;margin:14px 0 20px;color:var(--ivory)}
+.g7 .quote .who{display:flex;align-items:center;gap:13px;font-family:"Newsreader",serif;font-size:1.04rem;font-weight:500;letter-spacing:.01em;color:var(--ivory)}
+.g7 .who-av{width:46px;height:46px;border-radius:50%;object-fit:cover;display:block;flex:none;border:1px solid rgba(13,10,20,.5);box-shadow:0 0 0 1px var(--hair2),0 6px 16px -8px rgba(0,0,0,.7)}
+.g7 .who-meta{display:flex;flex-direction:column;gap:1px}
+.g7 .who-meta .nm{color:var(--ivory)}
+.g7 .who-meta .ct{color:var(--muted);font-size:.94rem}
+
+.g7 .reassure{text-align:center;max-width:640px;margin:0 auto}
+.g7 .guarantee{font-family:"Playfair Display",serif;font-style:italic;font-weight:500;font-size:1.6rem;line-height:1.4;color:var(--gold);margin:0}
+.g7 .faq{margin:36px auto 0;text-align:left;border-top:1px solid var(--hair);padding-top:28px}
+.g7 .faq dt{font-family:"Playfair Display",serif;font-weight:600;font-size:1.3rem;margin:0 0 8px;color:var(--ivory)}
+.g7 .faq dd{margin:0;color:var(--ivory);font-size:1.2rem;line-height:1.55;font-weight:500}
+
+.g7 .closing{text-align:center}
+.g7 .closing h2{font-size:clamp(2.1rem,1.45rem + 2.8vw,3.15rem);max-width:18ch;margin:0 auto;color:var(--ivory)}
+.g7 .closing .cta-row{justify-content:center;margin-top:30px}
+.g7 .foot{padding:44px 0 64px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px;color:var(--muted);font-size:.98rem;letter-spacing:.04em}
+.g7 .foot-hair{display:inline-block;width:24px;height:1px;background:var(--hair2)}
+
+.g7 .g7-back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-family:"Newsreader",serif;font-size:.95rem}
+.g7 .g7-back:hover{color:var(--gold)}
+.g7 .g7-back svg{width:16px;height:16px}
+.g7 .g7-col{max-width:560px;margin:0 auto;width:100%}
+
+.g7 .env-section{overflow-x:clip}
+.g7 .scene{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:8px 6px 12px;text-align:center}
+.g7 .env-wrap{perspective:1200px;width:min(78vw,320px);filter:drop-shadow(0 30px 50px rgba(0,0,0,0.55))}
+.g7 .env{position:relative;width:100%;aspect-ratio:1.5 / 1;border-radius:10px;transform-style:preserve-3d}
+.g7 .env-body{position:absolute;inset:0;z-index:1;border-radius:10px;background:linear-gradient(160deg,#171120 0%,#0e0a16 70%),var(--navy);border:1px solid rgba(212,182,122,0.30);box-shadow:inset 0 1px 0 rgba(212,182,122,0.10), inset 0 0 40px rgba(0,0,0,0.55);overflow:hidden}
+.g7 .env-body::before,.g7 .env-body::after{content:"";position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none}
+.g7 .env-body::before{background:linear-gradient(to top right, transparent calc(50% - 0.7px), rgba(212,182,122,0.22) 50%, transparent calc(50% + 0.7px)) no-repeat,linear-gradient(to top left, transparent calc(50% - 0.7px), rgba(212,182,122,0.22) 50%, transparent calc(50% + 0.7px)) no-repeat;background-size:50% 100%,50% 100%;background-position:left bottom,right bottom}
+.g7 .env-body::after{background:linear-gradient(to bottom, rgba(212,182,122,0.10), transparent 60%);mix-blend-mode:screen;opacity:0.5}
+.g7 .paper{position:absolute;z-index:2;left:7%;right:7%;top:14%;height:86%;border-radius:6px 6px 3px 3px;background:repeating-linear-gradient(180deg, rgba(122,96,60,0.06) 0 1px, transparent 1px 16px),linear-gradient(180deg,var(--paper-hi),var(--paper-lo));box-shadow:0 6px 18px rgba(0,0,0,0.4);transform-origin:50% 100%;opacity:0}
+.g7 .flap{position:absolute;z-index:5;left:0;top:0;width:100%;height:58%;transform-origin:50% 0%;transform-style:preserve-3d;will-change:transform}
+.g7 .flap-face{position:absolute;inset:0;clip-path:polygon(0 0,100% 0,50% 100%);backface-visibility:hidden;border-radius:10px 10px 0 0}
+.g7 .flap-face.front{background:linear-gradient(165deg,#191320,#0d0a14 78%);box-shadow:inset 0 1px 0 rgba(212,182,122,0.16)}
+.g7 .flap-face.back{transform:rotateX(180deg) translateZ(0.5px);background:linear-gradient(180deg,#3a2c14,#241a0c);overflow:hidden}
+.g7 .flap-face.back .foil{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.92;clip-path:polygon(0 0,100% 0,50% 100%)}
+.g7 .flap-face.back::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,240,200,0.18), rgba(0,0,0,0.35));clip-path:polygon(0 0,100% 0,50% 100%)}
+.g7 .seal-btn{position:absolute;z-index:6;left:50%;top:58%;width:38%;aspect-ratio:1/1;transform:translate(-50%,-50%) translateZ(6px);display:grid;place-items:center;padding:0;margin:0;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.g7 .seal-btn:focus{outline:none}
+.g7 .seal-btn:focus-visible{outline:none}
+.g7 .seal-btn:focus-visible .seal{box-shadow:0 0 0 3px rgba(240,217,160,0.9),0 0 0 8px rgba(212,182,122,0.35)}
+.g7 .seal-glow{position:absolute;inset:-46%;border-radius:50%;pointer-events:none;background:radial-gradient(circle, rgba(212,182,122,0.42) 0%, rgba(212,182,122,0.10) 38%, transparent 66%);opacity:0.55}
+.g7 .seal{position:relative;width:100%;height:100%;border-radius:50%;display:grid;place-items:center;will-change:transform}
+.g7 .seal-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scale(1.12);clip-path:circle(46% at 50% 50%);filter:drop-shadow(0 3px 6px rgba(0,0,0,0.55));pointer-events:none}
+.g7 .stamp{position:relative;z-index:2;width:54%;height:54%;color:#b8995f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;filter:drop-shadow(0 1.2px 0.4px rgba(247,236,205,0.5)) drop-shadow(0 -1.2px 1.1px rgba(43,27,8,0.62));pointer-events:none}
+.g7 .stamp .glyph{width:74%;height:auto}
+.g7 .stamp .paw{width:30%;height:auto;opacity:0.85;margin-top:1px}
+.g7 .invite{display:flex;flex-direction:column;gap:7px;max-width:30ch}
+.g7 .hint{font-family:"Playfair Display",Georgia,serif;font-size:1.15rem;font-style:italic;color:var(--gold);letter-spacing:0.2px;margin:0}
+.g7 .env-cue{font-size:0.82rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);display:inline-flex;align-items:center;gap:7px;justify-content:center}
+
+.g7 .reading{position:relative;z-index:1;width:min(90vw,432px);margin:0 auto;padding:14px 0 16px}
+.g7 .reading::before{content:"";position:absolute;z-index:-1;inset:-6% -14%;pointer-events:none;background:radial-gradient(58% 42% at 50% 18%, rgba(212,182,122,0.16), transparent 70%)}
+.g7 .keepsake{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;background:radial-gradient(120% 72% at 50% 0%, #1c1632 0%, rgba(28,22,50,0) 58%),linear-gradient(180deg,#15101f 0%,#0e0a17 100%);border:1px solid rgba(212,182,122,0.32);border-radius:16px;box-shadow:0 36px 72px rgba(0,0,0,0.55),0 4px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(212,182,122,0.12);padding:clamp(30px,7vw,46px) clamp(22px,6vw,40px) clamp(34px,7vw,48px)}
+.g7 .keepsake::before{content:"";position:absolute;inset:9px;pointer-events:none;border:1px solid rgba(184,146,63,0.30);border-radius:9px}
+.g7 .gift-kicker{margin:0 0 clamp(22px,6vw,32px);max-width:24ch;font-family:"Newsreader",Georgia,serif;font-size:0.72rem;font-weight:600;line-height:1.7;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);outline:none}
+.g7 .portrait{position:relative;width:min(72vw,270px);height:min(72vw,270px);margin:0 auto;display:grid;place-items:center}
+.g7 .glowfield{position:absolute;inset:0;z-index:0;pointer-events:none}
+.g7 .glowfield .halo{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%, rgba(212,182,122,0.26) 0%, rgba(212,182,122,0.10) 38%, rgba(212,182,122,0) 66%)}
+.g7 .glowfield svg{position:absolute;inset:0;width:100%;height:100%}
+.g7 .glowfield .star{fill:#f0d9a0}
+.g7 .ring{position:relative;z-index:1;width:68%;height:68%;border-radius:50%;padding:5px;background:conic-gradient(#9a7a3a, #ecd296, #c4a265, #f3deab, #9a7a3a, #ecd296, #c4a265, #f3deab, #9a7a3a);box-shadow:0 0 0 1px rgba(240,217,160,0.40),0 16px 34px rgba(0,0,0,0.55),0 0 40px rgba(212,182,122,0.20)}
+.g7 .ring img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 42%;box-shadow:inset 0 0 0 2px rgba(13,10,20,0.85)}
+.g7 .sample-cap{margin:clamp(16px,4.2vw,21px) 0 0;font-size:0.66rem;letter-spacing:0.26em;text-transform:uppercase;color:var(--gold);opacity:0.94}
+.g7 .env-who{margin:clamp(20px,5vw,28px) 0 0}
+.g7 .petname{margin:0;font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.72rem,7vw,2.1rem);font-weight:600;line-height:1.1;color:var(--ivory);letter-spacing:0.4px}
+.g7 .petsign{display:block;margin:7px 0 0;font-size:0.72rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--muted)}
+.g7 .held{margin:clamp(30px,8vw,46px) auto;max-width:13ch;font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.82rem,8.6vw,2.6rem);font-weight:500;line-height:1.22;color:var(--ivory);letter-spacing:0.2px}
+.g7 .loops{width:100%;max-width:336px;margin:0 auto;border-bottom:1px solid rgba(184,146,63,0.30);text-align:left}
+.g7 .loop{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:clamp(13px,3.6vw,17px) 2px;border-top:1px solid rgba(184,146,63,0.30)}
+.g7 .loop .t{font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.05rem,4.4vw,1.2rem);font-weight:500;line-height:1.2;color:var(--ivory)}
+.g7 .loop .lock{display:inline-flex;flex:0 0 auto}
+.g7 .loop .lock svg{width:15px;height:15px;stroke:var(--gold);stroke-width:1.7;opacity:0.5}
+.g7 .cta-cue{margin:clamp(26px,7vw,38px) 0 0;max-width:26ch;font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:clamp(0.94rem,3.6vw,1.04rem);line-height:1.5;color:var(--gold)}
+.g7 .scene.is-open{padding-bottom:6px}
+
+.g7 .reveal,.g7 .sreveal,.g7 .device{opacity:1}
+@keyframes g7rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:no-preference){
+  .g7 .reveal{animation:g7rise .9s both cubic-bezier(.2,.7,.2,1)}
+  .g7 .device{animation:g7rise 1.1s .18s both cubic-bezier(.2,.7,.2,1)}
+  .g7 .sreveal{animation:g7rise .9s both cubic-bezier(.2,.7,.2,1)}
+}
+
+@media (min-width:760px){
+  .g7{font-size:1.22rem}
+  .g7 .shead p{font-size:1.26rem}
+  .g7 .hero .define{font-size:1.38rem}
+  .g7 .faq dd{font-size:1.26rem}
+  .g7 .band{padding-top:110px;padding-bottom:110px}
+  .g7 .hero{padding-top:64px}
+  .g7 .moon-wrap{width:clamp(232px,25vw,318px);top:4%;right:8%}
+  .g7 .hero-grid{flex-direction:row;justify-content:space-between;align-items:center;gap:48px}
+  .g7 .hero-copy{flex:1 1 52%}
+  .g7 .device-stage{flex:0 0 352px}
+  .g7 .steps{grid-template-columns:repeat(3,1fr);gap:36px}
+  .g7 .step{flex-direction:column;align-items:flex-start;text-align:left}
+  .g7 .cues{grid-template-columns:repeat(3,1fr)}
+  .g7 .cue{flex-direction:column;align-items:flex-start}
+  .g7 .proof{grid-template-columns:repeat(2,1fr)}
+  .g7 .quote blockquote{font-size:1.4rem}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .g7 .moon{animation:none}
+  .g7 .reveal,.g7 .sreveal,.g7 .device{opacity:1 !important;transform:none !important;animation:none !important}
+  .g7 .btn:hover{transform:none}
+  .g7 .seal-glow{opacity:0.4}
+}
+`;
+
 function TierCard({
   tierKey, selected, onClick, fmt, cents, wasCents, override, accent: occAccent,
 }: {
@@ -328,8 +1075,8 @@ function TierCard({
             {tier.label}
           </p>
           <p style={{
-            fontFamily: 'Lato, system-ui, sans-serif', fontStyle: 'italic',
-            fontSize: '0.86rem', color: C.earth, lineHeight: 1.4,
+            fontFamily: '"Newsreader", Georgia, serif', fontStyle: 'italic',
+            fontSize: '0.92rem', color: C.earth, lineHeight: 1.4,
           }}>
             {tier.tagline}
           </p>
@@ -350,8 +1097,9 @@ function TierCard({
           )}
           <p style={{
             fontFamily: '"Playfair Display", Georgia, serif',
+            fontWeight: 700,
             fontSize: '2rem', lineHeight: 1,
-            color: C.ink,
+            color: C.gold,
             transition: 'color 0.2s',
           }}>
             {fmt(cents)}
@@ -384,7 +1132,7 @@ function TierCard({
       {/* Selected indicator */}
       {selected && (
         <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.cream3}`, textAlign: 'center' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 700, color: accent }}>✓ Selected — continue below ↓</p>
+          <p style={{ fontSize: '0.8rem', fontWeight: 700, color: accent }}>Selected. Continue below</p>
         </div>
       )}
     </motion.button>
@@ -681,6 +1429,13 @@ export default function GiftPurchase() {
     }, 100);
   };
 
+  // Hero / closing CTAs drop the visitor onto the first real choice:
+  // the occasion picker (which then gates the tier cards + flow).
+  const scrollToPicker = useCallback(() => {
+    const el = document.querySelector('[role="radiogroup"][aria-label="Gift occasion"]');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
   const giftCount = activeRecipients.length;
   const discount = getVolumeDiscount(giftCount);
@@ -766,81 +1521,41 @@ export default function GiftPurchase() {
   const stepCount = 3;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 16px 80px', fontFamily: 'Lato, system-ui, sans-serif', background: C.cream }}>
-      <WallpaperBackdrop />
+    <div className="g7" style={{ position: 'relative', minHeight: '100vh', background: '#0d0a14', overflowX: 'hidden' }}>
+      <MoonlitSky />
 
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 540 }}>
+      <main>
 
         {/* Back */}
-        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: C.muted, textDecoration: 'none', fontSize: '0.85rem', marginBottom: 28 }}>
-          <ArrowLeft style={{ width: 16, height: 16 }} /> Back
-        </Link>
+        <div className="wrap" style={{ paddingTop: 20 }}>
+          <Link to="/" className="g7-back">
+            <ArrowLeft /> Back
+          </Link>
+        </div>
 
-        {/* ── HERO — "The Handover" (Concept C, Danny-picked 2026-06-28).
-             A phone mockup showing the exact moment their gift opens:
-             the pet's face, the buyer's note, one real reading line.
-             The dog IS the hook. Kicker names the product, H1 puts the
-             buyer in the giver's seat, a real 5-star line carries proof,
-             one CTA drops to the occasion picker. Sacred LS rules held:
-             "soul reading" not report, no AI, "opens like a reveal" not
-             inbox; Bella is a named sample pet so gendering is allowed. ── */}
-        <motion.div
-          className="gph-hero"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <p className="gph-kicker">A soul reading, made to gift</p>
+        {/* Moonlit marketing shell (approved gift-preview7 design). */}
+        <Hero fmt={fmt} prices={prices} onCta={scrollToPicker} />
+        <TrustStrip />
+        <StepsSection />
+        <EnvelopeReveal />
+        <GiftExperience />
 
-          <h1 className="gph-h1">
-            Be the one who gave them <span className="it">this</span>.
-          </h1>
+        <div className="rule" />
 
-          {/* The handover phone — the gift, mid-open. Cockapoo "Bella". */}
-          <div className="gph-stage" aria-hidden="true">
-            <div className="gph-phone">
-              <span className="gph-notch" />
-              <div className="gph-screen">
-                <span className="gph-glow" />
-                <span className="gph-stars" />
-                <div className="gph-scr">
-                  <span className="gph-badge">A gift, just opened</span>
-                  <span className="gph-avatar">
-                    <img src="/breeds/cockapoo.jpg" alt="Bella the cockapoo" loading="eager" />
-                  </span>
-                  <span className="gph-name">Bella</span>
-                  <span className="gph-sub">Her Soul Reading</span>
-                  <div className="gph-note">
-                    <span className="nl">A note from you</span>
-                    <p className="nt">&ldquo;For you and Bella. The best dog any of us know. x&rdquo;</p>
-                  </div>
-                  <div className="gph-line">
-                    <svg viewBox="0 0 22 22"><path d="M11 2 L12.5 8.5 L19 10 L12.5 11.5 L11 18 L9.5 11.5 L3 10 L9.5 8.5 Z" fill="#d4b67a" /></svg>
-                    <span className="sx"><b>Sun in Leo</b>The best seat in the house, and she knows it.</span>
-                  </div>
-                  <div className="gph-chip">Open her reading</div>
-                </div>
-              </div>
-            </div>
+        {/* ── CHOOSE THEIR READING — the interactive purchase funnel.
+             The occasion picker gates the selectable tier cards, which
+             drive handleTierSelect and the preserved 3-step flow below.
+             All logic/state/handlers below are unchanged; only the
+             surrounding presentation is new. ── */}
+        <section className="band wrap g7-funnel" id="tiers" data-section>
+          <div className="shead">
+            <h2>Choose their reading</h2>
+            <p>One <strong>private reveal</strong>, read from their pet's real chart.</p>
           </div>
 
-          {/* Real 5-star line (Liam, Cork — from GIFT_REVIEWS). */}
-          <div className="gph-testi">
-            <div className="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p className="q">&ldquo;First time he&rsquo;s been impressed by a gift.&rdquo;</p>
-            <span className="who">Liam, Cork</span>
-          </div>
+          <div className="g7-col">
 
-          <button
-            className="gph-cta"
-            onClick={() => {
-              const el = document.querySelector('[role="radiogroup"][aria-label="Gift occasion"]');
-              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-          >
-            <Gift style={{ width: 17, height: 17 }} />
-            Find their gift &middot; from {fmt(prices.basic)}
-          </button>
-
+          {/* Old "gph" hero styles kept only so any stray class is inert. */}
           <style>{`
             .gph-hero {
               position: relative; text-align: center; margin-bottom: 40px;
@@ -928,7 +1643,6 @@ export default function GiftPurchase() {
               .gph-cta { transition: none !important; }
             }
           `}</style>
-        </motion.div>
 
         {/* ── OCCASION PICKER ── */}
         {/* First-class product choice: what kind of gift is this? Mirrors
@@ -1564,82 +2278,27 @@ export default function GiftPurchase() {
           </AnimatePresence>
         </div>
 
-        {/* ── FOOTER (always visible when no tier selected) ── */}
-        {!selectedTier && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.18 }} style={{ marginTop: 36, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          </div>{/* /.g7-col */}
+        </section>
 
-            <details style={{ cursor: 'pointer' }}>
-              <summary style={{ textAlign: 'center', fontSize: '0.85rem', color: C.rose, fontWeight: 500, userSelect: 'none' }}>
-                How does gifting work?
-              </summary>
-              <div style={{ marginTop: 14, padding: 18, background: C.cream2, borderRadius: 16, border: `1px solid ${C.cream3}` }}>
-                {[
-                  { n: '1', t: 'Choose their reading', d: 'Pick the gift, finish checkout' },
-                  { n: '2', t: 'Share the link, your way', d: 'Email it, text it, slip it in a card' },
-                  { n: '3', t: 'They tell us about their pet', d: 'A name, a birthday, a photo' },
-                  { n: '4', t: 'A private cinematic reveal awaits them', d: 'Yours forever, theirs to revisit' },
-                ].map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < 3 ? `1px solid ${C.cream3}` : 'none' }}>
-                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.roseGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700, color: C.rose, flexShrink: 0 }}>{s.n}</div>
-                    <div>
-                      <span style={{ fontWeight: 600, color: C.ink, fontSize: '0.88rem' }}>{s.t}</span>
-                      <span style={{ color: C.muted, fontSize: '0.78rem', marginLeft: 8 }}>{s.d}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </details>
+        <div className="rule" />
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: '0.75rem', color: C.muted }}>
-              {[{ i: Shield, t: 'Secure checkout' }, { i: Clock, t: 'Instant (digital)' }, { i: Gift, t: 'Valid 1 year' }].map((b, i) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <b.i style={{ width: 13, height: 13 }} />{b.t}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-        )}
+        {/* PROOF — what people say after they give it (4 gift-giver quotes). */}
+        <Proof />
 
-        {/* ── REAL GIFTS. REAL MOMENTS. — full reviews wall at bottom
-             of page (per user direction). The hero already carries 3
-             inline gift-giver quotes near the CTA for the GoodUI #84
-             "reviews-adjacent-to-CTA" lift; this section is the
-             expanded social proof for visitors who scroll the
-             whole page before deciding. ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.22 }}
-          style={{
-            marginTop: 64,
-            paddingTop: 56,
-            borderTop: `1px solid ${C.cream3}`,
-          }}
-        >
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 14 }}>
-              Real gifts. Real moments.
-            </p>
-            <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(1.5rem, 4.6vw, 1.85rem)', color: C.ink, lineHeight: 1.2, letterSpacing: '-0.018em', maxWidth: 460, margin: '0 auto', textWrap: 'balance' }}>
-              The kind of gift people actually remember they got.
-            </p>
-          </div>
-          <GiftReviewStrip />
-        </motion.div>
+        <div className="rule" />
 
-      </div>
+        {/* REASSURANCE + FAQ */}
+        <Reassurance />
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes gift-review-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        .gift-review-marquee-viewport:hover .gift-review-marquee-track { animation-play-state: paused; }
-        @media (prefers-reduced-motion: reduce) {
-          .gift-review-marquee-track { animation: none !important; }
-        }
-      `}</style>
+        {/* CLOSING */}
+        <Closing fmt={fmt} prices={prices} onCta={scrollToPicker} />
+
+        <SiteFooter />
+
+      </main>
+
+      <style>{GIFT7_CSS}</style>
     </div>
   );
 }
