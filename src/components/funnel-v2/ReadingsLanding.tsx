@@ -430,14 +430,26 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
   );
 }
 
-// Emotional bridge between the hero and the free-reading form. A single flowing,
-// featured passage (Playfair on the near-black cosmos) whose final gold line hands
-// the eye straight into the "Set the chart" gate below. Copy is fixed and approved;
-// scroll-reveal reuses .ls-reveal (reduced-motion safe).
+// Emotional bridge between the hero and the free-reading form. The approved passage
+// is broken into natural BEATS (words unchanged) that reveal one at a time as the
+// reader scrolls — each fades, un-blurs and rises like a memory resolving, with
+// generous whitespace so they land separately. The birth-chart turn lifts brighter;
+// the final gold line hands the eye into the "Set the chart" gate below.
+// CSP-safe: reuses the first-party .ls-reveal IntersectionObserver (no CDN, no library)
+// and pure CSS transitions. Reduced-motion shows every beat instantly, no motion.
+const BRIDGE_BEATS = [
+  "We think we know the small heart at our feet.",
+  "You are the safest part of their day, and they are the steadiest part of yours, a devotion poured out in full and asking nothing back.",
+  "Yet inside that warm, wordless body is a true self they carry alone, the one thing they would tell you if only they could speak.",
+  "You have sensed it for years, a whole person you can feel but never quite hear.",
+  "Their birth chart is where it finally comes through: an exact map of who they are, calculated from the real positions of the planets at the precise moment they came home to you, read to the degree the way any life is charted.",
+  "Others who have read one say it was like hearing their friend speak for the very first time.",
+] as const;
+
 function BridgeToForm() {
   return (
     <section className="ls-parallax-band relative px-5" style={{ paddingTop: "clamp(74px, 11vw, 134px)", paddingBottom: "clamp(6px, 1.6vw, 16px)" }}>
-      <div className="mx-auto" style={{ maxWidth: 640, textAlign: "center" }}>
+      <div className="mx-auto" style={{ maxWidth: 660, textAlign: "center" }}>
         <div
           className="ls-reveal"
           aria-hidden="true"
@@ -445,29 +457,25 @@ function BridgeToForm() {
             ...revealDelay(0.04),
             width: 52,
             height: 1,
-            margin: "0 auto 34px",
+            margin: "0 auto clamp(30px, 6vw, 52px)",
             background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
             opacity: 0.85,
           }}
         />
-        <p
-          className="ls-reveal text-pretty"
-          style={{
-            ...revealDelay(0.12),
-            margin: 0,
-            color: C.creamDim,
-            fontFamily: '"Playfair Display", Georgia, serif',
-            fontWeight: 400,
-            fontSize: "clamp(1.24rem, 2.5vw, 1.6rem)",
-            lineHeight: 1.66,
-            letterSpacing: "-0.006em",
-          }}
-        >
-          We think we know the small heart at our feet. You are the safest part of their day, and they are the steadiest part of yours, a devotion poured out in full and asking nothing back. Yet inside that warm, wordless body is a true self they carry alone, the one thing they would tell you if only they could speak. You have sensed it for years, a whole person you can feel but never quite hear. Their birth chart is where it finally comes through: an exact map of who they are, calculated from the real positions of the planets at the precise moment they came home to you, read to the degree the way any life is charted. Others who have read one say it was like hearing their friend speak for the very first time.{" "}
-          <span style={{ color: C.goldSoft, fontWeight: 500 }}>
+        <div className="ls-bridge-passage">
+          {BRIDGE_BEATS.map((beat, i) => (
+            <p
+              key={i}
+              className={`ls-reveal ls-bridge-beat text-pretty${i === 4 ? " ls-bridge-beat--pivot" : ""}`}
+              style={revealDelay(Math.min(i * 0.04, 0.16))}
+            >
+              {beat}
+            </p>
+          ))}
+          <p className="ls-reveal ls-bridge-beat ls-bridge-beat--gold text-pretty" style={revealDelay(0.05)}>
             Set the chart and finally hear what they have been carrying.
-          </span>
-        </p>
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -2893,6 +2901,58 @@ function CosmicStyles() {
       .ls-reveal.is-in {
         opacity: 1;
         transform: translate3d(0, 0, 0);
+      }
+      /* Bridge passage — beat-by-beat scroll reveal. Reuses the .ls-reveal
+         IntersectionObserver (each beat is its own node, so the scroll paces them);
+         adds a soft blur-up so each thought resolves like a memory coming into focus. */
+      .ls-bridge-passage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(26px, 5.4vw, 52px);
+      }
+      .ls-bridge-beat {
+        margin: 0;
+        max-width: 40ch;
+        opacity: 0;
+        transform: translate3d(0, 20px, 0);
+        filter: blur(8px);
+        transition:
+          opacity 0.9s cubic-bezier(0.22, 0.7, 0.2, 1),
+          transform 0.9s cubic-bezier(0.22, 0.7, 0.2, 1),
+          filter 0.9s cubic-bezier(0.22, 0.7, 0.2, 1);
+        transition-delay: var(--ls-delay, 0s);
+        will-change: opacity, transform, filter;
+        color: ${C.creamDim};
+        font-family: "Playfair Display", Georgia, serif;
+        font-weight: 400;
+        font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+        line-height: 1.55;
+        letter-spacing: -0.006em;
+      }
+      .ls-bridge-beat.is-in {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        filter: blur(0);
+      }
+      .ls-bridge-beat--pivot { color: ${C.cream}; }
+      .ls-bridge-beat--gold {
+        margin-top: clamp(8px, 2vw, 20px);
+        max-width: 34ch;
+        color: ${C.goldSoft};
+        font-weight: 500;
+        font-size: clamp(1.32rem, 2.8vw, 1.74rem);
+        line-height: 1.5;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-bridge-beat {
+          opacity: 1;
+          transform: none;
+          filter: none;
+          transition: none;
+          transition-delay: 0s;
+          will-change: auto;
+        }
       }
       .ls-hero-eyebrow { margin-bottom: 4px; }
       .ls-sky-grid--live > .ls-planet-card,
