@@ -245,7 +245,7 @@ const LCB_CSS = `
 .lcb-beat.lcb-support{font-family:"Newsreader",Georgia,serif;font-weight:400;font-optical-sizing:auto;
   font-size:clamp(1.24rem,1.02rem + 1.7vw,1.7rem);line-height:1.6;max-width:30ch;
   color:var(--lcb-body);letter-spacing:.004em;text-wrap:pretty;text-shadow:0 1px 18px rgba(4,3,10,0.42)}
-.lcb-open .lcb-beat{font-weight:300;font-size:clamp(2.35rem,1.6rem + 3.4vw,4rem);
+.lcb-open .lcb-beat:not(.lcb-support){font-weight:300;font-size:clamp(2.35rem,1.6rem + 3.4vw,4rem);
   max-width:15ch;letter-spacing:-0.028em;line-height:1.05;text-shadow:0 2px 34px rgba(4,3,10,0.55)}
 .lcb-emph{color:var(--lcb-ivory)}
 .lcb-it{font-style:italic;font-weight:400}
