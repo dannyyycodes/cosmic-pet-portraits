@@ -946,7 +946,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     return (
       <article
         key={tier.id}
-        className={`cosmic-tier ${isSelected ? "is-selected" : ""}`}
+        className={`cosmic-tier ${isSelected ? "is-selected" : ""} ${intent === "bond" ? "is-featured" : ""}`}
         onClick={() => activateCosmicTier(tier.id)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activateCosmicTier(tier.id); } }}
         role="button"
@@ -970,7 +970,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         <ul className="cosmic-feature-list">
           {cosmicFeatures.map((feature) => (
             <li key={`${tier.id}-${feature}`}>
-              <span aria-hidden="true">✓</span>
+              <span aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4.5 12.5 9.5 17.5 19.5 6.5" />
+                </svg>
+              </span>
               <p>{feature}</p>
             </li>
           ))}
@@ -1080,31 +1084,56 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: flex;
             flex-direction: column;
             gap: 16px;
-            border: 1px solid rgba(245,239,230,0.12);
-            border-radius: 8px;
+            border: 1px solid rgba(245,239,230,0.16);
+            border-radius: 10px;
             background:
               radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.12), transparent 44%),
-              linear-gradient(180deg, rgba(5,4,7,0.42), rgba(5,4,7,0.18));
+              linear-gradient(180deg, rgba(28,22,38,0.55), rgba(5,4,7,0.32));
+            box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 10px 26px rgba(0,0,0,0.22);
             padding: 22px;
             cursor: pointer;
+            transition: transform 260ms cubic-bezier(0.22,0.7,0.2,1), border-color 220ms ease, box-shadow 260ms ease;
+          }
+          .cosmic-tier:hover {
+            border-color: rgba(212,182,122,0.4);
+            box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 16px 40px rgba(0,0,0,0.3);
           }
           .cosmic-tier.is-selected {
-            border-color: rgba(124,92,214,0.72);
-            box-shadow: 0 0 0 1px rgba(124,92,214,0.22), 0 18px 48px rgba(0,0,0,0.24);
+            border-color: rgba(124,92,214,0.85);
+            box-shadow: 0 0 0 1px rgba(124,92,214,0.4), 0 22px 56px rgba(0,0,0,0.34);
+          }
+          /* Soul Bond — the most-chosen tier is genuinely elevated: warmer gold-lit
+             surface, a defining gold hairline, real lift and shadow. */
+          .cosmic-tier.is-featured {
+            border-color: rgba(212,182,122,0.55);
+            background:
+              radial-gradient(ellipse at 50% -10%, rgba(212,182,122,0.16), transparent 46%),
+              radial-gradient(ellipse at 50% 4%, rgba(124,92,214,0.2), transparent 52%),
+              linear-gradient(180deg, rgba(34,25,44,0.72), rgba(9,7,14,0.5));
+            box-shadow: inset 0 1px 0 rgba(240,217,159,0.16), 0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,182,122,0.14);
+          }
+          .cosmic-tier.is-featured.is-selected {
+            border-color: rgba(212,182,122,0.8);
+            box-shadow: inset 0 1px 0 rgba(240,217,159,0.2), 0 0 0 1px rgba(212,182,122,0.4), 0 26px 64px rgba(0,0,0,0.46);
+          }
+          @media (min-width: 901px) {
+            .cosmic-tier.is-featured { transform: translateY(-10px); }
+            .cosmic-tier.is-featured:hover { transform: translateY(-13px); }
           }
           .cosmic-tier-badge {
             position: absolute;
-            top: -11px;
+            top: -12px;
             right: 18px;
             border-radius: 999px;
-            background: #7c5cd6;
-            color: #ffffff;
-            padding: 4px 10px;
+            background: linear-gradient(135deg, #f0d99f, #d4b67a);
+            color: #201410;
+            padding: 5px 12px;
             font-family: Lato, system-ui, sans-serif;
             font-size: 10px;
             font-weight: 800;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
           }
           .cosmic-tier-head {
             display: grid;
@@ -1165,11 +1194,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             padding-top: 0;
           }
           .cosmic-feature-list li > span {
-            color: #66bd7a;
-            font-family: Lato, system-ui, sans-serif;
-            font-size: 0.82rem;
-            line-height: 1.45;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 20px;
+            color: #74c88a;
           }
+          .cosmic-tier.is-featured .cosmic-feature-list li > span { color: #86d69b; }
           .cosmic-feature-list p,
           .cosmic-feature-list button {
             margin: 0;
@@ -1276,13 +1308,17 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-order-panel {
             align-self: start;
             position: sticky;
-            top: 92px;
-            border: 1px solid rgba(212,182,122,0.30);
-            border-radius: 8px;
+            top: 80px;
+            z-index: 2;
+            border: 1px solid rgba(212,182,122,0.46);
+            border-top-color: rgba(240,217,159,0.72);
+            border-radius: 12px;
             background:
-              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.14), transparent 38%),
-              rgba(5,4,7,0.58);
-            padding: clamp(18px, 2.6vw, 26px);
+              radial-gradient(ellipse at 50% -8%, rgba(240,217,159,0.2), transparent 42%),
+              radial-gradient(ellipse at 50% 2%, rgba(212,182,122,0.12), transparent 60%),
+              linear-gradient(180deg, rgba(26,19,32,0.88), rgba(7,5,11,0.8));
+            box-shadow: inset 0 1px 0 rgba(240,217,159,0.16), 0 30px 82px rgba(0,0,0,0.52);
+            padding: clamp(20px, 2.6vw, 28px);
           }
           .cosmic-order-row,
           .cosmic-total-row {
@@ -1384,22 +1420,56 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             font-style: italic;
             line-height: 1.4;
           }
+          /* ── Unified trust band: proof row, guarantee, payment tray, charity ── */
+          .cosmic-trust-band {
+            margin-top: 20px;
+            border-top: 1px solid rgba(212,182,122,0.22);
+            padding-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .cosmic-trust-band .cosmic-proof { margin: 0; }
+          .cosmic-trust-band .cosmic-proof span {
+            flex-direction: column;
+            gap: 6px;
+          }
+          .cosmic-trust-band .cosmic-proof span svg { color: #d4b67a; opacity: 0.92; }
+          .cosmic-trust-band .cosmic-refund { margin: 0; }
+
+          /* Payment methods sit in a recessed tray so the white chips read as
+             intentional inset tiles, not stickers floating on the dark panel. */
+          .cosmic-pay-tray {
+            border: 1px solid rgba(212,182,122,0.16);
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(245,239,230,0.05), rgba(5,4,7,0.28));
+            padding: 12px 12px 14px;
+          }
+          .cosmic-checkout .cosmic-pay-tray > div { margin-top: 0; }
+          .cosmic-checkout [role="img"] {
+            min-height: 34px;
+            border-radius: 9px !important;
+            box-shadow: 0 4px 13px rgba(0,0,0,0.45);
+          }
+
+          /* Charity picker — show the REAL full-colour logos on their white chips
+             (the near-black cosmic system needs the light chip so Visa navy /
+             IFAW black text / the green marks all stay legible). */
           .cosmic-checkout .flex[role="radiogroup"] button {
-            min-width: 112px;
+            min-width: 108px;
+          }
+          .cosmic-checkout [role="radio"] {
+            height: 42px !important;
+            border-radius: 9px !important;
           }
           .cosmic-checkout [role="radio"] img {
-            display: none !important;
+            display: block !important;
+            max-height: 24px !important;
+            max-width: 100px !important;
+            object-fit: contain;
           }
-          .cosmic-checkout [role="radio"]::after {
-            content: attr(aria-label);
-            color: #141210;
-            font-family: Lato, system-ui, sans-serif;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            white-space: nowrap;
-          }
+          .cosmic-checkout [role="radio"]::after { content: none; }
+          .cosmic-charity-wrap { margin-top: 2px; }
           .cosmic-preview-backdrop {
             position: fixed;
             inset: 0;
@@ -1581,17 +1651,30 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               </p>
             )}
 
-            <div className="cosmic-proof" aria-label="Checkout reassurance">
-              <span>Secure checkout</span>
-              <span>Ready in minutes</span>
-              <span>Full refund</span>
-            </div>
-            <p className="cosmic-refund">
-              If the reading does not feel like them, we refund every cent.
-            </p>
-            <PaymentBrandLogos />
-            <div style={{ marginTop: 18 }}>
-              <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
+            <div className="cosmic-trust-band">
+              <div className="cosmic-proof" aria-label="Checkout reassurance">
+                <span>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.3 3 7.6 7 9 4-1.4 7-4.7 7-9V6z" /><path d="m9 12 2 2 4-4" /></svg>
+                  Secure checkout
+                </span>
+                <span>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6" /><path d="M12 7.4V12l3 2" /></svg>
+                  Ready in minutes
+                </span>
+                <span>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 9.5a8 8 0 0 1 13.6-2.6L20 9" /><path d="M20 4.5V9h-4.5" /><path d="M19.5 14.5a8 8 0 0 1-13.6 2.6L4 15" /><path d="M4 19.5V15h4.5" /></svg>
+                  Full refund
+                </span>
+              </div>
+              <p className="cosmic-refund">
+                If the reading does not feel like them, we refund every cent.
+              </p>
+              <div className="cosmic-pay-tray">
+                <PaymentBrandLogos />
+              </div>
+              <div className="cosmic-charity-wrap">
+                <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
+              </div>
             </div>
           </aside>
         </div>
@@ -2477,14 +2560,15 @@ const ApplePayLogo = () => (
   </BadgeWrap>
 );
 
-/* Google Pay — simple-icons canonical mark (includes G + Pay) */
+/* Google Pay — real 4-colour Google "G" (blue / green / yellow / red) + Pay wordmark */
 const GooglePayLogo = () => (
-  <BadgeWrap label="Google Pay" width={62}>
-    <svg viewBox="0 0 24 24" width="50" height="22" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path
-        fill="#3C4043"
-        d="M3.963 7.235A3.963 3.963 0 00.422 9.419a3.963 3.963 0 000 3.559 3.963 3.963 0 003.541 2.184c1.07 0 1.97-.352 2.627-.957.748-.69 1.18-1.71 1.18-2.916a4.722 4.722 0 00-.07-.806H3.964v1.526h2.14a1.835 1.835 0 01-.79 1.205c-.356.241-.814.379-1.35.379-1.034 0-1.911-.697-2.225-1.636a2.375 2.375 0 010-1.517c.314-.94 1.191-1.636 2.225-1.636a2.152 2.152 0 011.52.594l1.132-1.13a3.808 3.808 0 00-2.652-1.033zm6.501.55v6.9h.886V11.89h1.465c.603 0 1.11-.196 1.522-.588a1.911 1.911 0 00.635-1.464 1.92 1.92 0 00-.635-1.456 2.125 2.125 0 00-1.522-.598zm2.427.85a1.156 1.156 0 01.823.365 1.176 1.176 0 010 1.686 1.171 1.171 0 01-.877.357H11.35V8.635h1.487a1.156 1.156 0 01.054 0zm4.124 1.175c-.842 0-1.477.308-1.907.925l.781.491c.288-.417.68-.626 1.175-.626a1.255 1.255 0 01.856.323 1.009 1.009 0 01.366.785v.202c-.34-.193-.774-.289-1.3-.289-.617 0-1.11.145-1.479.434-.37.288-.554.677-.554 1.165a1.476 1.476 0 00.525 1.156c.35.308.785.463 1.305.463.61 0 1.098-.27 1.465-.81h.038v.655h.848v-2.909c0-.61-.19-1.09-.568-1.44-.38-.35-.896-.525-1.551-.525zm2.263.154l1.946 4.422-1.098 2.38h.915L24 9.963h-.965l-1.368 3.391h-.02l-1.406-3.39zm-2.146 2.368c.494 0 .88.11 1.156.33 0 .372-.147.696-.44.973a1.413 1.413 0 01-.997.414 1.081 1.081 0 01-.69-.232.708.708 0 01-.293-.578c0-.257.12-.47.363-.647.24-.173.54-.26.9-.26z"
-      />
+  <BadgeWrap label="Google Pay" width={66}>
+    <svg viewBox="0 0 112 46" width="56" height="23" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z" />
+      <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z" />
+      <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z" />
+      <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z" />
+      <text x="51" y="33" fontFamily="Arial, Helvetica, sans-serif" fontSize="27" fontWeight="500" fill="#5F6368">Pay</text>
     </svg>
   </BadgeWrap>
 );

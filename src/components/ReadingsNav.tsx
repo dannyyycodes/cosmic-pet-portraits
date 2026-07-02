@@ -47,7 +47,7 @@ export function ReadingsNav() {
 
   const linkColor = scrolled ? C.cosmosDim : C.cosmosDim;
   const brandColor = C.cosmosText;
-  const navBg = scrolled ? "rgba(13, 10, 20, 0.82)" : "rgba(13, 10, 20, 0.18)";
+  const navBg = scrolled ? "rgba(11, 9, 17, 0.95)" : "rgba(13, 10, 20, 0.18)";
 
   return (
     <header

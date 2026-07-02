@@ -108,6 +108,72 @@ const PLANET_META: Record<string, { glyph: string; label: string; line: string; 
   lilith: { glyph: "⚸", label: "Lilith", line: "Their untamed, instinctive edge." },
 };
 
+// ── Bespoke astrological glyphs (crisp inline SVG, single consistent stroke
+// weight, inherits colour via currentColor). Replaces the weight-inconsistent
+// unicode planet symbols in the skim table so the whole set reads as one hand.
+const ASTRO_PATHS: Record<string, ReactNode> = {
+  sun: (<><circle cx="12" cy="12" r="7.4" /><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" /></>),
+  moon: (<path d="M14.6 3.6a9 9 0 1 0 0 16.8 7.2 7.2 0 0 1 0-16.8z" fill="currentColor" stroke="none" />),
+  mercury: (<><path d="M8.7 3.2a4.2 4.2 0 0 0 6.6 0" /><circle cx="12" cy="10.4" r="3.6" /><line x1="12" y1="14" x2="12" y2="21" /><line x1="8.6" y1="17.6" x2="15.4" y2="17.6" /></>),
+  venus: (<><circle cx="12" cy="8.4" r="4.4" /><line x1="12" y1="12.8" x2="12" y2="21" /><line x1="8.4" y1="17" x2="15.6" y2="17" /></>),
+  mars: (<><circle cx="10.3" cy="13.7" r="4.5" /><line x1="13.6" y1="10.4" x2="19.4" y2="4.6" /><path d="M14.8 4.4h4.8v4.8" /></>),
+  jupiter: (<><path d="M8.4 6.2C5.5 6.2 5.2 11 8.8 12.2c2 0.7 3.6-0.6 3.6-2.9V4.4" /><path d="M12.4 8.8v9.4" /><line x1="8.2" y1="18.2" x2="17.4" y2="18.2" /></>),
+  saturn: (<><path d="M9 4.2v8" /><line x1="6" y1="7.2" x2="12" y2="7.2" /><path d="M9 12.2c0 4 6 3.4 6 6.4 0 1.6-1.4 2.4-2.8 1.8" /></>),
+  uranus: (<><circle cx="12" cy="18.4" r="2.4" /><line x1="12" y1="16" x2="12" y2="3.6" /><line x1="7" y1="7.6" x2="17" y2="7.6" /><line x1="7" y1="4" x2="7" y2="11.2" /><line x1="17" y1="4" x2="17" y2="11.2" /></>),
+  neptune: (<><path d="M6.8 6.2c0 6 3 8.4 5.2 8.4s5.2-2.4 5.2-8.4" /><line x1="6.8" y1="4.6" x2="6.8" y2="8" /><line x1="17.2" y1="4.6" x2="17.2" y2="8" /><line x1="12" y1="7" x2="12" y2="21" /><line x1="8.4" y1="17.4" x2="15.6" y2="17.4" /></>),
+  pluto: (<><path d="M7.6 8.4a4.6 4.6 0 0 0 8.8 0" /><circle cx="12" cy="6" r="2.2" /><line x1="12" y1="10.6" x2="12" y2="21" /><line x1="8.4" y1="16.6" x2="15.6" y2="16.6" /></>),
+  chiron: (<><circle cx="12" cy="17.4" r="3.6" /><line x1="9.4" y1="3.4" x2="9.4" y2="13.8" /><path d="M9.4 9.2 14.6 4M9.4 9.6 14 13.6" /></>),
+  northNode: (<><path d="M7.6 19.6C6.4 11 8.4 5.4 12 5.4s5.6 5.6 4.4 14.2" /><circle cx="6.8" cy="19.8" r="1.7" /><circle cx="17.2" cy="19.8" r="1.7" /></>),
+  lilith: (<><path d="M8.6 9.2a4 4 0 1 0 5.4-3.7 5.2 5.2 0 0 1 0 7.4 4 4 0 0 1-5.4-3.7z" fill="currentColor" stroke="none" /><line x1="12" y1="12.6" x2="12" y2="21" /><line x1="8.4" y1="17" x2="15.6" y2="17" /></>),
+};
+
+function AstroGlyph({ name, className }: { name: string; className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {ASTRO_PATHS[name] ?? ASTRO_PATHS.sun}
+    </svg>
+  );
+}
+
+// Small padlock for the sealed placement rows (replaces no glyph; pairs with the
+// kept "Email to read" wording to read as a calm locked card, not a paywall stamp).
+function LockGlyph({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="5" y="10.5" width="14" height="10" rx="2.4" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
+// Crisp journey transport icons (replace the thin unicode ▶ ❚❚ ↺ ‹ ›).
+function CtrlPlay() {
+  return (<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 5.2 19 12 8 18.8z" /></svg>);
+}
+function CtrlPause() {
+  return (<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.4" height="14" rx="1.1" /><rect x="13.6" y="5" width="3.4" height="14" rx="1.1" /></svg>);
+}
+function CtrlReplay() {
+  return (<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4" /><path d="M3.6 4.4v3.6h3.6" /></svg>);
+}
+function CtrlPrev() {
+  return (<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" /></svg>);
+}
+function CtrlNext() {
+  return (<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.5 6 15.5 12l-6 6" /></svg>);
+}
+
 const PLANET_ORDER = [
   "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
   "uranus", "neptune", "pluto", "chiron", "northNode", "lilith",
@@ -1846,12 +1912,12 @@ function CosmicJourney({
             ))}
           </div>
           <div className="ls-journey-controls" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="ls-jbtn" onClick={goPrev} aria-label="Previous">‹</button>
+            <button type="button" className="ls-jbtn" onClick={goPrev} aria-label="Previous"><CtrlPrev /></button>
             <button type="button" className="ls-jbtn ls-jbtn--play" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause" : "Play"}>
-              {playing ? "❚❚" : "▶"}
+              {playing ? <CtrlPause /> : <CtrlPlay />}
             </button>
-            <button type="button" className="ls-jbtn" onClick={replay} aria-label="Replay line">↺</button>
-            <button type="button" className="ls-jbtn" onClick={goNext} aria-label="Next">›</button>
+            <button type="button" className="ls-jbtn" onClick={replay} aria-label="Replay line"><CtrlReplay /></button>
+            <button type="button" className="ls-jbtn" onClick={goNext} aria-label="Next"><CtrlNext /></button>
             <button type="button" className="ls-jbtn ls-jbtn--sound" onClick={toggleSound} aria-label={muted ? "Turn sound on" : "Turn sound off"}>
               {muted ? "Sound off" : "Sound on"}
             </button>
@@ -1891,6 +1957,36 @@ function BirthSkyJourney() {
 
   const name = petName.trim();
   const ready = status === "ready";
+
+  // Beat-by-beat scroll reveal for the skim rows (they mount after the async
+  // chart resolves, so the page-level reveal observer has already run — this
+  // dedicated observer paces them one-by-one). CSP-safe, reduced-motion safe.
+  const skimRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!(ready && chart)) return;
+    const root = skimRef.current;
+    if (!root || typeof window === "undefined") return;
+    const rows = Array.from(root.querySelectorAll<HTMLElement>(".ls-rvrow"));
+    if (!rows.length) return;
+    if (reduce || !("IntersectionObserver" in window)) {
+      rows.forEach((r) => r.classList.add("is-in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-in");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.15 },
+    );
+    rows.forEach((r) => io.observe(r));
+    return () => io.disconnect();
+  }, [ready, chart, reduce]);
+
   const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
     chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
 
@@ -1977,17 +2073,22 @@ function BirthSkyJourney() {
           {/* Skim-worthy breakdown for people who do not watch the journey. The
               email wall sits EARLY (after the three free placements), and the rest
               of the chart unlocks in place. */}
-          <div className="ls-reveal-stack ls-skim">
+          <div className="ls-reveal-stack ls-skim" ref={skimRef}>
+            <div className="ls-skim-seam" aria-hidden="true">
+              <span className="ls-skim-seam-line" />
+              <svg className="ls-skim-seam-mark" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19" /></svg>
+              <span className="ls-skim-seam-line" />
+            </div>
             <p className="ls-reveal-eyebrow">{name ? `${name}'s chart, in their own words` : "Their chart, in their own words"}</p>
             <div className="ls-chart-table">
-              {FREE_KEYS.map((key) => {
+              {FREE_KEYS.map((key, i) => {
                 const b = bodyFor(key);
                 const m = PLANET_META[key];
                 const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
                 const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
                 return (
-                  <article key={key} className="ls-trow is-open">
-                    <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
+                  <article key={key} className="ls-trow ls-rvrow is-free is-open" style={revealDelay(0.06 + i * 0.09)}>
+                    <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
                     <div className="ls-trow-main">
                       <span className="ls-trow-top">
                         <strong className="ls-trow-name">{m.label}</strong>
@@ -2020,14 +2121,14 @@ function BirthSkyJourney() {
             )}
 
             <div className="ls-chart-table">
-              {REST_KEYS.map((key) => {
+              {REST_KEYS.map((key, i) => {
                 const b = bodyFor(key);
                 const m = PLANET_META[key];
                 const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
                 const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
                 return (
-                  <article key={key} className={`ls-trow ${unlocked ? "is-open" : "is-locked"}`}>
-                    <span className="ls-trow-glyph" aria-hidden="true">{m.glyph}</span>
+                  <article key={key} className={`ls-trow ls-rvrow ${unlocked ? "is-open" : "is-locked"}`} style={revealDelay(0.04 + i * 0.05)}>
+                    <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
                     <div className="ls-trow-main">
                       <span className="ls-trow-top">
                         <strong className="ls-trow-name">{m.label}</strong>
@@ -2036,7 +2137,7 @@ function BirthSkyJourney() {
                       <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
                       <p className="ls-trow-line">{text}</p>
                     </div>
-                    {!unlocked && <span className="ls-trow-lock">Email to read</span>}
+                    {!unlocked && <span className="ls-trow-lock"><LockGlyph className="ls-trow-lock-ic" />Email to read</span>}
                   </article>
                 );
               })}
@@ -4731,7 +4832,7 @@ function CosmicStyles() {
       }
       .ls-wheel-centername { font-family: "Playfair Display", Georgia, serif; letter-spacing: 0.01em; }
       .ls-wheel-centerborn, .ls-wheel-centerdom {
-        font-family: Lato, system-ui, sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
+        font-family: Lato, system-ui, sans-serif; letter-spacing: 0.2em; font-weight: 700; text-transform: uppercase;
       }
       .ls-wheel-info {
         display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px;
@@ -4770,21 +4871,89 @@ function CosmicStyles() {
       .ls-breakdown-card { justify-items: start; text-align: left; }
       .ls-breakdown-card .ls-free-sign { text-align: left; }
       .ls-breakdown-card small { text-align: left; }
+      /* Authored hand-off from the wheel into the skim breakdown. */
+      .ls-skim-seam { display: flex; align-items: center; justify-content: center; gap: 14px; width: min(100%, 420px); margin: 0 auto 4px; color: ${C.gold}; }
+      .ls-skim-seam-line { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(212,182,122,0.42), transparent); }
+      .ls-skim-seam-mark { opacity: 0.72; }
+
       .ls-chart-table { display: grid; gap: 10px; width: 100%; max-width: 760px; margin: 0 auto; }
+      /* The locked lattice sits tighter and quieter so ten sealed rows read as one
+         calm set, not a stack of ten paywall stamps. */
+      .ls-chart-table + .ls-gate2 + .ls-chart-table { gap: 7px; }
+
       .ls-trow {
-        position: relative; display: grid; grid-template-columns: auto 1fr; gap: 13px; align-items: start;
-        padding: 14px 16px; border: 1px solid ${C.line}; border-radius: 14px; text-align: left;
+        position: relative; display: grid; grid-template-columns: auto 1fr; gap: 15px; align-items: start;
+        padding: 16px 18px; border: 1px solid ${C.line}; border-radius: 14px; text-align: left;
         background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
+        transition: border-color 260ms ease, box-shadow 260ms ease, background 260ms ease;
       }
-      .ls-trow-glyph { font-family: "Noto Sans Symbols2", "Segoe UI Symbol", "Apple Symbols", system-ui, sans-serif; font-size: 1.4rem; line-height: 1; color: ${C.gold}; padding-top: 3px; }
+      /* Row-by-row scroll reveal (rise + resolve from a soft blur). */
+      .ls-trow.ls-rvrow {
+        opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(6px);
+        transition:
+          opacity 0.7s cubic-bezier(0.22,0.7,0.2,1),
+          transform 0.7s cubic-bezier(0.22,0.7,0.2,1),
+          filter 0.7s cubic-bezier(0.22,0.7,0.2,1),
+          border-color 260ms ease, box-shadow 260ms ease;
+        transition-delay: var(--ls-delay, 0s);
+        will-change: opacity, transform, filter;
+      }
+      .ls-trow.ls-rvrow.is-in { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
+
+      .ls-trow-glyph {
+        display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+        font-size: 1.34rem; line-height: 1; color: ${C.gold};
+        border: 1px solid rgba(212,182,122,0.28);
+        background: radial-gradient(circle at 50% 35%, rgba(212,182,122,0.14), rgba(212,182,122,0.03) 70%);
+      }
       .ls-trow-main { min-width: 0; display: grid; gap: 4px; }
       .ls-trow-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-      .ls-trow-name { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.06rem; font-weight: 500; }
-      .ls-trow-sign { color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
-      .ls-trow-frame { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-      .ls-trow-line { margin: 3px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.9rem; line-height: 1.5; transition: filter 300ms ease; }
-      .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px); user-select: none; }
-      .ls-trow-lock { position: absolute; top: 14px; right: 16px; color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
+      .ls-trow-name { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.08rem; font-weight: 500; letter-spacing: 0.002em; }
+      .ls-trow-sign { color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+      .ls-trow-frame { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.82; }
+      .ls-trow-line { margin: 5px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; line-height: 1.55; transition: filter 300ms ease; }
+
+      /* FREE rows — the three that are given. Carry clear extra weight: a lit
+         medallion, a warmer surface, and a gold seam down the leading edge. */
+      .ls-trow.is-free {
+        border-color: rgba(212,182,122,0.4);
+        background:
+          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 42%),
+          linear-gradient(180deg, rgba(28,21,38,0.82), rgba(15,11,22,0.9));
+        box-shadow: inset 3px 0 0 rgba(212,182,122,0.55), 0 14px 34px rgba(0,0,0,0.28);
+      }
+      .ls-trow.is-free .ls-trow-glyph {
+        width: 46px; height: 46px; color: ${C.goldSoft}; font-size: 1.46rem;
+        border-color: rgba(240,217,159,0.5);
+        background: radial-gradient(circle at 50% 32%, rgba(240,217,159,0.24), rgba(212,182,122,0.05) 72%);
+        box-shadow: 0 0 20px rgba(212,182,122,0.16);
+      }
+      .ls-trow.is-free .ls-trow-name { font-size: 1.16rem; }
+
+      /* LOCKED rows — quieter, unified sealed lattice. */
+      .ls-trow.is-locked {
+        border-color: rgba(212,182,122,0.14);
+        background: linear-gradient(180deg, rgba(18,14,24,0.56), rgba(12,9,18,0.72));
+        padding-right: 118px;
+      }
+      .ls-trow.is-locked .ls-trow-glyph { color: rgba(212,182,122,0.5); border-color: rgba(212,182,122,0.16); background: rgba(212,182,122,0.03); }
+      .ls-trow.is-locked .ls-trow-name { color: rgba(255,255,255,0.82); }
+      .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px); user-select: none; opacity: 0.72; }
+      .ls-trow-lock {
+        position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
+        display: inline-flex; align-items: center; gap: 6px;
+        color: rgba(212,182,122,0.72); font-family: Lato, system-ui, sans-serif;
+        font-size: 0.6rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
+      }
+      .ls-trow-lock-ic { font-size: 0.78rem; opacity: 0.9; }
+
+      @media (max-width: 460px) {
+        .ls-trow.is-locked { padding-right: 18px; }
+        .ls-trow-lock { position: static; transform: none; margin-top: 8px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-trow.ls-rvrow { opacity: 1; transform: none; filter: none; transition: none; }
+      }
 
       /* === The narrated journey (cinematic) =============================== */
       .ls-journey { position: relative; width: 100%; max-width: 880px; margin: clamp(16px,4vw,40px) auto 0; display: grid; justify-items: center; gap: clamp(20px,3.4vw,34px); padding: clamp(26px,5vw,54px) 16px clamp(20px,3vw,34px); border-radius: 28px; overflow: hidden; isolation: isolate; background: radial-gradient(125% 95% at 50% 6%, #16111e 0%, #0b0813 56%, #07060c 100%); box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 50px 130px rgba(0,0,0,0.55); }
@@ -4820,9 +4989,14 @@ function CosmicStyles() {
       .ls-jdot.is-active { background: ${C.goldSoft}; transform: scale(1.7); }
       .ls-journey-controls { display: flex; align-items: center; gap: 14px; opacity: 0.55; transition: opacity 250ms ease; }
       .ls-journey-controls:hover, .ls-journey-controls:focus-within { opacity: 1; }
-      .ls-jbtn { min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 1rem; cursor: pointer; transition: color 200ms ease; }
+      .ls-jbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 1.18rem; cursor: pointer; transition: color 200ms ease; }
       .ls-jbtn:hover { color: ${C.gold}; }
-      .ls-jbtn--play { color: ${C.goldSoft}; font-size: 1.05rem; }
+      .ls-jbtn--play {
+        color: ${C.goldSoft}; font-size: 1.02rem; width: 46px; height: 46px; border-radius: 50%;
+        border: 1px solid rgba(240,217,159,0.34);
+        background: radial-gradient(circle at 50% 40%, rgba(240,217,159,0.16), rgba(212,182,122,0.03) 72%);
+      }
+      .ls-jbtn--play:hover { color: ${C.goldSoft}; border-color: rgba(240,217,159,0.6); }
       .ls-jbtn--sound { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
       .ls-start { position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; border-radius: 28px; padding: 24px; background: radial-gradient(ellipse at 50% 45%, rgba(11,8,18,0.55), rgba(6,5,11,0.92) 72%); }
       .ls-journey--start .ls-wheel-svg { filter: blur(3px) brightness(0.85); opacity: 0.5; animation: none; }
