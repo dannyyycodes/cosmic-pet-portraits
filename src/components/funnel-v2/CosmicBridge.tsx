@@ -6,8 +6,8 @@ import { gsap } from "gsap";
    Ported from the approved preview
    (content.littlesouls.app/viral-pet-media/bridge-reveal-cosmos.html).
    Sits between the hero and the "Set the chart" form. One moon hung in
-   real graded night, a restrained 3-layer starfield, the nine approved
-   beats surfacing line-by-line, the quiet two-souls thread, and the real
+   real graded night, a restrained 3-layer starfield, four tightened scenes
+   surfacing word-by-word, the quiet two-souls thread, and the real
    Monty natal wheel drawn into being (accurate to the product chart:
    Sun Pisces 24, Moon Aries 16, Asc Scorpio 29 ...).
 
@@ -19,7 +19,7 @@ import { gsap } from "gsap";
 
    The fixed night stage is scoped to this section by a coverage-based
    opacity fade, so it emerges from the hero and settles into the form.
-   Reduced-motion: all nine beats + the full static chart are visible with
+   Reduced-motion: all four scenes + the full static chart are visible with
    no motion (opacity fade only). Transform/opacity only, phone-buttery.
 ===================================================================== */
 
@@ -223,18 +223,32 @@ const LCB_CSS = `
 /* ---- beats layer ---- */
 .lcb-beats{position:relative;z-index:2}
 .lcb-scene{min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
-  padding:14svh clamp(24px,7vw,80px);text-align:center;gap:clamp(18px,3.4vw,32px)}
+  padding:14svh clamp(24px,7vw,80px);text-align:center;gap:clamp(20px,3.6vw,34px)}
 
-.lcb-beat{position:relative;margin:0;max-width:20ch;font-family:"Fraunces",Georgia,serif;font-weight:400;
-  font-optical-sizing:auto;font-size:clamp(1.9rem,1.4rem + 2.2vw,3.3rem);line-height:1.14;
-  letter-spacing:-0.015em;color:var(--lcb-ivory)}
-.lcb-beat.lcb-support{font-family:"Newsreader",Georgia,serif;font-weight:300;
-  font-size:clamp(1.24rem,1.02rem + 1.8vw,1.72rem);line-height:1.46;max-width:33ch;color:var(--lcb-body);letter-spacing:0}
-.lcb-open .lcb-beat{font-size:clamp(2.05rem,1.5rem + 2.9vw,3.7rem);max-width:17ch}
+/* display beats: Fraunces, high optical contrast, airy negative tracking */
+.lcb-beat{position:relative;margin:0;max-width:19ch;
+  font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
+  font-size:clamp(2.05rem,1.5rem + 2.5vw,3.5rem);line-height:1.1;
+  letter-spacing:-0.021em;color:var(--lcb-ivory);text-wrap:balance}
+.lcb-beat.lcb-support{font-family:"Newsreader",Georgia,serif;font-weight:300;font-optical-sizing:auto;
+  font-size:clamp(1.24rem,1.02rem + 1.7vw,1.7rem);line-height:1.6;max-width:30ch;
+  color:var(--lcb-body);letter-spacing:.004em;text-wrap:pretty}
+.lcb-open .lcb-beat{font-weight:300;font-size:clamp(2.35rem,1.6rem + 3.4vw,4rem);
+  max-width:15ch;letter-spacing:-0.028em;line-height:1.05}
 .lcb-emph{color:var(--lcb-ivory)}
+.lcb-it{font-style:italic;font-weight:400}
 
 .lcb-ln{display:block}
-.lcb-ln + .lcb-ln{margin-top:.5em}
+.lcb-ln + .lcb-ln{margin-top:.46em}
+.lcb-support .lcb-ln + .lcb-ln{margin-top:.26em}
+
+/* word unit: JS wraps each word of a .lcb-split beat for per-word reveal */
+.lcb-wd{display:inline-block}
+
+/* hairline that draws in above the closing line */
+.lcb-rule{display:block;width:min(46vw,220px);height:1px;margin:clamp(12px,2.6vw,22px) auto 0;
+  background:linear-gradient(90deg,transparent,var(--lcb-gold-soft),transparent);
+  transform:scaleX(0);transform-origin:center;opacity:.9}
 
 /* text scrim (velvet behind the words) */
 .lcb-rv{position:relative}
@@ -281,34 +295,59 @@ const LCB_CSS = `
 .lcb-w-planet{transform-box:fill-box;transform-origin:center}
 
 .lcb-chart-copy{position:relative}
-.lcb-pivot-lead{margin:0 auto;font-family:"Fraunces",serif;font-weight:400;color:var(--lcb-ivory);
-  font-size:clamp(1.7rem,1.2rem + 2.4vw,2.5rem);line-height:1.16;letter-spacing:-0.012em;max-width:24ch}
-.lcb-pivot-body{margin:clamp(18px,4vw,28px) auto 0;font-family:"Newsreader",serif;font-weight:300;color:var(--lcb-body);
-  font-size:clamp(1.14rem,1rem + 1.4vw,1.5rem);line-height:1.5;max-width:34ch}
+.lcb-pivot-lead{margin:0 auto;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
+  color:var(--lcb-ivory);font-size:clamp(1.78rem,1.25rem + 2.5vw,2.7rem);line-height:1.14;
+  letter-spacing:-0.018em;max-width:21ch;text-wrap:balance}
+.lcb-chart-scene .lcb-pivot-lead{margin-bottom:clamp(24px,5vw,44px)}
+.lcb-pivot-body{margin:clamp(22px,4vw,32px) auto 0;font-family:"Newsreader",Georgia,serif;font-weight:300;
+  font-optical-sizing:auto;color:var(--lcb-body);font-size:clamp(1.16rem,1rem + 1.4vw,1.48rem);
+  line-height:1.58;max-width:32ch;text-wrap:pretty}
 
 /* payoff */
-.lcb-payoff-line{margin:0;font-family:"Fraunces",serif;font-weight:400;color:var(--lcb-ivory);
-  font-size:clamp(2rem,1.4rem + 3vw,3.4rem);line-height:1.18;letter-spacing:-0.014em;max-width:18ch}
-.lcb-gold-line{color:var(--lcb-gold);margin-top:.4em}
+.lcb-payoff-line{margin:0;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
+  color:var(--lcb-ivory);font-size:clamp(2.05rem,1.4rem + 3.1vw,3.5rem);line-height:1.14;
+  letter-spacing:-0.02em;max-width:17ch;text-wrap:balance}
+.lcb-gold-line{display:block;margin-top:.52em;font-weight:500;letter-spacing:-0.012em;
+  background:linear-gradient(100deg,var(--lcb-gold-soft) 0%,#fff3d2 34%,var(--lcb-gold) 50%,#fff3d2 66%,var(--lcb-gold-soft) 100%);
+  background-size:230% 100%;background-position:118% 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 
 /* ---- reveal engine (only when JS adds .lcb-motion) ---- */
-.lcb-root.lcb-motion .lcb-rv .lcb-ln{opacity:0;transform:translate3d(0,12px,0);filter:blur(6px);
-  transition:opacity .55s var(--lcb-ease), transform .55s var(--lcb-ease), filter .55s var(--lcb-ease);
+/* line-level reveal for support lists + the payoff (not the word-split beats) */
+.lcb-root.lcb-motion .lcb-rv:not(.lcb-split) .lcb-ln{opacity:0;transform:translate3d(0,14px,0);filter:blur(6px);
+  transition:opacity .62s var(--lcb-ease), transform .72s var(--lcb-ease), filter .62s var(--lcb-ease);
   will-change:opacity,transform,filter}
-.lcb-root.lcb-motion .lcb-rv.lcb-in .lcb-ln{opacity:1;transform:none;filter:blur(0)}
-.lcb-root.lcb-motion .lcb-rv.lcb-in .lcb-ln:nth-child(2){transition-delay:.09s}
-.lcb-root.lcb-motion .lcb-rv.lcb-in .lcb-ln:nth-child(3){transition-delay:.18s}
-.lcb-root.lcb-motion .lcb-rv.lcb-in .lcb-ln:nth-child(4){transition-delay:.27s}
-.lcb-root.lcb-motion .lcb-rv.lcb-in .lcb-ln:nth-child(5){transition-delay:.36s}
+.lcb-root.lcb-motion .lcb-rv:not(.lcb-split).lcb-in .lcb-ln{opacity:1;transform:none;filter:blur(0)}
+.lcb-root.lcb-motion .lcb-rv:not(.lcb-split).lcb-in .lcb-ln:nth-child(2){transition-delay:.12s}
+.lcb-root.lcb-motion .lcb-rv:not(.lcb-split).lcb-in .lcb-ln:nth-child(3){transition-delay:.24s}
+.lcb-root.lcb-motion .lcb-rv:not(.lcb-split).lcb-in .lcb-ln:nth-child(4){transition-delay:.36s}
+.lcb-root.lcb-motion .lcb-rv:not(.lcb-split).lcb-in .lcb-ln:nth-child(5){transition-delay:.48s}
+
+/* word-level reveal for the display beats (JS splits each word into .lcb-wd) */
+.lcb-root.lcb-motion .lcb-split .lcb-wd{opacity:0;transform:translate3d(0,0.62em,0);filter:blur(5px);
+  transition:opacity .6s var(--lcb-ease), transform .74s var(--lcb-ease), filter .6s var(--lcb-ease);
+  transition-delay:calc(var(--i,0) * 0.045s);will-change:opacity,transform,filter}
+.lcb-root.lcb-motion .lcb-split.lcb-in .lcb-wd{opacity:1;transform:none;filter:blur(0)}
+
+/* closing flourish: the hairline draws, the gold line takes one slow sheen */
+.lcb-root.lcb-motion .lcb-rule{transition:transform 1.1s var(--lcb-ease) .12s}
+.lcb-root.lcb-motion .lcb-rule.lcb-in{transform:scaleX(1)}
+.lcb-root.lcb-motion .lcb-payoff-line.lcb-in .lcb-gold-line{animation:lcbSheen 2.6s var(--lcb-ease) 1s 1 forwards}
+@keyframes lcbSheen{0%{background-position:118% 0}100%{background-position:-24% 0}}
 
 @media (max-width:768px){
   .lcb-beat{font-size:clamp(1.72rem,1.2rem + 4.4vw,2.4rem)}
-  .lcb-open .lcb-beat{font-size:clamp(2rem,1.3rem + 6vw,2.7rem)}
+  .lcb-open .lcb-beat{font-size:clamp(2.05rem,1.35rem + 6vw,2.8rem)}
+  .lcb-pivot-lead{font-size:clamp(1.55rem,1.15rem + 3.6vw,2.2rem)}
+  .lcb-payoff-line{font-size:clamp(1.85rem,1.3rem + 4.6vw,2.7rem)}
   .lcb-moon{top:-4%;right:-5%;width:min(50vw,232px)}
   .lcb-wheel-wrap{width:min(90vw,410px)}
 }
 @media (prefers-reduced-motion:reduce){
-  .lcb-root .lcb-rv .lcb-ln{opacity:1 !important;transform:none !important;filter:none !important;transition:none !important}
+  .lcb-root .lcb-rv .lcb-ln,
+  .lcb-root .lcb-split .lcb-wd{opacity:1 !important;transform:none !important;filter:none !important;transition:none !important}
+  .lcb-root .lcb-rule{transform:scaleX(1) !important;transition:none !important}
+  .lcb-root .lcb-gold-line{animation:none !important}
   .lcb-twinkle,.lcb-bloom,.lcb-haze,.lcb-drift-far,.lcb-drift-mid,.lcb-moon-bloom{animation:none !important}
   .lcb-layer{transform:none !important}
   .lcb-souls-hold{display:none !important}
@@ -434,6 +473,24 @@ export function CosmicBridge() {
     const ios: IntersectionObserver[] = [];
     let ctx: gsap.Context | undefined;
     if (!reduced) {
+      // split the display beats into words so each word rises on its own beat
+      qa(".lcb-split").forEach((beat) => {
+        let idx = 0;
+        Array.from(beat.querySelectorAll<HTMLElement>(".lcb-ln")).forEach((ln) => {
+          const text = ln.textContent || "";
+          ln.textContent = "";
+          text.split(/(\s+)/).forEach((tok) => {
+            if (tok === "") return;
+            if (/^\s+$/.test(tok)) { ln.appendChild(document.createTextNode(tok)); return; }
+            const w = document.createElement("span");
+            w.className = "lcb-wd";
+            w.textContent = tok;
+            w.style.setProperty("--i", String(idx++));
+            ln.appendChild(w);
+          });
+        });
+      });
+
       const rvIO = new IntersectionObserver((entries) => {
         entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("lcb-in"); rvIO.unobserve(en.target); } });
       }, { rootMargin: "0px 0px -20% 0px", threshold: 0.01 });
@@ -536,62 +593,34 @@ export function CosmicBridge() {
       </div>
 
       <div className="lcb-beats">
-        {/* Beat 1 */}
+        {/* Scene 1 — you know them, but one part has no name */}
         <div className="lcb-scene lcb-open">
-          <p className="lcb-beat lcb-rv"><span className="lcb-ln">We think we know our pets completely.</span></p>
+          <p className="lcb-beat lcb-rv lcb-split"><span className="lcb-ln">You know them by heart.</span></p>
           <p className="lcb-beat lcb-support lcb-rv">
             <span className="lcb-ln">Their favourite treat.</span>
             <span className="lcb-ln">The walk they pull toward.</span>
-            <span className="lcb-ln">The face they make at dinnertime.</span>
+            <span className="lcb-ln">The face they make at dinner.</span>
           </p>
         </div>
 
-        {/* Beat 2 */}
-        <div className="lcb-scene">
-          <p className="lcb-beat lcb-rv"><span className="lcb-ln">But there is a part of who they are we have never really understood.</span></p>
-          <p className="lcb-beat lcb-support lcb-rv">
-            <span className="lcb-ln">Their temperament.</span>
-            <span className="lcb-ln">Their quirks.</span>
-            <span className="lcb-ln">The reason behind the odd little things they do.</span>
-          </p>
-        </div>
-
-        {/* Beat 3 */}
-        <div className="lcb-scene">
-          <p className="lcb-beat lcb-rv"><span className="lcb-ln">A birth chart lays it out plainly.</span></p>
-          <p className="lcb-beat lcb-support lcb-rv">
-            <span className="lcb-ln">Why they get anxious the second you reach for your keys.</span>
-            <span className="lcb-ln">Why they choose your lap over everyone else&rsquo;s.</span>
-            <span className="lcb-ln">Why some days they need space, and what brings them back to calm.</span>
-          </p>
-        </div>
-
-        {/* Beat 4 (leads into the wheel) */}
-        <div className="lcb-scene">
-          <p className="lcb-beat lcb-rv">
-            <span className="lcb-ln">At the moment your pet arrived, every planet stood in an exact place.</span>
-            <span className="lcb-ln">Not a guess.</span>
-            <span className="lcb-ln">A measured arrangement, calculated to the degree.</span>
-          </p>
-        </div>
-
-        {/* Beats 5 + 6 — the chart draws into being */}
+        {/* Scene 2 — the natal wheel draws itself into being */}
         <div className="lcb-scene lcb-chart-scene">
+          <p className="lcb-pivot-lead lcb-rv lcb-split">
+            <span className="lcb-ln">And still, one part of who they are has never had a name.</span>
+          </p>
           <div className="lcb-wheel-wrap">
             <svg className="lcb-wheel" viewBox="-210 -210 420 420" aria-hidden="true" />
             <div className="lcb-wheel-sheen" aria-hidden="true" />
           </div>
           <div className="lcb-chart-copy">
-            <p className="lcb-pivot-lead lcb-rv"><span className="lcb-ln">The same order that lets an eclipse be named years ahead, and a planet&rsquo;s path traced long before it gets there.</span></p>
             <p className="lcb-pivot-body lcb-rv">
-              <span className="lcb-ln">Nothing in it moves at random.</span>
-              <span className="lcb-ln">Everything holds a position, a moment, a place of its own.</span>
-              <span className="lcb-ln">Your pet arrived inside that order, at one exact point in time that will never come again.</span>
+              <span className="lcb-ln">At the moment they arrived, every planet stood in an exact place.</span>
+              <span className="lcb-ln">Measured to the degree, the same order that names an eclipse years before it happens.</span>
             </p>
           </div>
         </div>
 
-        {/* Beat 7 — two lives, timed to meet */}
+        {/* Scene 3 — two lives, timed to meet */}
         <div className="lcb-scene lcb-souls-scene">
           <div className="lcb-souls-hold" aria-hidden="true">
             <span className="lcb-soul lcb-soul-a" />
@@ -600,30 +629,25 @@ export function CosmicBridge() {
           </div>
           <p className="lcb-beat lcb-support lcb-rv">
             <span className="lcb-ln">And somehow, their small life crossed yours.</span>
-            <span className="lcb-ln">The one who waits by the door before your car has turned in.</span>
-            <span className="lcb-ln">The one who knows the second your voice changes.</span>
-            <span className="lcb-ln">The one who made the whole house feel different just by being here.</span>
+            <span className="lcb-ln">The one who waits at the door before your car has turned in.</span>
             <span className="lcb-ln lcb-emph">Two lives, out of everything, timed to meet.</span>
           </p>
         </div>
 
-        {/* Beat 8 */}
-        <div className="lcb-scene">
-          <p className="lcb-beat lcb-rv"><span className="lcb-ln">A birth chart is only that moment, read closely.</span></p>
+        {/* Scene 4 — read closely, then set the chart */}
+        <div className="lcb-scene lcb-payoff">
+          <p className="lcb-beat lcb-rv lcb-split"><span className="lcb-ln">A birth chart is that one moment, read closely.</span></p>
           <p className="lcb-beat lcb-support lcb-rv">
             <span className="lcb-ln">Who they are.</span>
             <span className="lcb-ln">What steadies them.</span>
             <span className="lcb-ln">Why they love the way they do.</span>
           </p>
-        </div>
-
-        {/* Beat 9 — payoff into the form */}
-        <div className="lcb-scene lcb-payoff">
           <p className="lcb-payoff-line lcb-rv">
             <span className="lcb-ln">You have loved them without the map.</span>
             <span className="lcb-ln">Now you can see it.</span>
             <span className="lcb-ln lcb-gold-line">Set the chart.</span>
           </p>
+          <span className="lcb-rule lcb-rv" aria-hidden="true" />
         </div>
       </div>
 
