@@ -311,8 +311,6 @@ const LCB_CSS = `
 .lcb-seed{position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;
   opacity:0;background:radial-gradient(circle, rgba(240,242,255,0.95), rgba(200,208,240,0.3) 60%, transparent 76%);
   will-change:transform,opacity}
-.lcb-wheel-sheen{position:absolute;inset:-3%;border-radius:50%;pointer-events:none;opacity:0;mix-blend-mode:screen;
-  background:linear-gradient(105deg, transparent 42%, rgba(240,217,159,0.42) 50%, transparent 58%)}
 .lcb-wheel .stroke{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
 .lcb-wheel .rim{stroke:var(--lcb-gold-soft);stroke-width:1;opacity:.9}
 .lcb-wheel .rim2{stroke:var(--lcb-gold-soft);stroke-width:1;opacity:.55}
@@ -590,7 +588,6 @@ export function CosmicBridge() {
           gsap.set(".lcb-w-planet", { opacity: 0, scale: 0, transformOrigin: "center" });
           gsap.set(".lcb-w-zsym", { opacity: 0, scale: 0.92, transformOrigin: "center" });
           gsap.set(".lcb-w-axis", { opacity: 0 });
-          gsap.set(".lcb-wheel-sheen", { opacity: 0, x: "-60%" });
 
           // scatter seed stars around the wheel (the nameless part = loose points)
           const seedLayer = root.querySelector<HTMLElement>(".lcb-seeds");
@@ -605,11 +602,17 @@ export function CosmicBridge() {
             }
           }
 
+          // Anchor the draw to the NAMING copy: it starts as the pivot lead
+          // ("...has never had a name") reads and completes as the eclipse line
+          // (pivot body) lands, so the wheel is deliberately on-beat with the words.
+          const pivotLead = root.querySelector<HTMLElement>(".lcb-chart-scene .lcb-pivot-lead");
+          const pivotBody = root.querySelector<HTMLElement>(".lcb-chart-scene .lcb-pivot-body");
           const wtl = gsap.timeline({
             scrollTrigger: {
-              trigger: chartScene,
-              start: mobile ? "top 76%" : "top 72%",
-              end: mobile ? "center 34%" : "center 30%",
+              trigger: pivotLead || chartScene,
+              start: "top 72%",
+              endTrigger: pivotBody || chartScene,
+              end: "bottom 55%",
               scrub: 0.6,
             },
           });
@@ -623,10 +626,7 @@ export function CosmicBridge() {
             .to(".lcb-w-zsym", { opacity: 1, scale: 1, duration: 0.6, ease: "none", stagger: 0.04 }, 1.3)
             .to(".lcb-w-leg", { strokeDashoffset: 0, duration: 0.6, ease: "none", stagger: 0.03 }, 1.5)
             .to(".lcb-w-planet", { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)", stagger: 0.05 }, 1.7)
-            .to(".lcb-w-aspect", { strokeDashoffset: 0, duration: 1.4, ease: "none", stagger: 0.05 }, 2.1)
-            .to(".lcb-wheel-sheen", { opacity: 1, duration: 0.2, ease: "none" }, 3.4)
-            .to(".lcb-wheel-sheen", { x: "60%", duration: 1.4, ease: "power2.inOut" }, 3.4)
-            .to(".lcb-wheel-sheen", { opacity: 0, duration: 0.5, ease: "none" }, 4.6);
+            .to(".lcb-w-aspect", { strokeDashoffset: 0, duration: 1.4, ease: "none", stagger: 0.05 }, 2.1);
         }
 
         // BEAT 3 — crossing: two comets on separate arcs meet, fuse into one thread
@@ -752,7 +752,6 @@ export function CosmicBridge() {
           <div className="lcb-wheel-wrap">
             <svg className="lcb-wheel" viewBox="-210 -210 420 420" aria-hidden="true" />
             <div className="lcb-seeds" aria-hidden="true" />
-            <div className="lcb-wheel-sheen" aria-hidden="true" />
           </div>
           <div className="lcb-chart-copy">
             <p className="lcb-pivot-body lcb-rv">
