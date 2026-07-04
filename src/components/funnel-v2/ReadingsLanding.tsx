@@ -18,6 +18,8 @@ const C = {
   goldDeep: "#8b6f3a",
   violet: "#7c5cd6",
   violetSoft: "#9a7ee6",
+  violetBright: "#b9a5f0",
+  lineViolet: "rgba(154, 126, 230, 0.26)",
   cosmos: "#0d0a14",
   cosmos2: "#15101c",
   cosmos3: "#201722",
@@ -957,9 +959,9 @@ const WHEEL_BODIES = [
   "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
   "uranus", "neptune", "pluto", "chiron", "northNode", "lilith",
 ] as const;
-// Restrained 3-tone palette: luminaries gold, planets violet, points cream.
+// Restrained 3-tone palette: luminaries bright lavender, planets violet, points cream.
 const WHEEL_TONE: Record<string, string> = {
-  sun: "#f0d99f", moon: "#f0d99f",
+  sun: "#dccdfa", moon: "#dccdfa",
   mercury: "#b9a4ee", venus: "#b9a4ee", mars: "#b9a4ee", jupiter: "#b9a4ee",
   saturn: "#b9a4ee", uranus: "#b9a4ee", neptune: "#b9a4ee", pluto: "#b9a4ee",
   chiron: "#e9e4f2", northNode: "#e9e4f2", lilith: "#e9e4f2",
@@ -1087,8 +1089,8 @@ function NatalWheel({
           transition={{ duration: beat(0.7), ease: [0.22, 0.7, 0.2, 1] }}
           style={{ transformOrigin: `${cx}px ${cy}px` }}
         >
-          <circle cx={cx} cy={cy} r={rZodOuter} fill="none" stroke="rgba(212,182,122,0.5)" strokeWidth={1} />
-          <circle cx={cx} cy={cy} r={rZodInner} fill="none" stroke="rgba(212,182,122,0.32)" strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={rZodOuter} fill="none" stroke="rgba(154,126,230,0.55)" strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={rZodInner} fill="none" stroke="rgba(154,126,230,0.36)" strokeWidth={1} />
           {WHEEL_ZODIAC.map((z, i) => {
             const a0 = z.start;
             const a1 = z.start + 30;
@@ -1098,9 +1100,9 @@ function NatalWheel({
             const d1 = wheelPolar(cx, cy, rZodOuter, a0);
             const isSunSign = i === sunSignIdx;
             const fill = isSunSign
-              ? "rgba(212,182,122,0.14)"
+              ? "rgba(185,165,240,0.15)"
               : i % 2 === 0
-              ? "rgba(212,182,122,0.05)"
+              ? "rgba(154,126,230,0.05)"
               : "rgba(124,92,214,0.06)";
             return (
               <g key={z.name}>
@@ -1108,8 +1110,8 @@ function NatalWheel({
                   d={`${wheelArc(cx, cy, rZodOuter, a0, a1)} L ${wheelPolar(cx, cy, rZodInner, a1).x.toFixed(2)} ${wheelPolar(cx, cy, rZodInner, a1).y.toFixed(2)} ${wheelArc(cx, cy, rZodInner, a1, a0).replace("M", "L").split("A")[0]} A ${rZodInner} ${rZodInner} 0 0 0 ${d0.x.toFixed(2)} ${d0.y.toFixed(2)} Z`}
                   fill={fill}
                 />
-                <line x1={d0.x} y1={d0.y} x2={d1.x} y2={d1.y} stroke="rgba(212,182,122,0.28)" strokeWidth={0.75} />
-                <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={isSunSign ? "#f0d99f" : "#d4b67a"} fontSize={16} className="ls-wheel-signglyph">
+                <line x1={d0.x} y1={d0.y} x2={d1.x} y2={d1.y} stroke="rgba(154,126,230,0.32)" strokeWidth={0.75} />
+                <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={isSunSign ? "#dccdfa" : "#9a7ee6"} fontSize={16} className="ls-wheel-signglyph">
                   {z.glyph}
                 </text>
               </g>
@@ -1140,7 +1142,7 @@ function NatalWheel({
           {aspects.map((asp, i) => {
             const pa = wheelPolar(cx, cy, rAspect, asp.lonA);
             const pb = wheelPolar(cx, cy, rAspect, asp.lonB);
-            const stroke = asp.kind === "hard" ? "rgba(154,126,230,0.5)" : "rgba(212,182,122,0.42)";
+            const stroke = asp.kind === "hard" ? "rgba(154,126,230,0.5)" : "rgba(220,205,250,0.4)";
             return (
               <motion.line
                 key={`${asp.a}-${asp.b}-${i}`}
@@ -1193,18 +1195,18 @@ function NatalWheel({
           animate={reduce ? {} : { opacity: 1 }}
           transition={{ duration: beat(0.5), delay: beat(1.0) }}
         >
-          <circle cx={cx} cy={cy} r={rHub} fill="rgba(8,6,14,0.82)" stroke="rgba(212,182,122,0.3)" strokeWidth={1} />
-          <text x={cx} y={cy - 16} textAnchor="middle" fill="#f0d99f" fontSize={15} className="ls-wheel-centername">
+          <circle cx={cx} cy={cy} r={rHub} fill="rgba(8,6,14,0.82)" stroke="rgba(154,126,230,0.34)" strokeWidth={1} />
+          <text x={cx} y={cy - 16} textAnchor="middle" fill="#dccdfa" fontSize={15} className="ls-wheel-centername">
             {name || dom || "Their sky"}
           </text>
-          <line x1={cx - 19} y1={cy - 4} x2={cx + 19} y2={cy - 4} stroke="#d4b67a" strokeWidth={1.4} />
+          <line x1={cx - 19} y1={cy - 4} x2={cx + 19} y2={cy - 4} stroke="#9a7ee6" strokeWidth={1.4} />
           {bornLabel && (
             <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(245,239,230,0.66)" fontSize={9.5} className="ls-wheel-centerborn">
               BORN {bornLabel}
             </text>
           )}
           {dom && (
-            <text x={cx} y={cy + 25} textAnchor="middle" fill="#d4b67a" fontSize={9.5} className="ls-wheel-centerdom">
+            <text x={cx} y={cy + 25} textAnchor="middle" fill="#9a7ee6" fontSize={9.5} className="ls-wheel-centerdom">
               {dom} element
             </text>
           )}
@@ -3507,8 +3509,8 @@ function CosmicStyles() {
         font-family: "Playfair Display", Georgia, serif;
         font-size: clamp(5rem, 22vw, 11rem);
         line-height: 1;
-        color: ${C.gold};
-        filter: drop-shadow(0 0 28px rgba(212,182,122,0.5));
+        color: ${C.violetSoft};
+        filter: drop-shadow(0 0 28px rgba(154,126,230,0.55));
       }
       .ls-journey-copy {
         position: relative;
@@ -3519,7 +3521,7 @@ function CosmicStyles() {
         max-width: 20ch;
       }
       .ls-journey-name {
-        color: ${C.gold};
+        color: ${C.violetSoft};
         font-family: Lato, system-ui, sans-serif;
         font-size: 0.8rem;
         font-weight: 800;
@@ -3605,7 +3607,7 @@ function CosmicStyles() {
       }
       .ls-journey-orb .ls-journey-bigglyph {
         font-size: clamp(1.8rem, 9vw, 3.4rem);
-        filter: drop-shadow(0 0 16px rgba(212,182,122,0.5));
+        filter: drop-shadow(0 0 16px rgba(154,126,230,0.55));
       }
       .ls-journey-card-text { display: grid; gap: 8px; min-width: 0; }
       .ls-journey-card .ls-journey-name { text-align: left; }
@@ -3742,9 +3744,9 @@ function CosmicStyles() {
       .ls-sys-slot.is-active .ls-sys-glyph { color: ${C.violet}; text-shadow: 0 0 12px rgba(124,92,214,0.9); }
       .ls-sys-orb2 { position: relative; width: 100%; aspect-ratio: 1; display: grid; place-items: center; }
       .ls-sys-orb2 img { width: 100%; height: 100%; object-fit: contain; transition: filter 0.6s ease, opacity 0.6s ease; }
-      .ls-sys-node--mark { position: absolute; inset: 0; display: grid; place-items: center; color: ${C.gold}; font-size: clamp(0.9rem, 3.5vw, 1.8rem); text-shadow: 0 0 8px rgba(0,0,0,0.85); }
+      .ls-sys-node--mark { position: absolute; inset: 0; display: grid; place-items: center; color: ${C.violetSoft}; font-size: clamp(0.9rem, 3.5vw, 1.8rem); text-shadow: 0 0 8px rgba(0,0,0,0.85); }
       .ls-sys-orb2 img.is-shadowed { filter: brightness(0.32) saturate(0.5) contrast(1.05); }
-      .ls-sys-node { color: ${C.gold}; font-size: clamp(0.7rem, 2.6vw, 1.5rem); line-height: 1; }
+      .ls-sys-node { color: ${C.violetSoft}; font-size: clamp(0.7rem, 2.6vw, 1.5rem); line-height: 1; }
       .ls-sys-slot.is-active .ls-sys-orb2 img { filter: drop-shadow(0 0 14px rgba(124,92,214,0.85)); }
       .ls-sys-slot.is-active .ls-sys-orb2 img.is-shadowed { filter: brightness(0.42) drop-shadow(0 0 14px rgba(124,92,214,0.9)); }
       .ls-sys-slot.is-active .ls-sys-node { color: ${C.violet}; text-shadow: 0 0 12px rgba(124,92,214,0.9); }
@@ -3774,9 +3776,9 @@ function CosmicStyles() {
         box-shadow: 0 0 26px rgba(124,92,214,0.5);
       }
       .ls-dock-orb img { width: 100%; height: 100%; object-fit: cover; }
-      .ls-dock-orb .ls-sys-glyph { font-size: clamp(2rem, 7vw, 3.2rem); color: ${C.gold}; }
+      .ls-dock-orb .ls-sys-glyph { font-size: clamp(2rem, 7vw, 3.2rem); color: ${C.violetSoft}; }
       .ls-dock-text { display: grid; gap: 6px; justify-items: center; min-width: 0; }
-      .ls-dock-glyph { color: ${C.gold}; font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1; }
+      .ls-dock-glyph { color: ${C.violetSoft}; font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1; }
       .ls-journey-overview {
         position: absolute;
         top: clamp(74px, 9vh, 92px);
@@ -3829,7 +3831,7 @@ function CosmicStyles() {
         filter: drop-shadow(0 0 8px rgba(124,92,214,0.4));
       }
       .ls-sys-glyph {
-        color: ${C.gold};
+        color: ${C.violetSoft};
         font-size: clamp(0.7rem, 2.6vw, 1.4rem);
         line-height: 1;
       }
@@ -3849,7 +3851,7 @@ function CosmicStyles() {
         justify-items: center;
         max-width: 24ch;
       }
-      .ls-readout-glyph { color: ${C.gold}; font-style: normal; margin-right: 7px; }
+      .ls-readout-glyph { color: ${C.violetSoft}; font-style: normal; margin-right: 7px; }
       @media (max-width: 899px) {
         .ls-journey-tick { width: 12px; }
         .ls-journey-tick.is-active { width: 22px; }
@@ -3908,7 +3910,7 @@ function CosmicStyles() {
         transition: transform 0.5s ease, filter 0.5s ease;
       }
       .ls-journey-dot img { width: 100%; height: 100%; object-fit: contain; opacity: 0.5; transition: opacity 0.5s ease; }
-      .ls-journey-glyph { color: rgba(212,182,122,0.85); font-size: 1rem; }
+      .ls-journey-glyph { color: rgba(154,126,230,0.9); font-size: 1rem; }
       .ls-journey-ring.is-active .ls-journey-dot img { opacity: 1; }
       .ls-journey-ring.is-active .ls-journey-dot em {
         transform: scale(1.7);
@@ -3921,9 +3923,9 @@ function CosmicStyles() {
         max-width: 32ch;
         animation: ls-pop-in 0.5s both;
       }
-      .ls-journey-focus-glyph { color: ${C.gold}; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1; }
+      .ls-journey-focus-glyph { color: ${C.violetSoft}; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1; }
       .ls-journey-focus-label {
-        color: ${C.gold};
+        color: ${C.violetSoft};
         font-family: Lato, system-ui, sans-serif;
         font-size: 0.76rem;
         font-weight: 800;
@@ -3979,7 +3981,7 @@ function CosmicStyles() {
         background: rgba(5,4,8,0.42);
         text-align: left;
       }
-      .ls-journey-reveal-item span { color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+      .ls-journey-reveal-item span { color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
       .ls-journey-reveal-item strong { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; }
       .ls-journey-reveal-item small { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; }
       .ls-journey-hint { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.22rem; line-height: 1.4; margin: 0; }
@@ -4502,16 +4504,16 @@ function CosmicStyles() {
         font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800;
         letter-spacing: 0.16em; text-transform: uppercase;
       }
-      .ls-reveal-eyebrow--rest { margin-top: 6px; color: ${C.gold}; }
+      .ls-reveal-eyebrow--rest { margin-top: 6px; color: ${C.violetSoft}; }
       .ls-free-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
       @media (max-width: 720px) { .ls-free-grid { grid-template-columns: 1fr; } }
       .ls-free-card {
         display: grid; gap: 6px; justify-items: center; text-align: center;
         padding: 20px 16px;
-        border: 1px solid ${C.line}; border-radius: 14px;
+        border: 1px solid ${C.lineViolet}; border-radius: 14px;
         background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
       }
-      .ls-free-glyph { font-size: 1.5rem; color: ${C.gold}; line-height: 1; }
+      .ls-free-glyph { font-size: 1.5rem; color: ${C.violetSoft}; line-height: 1; }
       .ls-free-frame {
         color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif;
         font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
@@ -4533,17 +4535,17 @@ function CosmicStyles() {
       .ls-gate2 {
         display: grid; gap: 10px; justify-items: center; text-align: center;
         max-width: 520px; margin: 4px auto 0; padding: clamp(22px, 4vw, 30px);
-        border: 1px solid ${C.line}; border-radius: 16px;
+        border: 1px solid ${C.lineViolet}; border-radius: 16px;
         background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.16), transparent 60%), linear-gradient(180deg, rgba(21,16,28,0.9), rgba(13,10,20,0.95));
       }
-      .ls-gate2-glyph { font-size: 1.4rem; color: ${C.gold}; }
+      .ls-gate2-glyph { font-size: 1.4rem; color: ${C.violetSoft}; }
       .ls-gate2-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.85rem); font-weight: 500; }
       .ls-gate2-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.9rem; line-height: 1.45; max-width: 380px; }
       .ls-gate2-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; width: 100%; max-width: 440px; margin-top: 4px; }
       @media (max-width: 520px) { .ls-gate2-row { grid-template-columns: 1fr; } }
       .ls-gate2-row input {
         min-height: 48px; width: 100%;
-        border: 1px solid rgba(212,182,122,0.34); border-radius: 8px;
+        border: 1px solid rgba(154,126,230,0.38); border-radius: 8px;
         background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px;
         font-family: Lato, system-ui, sans-serif;
       }
@@ -4552,7 +4554,7 @@ function CosmicStyles() {
 
       .ls-locked-block { display: grid; gap: 14px; }
       .ls-locked-eyebrow {
-        text-align: center; color: ${C.gold};
+        text-align: center; color: ${C.violetSoft};
         font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800;
         letter-spacing: 0.16em; text-transform: uppercase;
       }
@@ -4577,7 +4579,7 @@ function CosmicStyles() {
       .ls-upsell {
         display: grid; gap: 14px; justify-items: center; text-align: center;
         max-width: 640px; margin: 8px auto 0; padding: clamp(26px, 4vw, 38px);
-        border: 1px solid rgba(212,182,122,0.3); border-radius: 18px;
+        border: 1px solid rgba(154,126,230,0.34); border-radius: 18px;
         background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.18), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.92), rgba(13,10,20,0.96));
       }
       .ls-upsell-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 500; line-height: 1.12; }
@@ -4814,18 +4816,18 @@ function CosmicStyles() {
       }
       @keyframes ls-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.7; } }
       .ls-compute-instrument { position: absolute; top: 41%; left: 50%; width: 176px; height: 176px; transform: translate(-50%, -50%); }
-      .ls-compute-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(212,182,122,0.24); }
+      .ls-compute-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(154,126,230,0.28); }
       .ls-compute-ring i { position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: ${C.violetSoft}; box-shadow: 0 0 10px rgba(154,126,230,0.9); }
       .ls-compute-ring-1 { inset: 0; animation: ls-spin 7s linear infinite; }
-      .ls-compute-ring-2 { inset: 28px; border-color: rgba(212,182,122,0.16); animation: ls-spin 11s linear infinite reverse; }
-      .ls-compute-ring-2 i { background: ${C.goldSoft}; box-shadow: 0 0 10px rgba(240,217,159,0.9); }
+      .ls-compute-ring-2 { inset: 28px; border-color: rgba(154,126,230,0.18); animation: ls-spin 11s linear infinite reverse; }
+      .ls-compute-ring-2 i { background: ${C.violetBright}; box-shadow: 0 0 10px rgba(185,165,240,0.9); }
       .ls-compute-ring-3 { inset: 56px; border-style: dashed; border-color: rgba(245,239,230,0.12); }
-      .ls-compute-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(212,182,122,0.3), rgba(212,182,122,0) 30%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%); mask: radial-gradient(circle, transparent 30%, #000 31%); animation: ls-spin 4.5s linear infinite; }
+      .ls-compute-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(154,126,230,0.34), rgba(154,126,230,0) 30%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%); mask: radial-gradient(circle, transparent 30%, #000 31%); animation: ls-spin 4.5s linear infinite; }
       .ls-compute-mote {
         position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
         border-radius: 50%;
-        background: radial-gradient(circle at 40% 35%, ${C.goldSoft}, ${C.gold} 60%, ${C.goldDeep});
-        box-shadow: 0 0 30px rgba(212,182,122,0.8);
+        background: radial-gradient(circle at 40% 35%, ${C.violetBright}, ${C.violetSoft} 60%, #55428f);
+        box-shadow: 0 0 30px rgba(154,126,230,0.85);
         opacity: 0.55; transform: scale(0.7);
         transition: opacity 400ms ease, transform 400ms ease;
         animation: ls-corepulse 3s ease-in-out infinite;
@@ -4833,7 +4835,7 @@ function CosmicStyles() {
       .ls-compute-mote.is-lit { opacity: 1; transform: scale(1); }
       .ls-compute-readout {
         position: absolute; top: 60%; left: 0; right: 0; min-height: 1.2em; text-align: center;
-        color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem;
+        color: ${C.violetBright}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem;
         letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
       }
       .ls-compute-line {
@@ -4842,12 +4844,12 @@ function CosmicStyles() {
       }
       .ls-sound-cta {
         display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px;
-        border: 1px solid rgba(212,182,122,0.5); background: rgba(124,92,214,0.18); color: ${C.goldSoft};
+        border: 1px solid rgba(154,126,230,0.55); background: rgba(124,92,214,0.18); color: ${C.violetBright};
         font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; cursor: pointer;
         animation: ls-soundpulse 2.6s ease-in-out infinite;
       }
-      .ls-sound-cta:hover { background: rgba(124,92,214,0.34); color: ${C.cream}; border-color: ${C.gold}; }
-      @keyframes ls-soundpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(212,182,122,0); } 50% { box-shadow: 0 0 0 7px rgba(212,182,122,0.08); } }
+      .ls-sound-cta:hover { background: rgba(124,92,214,0.34); color: ${C.cream}; border-color: ${C.violetSoft}; }
+      @keyframes ls-soundpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(154,126,230,0); } 50% { box-shadow: 0 0 0 7px rgba(154,126,230,0.1); } }
 
       .ls-wheel { display: grid; justify-items: center; gap: 16px; }
       .ls-wheel-svg { width: min(92vw, 460px); height: auto; aspect-ratio: 1; display: block; }
@@ -4860,14 +4862,14 @@ function CosmicStyles() {
       }
       .ls-wheel-info {
         display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px;
-        border-radius: 999px; border: 1px solid rgba(212,182,122,0.4); background: rgba(13,10,20,0.6);
-        color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem; cursor: pointer;
+        border-radius: 999px; border: 1px solid rgba(154,126,230,0.45); background: rgba(13,10,20,0.6);
+        color: ${C.violetBright}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem; cursor: pointer;
         transition: border-color 200ms ease, color 200ms ease;
       }
-      .ls-wheel-info:hover { border-color: ${C.gold}; color: ${C.gold}; }
+      .ls-wheel-info:hover { border-color: ${C.violetSoft}; color: ${C.violetSoft}; }
       .ls-wheel-info-mark {
         display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
-        border: 1px solid rgba(212,182,122,0.6); font-family: "Playfair Display", Georgia, serif;
+        border: 1px solid rgba(154,126,230,0.65); font-family: "Playfair Display", Georgia, serif;
         font-size: 0.8rem; line-height: 1; font-style: italic;
       }
       .ls-wheel-honesty {
@@ -4880,7 +4882,7 @@ function CosmicStyles() {
         font-family: Lato, system-ui, sans-serif; font-size: 0.68rem; font-weight: 800;
         letter-spacing: 0.12em; text-transform: uppercase;
       }
-      .ls-free-glyph { font-size: 1.05rem; color: ${C.gold}; line-height: 1; }
+      .ls-free-glyph { font-size: 1.05rem; color: ${C.violetSoft}; line-height: 1; }
       .ls-free-sign { font-size: clamp(1.15rem, 3.4vw, 1.45rem); font-variant-numeric: tabular-nums; }
 
       .ls-info-inline { width: min(100%, 1000px); margin: 10px auto 0; }
@@ -4898,9 +4900,9 @@ function CosmicStyles() {
       /* Authored hand-off from the wheel into the skim breakdown. */
       /* Wheel -> table handoff. The seam lines draw outward from the star mark as
          the reader crosses into the chapter: the threshold completes under them. */
-      .ls-skim-seam { display: flex; align-items: center; justify-content: center; gap: 14px; width: min(100%, 420px); margin: 0 auto 4px; color: ${C.goldSoft}; }
-      .ls-skim-seam-line { height: 2px; flex: 1; border-radius: 1px; background: linear-gradient(90deg, transparent, rgba(240,217,159,0.7), transparent); box-shadow: 0 0 10px rgba(240,217,159,0.35); }
-      .ls-skim-seam-mark { opacity: 0.95; transition: opacity 480ms ease 120ms; filter: drop-shadow(0 0 6px rgba(240,217,159,0.6)); }
+      .ls-skim-seam { display: flex; align-items: center; justify-content: center; gap: 14px; width: min(100%, 420px); margin: 0 auto 4px; color: ${C.violetBright}; }
+      .ls-skim-seam-line { height: 2px; flex: 1; border-radius: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.75), transparent); box-shadow: 0 0 10px rgba(185,165,240,0.4); }
+      .ls-skim-seam-mark { opacity: 0.95; transition: opacity 480ms ease 120ms; filter: drop-shadow(0 0 6px rgba(185,165,240,0.65)); }
       .ls-skim-seam.ls-rvrow .ls-skim-seam-line {
         transform: scaleX(0);
         transition: transform 560ms cubic-bezier(0.22,0.61,0.28,1) 60ms;
@@ -4933,7 +4935,7 @@ function CosmicStyles() {
 
       .ls-trow {
         position: relative; display: grid; grid-template-columns: auto 1fr; gap: 15px; align-items: start;
-        padding: 16px 18px; border: 1px solid ${C.line}; border-radius: 14px; text-align: left;
+        padding: 16px 18px; border: 1px solid ${C.lineViolet}; border-radius: 14px; text-align: left;
         background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
         overflow: hidden;
         filter: saturate(1) brightness(1);
@@ -4973,16 +4975,16 @@ function CosmicStyles() {
          alternating sides and settle into the one aligned column. */
       .ls-chart-table--rest .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { transform: translate3d(-30px, 22px, 0); }
       .ls-chart-table--rest .ls-trow.ls-rvrow:nth-child(even):not([data-in]) .ls-trow-main { transform: translate3d(30px, 22px, 0); }
-      /* The waiting shell: bright gold outline, hollow interior, one slow
+      /* The waiting shell: bright violet outline, hollow interior, one slow
          synchronized breath. It must read as "a slot is held for this". */
       .ls-trow.ls-rvrow:not([data-in]) {
         box-shadow: none;
-        border-color: rgba(212,182,122,0.42);
+        border-color: rgba(154,126,230,0.48);
         background: linear-gradient(180deg, rgba(15,11,21,0.42), rgba(10,8,16,0.5));
       }
       .ls-trow.ls-rvrow:not([data-in])::after {
         opacity: 1;
-        background: radial-gradient(ellipse at 50% 60%, rgba(212,182,122,0.09), transparent 72%);
+        background: radial-gradient(ellipse at 50% 60%, rgba(154,126,230,0.1), transparent 72%);
         animation: ls-shell-wait 2.4s ease-in-out infinite;
       }
       @keyframes ls-shell-wait { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
@@ -4991,14 +4993,14 @@ function CosmicStyles() {
 
       .ls-trow-glyph {
         display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
-        font-size: 1.34rem; line-height: 1; color: ${C.gold};
-        border: 1px solid rgba(212,182,122,0.28);
-        background: radial-gradient(circle at 50% 35%, rgba(212,182,122,0.14), rgba(212,182,122,0.03) 70%);
+        font-size: 1.34rem; line-height: 1; color: ${C.violetSoft};
+        border: 1px solid rgba(154,126,230,0.32);
+        background: radial-gradient(circle at 50% 35%, rgba(154,126,230,0.15), rgba(154,126,230,0.04) 70%);
       }
       .ls-trow-main { min-width: 0; display: grid; gap: 4px; }
       .ls-trow-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
       .ls-trow-name { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.08rem; font-weight: 500; letter-spacing: 0.002em; }
-      .ls-trow-sign { color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+      .ls-trow-sign { color: ${C.violetBright}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
       /* Frame sits ABOVE the name (eyebrow -> name -> line), so every row reads
          with the same landing-strip texture instead of one uniform block. */
       .ls-trow-frame { order: -1; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.82; }
@@ -5011,65 +5013,65 @@ function CosmicStyles() {
       /* FREE rows — the three that are given. These are the show: a lit
          medallion, a warmer surface, and a reading set a full tier larger. */
       .ls-trow.is-free {
-        border-color: rgba(240,217,159,0.58);
+        border-color: rgba(185,165,240,0.6);
         background:
-          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.14), transparent 46%),
+          radial-gradient(ellipse at 0% 0%, rgba(154,126,230,0.15), transparent 46%),
           linear-gradient(180deg, rgba(30,23,41,0.85), rgba(15,11,22,0.9));
-        box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 30px rgba(212,182,122,0.12);
+        box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 30px rgba(154,126,230,0.14);
       }
-      /* The gold seam down the leading edge draws in AFTER the words have seated:
+      /* The violet seam down the leading edge draws in AFTER the words have seated:
          the row lands, then clicks shut. That closing stroke is the payoff. */
       .ls-trow.is-free::before {
         content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px;
         border-radius: 0 3px 3px 0;
-        background: linear-gradient(180deg, #ffe9b8, rgba(212,182,122,0.55));
-        box-shadow: 0 0 14px rgba(240,217,159,0.55);
+        background: linear-gradient(180deg, #e6dcff, rgba(154,126,230,0.6));
+        box-shadow: 0 0 14px rgba(185,165,240,0.6);
         transform: scaleY(0); transform-origin: center top;
         transition: transform 460ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 460ms);
       }
       .ls-trow.is-free[data-in]::before { transform: scaleY(1); }
-      /* A free row's waiting shell holds a slightly warmer outline — the three
+      /* A free row's waiting shell holds a slightly brighter outline — the three
          given slots are marked as special before they even fill. */
-      .ls-trow.is-free:not([data-in]) { border-color: rgba(240,217,159,0.5); }
-      /* One warm bloom as the free row lands — the light swells off the seam
+      .ls-trow.is-free:not([data-in]) { border-color: rgba(185,165,240,0.52); }
+      /* One soft bloom as the free row lands — the light swells off the seam
          edge, then dies. Once, then stillness. */
       .ls-trow.is-free[data-in]::after {
-        background: radial-gradient(ellipse at 8% 50%, rgba(240,217,159,0.38), transparent 62%);
+        background: radial-gradient(ellipse at 8% 50%, rgba(185,165,240,0.4), transparent 62%);
         animation: ls-free-bloom 1000ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 500ms) both;
       }
       @keyframes ls-free-bloom { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
       .ls-trow.is-free .ls-trow-glyph {
-        width: 50px; height: 50px; color: ${C.goldSoft}; font-size: 1.56rem;
-        border-color: rgba(240,217,159,0.6);
-        background: radial-gradient(circle at 50% 32%, rgba(240,217,159,0.28), rgba(212,182,122,0.06) 72%);
-        box-shadow: 0 0 26px rgba(240,217,159,0.3);
+        width: 50px; height: 50px; color: ${C.violetBright}; font-size: 1.56rem;
+        border-color: rgba(185,165,240,0.62);
+        background: radial-gradient(circle at 50% 32%, rgba(185,165,240,0.28), rgba(154,126,230,0.07) 72%);
+        box-shadow: 0 0 26px rgba(185,165,240,0.32);
       }
       .ls-trow.is-free .ls-trow-name { font-size: 1.3rem; }
-      .ls-trow.is-free .ls-trow-frame { color: ${C.gold}; opacity: 1; }
+      .ls-trow.is-free .ls-trow-frame { color: ${C.violetSoft}; opacity: 1; }
       .ls-trow.is-free .ls-trow-line { font-size: 1.08rem; line-height: 1.6; color: ${C.creamDim}; }
 
       /* LOCKED rows — dim, desaturated, visibly sealed. The BEFORE is staged
          dark and grey on purpose so the unseal flip is unmistakable. */
       .ls-trow.is-locked {
-        border-color: rgba(212,182,122,0.12);
+        border-color: rgba(154,126,230,0.14);
         background: linear-gradient(180deg, rgba(14,11,19,0.62), rgba(9,7,14,0.76));
         padding-right: 118px;
         filter: saturate(0.5) brightness(0.66);
       }
-      .ls-trow.is-locked .ls-trow-glyph { color: rgba(212,182,122,0.42); border-color: rgba(212,182,122,0.14); background: rgba(212,182,122,0.03); }
+      .ls-trow.is-locked .ls-trow-glyph { color: rgba(154,126,230,0.46); border-color: rgba(154,126,230,0.16); background: rgba(154,126,230,0.04); }
       .ls-trow.is-locked .ls-trow-name { color: rgba(255,255,255,0.72); }
       .ls-trow.is-locked .ls-trow-line { filter: blur(7px); user-select: none; opacity: 0.6; }
-      /* UNSEALED rows — the AFTER: full brightness, warm surface, and a single
-         gold light-wash crossing each row on its own beat of the cascade. */
+      /* UNSEALED rows — the AFTER: full brightness, lifted surface, and a single
+         violet light-wash crossing each row on its own beat of the cascade. */
       .ls-chart-table--rest .ls-trow.is-open {
-        border-color: rgba(212,182,122,0.36);
+        border-color: rgba(154,126,230,0.4);
         background:
-          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.08), transparent 42%),
+          radial-gradient(ellipse at 0% 0%, rgba(154,126,230,0.09), transparent 42%),
           linear-gradient(180deg, rgba(26,20,35,0.78), rgba(14,10,20,0.88));
         box-shadow: 0 10px 28px rgba(0,0,0,0.26);
       }
       .ls-chart-table--rest .ls-trow.is-open::after {
-        background: linear-gradient(105deg, transparent 12%, rgba(240,217,159,0.22) 50%, transparent 88%);
+        background: linear-gradient(105deg, transparent 12%, rgba(185,165,240,0.24) 50%, transparent 88%);
         animation: ls-unseal-wash 820ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s) both;
       }
       @keyframes ls-unseal-wash {
@@ -5080,7 +5082,7 @@ function CosmicStyles() {
       .ls-trow-lock {
         position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
         display: inline-flex; align-items: center; gap: 6px;
-        color: rgba(212,182,122,0.72); font-family: Lato, system-ui, sans-serif;
+        color: rgba(185,165,240,0.76); font-family: Lato, system-ui, sans-serif;
         font-size: 0.6rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
       }
       .ls-trow-lock-ic { font-size: 0.78rem; opacity: 0.9; }
@@ -5140,42 +5142,42 @@ function CosmicStyles() {
       .ls-journey-stage { position: relative; height: auto; overflow: visible; padding: 0; width: 100%; display: grid; justify-items: center; pointer-events: none; transition: opacity 700ms ease, filter 700ms ease; }
       .ls-journey-stage.is-dim { opacity: 0.14; filter: blur(3px); }
       .ls-journey-stage .ls-wheel { position: relative; }
-      .ls-journey-stage .ls-wheel::before { content: ""; position: absolute; inset: -6%; z-index: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(124,92,214,0.22), rgba(212,182,122,0.07) 46%, transparent 70%); animation: ls-jglow 7s ease-in-out infinite; }
+      .ls-journey-stage .ls-wheel::before { content: ""; position: absolute; inset: -6%; z-index: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(124,92,214,0.22), rgba(154,126,230,0.08) 46%, transparent 70%); animation: ls-jglow 7s ease-in-out infinite; }
       .ls-journey-stage .ls-wheel-svg { position: relative; z-index: 1; animation: ls-jbreath 9s ease-in-out infinite; }
       @keyframes ls-jglow { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
       @keyframes ls-jbreath { 0%,100% { transform: scale(1); } 50% { transform: scale(1.014); } }
       .ls-journey-cap { min-height: clamp(150px,22vh,210px); display: grid; place-items: center; padding: 4px 10px; cursor: pointer; width: 100%; }
       .ls-cap-line { margin: 0; max-width: 21ch; text-align: center; color: ${C.cream}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.75rem, 5.9vw, 2.85rem); line-height: 1.32; font-weight: 500; letter-spacing: 0.004em; text-shadow: 0 2px 34px rgba(124,92,214,0.35); }
-      .ls-cap-line.is-caveat { font-family: "Caveat", cursive; color: ${C.goldSoft}; font-size: clamp(2.1rem, 7vw, 3.1rem); line-height: 1.2; }
+      .ls-cap-line.is-caveat { font-family: "Caveat", cursive; color: ${C.violetBright}; font-size: clamp(2.1rem, 7vw, 3.1rem); line-height: 1.2; }
       .ls-journey-dots { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; max-width: 280px; }
       .ls-jdot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: rgba(224,218,242,0.16); cursor: pointer; transition: transform .3s ease, background .3s ease; }
-      .ls-jdot.is-done { background: rgba(212,182,122,0.45); }
-      .ls-jdot.is-active { background: ${C.goldSoft}; transform: scale(1.7); }
+      .ls-jdot.is-done { background: rgba(154,126,230,0.5); }
+      .ls-jdot.is-active { background: ${C.violetBright}; transform: scale(1.7); }
       .ls-journey-controls { display: flex; align-items: center; gap: 14px; opacity: 0.55; transition: opacity 250ms ease; }
       .ls-journey-controls:hover, .ls-journey-controls:focus-within { opacity: 1; }
       .ls-jbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 1.18rem; cursor: pointer; transition: color 200ms ease; }
-      .ls-jbtn:hover { color: ${C.gold}; }
+      .ls-jbtn:hover { color: ${C.violetSoft}; }
       .ls-jbtn--play {
-        color: ${C.goldSoft}; font-size: 1.02rem; width: 46px; height: 46px; border-radius: 50%;
-        border: 1px solid rgba(240,217,159,0.34);
-        background: radial-gradient(circle at 50% 40%, rgba(240,217,159,0.16), rgba(212,182,122,0.03) 72%);
+        color: ${C.violetBright}; font-size: 1.02rem; width: 46px; height: 46px; border-radius: 50%;
+        border: 1px solid rgba(185,165,240,0.38);
+        background: radial-gradient(circle at 50% 40%, rgba(185,165,240,0.16), rgba(154,126,230,0.04) 72%);
       }
-      .ls-jbtn--play:hover { color: ${C.goldSoft}; border-color: rgba(240,217,159,0.6); }
+      .ls-jbtn--play:hover { color: ${C.violetBright}; border-color: rgba(185,165,240,0.65); }
       .ls-jbtn--sound { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
       .ls-start { position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; border-radius: 28px; padding: 24px; background: radial-gradient(ellipse at 50% 45%, rgba(11,8,18,0.55), rgba(6,5,11,0.92) 72%); }
       .ls-journey--start .ls-wheel-svg { filter: blur(3px) brightness(0.85); opacity: 0.5; animation: none; }
       .ls-journey--start .ls-wheel-centername, .ls-journey--start .ls-wheel-centerborn, .ls-journey--start .ls-wheel-centerdom { display: none; }
-      .ls-start-eyebrow { color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
-      .ls-start-name { margin: 6px 0 0; color: ${C.goldSoft}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2.6rem, 9.5vw, 4.4rem); line-height: 1; text-shadow: 0 2px 40px rgba(212,182,122,0.3); }
+      .ls-start-eyebrow { color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+      .ls-start-name { margin: 6px 0 0; color: ${C.violetBright}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2.6rem, 9.5vw, 4.4rem); line-height: 1; text-shadow: 0 2px 40px rgba(154,126,230,0.35); }
       .ls-start-sub { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-size: 1.1rem; }
       .ls-start-cta { margin-top: 16px; }
       .ls-start-quiet { background: none; border: 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 4px; }
       .ls-start-quiet:hover { color: ${C.creamDim}; }
-      .ls-offer { width: 100%; max-width: 560px; display: grid; justify-items: center; text-align: center; gap: 13px; padding: clamp(24px,4vw,38px); border: 1px solid rgba(212,182,122,0.3); border-radius: 20px; background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.2), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.95), rgba(13,10,20,0.98)); box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
+      .ls-offer { width: 100%; max-width: 560px; display: grid; justify-items: center; text-align: center; gap: 13px; padding: clamp(24px,4vw,38px); border: 1px solid rgba(154,126,230,0.34); border-radius: 20px; background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.2), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.95), rgba(13,10,20,0.98)); box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
       .ls-offer-title { color: ${C.cream}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2rem, 5.6vw, 2.9rem); line-height: 1.05; }
       .ls-offer-stack { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.1rem, 3.1vw, 1.35rem); line-height: 1.5; max-width: 46ch; }
       .ls-offer-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; width: 100%; max-width: 460px; margin-top: 6px; }
-      .ls-offer-form input { min-height: 48px; width: 100%; border: 1px solid rgba(212,182,122,0.34); border-radius: 8px; background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px; font-family: Lato, system-ui, sans-serif; }
+      .ls-offer-form input { min-height: 48px; width: 100%; border: 1px solid rgba(154,126,230,0.38); border-radius: 8px; background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px; font-family: Lato, system-ui, sans-serif; }
       .ls-offer-form input:focus { outline: none; border-color: ${C.violetSoft}; }
       .ls-offer-trust { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.04rem; max-width: 44ch; }
       @media (max-width: 520px) { .ls-offer-form { grid-template-columns: 1fr; } }
@@ -5186,22 +5188,22 @@ function CosmicStyles() {
       .ls-info-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .ls-info-back {
         display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
-        border-radius: 8px; border: 1px solid ${C.line}; background: transparent; cursor: pointer;
-        color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem;
+        border-radius: 8px; border: 1px solid ${C.lineViolet}; background: transparent; cursor: pointer;
+        color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem;
       }
-      .ls-info-back:hover { border-color: rgba(212,182,122,0.56); }
+      .ls-info-back:hover { border-color: rgba(154,126,230,0.6); }
       .ls-info-title { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; }
       .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.5; }
-      .ls-skim { width: min(100%, 760px); margin: clamp(30px,7vw,72px) auto 0; padding-top: clamp(24px,5vw,44px); border-top: 1px solid rgba(212,182,122,0.16); }
+      .ls-skim { width: min(100%, 760px); margin: clamp(30px,7vw,72px) auto 0; padding-top: clamp(24px,5vw,44px); border-top: 1px solid rgba(154,126,230,0.18); }
       @media (prefers-reduced-motion: reduce) {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
 
       .ls-checkout-shell {
         background:
-          radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.13), transparent 40%),
+          radial-gradient(ellipse at 50% 0%, rgba(154,126,230,0.14), transparent 40%),
           linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
-        border-top: 1px solid rgba(212,182,122,0.46);
+        border-top: 1px solid rgba(154,126,230,0.5);
       }
       .ls-checkout-vars {
         --black: ${C.cream};
@@ -5210,11 +5212,12 @@ function CosmicStyles() {
         --muted: ${C.muted};
         --cream: transparent;
         --cream2: rgba(245,239,230,0.06);
-        --cream3: rgba(212,182,122,0.22);
-        --sand: rgba(212,182,122,0.30);
-        --rose: ${C.gold};
-        --rose-hover: ${C.goldSoft};
-        --gold: ${C.gold};
+        --cream3: rgba(154,126,230,0.26);
+        --sand: rgba(154,126,230,0.34);
+        --rose: ${C.violetSoft};
+        --rose-hover: ${C.violetBright};
+        --gold: ${C.violetSoft};
+        --charity-glow: rgba(154,126,230,0.28);
       }
       .ls-gold-button,
       .ls-ghost-button {

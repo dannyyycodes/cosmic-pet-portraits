@@ -1023,7 +1023,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             position: absolute;
             inset: 0;
             background:
-              radial-gradient(ellipse at 76% 6%, rgba(212,182,122,0.16), transparent 34%),
+              radial-gradient(ellipse at 76% 6%, rgba(154,126,230,0.16), transparent 34%),
               radial-gradient(ellipse at 12% 96%, rgba(94,70,122,0.22), transparent 38%);
             pointer-events: none;
           }
@@ -1032,8 +1032,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(340px, 0.82fr);
             gap: clamp(18px, 3vw, 30px);
-            border: 1px solid rgba(212,182,122,0.34);
-            border-top-color: rgba(212,182,122,0.64);
+            border: 1px solid rgba(154,126,230,0.38);
+            border-top-color: rgba(154,126,230,0.68);
             border-radius: 8px;
             background:
               linear-gradient(110deg, rgba(245,239,230,0.074), rgba(245,239,230,0.032)),
@@ -1048,7 +1048,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-checkout-kicker,
           .cosmic-mini-label {
-            color: #d4b67a;
+            color: #9a7ee6;
             font-family: Lato, system-ui, sans-serif;
             font-size: 12px;
             font-weight: 700;
@@ -1095,26 +1095,26 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             transition: transform 260ms cubic-bezier(0.22,0.7,0.2,1), border-color 220ms ease, box-shadow 260ms ease;
           }
           .cosmic-tier:hover {
-            border-color: rgba(212,182,122,0.4);
+            border-color: rgba(154,126,230,0.44);
             box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 16px 40px rgba(0,0,0,0.3);
           }
           .cosmic-tier.is-selected {
             border-color: rgba(124,92,214,0.85);
             box-shadow: 0 0 0 1px rgba(124,92,214,0.4), 0 22px 56px rgba(0,0,0,0.34);
           }
-          /* Soul Bond — the most-chosen tier is genuinely elevated: warmer gold-lit
-             surface, a defining gold hairline, real lift and shadow. */
+          /* Soul Bond — the most-chosen tier is genuinely elevated: a brighter
+             lavender-lit surface, a defining light hairline, real lift and shadow. */
           .cosmic-tier.is-featured {
-            border-color: rgba(212,182,122,0.55);
+            border-color: rgba(185,165,240,0.58);
             background:
-              radial-gradient(ellipse at 50% -10%, rgba(212,182,122,0.16), transparent 46%),
+              radial-gradient(ellipse at 50% -10%, rgba(185,165,240,0.16), transparent 46%),
               radial-gradient(ellipse at 50% 4%, rgba(124,92,214,0.2), transparent 52%),
               linear-gradient(180deg, rgba(34,25,44,0.72), rgba(9,7,14,0.5));
-            box-shadow: inset 0 1px 0 rgba(240,217,159,0.16), 0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,182,122,0.14);
+            box-shadow: inset 0 1px 0 rgba(185,165,240,0.18), 0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(154,126,230,0.16);
           }
           .cosmic-tier.is-featured.is-selected {
-            border-color: rgba(212,182,122,0.8);
-            box-shadow: inset 0 1px 0 rgba(240,217,159,0.2), 0 0 0 1px rgba(212,182,122,0.4), 0 26px 64px rgba(0,0,0,0.46);
+            border-color: rgba(185,165,240,0.85);
+            box-shadow: inset 0 1px 0 rgba(185,165,240,0.22), 0 0 0 1px rgba(154,126,230,0.45), 0 26px 64px rgba(0,0,0,0.46);
           }
           @media (min-width: 901px) {
             .cosmic-tier.is-featured { transform: translateY(-10px); }
@@ -1125,8 +1125,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             top: -12px;
             right: 18px;
             border-radius: 999px;
-            background: linear-gradient(135deg, #f0d99f, #d4b67a);
-            color: #201410;
+            background: linear-gradient(135deg, #b9a5f0, #9a7ee6);
+            color: #1c1330;
             padding: 5px 12px;
             font-family: Lato, system-ui, sans-serif;
             font-size: 10px;
@@ -1225,7 +1225,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-feature-list small {
             flex-shrink: 0;
-            border: 1px solid rgba(212,182,122,0.30);
+            border: 1px solid rgba(154,126,230,0.34);
             border-radius: 999px;
             color: #ffffff;
             padding: 3px 7px;
@@ -1240,7 +1240,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            border: 1px solid rgba(212,182,122,0.22);
+            border: 1px solid rgba(154,126,230,0.26);
             border-radius: 8px;
             background: rgba(5,4,7,0.48);
             padding: 10px 12px;
@@ -1250,7 +1250,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             grid-template-columns: 1fr auto auto;
             gap: 12px;
             align-items: center;
-            border: 1px solid rgba(212,182,122,0.22);
+            border: 1px solid rgba(154,126,230,0.26);
             border-radius: 8px;
             background: rgba(5,4,7,0.35);
             padding: 14px;
@@ -1264,9 +1264,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-preview-link {
             min-height: 36px;
-            border: 1px solid rgba(212,182,122,0.32);
+            border: 1px solid rgba(154,126,230,0.36);
             border-radius: 999px;
-            background: rgba(212,182,122,0.08);
+            background: rgba(154,126,230,0.1);
             color: #ffffff;
             padding: 0 12px;
             font-family: Lato, system-ui, sans-serif;
@@ -1289,7 +1289,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-stepper button {
             width: 38px;
             height: 38px;
-            border: 1px solid rgba(212,182,122,0.34);
+            border: 1px solid rgba(154,126,230,0.38);
             border-radius: 999px;
             background: rgba(245,239,230,0.06);
             color: #ffffff;
@@ -1310,14 +1310,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             position: sticky;
             top: 80px;
             z-index: 2;
-            border: 1px solid rgba(212,182,122,0.46);
-            border-top-color: rgba(240,217,159,0.72);
+            border: 1px solid rgba(154,126,230,0.5);
+            border-top-color: rgba(185,165,240,0.76);
             border-radius: 12px;
             background:
-              radial-gradient(ellipse at 50% -8%, rgba(240,217,159,0.2), transparent 42%),
-              radial-gradient(ellipse at 50% 2%, rgba(212,182,122,0.12), transparent 60%),
+              radial-gradient(ellipse at 50% -8%, rgba(185,165,240,0.2), transparent 42%),
+              radial-gradient(ellipse at 50% 2%, rgba(154,126,230,0.12), transparent 60%),
               linear-gradient(180deg, rgba(26,19,32,0.88), rgba(7,5,11,0.8));
-            box-shadow: inset 0 1px 0 rgba(240,217,159,0.16), 0 30px 82px rgba(0,0,0,0.52);
+            box-shadow: inset 0 1px 0 rgba(185,165,240,0.18), 0 30px 82px rgba(0,0,0,0.52);
             padding: clamp(20px, 2.6vw, 28px);
           }
           .cosmic-order-row,
@@ -1346,7 +1346,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             width: 100%;
             border: 0;
             background: none;
-            color: #d4b67a;
+            color: #9a7ee6;
             padding: 10px 0;
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.84rem;
@@ -1361,7 +1361,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-order-panel input {
             width: 100%;
             min-height: 48px;
-            border: 1px solid rgba(212,182,122,0.34);
+            border: 1px solid rgba(154,126,230,0.38);
             border-radius: 8px;
             background: rgba(5,4,7,0.76);
             color: #ffffff;
@@ -1423,7 +1423,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           /* ── Unified trust band: proof row, guarantee, payment tray, charity ── */
           .cosmic-trust-band {
             margin-top: 20px;
-            border-top: 1px solid rgba(212,182,122,0.22);
+            border-top: 1px solid rgba(154,126,230,0.26);
             padding-top: 18px;
             display: flex;
             flex-direction: column;
@@ -1434,13 +1434,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             flex-direction: column;
             gap: 6px;
           }
-          .cosmic-trust-band .cosmic-proof span svg { color: #d4b67a; opacity: 0.92; }
+          .cosmic-trust-band .cosmic-proof span svg { color: #9a7ee6; opacity: 0.92; }
           .cosmic-trust-band .cosmic-refund { margin: 0; }
 
           /* Payment methods sit in a recessed tray so the white chips read as
              intentional inset tiles, not stickers floating on the dark panel. */
           .cosmic-pay-tray {
-            border: 1px solid rgba(212,182,122,0.16);
+            border: 1px solid rgba(154,126,230,0.18);
             border-radius: 12px;
             background: linear-gradient(180deg, rgba(245,239,230,0.05), rgba(5,4,7,0.28));
             padding: 12px 12px 14px;
@@ -1481,10 +1481,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
           .cosmic-preview-panel {
             width: min(520px, 94vw);
-            border: 1px solid rgba(212,182,122,0.38);
+            border: 1px solid rgba(154,126,230,0.42);
             border-radius: 8px;
             background:
-              radial-gradient(ellipse at 50% 0%, rgba(212,182,122,0.14), transparent 38%),
+              radial-gradient(ellipse at 50% 0%, rgba(154,126,230,0.15), transparent 38%),
               linear-gradient(180deg, #17111e, #0d0a14);
             box-shadow: 0 28px 90px rgba(0,0,0,0.48);
             padding: clamp(22px, 4vw, 34px);
@@ -1507,9 +1507,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-preview-panel button {
             margin-top: 24px;
             min-height: 46px;
-            border: 1px solid rgba(212,182,122,0.40);
+            border: 1px solid rgba(154,126,230,0.44);
             border-radius: 8px;
-            background: rgba(212,182,122,0.10);
+            background: rgba(154,126,230,0.12);
             color: #ffffff;
             padding: 0 18px;
             font-family: Lato, system-ui, sans-serif;
@@ -2741,7 +2741,7 @@ const CharityBadgeButton = ({
       background: "#fff",
       borderRadius: 6,
       border: selected ? "2px solid var(--gold, #c4a265)" : "1px solid var(--cream3, #f3eadb)",
-      boxShadow: selected ? "0 2px 10px rgba(196,162,101,0.2)" : "none",
+      boxShadow: selected ? "0 2px 10px var(--charity-glow, rgba(196,162,101,0.2))" : "none",
     }}
   >
     {children}
