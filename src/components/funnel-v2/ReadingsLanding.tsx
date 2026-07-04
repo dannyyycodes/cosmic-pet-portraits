@@ -1968,15 +1968,18 @@ function BirthSkyJourney() {
     if (!root || typeof window === "undefined") return;
     const rows = Array.from(root.querySelectorAll<HTMLElement>(".ls-rvrow"));
     if (!rows.length) return;
+    // Seated-state lives in a data attribute, NOT a class: React rewrites
+    // className when a row flips is-locked -> is-open, which would wipe an
+    // observer-added class and empty the row's shell. data-* survives.
     if (reduce || !("IntersectionObserver" in window)) {
-      rows.forEach((r) => r.classList.add("is-in"));
+      rows.forEach((r) => r.setAttribute("data-in", "1"));
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add("is-in");
+            e.target.setAttribute("data-in", "1");
             io.unobserve(e.target);
           }
         });
@@ -2074,12 +2077,12 @@ function BirthSkyJourney() {
               email wall sits EARLY (after the three free placements), and the rest
               of the chart unlocks in place. */}
           <div className="ls-reveal-stack ls-skim" ref={skimRef}>
-            <div className="ls-skim-seam" aria-hidden="true">
+            <div className="ls-skim-seam ls-rvrow" aria-hidden="true">
               <span className="ls-skim-seam-line" />
               <svg className="ls-skim-seam-mark" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19" /></svg>
               <span className="ls-skim-seam-line" />
             </div>
-            <p className="ls-reveal-eyebrow">{name ? `${name}'s chart, in their own words` : "Their chart, in their own words"}</p>
+            <p className="ls-skim-title ls-rvrow">{name ? `${name}'s chart, in their own words` : "Their chart, in their own words"}</p>
             <div className="ls-chart-table">
               {FREE_KEYS.map((key, i) => {
                 const b = bodyFor(key);
@@ -2102,32 +2105,40 @@ function BirthSkyJourney() {
               })}
             </div>
 
-            {!unlocked && (
-              <form className="ls-gate2" onSubmit={handleSaveEmail}>
-                <h4 className="ls-gate2-title">Read all thirteen placements.</h4>
-                <p className="ls-gate2-sub">
-                  Three are open above. Add your email and the rest of {name || "their"} chart opens right here.
-                </p>
-                <div className="ls-gate2-row">
-                  <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
-                  <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
-                    {emailBusy ? "Opening…" : "Read the rest"}
-                    {!emailBusy && <ArrowRight size={16} />}
-                  </button>
-                </div>
-                {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
-                <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
-              </form>
-            )}
+            {/* The gate stays mounted and folds shut in place when it opens, so the
+                sealed rows below unseal exactly where the reader is looking — no jump. */}
+            <div className={`ls-gate2-wrap${unlocked ? " is-done" : ""}`} aria-hidden={unlocked || undefined}>
+              <div className="ls-gate2-clip">
+                <form className="ls-gate2" onSubmit={handleSaveEmail}>
+                  <h4 className="ls-gate2-title">Read all thirteen placements.</h4>
+                  <p className="ls-gate2-sub">
+                    Three are open above. Add your email and the rest of {name || "their"} chart opens right here.
+                  </p>
+                  <div className="ls-gate2-row">
+                    <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
+                    <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
+                      {emailBusy ? "Opening…" : "Read the rest"}
+                      {!emailBusy && <ArrowRight size={16} />}
+                    </button>
+                  </div>
+                  {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
+                  <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
+                </form>
+              </div>
+            </div>
 
-            <div className="ls-chart-table">
+            <div className="ls-chart-table ls-chart-table--rest">
               {REST_KEYS.map((key, i) => {
                 const b = bodyFor(key);
                 const m = PLANET_META[key];
                 const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
                 const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
                 return (
-                  <article key={key} className={`ls-trow ls-rvrow ${unlocked ? "is-open" : "is-locked"}`} style={revealDelay(0.04 + i * 0.05)}>
+                  <article
+                    key={key}
+                    className={`ls-trow ls-rvrow ${unlocked ? "is-open" : "is-locked"}`}
+                    style={{ ...revealDelay(0.04 + i * 0.05), ["--ls-unseal" as string]: `${(i * 0.09).toFixed(2)}s` }}
+                  >
                     <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
                     <div className="ls-trow-main">
                       <span className="ls-trow-top">
@@ -4506,6 +4517,17 @@ function CosmicStyles() {
       .ls-free-sign { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.22rem; font-weight: 500; line-height: 1.1; }
       .ls-free-card small { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; line-height: 1.4; }
 
+      /* When the gate opens it folds shut IN PLACE (height eases to zero) while
+         the rows beneath unseal — nothing teleports, nothing jumps under the eye. */
+      .ls-gate2-wrap {
+        display: grid; grid-template-rows: 1fr;
+        transition: grid-template-rows 560ms cubic-bezier(0.22,0.61,0.28,1) 160ms, opacity 320ms ease;
+      }
+      .ls-gate2-clip { overflow: hidden; min-height: 0; }
+      .ls-gate2-wrap.is-done {
+        grid-template-rows: 0fr; opacity: 0; visibility: hidden; pointer-events: none;
+        transition: grid-template-rows 560ms cubic-bezier(0.22,0.61,0.28,1) 160ms, opacity 320ms ease, visibility 0s linear 740ms;
+      }
       .ls-gate2 {
         display: grid; gap: 10px; justify-items: center; text-align: center;
         max-width: 520px; margin: 4px auto 0; padding: clamp(22px, 4vw, 30px);
@@ -4872,33 +4894,76 @@ function CosmicStyles() {
       .ls-breakdown-card .ls-free-sign { text-align: left; }
       .ls-breakdown-card small { text-align: left; }
       /* Authored hand-off from the wheel into the skim breakdown. */
+      /* Wheel -> table handoff. The seam lines draw outward from the star mark as
+         the reader crosses into the chapter: the threshold completes under them. */
       .ls-skim-seam { display: flex; align-items: center; justify-content: center; gap: 14px; width: min(100%, 420px); margin: 0 auto 4px; color: ${C.gold}; }
       .ls-skim-seam-line { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(212,182,122,0.42), transparent); }
-      .ls-skim-seam-mark { opacity: 0.72; }
+      .ls-skim-seam-mark { opacity: 0.72; transition: opacity 480ms ease 120ms; }
+      .ls-skim-seam.ls-rvrow .ls-skim-seam-line {
+        transform: scaleX(0);
+        transition: transform 640ms cubic-bezier(0.22,0.61,0.28,1) 60ms;
+      }
+      .ls-skim-seam.ls-rvrow .ls-skim-seam-line:first-child { transform-origin: right center; }
+      .ls-skim-seam.ls-rvrow .ls-skim-seam-line:last-child { transform-origin: left center; }
+      .ls-skim-seam.ls-rvrow:not([data-in]) .ls-skim-seam-mark { opacity: 0; }
+      .ls-skim-seam.ls-rvrow[data-in] .ls-skim-seam-line { transform: scaleX(1); }
+
+      /* The chapter title is a real scroll station, not a whispered label. Same
+         words, set large in the journey's serif so the eye has a place to land. */
+      .ls-skim-title {
+        text-align: center; color: ${C.cream};
+        font-family: "Cormorant", Georgia, serif;
+        font-size: clamp(1.55rem, 4.6vw, 2.1rem);
+        font-weight: 500; line-height: 1.22; letter-spacing: 0.004em;
+        text-wrap: balance;
+        text-shadow: 0 2px 30px rgba(124,92,214,0.28);
+      }
+      .ls-skim-title.ls-rvrow {
+        opacity: 0; transform: translate3d(0, 12px, 0);
+        transition: opacity 560ms cubic-bezier(0.22,0.61,0.28,1), transform 560ms cubic-bezier(0.22,0.61,0.28,1);
+      }
+      .ls-skim-title.ls-rvrow[data-in] { opacity: 1; transform: translate3d(0,0,0); }
 
       .ls-chart-table { display: grid; gap: 10px; width: 100%; max-width: 760px; margin: 0 auto; }
       /* The locked lattice sits tighter and quieter so ten sealed rows read as one
          calm set, not a stack of ten paywall stamps. */
-      .ls-chart-table + .ls-gate2 + .ls-chart-table { gap: 7px; }
+      .ls-gate2-wrap + .ls-chart-table { gap: 7px; }
 
       .ls-trow {
         position: relative; display: grid; grid-template-columns: auto 1fr; gap: 15px; align-items: start;
         padding: 16px 18px; border: 1px solid ${C.line}; border-radius: 14px; text-align: left;
         background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
-        transition: border-color 260ms ease, box-shadow 260ms ease, background 260ms ease;
-      }
-      /* Row-by-row scroll reveal (rise + resolve from a soft blur). */
-      .ls-trow.ls-rvrow {
-        opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(6px);
+        overflow: hidden;
         transition:
-          opacity 0.7s cubic-bezier(0.22,0.7,0.2,1),
-          transform 0.7s cubic-bezier(0.22,0.7,0.2,1),
-          filter 0.7s cubic-bezier(0.22,0.7,0.2,1),
-          border-color 260ms ease, box-shadow 260ms ease;
-        transition-delay: var(--ls-delay, 0s);
-        will-change: opacity, transform, filter;
+          border-color 420ms ease var(--ls-unseal, 0s),
+          box-shadow 420ms ease var(--ls-unseal, 0s),
+          background 420ms ease var(--ls-unseal, 0s);
       }
-      .ls-trow.ls-rvrow.is-in { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
+      /* Outline-then-fill. The row's shell (its slot in the lattice) is visible
+         BEFORE the content arrives — the destination is telegraphed, and the
+         reader's own scroll seats the words into it. Glyph lands first, the
+         text settles 60ms behind it, then stillness. */
+      .ls-trow.ls-rvrow .ls-trow-glyph,
+      .ls-trow.ls-rvrow .ls-trow-main {
+        transition:
+          opacity 480ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s),
+          transform 480ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s),
+          filter 480ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s);
+      }
+      .ls-trow.ls-rvrow .ls-trow-main {
+        transition-delay: calc(var(--ls-delay, 0s) + 60ms), calc(var(--ls-delay, 0s) + 60ms), calc(var(--ls-delay, 0s) + 60ms);
+      }
+      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-glyph { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.9); }
+      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(5px); }
+      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-lock { opacity: 0; }
+      .ls-trow-lock { transition: opacity 420ms ease calc(var(--ls-delay, 0s) + 200ms); }
+      /* The sealed lattice resolves chaos -> order: locked rows drift in from
+         alternating sides and settle into the one aligned column. */
+      .ls-chart-table--rest .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { transform: translate3d(-12px, 12px, 0); }
+      .ls-chart-table--rest .ls-trow.ls-rvrow:nth-child(even):not([data-in]) .ls-trow-main { transform: translate3d(12px, 12px, 0); }
+      .ls-trow.ls-rvrow:not([data-in]) { box-shadow: none; }
+      .ls-trow.ls-rvrow[data-in] .ls-trow-glyph,
+      .ls-trow.ls-rvrow[data-in] .ls-trow-main { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
 
       .ls-trow-glyph {
         display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
@@ -4910,17 +4975,37 @@ function CosmicStyles() {
       .ls-trow-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
       .ls-trow-name { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.08rem; font-weight: 500; letter-spacing: 0.002em; }
       .ls-trow-sign { color: ${C.goldSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
-      .ls-trow-frame { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.82; }
-      .ls-trow-line { margin: 5px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; line-height: 1.55; transition: filter 300ms ease; }
+      /* Frame sits ABOVE the name (eyebrow -> name -> line), so every row reads
+         with the same landing-strip texture instead of one uniform block. */
+      .ls-trow-frame { order: -1; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.82; }
+      .ls-trow-line {
+        margin: 5px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif;
+        font-size: 0.92rem; line-height: 1.55; max-width: 58ch;
+        transition: filter 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s), opacity 560ms ease var(--ls-unseal, 0s);
+      }
 
       /* FREE rows — the three that are given. Carry clear extra weight: a lit
-         medallion, a warmer surface, and a gold seam down the leading edge. */
+         medallion, a warmer surface, and a reading set one tier larger. */
       .ls-trow.is-free {
         border-color: rgba(212,182,122,0.4);
         background:
           radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 42%),
           linear-gradient(180deg, rgba(28,21,38,0.82), rgba(15,11,22,0.9));
-        box-shadow: inset 3px 0 0 rgba(212,182,122,0.55), 0 14px 34px rgba(0,0,0,0.28);
+        box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+      }
+      /* The gold seam down the leading edge draws in AFTER the words have seated:
+         the row lands, then clicks shut. That closing stroke is the payoff. */
+      .ls-trow.is-free::before {
+        content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px;
+        border-radius: 0 2px 2px 0;
+        background: linear-gradient(180deg, rgba(240,217,159,0.9), rgba(212,182,122,0.4));
+        transform: scaleY(0); transform-origin: center top;
+        transition: transform 340ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 380ms);
+      }
+      .ls-trow.is-free[data-in]::before { transform: scaleY(1); }
+      .ls-trow.is-free:not([data-in]) {
+        border-color: rgba(212,182,122,0.16);
+        background: linear-gradient(180deg, rgba(18,14,24,0.5), rgba(12,9,18,0.6));
       }
       .ls-trow.is-free .ls-trow-glyph {
         width: 46px; height: 46px; color: ${C.goldSoft}; font-size: 1.46rem;
@@ -4929,6 +5014,8 @@ function CosmicStyles() {
         box-shadow: 0 0 20px rgba(212,182,122,0.16);
       }
       .ls-trow.is-free .ls-trow-name { font-size: 1.16rem; }
+      .ls-trow.is-free .ls-trow-frame { color: ${C.gold}; opacity: 1; }
+      .ls-trow.is-free .ls-trow-line { font-size: 1.02rem; line-height: 1.6; color: ${C.creamDim}; }
 
       /* LOCKED rows — quieter, unified sealed lattice. */
       .ls-trow.is-locked {
@@ -4951,8 +5038,32 @@ function CosmicStyles() {
         .ls-trow.is-locked { padding-right: 18px; }
         .ls-trow-lock { position: static; transform: none; margin-top: 8px; }
       }
+
+      /* Tactile press on the reveal surface: fast in (60ms), soft out. */
+      .ls-skim .ls-gold-button,
+      .ls-seal-cta {
+        transition: background 180ms ease, border-color 180ms ease, color 180ms ease,
+          transform 180ms cubic-bezier(0.22,0.61,0.28,1);
+        touch-action: manipulation;
+      }
+      .ls-skim .ls-gold-button:hover, .ls-seal-cta:hover { transform: translateY(-1px); }
+      .ls-skim .ls-gold-button:active, .ls-seal-cta:active {
+        transform: translateY(1px) scale(0.97); transition-duration: 180ms, 180ms, 180ms, 60ms;
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .ls-trow.ls-rvrow { opacity: 1; transform: none; filter: none; transition: none; }
+        .ls-trow.ls-rvrow, .ls-trow.ls-rvrow .ls-trow-glyph, .ls-trow.ls-rvrow .ls-trow-main,
+        .ls-trow-lock, .ls-trow-line, .ls-skim-title.ls-rvrow, .ls-skim-seam.ls-rvrow .ls-skim-seam-line,
+        .ls-skim-seam-mark {
+          opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important;
+        }
+        .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px) !important; }
+        .ls-trow.is-free::before { transform: none !important; transition: none !important; }
+        .ls-gate2-wrap { transition: none; }
+        .ls-gate2-wrap.is-done { display: none; }
+        .ls-skim .ls-gold-button, .ls-seal-cta,
+        .ls-skim .ls-gold-button:hover, .ls-seal-cta:hover,
+        .ls-skim .ls-gold-button:active, .ls-seal-cta:active { transform: none !important; transition: none !important; }
       }
 
       /* === The narrated journey (cinematic) =============================== */
