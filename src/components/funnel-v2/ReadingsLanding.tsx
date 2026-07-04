@@ -4901,7 +4901,7 @@ function CosmicStyles() {
       .ls-skim-seam-mark { opacity: 0.72; transition: opacity 480ms ease 120ms; }
       .ls-skim-seam.ls-rvrow .ls-skim-seam-line {
         transform: scaleX(0);
-        transition: transform 640ms cubic-bezier(0.22,0.61,0.28,1) 60ms;
+        transition: transform 560ms cubic-bezier(0.22,0.61,0.28,1) 60ms;
       }
       .ls-skim-seam.ls-rvrow .ls-skim-seam-line:first-child { transform-origin: right center; }
       .ls-skim-seam.ls-rvrow .ls-skim-seam-line:last-child { transform-origin: left center; }
