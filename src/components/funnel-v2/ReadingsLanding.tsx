@@ -1984,7 +1984,9 @@ function BirthSkyJourney() {
           }
         });
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.15 },
+      // Deeper bottom margin: the empty shell is SEEN for a beat before its
+      // content seats into it — the visible wait is the telegraph.
+      { rootMargin: "0px 0px -14% 0px", threshold: 0.2 },
     );
     rows.forEach((r) => io.observe(r));
     return () => io.disconnect();
@@ -2090,7 +2092,7 @@ function BirthSkyJourney() {
                 const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
                 const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
                 return (
-                  <article key={key} className="ls-trow ls-rvrow is-free is-open" style={revealDelay(0.06 + i * 0.09)}>
+                  <article key={key} className="ls-trow ls-rvrow is-free is-open" style={revealDelay(0.08 + i * 0.14)}>
                     <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
                     <div className="ls-trow-main">
                       <span className="ls-trow-top">
@@ -2137,7 +2139,7 @@ function BirthSkyJourney() {
                   <article
                     key={key}
                     className={`ls-trow ls-rvrow ${unlocked ? "is-open" : "is-locked"}`}
-                    style={{ ...revealDelay(0.04 + i * 0.05), ["--ls-unseal" as string]: `${(i * 0.09).toFixed(2)}s` }}
+                    style={{ ...revealDelay(0.04 + i * 0.05), ["--ls-unseal" as string]: `${(i * 0.14).toFixed(2)}s` }}
                   >
                     <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
                     <div className="ls-trow-main">
@@ -4896,9 +4898,9 @@ function CosmicStyles() {
       /* Authored hand-off from the wheel into the skim breakdown. */
       /* Wheel -> table handoff. The seam lines draw outward from the star mark as
          the reader crosses into the chapter: the threshold completes under them. */
-      .ls-skim-seam { display: flex; align-items: center; justify-content: center; gap: 14px; width: min(100%, 420px); margin: 0 auto 4px; color: ${C.gold}; }
-      .ls-skim-seam-line { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(212,182,122,0.42), transparent); }
-      .ls-skim-seam-mark { opacity: 0.72; transition: opacity 480ms ease 120ms; }
+      .ls-skim-seam { display: flex; align-items: center; justify-content: center; gap: 14px; width: min(100%, 420px); margin: 0 auto 4px; color: ${C.goldSoft}; }
+      .ls-skim-seam-line { height: 2px; flex: 1; border-radius: 1px; background: linear-gradient(90deg, transparent, rgba(240,217,159,0.7), transparent); box-shadow: 0 0 10px rgba(240,217,159,0.35); }
+      .ls-skim-seam-mark { opacity: 0.95; transition: opacity 480ms ease 120ms; filter: drop-shadow(0 0 6px rgba(240,217,159,0.6)); }
       .ls-skim-seam.ls-rvrow .ls-skim-seam-line {
         transform: scaleX(0);
         transition: transform 560ms cubic-bezier(0.22,0.61,0.28,1) 60ms;
@@ -4913,16 +4915,16 @@ function CosmicStyles() {
       .ls-skim-title {
         text-align: center; color: ${C.cream};
         font-family: "Cormorant", Georgia, serif;
-        font-size: clamp(1.55rem, 4.6vw, 2.1rem);
-        font-weight: 500; line-height: 1.22; letter-spacing: 0.004em;
+        font-size: clamp(2rem, 6.4vw, 2.75rem);
+        font-weight: 500; line-height: 1.16; letter-spacing: 0.004em;
         text-wrap: balance;
-        text-shadow: 0 2px 30px rgba(124,92,214,0.28);
+        text-shadow: 0 2px 34px rgba(124,92,214,0.4);
       }
       .ls-skim-title.ls-rvrow {
-        opacity: 0; transform: translate3d(0, 12px, 0);
-        transition: opacity 560ms cubic-bezier(0.22,0.61,0.28,1), transform 560ms cubic-bezier(0.22,0.61,0.28,1);
+        opacity: 0; transform: translate3d(0, 28px, 0); filter: blur(8px);
+        transition: opacity 560ms cubic-bezier(0.22,0.61,0.28,1), transform 560ms cubic-bezier(0.22,0.61,0.28,1), filter 560ms cubic-bezier(0.22,0.61,0.28,1);
       }
-      .ls-skim-title.ls-rvrow[data-in] { opacity: 1; transform: translate3d(0,0,0); }
+      .ls-skim-title.ls-rvrow[data-in] { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
 
       .ls-chart-table { display: grid; gap: 10px; width: 100%; max-width: 760px; margin: 0 auto; }
       /* The locked lattice sits tighter and quieter so ten sealed rows read as one
@@ -4934,34 +4936,56 @@ function CosmicStyles() {
         padding: 16px 18px; border: 1px solid ${C.line}; border-radius: 14px; text-align: left;
         background: linear-gradient(180deg, rgba(21,16,28,0.7), rgba(13,10,20,0.85));
         overflow: hidden;
+        filter: saturate(1) brightness(1);
         transition:
-          border-color 420ms ease var(--ls-unseal, 0s),
-          box-shadow 420ms ease var(--ls-unseal, 0s),
-          background 420ms ease var(--ls-unseal, 0s);
+          border-color 560ms ease var(--ls-unseal, 0s),
+          box-shadow 560ms ease var(--ls-unseal, 0s),
+          background 560ms ease var(--ls-unseal, 0s),
+          padding 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s),
+          filter 640ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s);
       }
-      /* Outline-then-fill. The row's shell (its slot in the lattice) is visible
-         BEFORE the content arrives — the destination is telegraphed, and the
-         reader's own scroll seats the words into it. Glyph lands first, the
-         text settles 60ms behind it, then stillness. */
+      /* One overlay layer per row. It plays three parts, one state at a time:
+         the waiting pulse of an empty shell, the gold bloom when a free row
+         lands, and the light-wash as a sealed row unseals. */
+      .ls-trow::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none;
+        border-radius: inherit; opacity: 0;
+      }
+      /* Outline-then-fill. The row's shell (its slot in the lattice) is CLEARLY
+         visible before the content arrives — a lit, breathing empty slot — and
+         the reader's own scroll seats the words into it. Glyph lands first, the
+         text settles 90ms behind it, then stillness. */
       .ls-trow.ls-rvrow .ls-trow-glyph,
       .ls-trow.ls-rvrow .ls-trow-main {
         transition:
-          opacity 480ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s),
-          transform 480ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s),
-          filter 480ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s);
+          opacity 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s),
+          transform 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s),
+          filter 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-delay, 0s);
       }
       .ls-trow.ls-rvrow .ls-trow-main {
-        transition-delay: calc(var(--ls-delay, 0s) + 60ms), calc(var(--ls-delay, 0s) + 60ms), calc(var(--ls-delay, 0s) + 60ms);
+        transition-delay: calc(var(--ls-delay, 0s) + 90ms), calc(var(--ls-delay, 0s) + 90ms), calc(var(--ls-delay, 0s) + 90ms);
       }
-      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-glyph { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.9); }
-      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(5px); }
+      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-glyph { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.7); }
+      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { opacity: 0; transform: translate3d(0, 34px, 0); filter: blur(10px); }
       .ls-trow.ls-rvrow:not([data-in]) .ls-trow-lock { opacity: 0; }
-      .ls-trow-lock { transition: opacity 420ms ease calc(var(--ls-delay, 0s) + 200ms); }
+      .ls-trow-lock { transition: opacity 420ms ease calc(var(--ls-delay, 0s) + 260ms); }
       /* The sealed lattice resolves chaos -> order: locked rows drift in from
          alternating sides and settle into the one aligned column. */
-      .ls-chart-table--rest .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { transform: translate3d(-12px, 12px, 0); }
-      .ls-chart-table--rest .ls-trow.ls-rvrow:nth-child(even):not([data-in]) .ls-trow-main { transform: translate3d(12px, 12px, 0); }
-      .ls-trow.ls-rvrow:not([data-in]) { box-shadow: none; }
+      .ls-chart-table--rest .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { transform: translate3d(-30px, 22px, 0); }
+      .ls-chart-table--rest .ls-trow.ls-rvrow:nth-child(even):not([data-in]) .ls-trow-main { transform: translate3d(30px, 22px, 0); }
+      /* The waiting shell: bright gold outline, hollow interior, one slow
+         synchronized breath. It must read as "a slot is held for this". */
+      .ls-trow.ls-rvrow:not([data-in]) {
+        box-shadow: none;
+        border-color: rgba(212,182,122,0.42);
+        background: linear-gradient(180deg, rgba(15,11,21,0.42), rgba(10,8,16,0.5));
+      }
+      .ls-trow.ls-rvrow:not([data-in])::after {
+        opacity: 1;
+        background: radial-gradient(ellipse at 50% 60%, rgba(212,182,122,0.09), transparent 72%);
+        animation: ls-shell-wait 2.4s ease-in-out infinite;
+      }
+      @keyframes ls-shell-wait { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
       .ls-trow.ls-rvrow[data-in] .ls-trow-glyph,
       .ls-trow.ls-rvrow[data-in] .ls-trow-main { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
 
@@ -4984,48 +5008,75 @@ function CosmicStyles() {
         transition: filter 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s), opacity 560ms ease var(--ls-unseal, 0s);
       }
 
-      /* FREE rows — the three that are given. Carry clear extra weight: a lit
-         medallion, a warmer surface, and a reading set one tier larger. */
+      /* FREE rows — the three that are given. These are the show: a lit
+         medallion, a warmer surface, and a reading set a full tier larger. */
       .ls-trow.is-free {
-        border-color: rgba(212,182,122,0.4);
+        border-color: rgba(240,217,159,0.58);
         background:
-          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 42%),
-          linear-gradient(180deg, rgba(28,21,38,0.82), rgba(15,11,22,0.9));
-        box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.14), transparent 46%),
+          linear-gradient(180deg, rgba(30,23,41,0.85), rgba(15,11,22,0.9));
+        box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 30px rgba(212,182,122,0.12);
       }
       /* The gold seam down the leading edge draws in AFTER the words have seated:
          the row lands, then clicks shut. That closing stroke is the payoff. */
       .ls-trow.is-free::before {
-        content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px;
-        border-radius: 0 2px 2px 0;
-        background: linear-gradient(180deg, rgba(240,217,159,0.9), rgba(212,182,122,0.4));
+        content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px;
+        border-radius: 0 3px 3px 0;
+        background: linear-gradient(180deg, #ffe9b8, rgba(212,182,122,0.55));
+        box-shadow: 0 0 14px rgba(240,217,159,0.55);
         transform: scaleY(0); transform-origin: center top;
-        transition: transform 340ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 380ms);
+        transition: transform 460ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 460ms);
       }
       .ls-trow.is-free[data-in]::before { transform: scaleY(1); }
-      .ls-trow.is-free:not([data-in]) {
-        border-color: rgba(212,182,122,0.16);
-        background: linear-gradient(180deg, rgba(18,14,24,0.5), rgba(12,9,18,0.6));
+      /* A free row's waiting shell holds a slightly warmer outline — the three
+         given slots are marked as special before they even fill. */
+      .ls-trow.is-free:not([data-in]) { border-color: rgba(240,217,159,0.5); }
+      /* One warm bloom as the free row lands — the light swells off the seam
+         edge, then dies. Once, then stillness. */
+      .ls-trow.is-free[data-in]::after {
+        background: radial-gradient(ellipse at 8% 50%, rgba(240,217,159,0.38), transparent 62%);
+        animation: ls-free-bloom 1000ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 500ms) both;
       }
+      @keyframes ls-free-bloom { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
       .ls-trow.is-free .ls-trow-glyph {
-        width: 46px; height: 46px; color: ${C.goldSoft}; font-size: 1.46rem;
-        border-color: rgba(240,217,159,0.5);
-        background: radial-gradient(circle at 50% 32%, rgba(240,217,159,0.24), rgba(212,182,122,0.05) 72%);
-        box-shadow: 0 0 20px rgba(212,182,122,0.16);
+        width: 50px; height: 50px; color: ${C.goldSoft}; font-size: 1.56rem;
+        border-color: rgba(240,217,159,0.6);
+        background: radial-gradient(circle at 50% 32%, rgba(240,217,159,0.28), rgba(212,182,122,0.06) 72%);
+        box-shadow: 0 0 26px rgba(240,217,159,0.3);
       }
-      .ls-trow.is-free .ls-trow-name { font-size: 1.16rem; }
+      .ls-trow.is-free .ls-trow-name { font-size: 1.3rem; }
       .ls-trow.is-free .ls-trow-frame { color: ${C.gold}; opacity: 1; }
-      .ls-trow.is-free .ls-trow-line { font-size: 1.02rem; line-height: 1.6; color: ${C.creamDim}; }
+      .ls-trow.is-free .ls-trow-line { font-size: 1.08rem; line-height: 1.6; color: ${C.creamDim}; }
 
-      /* LOCKED rows — quieter, unified sealed lattice. */
+      /* LOCKED rows — dim, desaturated, visibly sealed. The BEFORE is staged
+         dark and grey on purpose so the unseal flip is unmistakable. */
       .ls-trow.is-locked {
-        border-color: rgba(212,182,122,0.14);
-        background: linear-gradient(180deg, rgba(18,14,24,0.56), rgba(12,9,18,0.72));
+        border-color: rgba(212,182,122,0.12);
+        background: linear-gradient(180deg, rgba(14,11,19,0.62), rgba(9,7,14,0.76));
         padding-right: 118px;
+        filter: saturate(0.5) brightness(0.66);
       }
-      .ls-trow.is-locked .ls-trow-glyph { color: rgba(212,182,122,0.5); border-color: rgba(212,182,122,0.16); background: rgba(212,182,122,0.03); }
-      .ls-trow.is-locked .ls-trow-name { color: rgba(255,255,255,0.82); }
-      .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px); user-select: none; opacity: 0.72; }
+      .ls-trow.is-locked .ls-trow-glyph { color: rgba(212,182,122,0.42); border-color: rgba(212,182,122,0.14); background: rgba(212,182,122,0.03); }
+      .ls-trow.is-locked .ls-trow-name { color: rgba(255,255,255,0.72); }
+      .ls-trow.is-locked .ls-trow-line { filter: blur(7px); user-select: none; opacity: 0.6; }
+      /* UNSEALED rows — the AFTER: full brightness, warm surface, and a single
+         gold light-wash crossing each row on its own beat of the cascade. */
+      .ls-chart-table--rest .ls-trow.is-open {
+        border-color: rgba(212,182,122,0.36);
+        background:
+          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.08), transparent 42%),
+          linear-gradient(180deg, rgba(26,20,35,0.78), rgba(14,10,20,0.88));
+        box-shadow: 0 10px 28px rgba(0,0,0,0.26);
+      }
+      .ls-chart-table--rest .ls-trow.is-open::after {
+        background: linear-gradient(105deg, transparent 12%, rgba(240,217,159,0.22) 50%, transparent 88%);
+        animation: ls-unseal-wash 820ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s) both;
+      }
+      @keyframes ls-unseal-wash {
+        0% { opacity: 0; transform: translate3d(-35%, 0, 0); }
+        30% { opacity: 1; }
+        100% { opacity: 0; transform: translate3d(35%, 0, 0); }
+      }
       .ls-trow-lock {
         position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
         display: inline-flex; align-items: center; gap: 6px;
@@ -5057,7 +5108,9 @@ function CosmicStyles() {
         .ls-skim-seam-mark {
           opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important;
         }
-        .ls-trow.is-locked .ls-trow-line { filter: blur(4.5px) !important; }
+        .ls-trow.is-locked .ls-trow-line { filter: blur(7px) !important; }
+        .ls-trow.is-locked { filter: saturate(0.5) brightness(0.66) !important; }
+        .ls-trow::after { animation: none !important; opacity: 0 !important; }
         .ls-trow.is-free::before { transform: none !important; transition: none !important; }
         .ls-gate2-wrap { transition: none; }
         .ls-gate2-wrap.is-done { display: none; }
