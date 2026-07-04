@@ -288,7 +288,7 @@ const LCB_CSS = `
 /* BEAT 1 — arrival: a low pool of light + the three-star constellation */
 .lcb-dawn{position:absolute;left:50%;bottom:15%;width:min(120vw,940px);height:60vh;z-index:0;
   transform:translate(-50%,18%);opacity:0;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 100%, rgba(126,116,158,0.18) 0%, rgba(72,66,112,0.07) 34%, transparent 66%)}
+  background:radial-gradient(ellipse 52% 40% at 50% 66%, rgba(126,116,158,0.17) 0%, rgba(72,66,112,0.07) 38%, rgba(72,66,112,0) 76%)}
 .lcb-b1{position:absolute;top:3%;right:2%;width:min(64vw,380px);height:min(64vw,380px);z-index:0;pointer-events:none;overflow:visible}
 .lcb-b1 .lcb-con{fill:none;stroke:var(--lcb-gold-soft);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.72;
   filter:drop-shadow(0 0 3px rgba(240,217,159,0.3))}
