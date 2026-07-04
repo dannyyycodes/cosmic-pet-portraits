@@ -351,9 +351,27 @@ const LCB_CSS = `
 .lcb-ripple{fill:none;stroke:var(--lcb-gold);stroke-width:1.2;vector-effect:non-scaling-stroke;opacity:0;transform-box:fill-box;transform-origin:center}
 .lcb-souls-text .lcb-ln{will-change:transform,opacity}
 
-/* BEAT 4 — revealed: the ghost wheel + the Ascendant CTA */
-.lcb-payoff-wheel-wrap{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);width:min(84vw,540px);aspect-ratio:1;
-  z-index:0;pointer-events:none;opacity:0}
+/* BEAT 4 — revealed: the ghost wheel + the Ascendant CTA.
+   LEGIBILITY LAW (2026-07-04): the wheel never fights the words. Two guards:
+   (1) a radial mask keeps the wheel's centre — the zone the copy lives in —
+   at a permanent ghost, so only the outer rim/glyph ring lifts to full light
+   in the clear sky around the text column; (2) each text band carries its own
+   soft night scrim, so the map visibly dims beneath the words and re-brightens
+   between them. */
+.lcb-payoff-wheel-wrap{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);width:min(94vw,560px);aspect-ratio:1;
+  z-index:0;pointer-events:none;opacity:0;
+  -webkit-mask-image:radial-gradient(circle closest-side at 50% 50%, rgba(0,0,0,0.26) 0%, rgba(0,0,0,0.3) 46%, #000 84%);
+  mask-image:radial-gradient(circle closest-side at 50% 50%, rgba(0,0,0,0.26) 0%, rgba(0,0,0,0.3) 46%, #000 84%)}
+.lcb-payoff-scene .lcb-payoff-line,
+.lcb-payoff-scene .lcb-beat.lcb-support{position:relative;z-index:1}
+.lcb-payoff-scene .lcb-payoff-line::before,
+.lcb-payoff-scene .lcb-beat.lcb-support::before{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  inset:-16px -26px;border-radius:26px;
+  background:rgba(10,8,17,0.9);
+  filter:blur(15px)}
+/* the passage ends where the form begins: no dead sky after the gold rule */
+.lcb-scene.lcb-payoff{min-height:auto;padding-bottom:clamp(40px,7svh,68px)}
 .lcb-payoff-wheel{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .lcb-b4-core{position:absolute;left:50%;top:43%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;
   background:radial-gradient(circle, rgba(244,236,219,0.95), rgba(214,190,134,0.4) 55%, transparent 76%);
@@ -521,7 +539,9 @@ export function CosmicBridge() {
       const vh = window.innerHeight || 1;
       const visT = Math.max(0, rect.top), visB = Math.min(vh, rect.bottom);
       const covered = Math.max(0, visB - visT) / vh;
-      const op = Math.max(0, Math.min(1, (covered - 0.22) / 0.6));
+      // Hold the night longer at both ends so the passage hands into the form
+      // inside one continuous sky (no seam as the fixed stage releases).
+      const op = Math.max(0, Math.min(1, (covered - 0.05) / 0.55));
       if (back) (back as HTMLElement).style.opacity = String(op);
       if (front) (front as HTMLElement).style.opacity = String(op);
       if (!reduced && canvasVisible && canvasWrap) {
@@ -576,7 +596,8 @@ export function CosmicBridge() {
       gsap.set(q(".lcb-moon-img.sharp"), { opacity: 1 });
       gsap.set([...allWords, ...allInners, ...qa(".lcb-souls-text .lcb-ln")], { opacity: 1, yPercent: 0, y: 0 });
       gsap.set(qa(".lcb-b1-star"), { opacity: 1, scale: 1 });
-      gsap.set([".lcb-wheel", ".lcb-payoff-wheel-wrap"], { opacity: 1 });
+      gsap.set(".lcb-wheel", { opacity: 1 });
+      gsap.set(".lcb-payoff-wheel-wrap", { opacity: 0.9 });
       gsap.set([...qa(".lcb-w-planet"), ...qa(".lcb-w-zsym"), ...qa(".lcb-w-read"), ...qa(".lcb-w-lontick")], { opacity: 1, scale: 1 });
       gsap.set(qa(".lcb-braid"), { opacity: 0.9 });
       gsap.set(q(".lcb-head-one"), { opacity: 1 });
@@ -819,7 +840,7 @@ export function CosmicBridge() {
         const b4moon = q(".lcb-moon-b4");
         const bodies = [sunB, moonB, venusB];
 
-        gsap.set(wheelWrap, { opacity: 0.07, scale: 1.0, transformOrigin: "center" });
+        gsap.set(wheelWrap, { opacity: 0.12, scale: 1.0, transformOrigin: "center" });
         primeDraw(aspects);           // chords present but not drawn until release
         gsap.set(core, { opacity: 0 });
         if (asc) gsap.set(asc, { opacity: 0, y: 10 });
@@ -836,10 +857,11 @@ export function CosmicBridge() {
         });
         // LINE 3 — load-bearing silence: the 7% map just sits (~2s), only faint breath
         if (closing[0]) t4.to(closing[0], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 4.2);
-        t4.to(wheelWrap, { opacity: 0.09, ease: "sine.inOut", duration: 1.0, yoyo: true, repeat: 1 }, 4.6);
-        // LINE 4 — release: chords draw in, each ignites the glyphs it joins; wheel lifts to legibility
+        t4.to(wheelWrap, { opacity: 0.17, ease: "sine.inOut", duration: 1.0, yoyo: true, repeat: 1 }, 4.6);
+        // LINE 4 — release: chords draw in, each ignites the glyphs it joins; the RIM
+        // lifts to legibility (the masked centre stays a ghost so no line fights a word)
         if (closing[1]) t4.to(closing[1], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 6.7);
-        t4.to(wheelWrap, { opacity: 1, ease: HOUSE, duration: 1.6 }, 6.7);
+        t4.to(wheelWrap, { opacity: 0.9, ease: HOUSE, duration: 1.6 }, 6.7);
         // each chord draws on its own dashoffset; its completion ignites the two glyphs it joins
         aspects.forEach((el, i) => {
           t4.to(el, {

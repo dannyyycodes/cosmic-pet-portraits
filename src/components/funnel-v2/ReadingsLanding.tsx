@@ -2065,7 +2065,7 @@ function BirthSkyJourney() {
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <section id="computed-sky" className="ls-orrery-section ls-parallax-band">
+    <section id="computed-sky" className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
         <>
           <CosmicJourney
@@ -2183,15 +2183,25 @@ function BirthSkyJourney() {
               />
             ) : (
               <form className="ls-seal-card ls-stage-card ls-reveal" onSubmit={handleOpen}>
+                <span className="ls-seal-crest" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" width="46" height="46" fill="none">
+                    <circle cx="32" cy="32" r="27" stroke="#9a7ee6" strokeOpacity="0.85" strokeWidth="1" />
+                    <circle cx="32" cy="32" r="20.5" stroke="#9a7ee6" strokeOpacity="0.4" strokeWidth="1" />
+                    <circle cx="32" cy="32" r="23.75" stroke="#9a7ee6" strokeOpacity="0.5" strokeWidth="6.5" strokeDasharray="1 11.44" />
+                    <circle cx="32" cy="5" r="2.6" fill="#b9a5f0" className="ls-seal-crest-asc" />
+                    <circle cx="32" cy="32" r="2" fill="#9a7ee6" fillOpacity="0.9" />
+                  </svg>
+                </span>
                 <p className="ls-seal-sub">Name optional. The date does the rest.</p>
                 <div className="ls-seal-field">
                   <label htmlFor="seal-name">Their name <span>(if they have one)</span></label>
-                  <input id="seal-name" type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+                  <input id="seal-name" className={petName ? "is-filled" : undefined} type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
                 </div>
                 <div className="ls-seal-field">
                   <label htmlFor="seal-date">Birth date, or the day they came home</label>
                   <input
                     id="seal-date"
+                    className={date ? "is-filled" : undefined}
                     type="date"
                     value={date}
                     max="2030-12-31"
@@ -3181,6 +3191,10 @@ function CosmicStyles() {
         padding: clamp(44px, 7vw, 104px) 20px clamp(48px, 8vw, 112px);
         text-align: center;
       }
+      /* Awaiting the date: the bridge's last line hands straight into the card —
+         one continuous night, no dead scroll. */
+      .ls-orrery-section.is-await { padding-top: clamp(8px, 2vw, 20px); }
+      .ls-orrery-section.is-await .ls-stage { margin-top: 0; min-height: 0; }
       .ls-orrery-head { max-width: 62ch; margin-inline: auto; }
       .ls-orrery {
         position: relative;
@@ -4433,35 +4447,105 @@ function CosmicStyles() {
         background: radial-gradient(ellipse at 50% 40%, rgba(13,10,20,0.55), rgba(8,6,11,0.86) 72%);
         backdrop-filter: blur(2px);
       }
+      /* === "Set the chart" card — a violet-lit celestial surface. The passage's
+         destination: same night, same stars, the chart waiting to be set. ==== */
       .ls-seal-card {
+        position: relative;
         width: 100%; max-width: 440px;
-        display: grid; gap: 12px; justify-items: center; text-align: center;
-        padding: clamp(22px, 4vw, 34px);
-        border: 1px solid ${C.line}; border-radius: 16px;
-        background: linear-gradient(180deg, rgba(21,16,28,0.92), rgba(13,10,20,0.96));
-        box-shadow: 0 30px 90px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(212,182,122,0.06);
+        display: grid; gap: 13px; justify-items: center; text-align: center;
+        padding: clamp(24px, 5vw, 36px) clamp(22px, 4vw, 34px) clamp(22px, 4vw, 32px);
+        border: 1px solid rgba(124,92,214,0.46); border-radius: 22px;
+        background:
+          radial-gradient(1.1px 1.1px at 21% 24%, rgba(236,232,255,0.8), transparent),
+          radial-gradient(1.4px 1.4px at 71% 62%, rgba(214,204,255,0.6), transparent),
+          radial-gradient(1px 1px at 46% 86%, rgba(236,232,255,0.5), transparent),
+          radial-gradient(1px 1px at 86% 14%, rgba(236,232,255,0.55), transparent),
+          radial-gradient(120% 90% at 50% -10%, rgba(124,92,214,0.28), transparent 56%),
+          radial-gradient(90% 70% at 86% 112%, rgba(94,70,150,0.22), transparent 62%),
+          linear-gradient(180deg, rgba(30,22,48,0.95), rgba(13,10,20,0.98));
+        background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+        background-size: 230px 230px, 230px 230px, 230px 230px, 230px 230px, 100% 100%, 100% 100%, 100% 100%;
+        box-shadow:
+          0 34px 90px rgba(0,0,0,0.6),
+          0 0 70px rgba(124,92,214,0.16),
+          inset 0 1px 0 rgba(185,165,240,0.2),
+          inset 0 0 44px rgba(124,92,214,0.09);
       }
+      .ls-seal-card::before {
+        content: ""; position: absolute; top: -1px; left: 9%; right: 9%; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(185,165,240,0.85), transparent);
+        pointer-events: none;
+      }
+      .ls-seal-crest { line-height: 0; margin-bottom: 2px; }
+      .ls-seal-crest svg { display: block; filter: drop-shadow(0 0 9px rgba(154,126,230,0.45)); }
+      .ls-seal-crest-asc { filter: drop-shadow(0 0 5px rgba(185,165,240,0.9)); }
       .ls-seal-glyph { font-size: 1.6rem; color: ${C.gold}; line-height: 1; }
       .ls-seal-title {
         color: ${C.cream}; font-family: "Playfair Display", Georgia, serif;
         font-size: clamp(1.5rem, 4vw, 2.05rem); font-weight: 500; line-height: 1.1;
       }
-      .ls-seal-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; }
-      .ls-seal-field { width: 100%; display: grid; gap: 5px; text-align: left; }
+      .ls-seal-sub { color: rgba(222,214,244,0.85); font-family: Lato, system-ui, sans-serif; font-size: 0.95rem; letter-spacing: 0.01em; }
+      .ls-seal-field { width: 100%; display: grid; gap: 6px; text-align: left; }
       .ls-seal-field label {
-        color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif;
-        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+        color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
       }
-      .ls-seal-field label span { color: ${C.muted}; font-weight: 500; text-transform: none; letter-spacing: 0; }
+      .ls-seal-field label span { color: rgba(200,192,226,0.6); font-weight: 500; text-transform: none; letter-spacing: 0; }
       .ls-seal-field input {
-        min-height: 48px; width: 100%;
-        border: 1px solid rgba(212,182,122,0.34); border-radius: 8px;
-        background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px;
-        font-family: Lato, system-ui, sans-serif; font-size: 0.95rem;
+        min-height: 52px; width: 100%;
+        border: 1px solid rgba(124,92,214,0.42); border-radius: 12px;
+        background: linear-gradient(180deg, rgba(8,6,15,0.85), rgba(13,10,22,0.72));
+        color: ${C.cream}; padding: 0 16px;
+        font-family: Lato, system-ui, sans-serif; font-size: 1rem;
+        caret-color: ${C.violetBright}; color-scheme: dark;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        transition: border-color 220ms ease, background 220ms ease, box-shadow 320ms ease;
       }
-      .ls-seal-field input:focus { outline: none; border-color: ${C.violetSoft}; }
+      .ls-seal-field input::placeholder { color: rgba(200,192,226,0.42); }
+      .ls-seal-field input:focus {
+        outline: none; border-color: ${C.violetBright};
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(154,126,230,0.16), 0 0 26px rgba(124,92,214,0.3);
+        animation: ls-seal-breathe 3s ease-in-out infinite;
+      }
+      @keyframes ls-seal-breathe {
+        0%, 100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(154,126,230,0.13), 0 0 20px rgba(124,92,214,0.22); }
+        50% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(154,126,230,0.24), 0 0 34px rgba(124,92,214,0.42); }
+      }
+      .ls-seal-field input.is-filled {
+        border-color: rgba(185,165,240,0.66);
+        background: linear-gradient(180deg, rgba(16,12,30,0.9), rgba(20,15,36,0.8));
+      }
+      .ls-seal-field input.is-filled:not(:focus) {
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18);
+        animation: ls-seal-seat 460ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes ls-seal-seat {
+        0% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 0 rgba(154,126,230,0); }
+        35% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 5px rgba(154,126,230,0.26), 0 0 30px rgba(124,92,214,0.46); }
+        100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18); }
+      }
       .ls-seal-help { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
-      .ls-seal-cta { width: 100%; justify-content: center; margin-top: 4px; }
+      .ls-seal-card .ls-seal-cta {
+        position: relative; width: 100%; justify-content: center; margin-top: 6px;
+        min-height: 54px; border-radius: 14px; font-size: 15px; letter-spacing: 0.02em;
+        background: linear-gradient(180deg, #8f70e2 0%, ${C.violet} 58%, #6f4fc8 100%);
+        border: 1px solid rgba(185,165,240,0.75);
+        box-shadow: 0 12px 30px rgba(90,62,180,0.38), 0 3px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -10px 18px rgba(50,30,110,0.35);
+        text-shadow: 0 1px 0 rgba(30,16,70,0.35);
+      }
+      .ls-seal-card .ls-seal-cta:hover {
+        background: linear-gradient(180deg, #9d80ea 0%, #8a6ade 58%, #7a5bd0 100%);
+      }
+      .ls-seal-card .ls-seal-cta::after {
+        content: ""; position: absolute; inset: -3px; border-radius: 17px; pointer-events: none;
+        box-shadow: 0 0 26px 5px rgba(140,110,230,0.42);
+        opacity: 0.3; animation: ls-seal-cta-glow 4.2s ease-in-out infinite;
+      }
+      @keyframes ls-seal-cta-glow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.85; } }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-seal-field input:focus, .ls-seal-field input.is-filled:not(:focus) { animation: none; }
+        .ls-seal-card .ls-seal-cta::after { animation: none; opacity: 0.45; }
+      }
 
       /* loading animation between gate submit and the reveal */
       .ls-seal-loading { display: grid; gap: 16px; justify-items: center; text-align: center; padding: 30px 22px; }
@@ -4787,10 +4871,11 @@ function CosmicStyles() {
       .ls-stage-card { margin-inline: auto; }
       .ls-seal-why {
         background: none; border: 0; padding: 2px 0; cursor: pointer;
-        color: ${C.gold}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem;
+        color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem;
         text-decoration: underline; text-underline-offset: 3px;
+        transition: color 180ms ease;
       }
-      .ls-seal-why:hover { color: ${C.goldSoft}; }
+      .ls-seal-why:hover { color: ${C.violetBright}; }
 
       .ls-compute {
         position: relative;
@@ -5199,11 +5284,13 @@ function CosmicStyles() {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
 
+      /* Seamless reveal -> pricing junction: no boxed shell floating around the
+         checkout — just a soft violet dawn rising into the panel, same night sky. */
       .ls-checkout-shell {
-        background:
-          radial-gradient(ellipse at 50% 0%, rgba(154,126,230,0.14), transparent 40%),
-          linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
-        border-top: 1px solid rgba(154,126,230,0.5);
+        background: radial-gradient(ellipse at 50% 0%, rgba(154,126,230,0.1), transparent 46%);
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
       }
       .ls-checkout-vars {
         --black: ${C.cream};
