@@ -5160,7 +5160,7 @@ function CosmicStyles() {
         padding: clamp(30px, 5svh, 60px) 24px clamp(56px, 10svh, 110px);
         text-align: center;
       }
-      .ls-fork-held { padding: clamp(18px, 3svh, 34px) 24px clamp(30px, 6svh, 60px); }
+      .ls-fork-held { padding: clamp(18px, 3svh, 34px) 24px clamp(44px, 8svh, 88px); }
       .ls-fork-q {
         margin: 0;
         font-family: "Newsreader", Georgia, serif;

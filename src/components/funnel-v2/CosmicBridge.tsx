@@ -411,6 +411,10 @@ const LCB_CSS = `
    span lengthens; every glow cap is multiplied by 0.7 in JS; the loud
    transients (meteor, twinkle-wave, blink, near-miss, camera plunge,
    iris, ascension, seal tilt, crest flare) never exist. */
+/* the memorial passage does not dive under the section above it: the
+   collapsed "Reading in remembrance" line sits there, and the headline
+   must never rise into it. The seam breathes instead. */
+.lcb-memorial{margin-top:-2svh}
 .lcb-memorial .lcb-scene{min-height:118svh}
 .lcb-memorial .lcb-chart-scene{min-height:135svh}
 .lcb-memorial .lcb-souls-scene{min-height:86svh}
