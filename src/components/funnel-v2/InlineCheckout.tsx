@@ -2630,15 +2630,15 @@ type CharitySlug = "ifaw" | "world-land-trust" | "eden-reforestation";
 const CHARITY_BRAND_META: Record<CharitySlug, { label: string; tagline: string }> = {
   "ifaw": {
     label: "IFAW",
-    tagline: "rescue and rehab for animals in crisis, worldwide.",
+    tagline: "Rescue and rehab for animals in crisis, worldwide.",
   },
   "world-land-trust": {
     label: "World Land Trust",
-    tagline: "protecting wild habitat across the globe.",
+    tagline: "Protecting wild habitat across the globe.",
   },
   "eden-reforestation": {
     label: "Eden Reforestation",
-    tagline: "planting trees, restoring forests, worldwide.",
+    tagline: "Planting trees, restoring forests, worldwide.",
   },
 };
 
@@ -2703,7 +2703,7 @@ const CharityBrandRow = ({
               }}
             >
               <span style={{ fontStyle: "normal", fontWeight: 600 }}>{meta.label}</span>
-              {" — "}
+              {". "}
               {meta.tagline}
             </li>
           );
