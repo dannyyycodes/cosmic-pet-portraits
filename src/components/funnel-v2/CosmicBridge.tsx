@@ -444,7 +444,6 @@ export function CosmicBridge() {
 
     const q = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => scope.querySelector<T>(sel);
     const qa = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => Array.from(scope.querySelectorAll<T>(sel));
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const pad2 = (n: number) => (n < 10 ? "0" : "") + n;
 
     // ---------- build both natal wheels from the shared CHART ----------
@@ -483,8 +482,6 @@ export function CosmicBridge() {
     const canvas = q<HTMLCanvasElement>(".lcb-canvas");
     const canvasWrap = q(".lcb-canvas-wrap");
     let drawStars = () => {};
-    let canvasVisible = true;
-    let starCio: IntersectionObserver | undefined;
     if (canvas) {
       const ctxc = canvas.getContext("2d");
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -534,55 +531,16 @@ export function CosmicBridge() {
         }
       };
       drawStars();
-      starCio = new IntersectionObserver((e) => { canvasVisible = e[0].isIntersecting; }, { threshold: 0 });
-      starCio.observe(root);
     }
+    // canvas rebuild rides ScrollTrigger's own resize/refresh cycle — no private
+    // resize listener; drawStars() is a no-op when the size has not changed.
+    const redrawStars = () => drawStars();
+    ScrollTrigger.addEventListener("refresh", redrawStars);
 
-    // ---------- stage coverage-opacity + slow starfield parallax ----------
+    // ---------- stage refs (opacity driven from the one ScrollTrigger clock) ----------
     const back = q(".lcb-back");
     const front = q(".lcb-front");
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const rect = root.getBoundingClientRect();
-      const vh = window.innerHeight || 1;
-      // The passage now starts 18svh up inside the hero, so the stage must not
-      // veil the hero at load: it only lights as the passage top climbs the
-      // viewport (seam 1), and still holds the night late at the bottom end so
-      // the passage hands into the form inside one continuous sky.
-      const enterP = Math.max(0, Math.min(1, (vh * 0.8 - rect.top) / (vh * 0.55)));
-      const exitP = Math.max(0, Math.min(1, (Math.min(vh, rect.bottom) / vh - 0.05) / 0.55));
-      const op = Math.min(enterP, exitP);
-      if (back) (back as HTMLElement).style.opacity = String(op);
-      if (front) (front as HTMLElement).style.opacity = String(op);
-      if (!reduced && canvasVisible && canvasWrap) {
-        const denom = root.offsetHeight - vh || 1;
-        const prog = Math.max(0, Math.min(1, -rect.top / denom));
-        (canvasWrap as HTMLElement).style.transform = `translate3d(0,${(prog * -70).toFixed(1)}px,0)`;
-      }
-    };
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
-    const onResize = () => { drawStars(); onScroll(); };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
-    update();
-
-    // ---------- damped pointer parallax (desktop, transform only) ----------
-    let pointerRAF = 0; let pointerOn = false;
-    let mx = 0, my = 0, tx = 0, ty = 0;
     const moonPt = q(".lcb-moon-pt");
-    const isMobileNow = window.innerWidth < 768;
-    const onPointer = (e: PointerEvent) => { tx = e.clientX / window.innerWidth - 0.5; ty = e.clientY / window.innerHeight - 0.5; };
-    if (!reduced && !isMobileNow) {
-      pointerOn = true;
-      window.addEventListener("pointermove", onPointer, { passive: true });
-      const loop = () => {
-        mx += (tx - mx) * 0.06; my += (ty - my) * 0.06;
-        if (moonPt) (moonPt as HTMLElement).style.transform = `translate3d(${(mx * 10).toFixed(2)}px,${(my * 8).toFixed(2)}px,0)`;
-        pointerRAF = requestAnimationFrame(loop);
-      };
-      pointerRAF = requestAnimationFrame(loop);
-    }
 
     // ---------- helpers ----------
     const samplePath = (path: SVGGeometryElement, n = 140) => {
@@ -601,42 +559,14 @@ export function CosmicBridge() {
       el.style.strokeDasharray = String(len); el.style.strokeDashoffset = String(len);
     });
 
-    // ================= REDUCED MOTION: honest final state =================
-    if (reduced) {
-      gsap.set(q(".lcb-moon-img.blur"), { opacity: 0 });
-      gsap.set(q(".lcb-moon-img.sharp"), { opacity: 1 });
-      gsap.set([...allWords, ...allInners, ...qa(".lcb-souls-text .lcb-ln")], { opacity: 1, yPercent: 0, y: 0 });
-      gsap.set(qa(".lcb-b1-star"), { opacity: 1, scale: 1 });
-      gsap.set(".lcb-wheel", { opacity: 1 });
-      gsap.set(".lcb-payoff-wheel-wrap", { opacity: 0.9 });
-      gsap.set([...qa(".lcb-w-planet"), ...qa(".lcb-w-zsym"), ...qa(".lcb-w-read"), ...qa(".lcb-w-lontick")], { opacity: 1, scale: 1 });
-      gsap.set(qa(".lcb-braid"), { opacity: 0.9 });
-      gsap.set(q(".lcb-head-one"), { opacity: 1 });
-      gsap.set(q(".lcb-b4-core"), { opacity: 0.5, filter: "blur(0px)" });
-      gsap.set(q(".lcb-rule"), { scaleX: 1 });
-      const asc = q(".lcb-asc"); if (asc) asc.classList.add("lit");
-      if (back) (back as HTMLElement).style.opacity = "1";
-      if (front) (front as HTMLElement).style.opacity = "1";
-      return () => {
-        window.removeEventListener("scroll", onScroll);
-        window.removeEventListener("resize", onResize);
-        if (starCio) starCio.disconnect();
-      };
-    }
-
-    // ================= MOTION =================
-    root.classList.add("lcb-motion");
-    gsap.set(allWords, { yPercent: 118, opacity: 0 });
-    gsap.set(allInners, { yPercent: 118, opacity: 0 });
-    gsap.set(q(".lcb-moon-img.sharp"), { opacity: 0 });
-    gsap.set(q(".lcb-moon-img.blur"), { opacity: 1 });
-
+    // ================= ONE CLOCK =================
+    // Every scroll-driven value rides gsap.matchMedia + ScrollTrigger. The old
+    // hand-rolled scroll listener + rAF loop is gone. Reduced-motion renders the
+    // honest final state of every beat and keeps only opacity-only stage fades.
     const mm = gsap.matchMedia();
-    const ios: IntersectionObserver[] = [];
 
-    const buildStory = (mobile: boolean) => {
+    const buildStory = (mobile: boolean, scrub: number) => {
       const amp = mobile ? 0.55 : 1;
-      const scrub = mobile ? 1.2 : 1;
 
       // ---- SPINE: the moon travels between beat homes (transform only) ----
       const W = window.innerWidth, H = window.innerHeight;
@@ -778,12 +708,12 @@ export function CosmicBridge() {
         // "names" ignites gold as the eclipse line comes into reading range
         const bodyEl = q(".lcb-pivot-body", chart);
         if (bodyEl) {
-          const ioIg = new IntersectionObserver((e) => { if (e[0].isIntersecting) { bodyEl.classList.add("igniting"); ioIg.disconnect(); } }, { rootMargin: "0px 0px -30% 0px", threshold: 0.01 });
-          ioIg.observe(bodyEl); ios.push(ioIg);
+          ScrollTrigger.create({ trigger: bodyEl, start: "top 70%", once: true, onEnter: () => bodyEl.classList.add("igniting") });
         }
       }
 
-      // =============== BEAT 3 — CROSSING (played on enter) ===============
+      // =============== BEAT 3 — CROSSING (scroll = playhead) ===============
+      const soulsScene = q(".lcb-souls-scene");
       const souls = q(".lcb-souls-hold");
       if (souls) {
         const humanPath = q<SVGGeometryElement>(".lcb-arc-human", souls);
@@ -806,7 +736,8 @@ export function CosmicBridge() {
           gsap.set(lines, { opacity: 0, y: 16 });
           const hProxy = { t: 0 }, pProxy = { t: 0 };
 
-          const t3 = gsap.timeline({ paused: true });
+          // scrubbed like beats 1-2: the crossing obeys the thumb both directions
+          const t3 = gsap.timeline({ scrollTrigger: { trigger: soulsScene || souls, start: "top 80%", end: "bottom 40%", scrub } });
           t3.to([headH, headP], { opacity: 1, ease: HOUSE, duration: 0.5 }, 0.1);
           // LINE 1 — both arcs draw from opposite depths, bending toward the moon
           t3.to(petPath, { strokeDashoffset: 0, ease: "none", duration: 1.5 }, 0.2)
@@ -820,31 +751,35 @@ export function CosmicBridge() {
           if (lines[1]) t3.to(lines[1], { opacity: 1, y: 0, ease: HOUSE, duration: 0.8 }, 2.1);
           // LINE 3 — PEAK: ivory rests on the waiting gold, exactly as line 3 lands
           if (lines[2]) t3.to(lines[2], { opacity: 1, y: 0, ease: HOUSE, duration: 0.9 }, 4.0);
-          // contact: heads crossfade into ONE point
+          // contact: heads crossfade into ONE point (scrubbed, reversible)
           t3.to([headH, headP], { opacity: 0, ease: HOUSE, duration: 0.5 }, 4.4)
             .fromTo(headOne, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, ease: HOUSE, duration: 0.6, transformOrigin: "center" }, 4.4);
-          // ONE quiet ripple — a single ring expands, thins, fades once
-          if (ripple) t3.fromTo(ripple, { opacity: 0.7, scale: 0.2, strokeWidth: 1.4 }, { opacity: 0, scale: 3.2, strokeWidth: 0.4, ease: HOUSE, duration: 1.5, transformOrigin: "center" }, 4.5);
-          // finite-speed light-echo brightens back OUTWARD along both arcs
-          if (echoH && echoP) {
-            const eh = { t: 1 }, ep = { t: 1 };
-            setHead(echoH, hPts, 1); setHead(echoP, pPts, 1);
-            t3.to([echoH, echoP], { opacity: 0.85, ease: HOUSE, duration: 0.3 }, 4.7)
-              .to(eh, { t: 0, ease: HOUSE, duration: 1.1, onUpdate: () => setHead(echoH, hPts, eh.t) }, 4.7)
-              .to(ep, { t: 0, ease: HOUSE, duration: 1.1, onUpdate: () => setHead(echoP, pPts, ep.t) }, 4.7)
-              .to([echoH, echoP], { opacity: 0, ease: HOUSE, duration: 0.4 }, 5.6);
-          }
+          // THE one play-once accent on the page: ripple + light-echo fire in real
+          // time as the knot lands, so the crossing still reads as an event.
+          let sparked = false;
+          const spark = () => {
+            if (sparked) return;
+            sparked = true;
+            const sp = gsap.timeline();
+            if (ripple) sp.fromTo(ripple, { opacity: 0.7, scale: 0.2, strokeWidth: 1.4 }, { opacity: 0, scale: 3.2, strokeWidth: 0.4, ease: HOUSE, duration: 1.5, transformOrigin: "center" }, 0);
+            if (echoH && echoP) {
+              const eh = { t: 1 }, ep = { t: 1 };
+              setHead(echoH, hPts, 1); setHead(echoP, pPts, 1);
+              sp.to([echoH, echoP], { opacity: 0.85, ease: HOUSE, duration: 0.3 }, 0.25)
+                .to(eh, { t: 0, ease: HOUSE, duration: 1.1, onUpdate: () => setHead(echoH, hPts, eh.t) }, 0.25)
+                .to(ep, { t: 0, ease: HOUSE, duration: 1.1, onUpdate: () => setHead(echoP, pPts, ep.t) }, 0.25)
+                .to([echoH, echoP], { opacity: 0, ease: HOUSE, duration: 0.4 }, 1.15);
+            }
+          };
+          t3.call(spark, [], 4.45);
           // FINALE — the two arcs rise on as ONE softly braided strand toward the moon
           t3.to(braids, { opacity: 0.9, ease: HOUSE, duration: 0.4 }, 5.2)
             .to(braids, { strokeDashoffset: 0, ease: HOUSE, duration: 1.6, stagger: 0.08 }, 5.2)
             .to(headOne, { y: "-=8", ease: HOUSE, duration: 1.6 }, 5.2);
-
-          const io3 = new IntersectionObserver((e) => { if (e[0].isIntersecting) { t3.play(); io3.disconnect(); } }, { rootMargin: "0px 0px -28% 0px", threshold: 0.01 });
-          io3.observe(souls); ios.push(io3);
         }
       }
 
-      // =============== BEAT 4 — REVEALED (played on enter) ===============
+      // =============== BEAT 4 — REVEALED (scroll = playhead) ===============
       const payoff = q(".lcb-payoff-scene");
       if (payoff && wheel4) {
         const wheelWrap = q(".lcb-payoff-wheel-wrap", payoff);
@@ -867,7 +802,7 @@ export function CosmicBridge() {
         gsap.set(core, { opacity: 0 });
         if (asc) gsap.set(asc, { opacity: 0, y: 10 });
 
-        const t4 = gsap.timeline({ paused: true });
+        const t4 = gsap.timeline({ scrollTrigger: { trigger: payoff, start: "top 75%", end: "bottom 62%", scrub } });
         // LINE 1 — copy masks up; a continuous slow lean-in across the whole beat
         t4.to(head, { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.9, stagger: 0.12 }, 0)
           .to(wheelWrap, { scale: 1.06, ease: "none", duration: 9 }, 0)
@@ -899,26 +834,96 @@ export function CosmicBridge() {
         if (closing[2]) t4.to(closing[2], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 8.6);
         if (asc) t4.to(asc, { opacity: 1, y: 0, ease: HOUSE, duration: 1.0, onComplete: () => asc.classList.add("lit") }, 8.8);
         if (rule) t4.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: HOUSE, duration: 1.1 }, 8.9);
-
-        const io4 = new IntersectionObserver((e) => { if (e[0].isIntersecting) { t4.play(); io4.disconnect(); } }, { rootMargin: "0px 0px -22% 0px", threshold: 0.01 });
-        io4.observe(payoff); ios.push(io4);
       }
     };
 
-    mm.add("(min-width: 769px)", () => { buildStory(false); });
-    mm.add("(max-width: 768px)", () => { buildStory(true); });
+    mm.add(
+      {
+        mobile: "(max-width: 768px)",
+        desktop: "(min-width: 769px)",
+        reduce: "(prefers-reduced-motion: reduce)",
+      },
+      (ctx) => {
+        const cond = (ctx.conditions || {}) as { mobile?: boolean; reduce?: boolean };
+        const mobile = !!cond.mobile;
+        const noMotion = !!cond.reduce;
+        const scrub = mobile ? 1.2 : 1;
+
+        // ---- stage opacity: enter ramp over the hero seam, exit ramp at the
+        // form. min(enter, exit) so the fixed night never veils the hero at load.
+        // Coverage ramps stay LINEAR: an eased coverage fade lights the night too
+        // early over the hero (HOUSE(0.29) ~= 0.78 at load). HOUSE lives on beats.
+        const stageOp = { enter: 0, exit: 1 };
+        const applyStage = () => {
+          const op = Math.min(stageOp.enter, stageOp.exit);
+          if (back) (back as HTMLElement).style.opacity = String(op);
+          if (front) (front as HTMLElement).style.opacity = String(op);
+        };
+        applyStage();
+        gsap.fromTo(stageOp, { enter: 0 }, {
+          enter: 1, ease: "none", onUpdate: applyStage,
+          scrollTrigger: { trigger: root, start: "top 80%", end: "top 25%", scrub: noMotion ? true : scrub },
+        });
+        gsap.fromTo(stageOp, { exit: 1 }, {
+          exit: 0, ease: "none", onUpdate: applyStage,
+          scrollTrigger: { trigger: root, start: "bottom 60%", end: "bottom 5%", scrub: noMotion ? true : scrub },
+        });
+
+        // ================= REDUCED MOTION: honest final state =================
+        if (noMotion) {
+          gsap.set(q(".lcb-moon-img.blur"), { opacity: 0 });
+          gsap.set(q(".lcb-moon-img.sharp"), { opacity: 1 });
+          gsap.set([...allWords, ...allInners, ...qa(".lcb-souls-text .lcb-ln")], { opacity: 1, yPercent: 0, y: 0 });
+          gsap.set(qa(".lcb-b1-star"), { opacity: 1, scale: 1 });
+          gsap.set(".lcb-wheel", { opacity: 1 });
+          gsap.set(".lcb-payoff-wheel-wrap", { opacity: 0.9 });
+          gsap.set([...qa(".lcb-w-planet"), ...qa(".lcb-w-zsym"), ...qa(".lcb-w-read"), ...qa(".lcb-w-lontick")], { opacity: 1, scale: 1 });
+          gsap.set(qa(".lcb-braid"), { opacity: 0.9 });
+          gsap.set(q(".lcb-head-one"), { opacity: 1 });
+          gsap.set(q(".lcb-b4-core"), { opacity: 0.5, filter: "blur(0px)" });
+          gsap.set(q(".lcb-rule"), { scaleX: 1 });
+          const asc = q(".lcb-asc"); if (asc) asc.classList.add("lit");
+          return;
+        }
+
+        // ================= MOTION =================
+        root.classList.add("lcb-motion");
+        gsap.set(allWords, { yPercent: 118, opacity: 0 });
+        gsap.set(allInners, { yPercent: 118, opacity: 0 });
+        gsap.set(q(".lcb-moon-img.sharp"), { opacity: 0 });
+        gsap.set(q(".lcb-moon-img.blur"), { opacity: 1 });
+
+        // slow starfield parallax on the same clock
+        if (canvasWrap) {
+          gsap.fromTo(canvasWrap, { y: 0 }, { y: -70, ease: "none", scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub } });
+        }
+
+        // damped pointer parallax (desktop only) on the gsap ticker
+        let onPointer: ((e: PointerEvent) => void) | undefined;
+        if (!mobile && moonPt) {
+          const qx = gsap.quickTo(moonPt, "x", { duration: 0.9, ease: "power3.out" });
+          const qy = gsap.quickTo(moonPt, "y", { duration: 0.9, ease: "power3.out" });
+          onPointer = (e: PointerEvent) => {
+            qx((e.clientX / window.innerWidth - 0.5) * 10);
+            qy((e.clientY / window.innerHeight - 0.5) * 8);
+          };
+          window.addEventListener("pointermove", onPointer, { passive: true });
+        }
+
+        buildStory(mobile, scrub);
+
+        return () => {
+          if (onPointer) window.removeEventListener("pointermove", onPointer);
+          root.classList.remove("lcb-motion");
+        };
+      },
+    );
 
     requestAnimationFrame(() => ScrollTrigger.refresh());
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-      if (pointerOn) window.removeEventListener("pointermove", onPointer);
-      if (pointerRAF) cancelAnimationFrame(pointerRAF);
-      if (starCio) starCio.disconnect();
-      ios.forEach((io) => io.disconnect());
+      ScrollTrigger.removeEventListener("refresh", redrawStars);
       mm.revert();
-      root.classList.remove("lcb-motion");
     };
   }, []);
 
