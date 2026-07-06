@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
 import { descendTo } from "@/lib/descend";
+import { getIntent, setIntent, clearIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
 
 const C = {
   ink: "#141210",
@@ -375,10 +376,18 @@ export function ReadingsLanding() {
     descendTo("#begin");
   };
 
+  // The hero's memorial escape hatch: set the intent, then carry the reader
+  // to the threshold (the memorial passage begins right below it).
+  const beginMemorial = () => {
+    setIntent("memorial");
+    descendTo("#passage-fork");
+  };
+
   return (
     <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
-      <HeroSection onBegin={scrollToCheckout} />
+      <HeroSection onBegin={scrollToCheckout} onMemorial={beginMemorial} />
+      <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
       <CheckoutSection
@@ -457,7 +466,7 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>) {
   }, [pageRef]);
 }
 
-function HeroSection({ onBegin }: { onBegin: () => void }) {
+function HeroSection({ onBegin, onMemorial }: { onBegin: () => void; onMemorial: () => void }) {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
@@ -483,8 +492,65 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
               Compute their sky, free
             </a>
           </div>
+          {/* the memorial escape hatch: one quiet line, the site's established
+              intake register, for the reader the CTAs were not written for */}
+          <button type="button" className="ls-hero-memorial ls-reveal" style={revealDelay(0.34)} onClick={onMemorial}>
+            For a pet no longer at your side, begin here.
+          </button>
         </div>
       </div>
+    </section>
+  );
+}
+
+/* ── The threshold line ──────────────────────────────────────────────
+   One quiet question between the hero and the passage: two points and a
+   hairline thread, the constellation grammar the page already speaks.
+   No images, no cards, no radio chrome. Both answers carry identical
+   size, colour and weight; skipping is genuinely free; answering never
+   changes price or tier. A memorial choice collapses the section to a
+   single muted line whose "change" clears the intent (grief state is
+   not fixed). Discovery or no answer: the section yields to the page. */
+function IntentFork() {
+  const [intent, setIntentState] = useState<Intent | null>(() => getIntent());
+  useEffect(() => {
+    const onIntent = () => setIntentState(getIntent());
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+
+  if (intent === "memorial") {
+    return (
+      <section id="passage-fork" className="ls-fork ls-fork-held" aria-label="Reading in remembrance">
+        <p className="ls-fork-note">
+          Reading in remembrance
+          <span aria-hidden="true"> · </span>
+          <button type="button" className="ls-fork-change" onClick={() => clearIntent()}>
+            change
+          </button>
+        </p>
+      </section>
+    );
+  }
+
+  // answered "discovery", or nothing to ask: the page simply continues
+  if (intent === "discovery") return <div id="passage-fork" aria-hidden="true" />;
+
+  return (
+    <section id="passage-fork" className="ls-fork" aria-label="Where do you carry them?">
+      <p className="ls-fork-q ls-reveal">Where do you carry them?</p>
+      <div className="ls-fork-row ls-reveal" style={revealDelay(0.12)}>
+        <button type="button" className="ls-fork-choice" onClick={() => setIntent("discovery")}>
+          <span>At my side</span>
+          <span className="ls-fork-dot" aria-hidden="true" />
+        </button>
+        <span className="ls-fork-thread" aria-hidden="true" />
+        <button type="button" className="ls-fork-choice" onClick={() => setIntent("memorial")}>
+          <span className="ls-fork-dot" aria-hidden="true" />
+          <span>In my memory</span>
+        </button>
+      </div>
+      <p className="ls-fork-skip ls-reveal" style={revealDelay(0.2)}>Not sure? Keep reading.</p>
     </section>
   );
 }
@@ -2550,15 +2616,15 @@ function CheckoutSection({
   // (localStorage `ls_checkout_variant`). Memorial-intent visitors are
   // always shown the control — the dossier's endowed-progress rung and
   // was-price have no place near grief — without their stored arm changing.
+  // Intent now reads the shared module (URL OR storage OR the fork choice)
+  // and stays live: choosing "In my memory" mid-session re-renders this
+  // section onto the hushed memorial path.
   const [assignedVariant] = useState<CheckoutVariant>(() => getCheckoutVariant());
-  const memorialIntent = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("occasion") === "memorial" || params.get("memorial") === "1";
-    } catch {
-      return false;
-    }
+  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
   const variant: CheckoutVariant = memorialIntent ? "A" : assignedVariant;
 
@@ -2584,9 +2650,9 @@ function CheckoutSection({
               charityId="ifaw"
               charityBonus={0}
               onSelectedPriceChange={onSelectedPriceChange}
-              memorialDefaultExpanded={false}
-              memorialOnly={false}
-              path="discover"
+              memorialDefaultExpanded={memorialIntent}
+              memorialOnly={memorialIntent}
+              path={memorialIntent ? "memorial" : "discover"}
               visualMode={variant === "B" ? "dossier" : "cosmic"}
             />
           </div>
@@ -5060,6 +5126,123 @@ function CosmicStyles() {
       @media (prefers-reduced-motion: reduce) {
         .ls-gold-button::after, .ls-violet-button::after { display: none; }
       }
+      /* hero memorial escape hatch: one quiet line under the CTAs */
+      .ls-hero-memorial {
+        appearance: none;
+        -webkit-appearance: none;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        margin-top: 10px;
+        padding: 8px 2px;
+        color: rgba(222,214,232,0.72);
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 0.95rem;
+        letter-spacing: 0.012em;
+        text-decoration: underline;
+        text-decoration-color: rgba(222,214,232,0.32);
+        text-underline-offset: 4px;
+        transition: color .3s ease, text-decoration-color .3s ease;
+      }
+      .ls-hero-memorial:hover { color: #efe9dd; text-decoration-color: rgba(240,217,159,0.55); }
+      .ls-hero-memorial:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 4px; border-radius: 4px; }
+      /* ── the threshold line (intent fork) ── */
+      .ls-fork {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(14px, 2.4vw, 22px);
+        padding: clamp(30px, 5svh, 60px) 24px clamp(56px, 10svh, 110px);
+        text-align: center;
+      }
+      .ls-fork-held { padding: clamp(18px, 3svh, 34px) 24px clamp(30px, 6svh, 60px); }
+      .ls-fork-q {
+        margin: 0;
+        font-family: "Newsreader", Georgia, serif;
+        font-style: italic;
+        font-weight: 400;
+        font-size: clamp(1.14rem, 1rem + 1.2vw, 1.42rem);
+        letter-spacing: 0.012em;
+        color: #cfc7b8;
+      }
+      .ls-fork-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(10px, 3vw, 22px);
+      }
+      .ls-fork-choice {
+        appearance: none;
+        -webkit-appearance: none;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        padding: 10px 8px;
+        color: #efe9dd;
+        font-family: "Newsreader", Georgia, serif;
+        font-weight: 400;
+        font-size: clamp(1.05rem, 0.95rem + 0.9vw, 1.3rem);
+        letter-spacing: 0.01em;
+      }
+      .ls-fork-choice span:not(.ls-fork-dot) {
+        border-bottom: 1px solid transparent;
+        padding-bottom: 2px;
+        transition: border-color .35s ease;
+      }
+      .ls-fork-choice:hover span:not(.ls-fork-dot) { border-color: rgba(240,217,159,0.55); }
+      .ls-fork-choice:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 4px; border-radius: 4px; }
+      .ls-fork-dot {
+        flex: none;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #f0d99f;
+        box-shadow: 0 0 9px rgba(240,217,159,0.5);
+      }
+      .ls-fork-thread {
+        flex: none;
+        width: clamp(24px, 8vw, 74px);
+        height: 1px;
+        background: linear-gradient(90deg, rgba(240,217,159,0), rgba(240,217,159,0.45), rgba(240,217,159,0));
+      }
+      .ls-fork-skip {
+        margin: 0;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 0.8rem;
+        letter-spacing: 0.03em;
+        color: #8f8798;
+      }
+      .ls-fork-note {
+        margin: 0;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        color: #8f8798;
+      }
+      .ls-fork-change {
+        appearance: none;
+        -webkit-appearance: none;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        padding: 12px 6px;
+        margin: -12px 0;
+        color: #a89f92;
+        font: inherit;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .ls-fork-change:hover { color: #d8d0c1; }
+      .ls-fork-change:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 2px; border-radius: 3px; }
       .ls-hero-section {
         background:
           linear-gradient(100deg, rgba(8,6,11,0.74), rgba(8,6,11,0.16)),

@@ -155,15 +155,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     }
   })());
 
+  // SEED GUARD: memorial only seeds when the Memorial tier can actually
+  // RENDER — memorialOnly (any mode) or the classic shell, which carries its
+  // own memorial card. Before this guard, a ?memorial=1 arrival on the cosmic
+  // shell seeded an invisible 1× Memorial line: an empty "Your reading" panel
+  // charging £49 for an item that never appeared on screen. Never again.
+  const seedMemorial = memorialIntent && (memorialOnly || visualMode === "classic");
+
   // Per-tier quantities — users can mix Soul Reading + Soul Bond + Memorial in one order.
   // Default: 1× Soul Reading, 0× Soul Bond, 0× Memorial.
-  // Memorial-intent arrivals flip the default to 1× Memorial, pill pre-expanded.
-  const [basicQty, setBasicQty] = useState<number>(memorialIntent ? 0 : 1);
+  // Memorial-intent arrivals (with a renderable memorial card) flip the
+  // default to 1× Memorial, pill pre-expanded.
+  const [basicQty, setBasicQty] = useState<number>(seedMemorial ? 0 : 1);
   const [premiumQty, setPremiumQty] = useState<number>(0);
   // Memorial Reading quantity — shares Stripe price with Soul Bond ($49).
   // Bundled into premiumCount when sent to create-checkout; occasionMode
   // ='memorial' is forwarded only when the cart is purely memorial.
-  const [memorialQty, setMemorialQty] = useState<number>(memorialIntent ? 1 : 0);
+  const [memorialQty, setMemorialQty] = useState<number>(seedMemorial ? 1 : 0);
   // Memorial pill expansion — collapsed by default, expands into a full
   // tier card identical in format to Soul Reading / Soul Bond when clicked.
   const [email, setEmail] = useState("");
@@ -517,6 +525,28 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     onSelectedPriceChange?.(selectedPrice);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live intent flips (the threshold fork answers mid-session): when the
+  // memorial path arrives after mount, move the cart onto the sole visible
+  // Memorial tier; when it leaves and the shell can no longer render a
+  // memorial card, fold back to one Soul Reading. The cart never carries a
+  // line item the reader cannot see.
+  useEffect(() => {
+    if (memorialOnly) {
+      if (memorialQty === 0) {
+        setBasicQty(0);
+        setPremiumQty(0);
+        setMemorialQty(1);
+        onSelectedPriceChange?.(memorialPrice);
+      }
+    } else if (visualMode !== "classic" && memorialQty > 0) {
+      setBasicQty(1);
+      setPremiumQty(0);
+      setMemorialQty(0);
+      onSelectedPriceChange?.(basicPrice);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memorialOnly]);
 
   // Keep parent CTAs in sync as quantities change.
   useEffect(() => {
@@ -942,16 +972,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     );
   };
 
-  const renderCosmicTier = (tier: (typeof TIERS)[number], intent: "core" | "bond") => {
+  const renderCosmicTier = (tier: (typeof TIERS)[number], intent: "core" | "bond" | "memorial") => {
     const qty = tierQty(tier.id);
     const isSelected = qty > 0;
-    const price = tier.id === "basic" ? prices.basic : prices.premium;
-    const wasPrice = tier.id === "basic" ? prices.wasBasic : prices.wasPremium;
+    const price = tier.id === "basic" ? prices.basic : tier.id === "memorial" ? memorialPrice : prices.premium;
+    // Memorial never shows a was-price: no price theatrics near grief.
+    const wasPrice = tier.id === "basic" ? prices.wasBasic : tier.id === "premium" ? prices.wasPremium : null;
     const minusDisabled = qty <= 1;
     const atMax = qty >= MAX_PETS;
-    const cosmicFeatures = intent === "core"
-      ? ["Birth sky, 30+ sections", "Their emotional blueprint", "SoulSpeak included"]
-      : ["Your chart beside theirs", "Where you mirror", "Why you found each other"];
+    // Memorial feature lines reuse the classic Memorial tier copy verbatim.
+    const cosmicFeatures = intent === "memorial"
+      ? ["What they'd tell you if they could speak today.", "The parts of them you still carry.", "A place where the conversation never has to end."]
+      : intent === "core"
+        ? ["Birth sky, 30+ sections", "Their emotional blueprint", "SoulSpeak included"]
+        : ["Your chart beside theirs", "Where you mirror", "Why you found each other"];
 
     return (
       <article
@@ -968,13 +1002,19 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           <span className="cosmic-radio" aria-hidden="true" />
           <div>
             <h3>{tier.name}</h3>
-            <p>{intent === "core" ? "For the little soul in front of you." : "For the story between the two of you."}</p>
+            <p>
+              {intent === "memorial"
+                ? "Dedicated to what made them, them."
+                : intent === "core"
+                  ? "For the little soul in front of you."
+                  : "For the story between the two of you."}
+            </p>
           </div>
         </div>
 
         <div className="cosmic-tier-price">
           <strong>{fmt(price)}</strong>
-          <span>{fmt(wasPrice)}</span>
+          {wasPrice != null && <span>{fmt(wasPrice)}</span>}
         </div>
 
         <ul className="cosmic-feature-list">
@@ -1619,29 +1659,49 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
         <div className="cosmic-checkout-shell">
           <div className="cosmic-checkout-copy">
-            <p className="cosmic-checkout-kicker">Choose the depth</p>
-            <div className="cosmic-tier-grid">
-              {renderCosmicTier(TIERS.find((t) => t.id === "basic")!, "core")}
-              {renderCosmicTier(TIERS.find((t) => t.id === "premium")!, "bond")}
-            </div>
-            <div className="cosmic-included-strip">
-              <p>
-                Included: their birth chart, their photo, 30+ sections, SoulSpeak,
-                a month of weekly skies, and lifetime access.
-              </p>
-              <button type="button" className="cosmic-preview-link" onClick={openSoulSpeak}>
-                SoulSpeak
-              </button>
-              <button type="button" className="cosmic-preview-link" onClick={openHoroscope}>
-                Horoscope
-              </button>
-            </div>
-            {!memorialOnly && (
-              <p className="cosmic-checkout-body" style={{ fontSize: "0.9rem", marginTop: 0 }}>
-                {petCount >= 2
-                  ? `${Math.round(discountRate * 100)}% multi-pet saving applied for ${petCount} readings.`
-                  : "More than one little soul? Add them with the + buttons."}
-              </p>
+            {memorialOnly ? (
+              /* Memorial path: the classic header strings, verbatim. One
+                 tier, no was-price, no multi-pet strip, no urgency. */
+              <>
+                <p className="cosmic-checkout-kicker" style={{ fontStyle: "italic" }}>
+                  A Reading for Their Memory
+                </p>
+                <p
+                  className="cosmic-checkout-body"
+                  style={{ fontStyle: "italic", fontSize: "0.95rem", marginTop: 0, opacity: 0.85 }}
+                >
+                  A keepsake for the space they left, written reverently,
+                  to be felt, not skimmed.
+                </p>
+                <div className="cosmic-tier-grid" style={{ gridTemplateColumns: "1fr", maxWidth: 420, marginInline: "auto", width: "100%" }}>
+                  {renderCosmicTier(TIERS.find((t) => t.id === "memorial")!, "memorial")}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="cosmic-checkout-kicker">Choose the depth</p>
+                <div className="cosmic-tier-grid">
+                  {renderCosmicTier(TIERS.find((t) => t.id === "basic")!, "core")}
+                  {renderCosmicTier(TIERS.find((t) => t.id === "premium")!, "bond")}
+                </div>
+                <div className="cosmic-included-strip">
+                  <p>
+                    Included: their birth chart, their photo, 30+ sections, SoulSpeak,
+                    a month of weekly skies, and lifetime access.
+                  </p>
+                  <button type="button" className="cosmic-preview-link" onClick={openSoulSpeak}>
+                    SoulSpeak
+                  </button>
+                  <button type="button" className="cosmic-preview-link" onClick={openHoroscope}>
+                    Horoscope
+                  </button>
+                </div>
+                <p className="cosmic-checkout-body" style={{ fontSize: "0.9rem", marginTop: 0 }}>
+                  {petCount >= 2
+                    ? `${Math.round(discountRate * 100)}% multi-pet saving applied for ${petCount} readings.`
+                    : "More than one little soul? Add them with the + buttons."}
+                </p>
+              </>
             )}
           </div>
 
@@ -1657,6 +1717,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               <div className="cosmic-order-row">
                 <span>Soul Bond x {premiumQty}</span>
                 <strong>{fmt(premiumQty * premiumPrice)}</strong>
+              </div>
+            )}
+            {memorialQty > 0 && (
+              <div className="cosmic-order-row">
+                <span>Memorial Reading x {memorialQty}</span>
+                <strong>{fmt(memorialQty * memorialPrice)}</strong>
               </div>
             )}
             {discountRate > 0 && (

@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getIntent, INTENT_EVENT } from "@/lib/intent";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -404,6 +405,19 @@ const LCB_CSS = `
   .lcb-asc.lit{animation:none}
   .lcb-pivot-body.igniting .lcb-ignite{animation:none}
 }
+
+/* ---- MEMORIAL REGISTER ----
+   Same four movements in a lower voice. Scenes grow ~35% so every scrub
+   span lengthens; every glow cap is multiplied by 0.7 in JS; the loud
+   transients (meteor, twinkle-wave, blink, near-miss, camera plunge,
+   iris, ascension, seal tilt, crest flare) never exist. */
+.lcb-memorial .lcb-scene{min-height:118svh}
+.lcb-memorial .lcb-chart-scene{min-height:135svh}
+.lcb-memorial .lcb-souls-scene{min-height:86svh}
+/* beat 1, memorial: ONE star low in frame that fades up and HOLDS -
+   a state, never a burst. Pre-baked gradients, transform/opacity only. */
+.lcb-memstar{position:absolute;left:20%;bottom:24%;width:44px;height:44px;z-index:0;opacity:0;pointer-events:none;
+  background:radial-gradient(circle, rgba(246,235,207,0.85) 0%, rgba(246,235,207,0.4) 10%, rgba(240,217,159,0.16) 30%, rgba(240,217,159,0) 62%)}
 `;
 
 // exponential-falloff cubic-bezier(.16,1,.3,1) - the ONE house ease, solved
@@ -431,6 +445,18 @@ const seg = (u: number, a: number, b: number) => Math.max(0, Math.min(1, (u - a)
 export function CosmicBridge() {
   const rootRef = useRef<HTMLElement>(null);
 
+  // The register: discovery (default) or memorial. The fork / URL intent
+  // drives it live via the ls-intent event; a register change remounts the
+  // whole section (key below) and rebuilds every timeline from scratch.
+  const [register, setRegister] = useState<"discovery" | "memorial">(() =>
+    getIntent() === "memorial" ? "memorial" : "discovery");
+  useEffect(() => {
+    const onIntent = () => setRegister(getIntent() === "memorial" ? "memorial" : "discovery");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+  const memorial = register === "memorial";
+
   useEffect(() => {
     const root = rootRef.current;
     if (!root || typeof window === "undefined") return;
@@ -439,6 +465,10 @@ export function CosmicBridge() {
     const qa = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => Array.from(scope.querySelectorAll<T>(sel));
     const pad2 = (n: number) => (n < 10 ? "0" : "") + n;
     const mode = { motion: false };
+    // memorial register: every glow opacity cap multiplied by 0.7; the
+    // loud transients are simply never built (flags per the build spec).
+    const hush = register === "memorial";
+    const glow = (v: number) => (hush ? Math.round(v * 0.7 * 1000) / 1000 : v);
 
     // ---------- build the sextant (authored in its locked final state) ----------
     const sxt = q<SVGSVGElement>(".lcb-sxt");
@@ -596,23 +626,28 @@ export function CosmicBridge() {
       w: 0, h: 0, dpr: 1, mp: { x: 0, y: 0 }, dir: { x: 0, y: -1 },
       motes: [] as Mote[], lift: 0, lastU: 0,
     };
-    const zOf = (u: number) =>
-      1 + 0.35 * HOUSE(seg(u, 0.13, 0.30)) + 0.35 * HOUSE(seg(u, 0.31, 0.55)) - 0.2 * HOUSE(seg(u, 0.95, 1));
+    // memorial: no camera plunge - one gentle push (1.0 -> 1.06) across the
+    // whole holding, HOUSE eased. Discovery keeps the two-stage plunge.
+    const zOf = (u: number) => hush
+      ? 1 + 0.06 * HOUSE(seg(u, 0.13, 0.95))
+      : 1 + 0.35 * HOUSE(seg(u, 0.13, 0.30)) + 0.35 * HOUSE(seg(u, 0.31, 0.55)) - 0.2 * HOUSE(seg(u, 0.95, 1));
     const crossDraw = (u: number) => {
       if (!crossCtx || !crossCanvas || !cross.w) return;
       cross.lastU = u;
       const { w, h, dpr, mp } = cross;
       crossCtx.setTransform(1, 0, 0, 1, 0, 0);
       crossCtx.clearRect(0, 0, crossCanvas.width, crossCanvas.height);
-      const ga = (u <= 0.10 ? 0.5 * (u / 0.10)
+      const gaRaw = (u <= 0.10 ? 0.5 * (u / 0.10)
         : u <= 0.13 ? 0.5
         : u <= 0.30 ? 0.5 - 0.25 * ((u - 0.13) / 0.17)
         : u <= 0.31 ? 0.25
         : u <= 0.55 ? 0.25 - 0.13 * ((u - 0.31) / 0.24)
         : 0.12) + cross.lift;
+      // memorial mote sky is capped at 0.3 alpha - faint by law
+      const ga = hush ? Math.min(gaRaw, 0.3) : gaRaw;
       const z = zOf(u);
       crossCtx.setTransform(dpr * z, 0, 0, dpr * z, dpr * mp.x * (1 - z), dpr * mp.y * (1 - z));
-      const ms = 1 + 0.5 * seg(u, 0.13, 0.30);
+      const ms = hush ? 1 : 1 + 0.5 * seg(u, 0.13, 0.30);
       for (const m of cross.motes) {
         const x = m.sx + m.vx * u, y = m.sy + m.vy * u;
         if (x < -40 || x > w + 40 || y < -40 || y > h + 40) continue;
@@ -644,7 +679,8 @@ export function CosmicBridge() {
         crossCanvas.height = Math.round(h * dpr);
         // reseed: positions are pure functions of u (straight paths)
         const rng = mulberry32(16180);
-        const n = mob ? 44 : 66;
+        // memorial: half density, and the authored near-miss pair never exists
+        const n = hush ? (mob ? 24 : 32) : mob ? 44 : 66;
         const motes: Mote[] = [];
         // the authored near-miss pair: both pass the centre at u=0.115, 8px apart
         const mkPass = (ang: number, spd: number, perp: number): Mote => {
@@ -655,9 +691,11 @@ export function CosmicBridge() {
             vx: dx * spd, vy: dy * spd, r: 1.5, a: 0.9, c: "246,240,226",
           };
         };
-        motes.push(mkPass((-20 * Math.PI) / 180, 0.85 * w, 4));
-        motes.push(mkPass((-115 * Math.PI) / 180, 0.8 * w, -4));
-        for (let i = 2; i < n; i++) {
+        if (!hush) {
+          motes.push(mkPass((-20 * Math.PI) / 180, 0.85 * w, 4));
+          motes.push(mkPass((-115 * Math.PI) / 180, 0.8 * w, -4));
+        }
+        for (let i = motes.length; i < n; i++) {
           const x0 = rng() * w, y0 = rng() * h;
           const ang = rng() * Math.PI * 2;
           const spd = (0.3 + rng() * 0.5) * w;
@@ -747,6 +785,12 @@ export function CosmicBridge() {
       }
 
       // =============== BEAT 1 - THE SKY REPLIES (scroll = playhead) ===============
+      // Memorial register: THE DATE CHANGED. The moon arrives sharp slowly
+      // and carries earthshine as a persistent STATE from the start (the
+      // part you cannot see still faces you). No meteor, no twinkle-wave,
+      // no blink. Line 1 = the dawn pool rises slower (the returning
+      // light); line 2 = ONE star fades up low and HOLDS; line 3 = the
+      // full settle event - everything comes to rest.
       const open = q(".lcb-open");
       if (open) {
         const words = qa(".lcb-wd", open);
@@ -754,6 +798,7 @@ export function CosmicBridge() {
         const dawn = q(".lcb-dawn", open);
         const meteor = q(".lcb-meteor", open);
         const streak = q(".lcb-meteor-streak", open);
+        const memstar = q(".lcb-memstar", open);
         const earthshine = q(".lcb-earthshine");
         const rim = q(".lcb-moon-rim");
         const bloom = q(".lcb-moon-bloom");
@@ -765,42 +810,66 @@ export function CosmicBridge() {
         tw.vx = 0.61 * W; tw.vy = 0.21 * H;
 
         const t1 = gsap.timeline({ scrollTrigger: { trigger: open, start: "top 82%", end: "bottom 42%", scrub } });
-        // arrival spine: blur-to-sharp + settle + dawn pool + headline words
-        t1.to(q(".lcb-moon-img.blur"), { opacity: 0, ease: "none", duration: 1.1 }, 0)
-          .to(q(".lcb-moon-img.sharp"), { opacity: 1, ease: "none", duration: 1.1 }, 0)
-          .fromTo(q(".lcb-moon"), { y: 14, scale: 1.04 }, { y: 0, scale: 1.0, ease: HOUSE, duration: 1.3 }, 0)
-          .to(dawn, { opacity: 1, yPercent: 0, ease: HOUSE, duration: 1.6 }, 0.1)
+        // arrival spine: blur-to-sharp + settle + headline words. Memorial
+        // arrives slower, earthshine + rim riding the same arrival ramp.
+        const arriveDur = hush ? 1.5 : 1.1;
+        t1.to(q(".lcb-moon-img.blur"), { opacity: 0, ease: "none", duration: arriveDur }, 0)
+          .to(q(".lcb-moon-img.sharp"), { opacity: 1, ease: "none", duration: arriveDur }, 0)
+          .fromTo(q(".lcb-moon"), { y: 14, scale: 1.04 }, { y: 0, scale: 1.0, ease: HOUSE, duration: hush ? 1.7 : 1.3 }, 0)
           .to(words, { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.9, stagger: 0.12 }, 0.35);
+        if (hush) {
+          if (earthshine) t1.to(earthshine, { opacity: glow(0.35), duration: arriveDur, ease: "none" }, 0);
+          if (rim) t1.to(rim, { opacity: glow(1), duration: arriveDur, ease: "none" }, 0);
+          if (goldImg) t1.to(goldImg, { opacity: glow(0.18), duration: arriveDur, ease: "none" }, 0);
+        } else {
+          t1.to(dawn, { opacity: 1, yPercent: 0, ease: HOUSE, duration: 1.6 }, 0.1);
+        }
         // the three support lines keep their exact clock
         const igniteAt = [1.15, 1.95, 2.75];
         support.forEach((ln, i) => t1.to(ln, { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, igniteAt[i]));
-        // JOY answered: ONE meteor crosses the upper third (1.25 - 1.80)
-        if (meteor && streak) {
-          const mdx = 0.55 * W;
-          const mdy = -Math.tan((18 * Math.PI) / 180) * 0.55 * W;
-          t1.to(meteor, { opacity: 1, duration: 0.08, ease: "none" }, 1.25)
-            .fromTo(meteor, { x: 0, y: 0 }, { x: mdx, y: mdy, duration: 0.55, ease: "none" }, 1.25)
-            .to(streak, { scaleX: 1, duration: 0.2, ease: "none" }, 1.25)
-            .to(streak, { scaleX: 0.15, duration: 0.3, ease: "none" }, 1.5)
-            .to(meteor, { opacity: 0, duration: 0.19, ease: "none" }, 1.61);
+        if (hush) {
+          // "The light came through the window again." - the dawn pool
+          // rises, slower (the returning light)
+          t1.to(dawn, { opacity: glow(1), yPercent: 0, ease: HOUSE, duration: 1.9 }, 1.15);
+          // "The place they slept still has a name in your mind." - ONE
+          // star fades up low in frame and HOLDS. A state, never a burst.
+          if (memstar) t1.to(memstar, { opacity: 0.8, duration: 0.9, ease: HOUSE }, 1.95);
+          // "You notice the silence before you notice the room." - the full
+          // settle event: twinkle damps to zero, everything comes to rest.
+          t1.to(q(".lcb-canvas"), { y: 6, duration: 1.1, ease: HOUSE }, 2.85)
+            .to(q(".lcb-moon"), { y: 6, duration: 1.1, ease: HOUSE }, 2.85)
+            .to(bloom, { opacity: glow(0.7), duration: 1.1, ease: HOUSE }, 2.85)
+            .to(dawn, { opacity: glow(0.85), yPercent: 4, duration: 1.1, ease: HOUSE }, 2.85)
+            .to(tw, { damp: 1, duration: 1.05, ease: HOUSE, onUpdate: drawStars }, 2.85);
+        } else {
+          // JOY answered: ONE meteor crosses the upper third (1.25 - 1.80)
+          if (meteor && streak) {
+            const mdx = 0.55 * W;
+            const mdy = -Math.tan((18 * Math.PI) / 180) * 0.55 * W;
+            t1.to(meteor, { opacity: 1, duration: 0.08, ease: "none" }, 1.25)
+              .fromTo(meteor, { x: 0, y: 0 }, { x: mdx, y: mdy, duration: 0.55, ease: "none" }, 1.25)
+              .to(streak, { scaleX: 1, duration: 0.2, ease: "none" }, 1.25)
+              .to(streak, { scaleX: 0.15, duration: 0.3, ease: "none" }, 1.5)
+              .to(meteor, { opacity: 0, duration: 0.19, ease: "none" }, 1.61);
+          }
+          // its splash rolls a twinkle-wave through the field (1.45 - 2.35)
+          t1.fromTo(tw, { t: 0 }, { t: 1, duration: 0.9, ease: "none", onUpdate: drawStars }, 1.45);
+          // TRUST answered: the sky takes the weight (2.00 - 2.95). Nothing new
+          // appears; everything settles 6px and the twinkle freezes flat.
+          // Stillness IS the event.
+          t1.to(q(".lcb-canvas"), { y: 6, duration: 0.95, ease: HOUSE }, 2.0)
+            .to(q(".lcb-moon"), { y: 6, duration: 0.95, ease: HOUSE }, 2.0)
+            .to(bloom, { opacity: 0.7, duration: 0.95, ease: HOUSE }, 2.0)
+            .to(dawn, { opacity: 0.85, yPercent: 4, duration: 0.95, ease: HOUSE }, 2.0)
+            .to(tw, { damp: 1, duration: 0.9, ease: HOUSE, onUpdate: drawStars }, 2.0);
+          // GAZE answered: earthshine - the part you could not see was facing
+          // you (2.85 - 3.55), then the moon blinks ONCE (3.30 - 3.90).
+          if (earthshine) t1.to(earthshine, { opacity: 0.35, duration: 0.7, ease: HOUSE }, 2.85);
+          if (rim) t1.to(rim, { opacity: 1, duration: 0.7, ease: HOUSE }, 2.85);
+          if (goldImg) t1.to(goldImg, { opacity: 0.18, duration: 0.7, ease: "none" }, 2.85);
+          t1.to(bloom, { opacity: 0.4, duration: 0.3, ease: "power2.in" }, 3.3)
+            .to(bloom, { opacity: 1, duration: 0.3, ease: HOUSE }, 3.6);
         }
-        // its splash rolls a twinkle-wave through the field (1.45 - 2.35)
-        t1.fromTo(tw, { t: 0 }, { t: 1, duration: 0.9, ease: "none", onUpdate: drawStars }, 1.45);
-        // TRUST answered: the sky takes the weight (2.00 - 2.95). Nothing new
-        // appears; everything settles 6px and the twinkle freezes flat.
-        // Stillness IS the event.
-        t1.to(q(".lcb-canvas"), { y: 6, duration: 0.95, ease: HOUSE }, 2.0)
-          .to(q(".lcb-moon"), { y: 6, duration: 0.95, ease: HOUSE }, 2.0)
-          .to(bloom, { opacity: 0.7, duration: 0.95, ease: HOUSE }, 2.0)
-          .to(dawn, { opacity: 0.85, yPercent: 4, duration: 0.95, ease: HOUSE }, 2.0)
-          .to(tw, { damp: 1, duration: 0.9, ease: HOUSE, onUpdate: drawStars }, 2.0);
-        // GAZE answered: earthshine - the part you could not see was facing
-        // you (2.85 - 3.55), then the moon blinks ONCE (3.30 - 3.90).
-        if (earthshine) t1.to(earthshine, { opacity: 0.35, duration: 0.7, ease: HOUSE }, 2.85);
-        if (rim) t1.to(rim, { opacity: 1, duration: 0.7, ease: HOUSE }, 2.85);
-        if (goldImg) t1.to(goldImg, { opacity: 0.18, duration: 0.7, ease: "none" }, 2.85);
-        t1.to(bloom, { opacity: 0.4, duration: 0.3, ease: "power2.in" }, 3.3)
-          .to(bloom, { opacity: 1, duration: 0.3, ease: HOUSE }, 3.6);
       }
 
       // =============== BEAT 2 - THE SEXTANT (scroll = playhead) ===============
@@ -860,7 +929,7 @@ export function CosmicBridge() {
         // 0.00 the lead rises
         t2.to(lead, { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.9, stagger: 0.1 }, 0);
         // 0.30 the loose star arrives, out of focus, and wanders
-        if (halo) t2.to(halo, { opacity: 0.85, duration: 0.5, ease: HOUSE }, 0.3);
+        if (halo) t2.to(halo, { opacity: glow(0.85), duration: 0.5, ease: HOUSE }, 0.3);
         if (starG) {
           t2.to(starG, { x: 7, y: -5, duration: 0.55, ease: "sine.inOut" }, 0.35)
             .to(starG, { x: -6, y: 4, duration: 0.6, ease: "sine.inOut" }, 0.95)
@@ -916,7 +985,7 @@ export function CosmicBridge() {
           }, 2.6)
             .to(read, { opacity: 0.95, duration: 0.4, ease: "none" }, 2.6);
         }
-        if (halo) t2.to(halo, { opacity: 0.3, duration: 0.5, ease: "none" }, 2.6);
+        if (halo) t2.to(halo, { opacity: glow(0.3), duration: 0.5, ease: "none" }, 2.6);
         if (diamond) t2.to(diamond, { opacity: 1, duration: 0.45, ease: HOUSE }, 2.6);
         if (starG) {
           t2.to(starG, { scale: 1.16, duration: 0.25, ease: "none", svgOrigin: S.x + " " + S.y }, 2.6)
@@ -926,7 +995,7 @@ export function CosmicBridge() {
         if (solid) t2.to(solid, { opacity: 0.65, duration: 0.1, ease: "none" }, 2.6);
         if (dashed) t2.to(dashed, { opacity: 0, duration: 0.5, ease: "none" }, 2.65);
         if (bloomGold) {
-          t2.to(bloomGold, { opacity: 0.5, duration: 0.4, ease: "none" }, 2.6)
+          t2.to(bloomGold, { opacity: glow(0.5), duration: 0.4, ease: "none" }, 2.6)
             .to(bloomGold, { opacity: 0, duration: 0.5, ease: "none" }, 3.0);
         }
         // 2.80 the body rises
@@ -984,20 +1053,23 @@ export function CosmicBridge() {
             const s2 = seg(u, 0.31, 0.59);
             const hp = atT(hPts, 1 - (1 - s2) * (1 - s2));
             gsap.set(headH, { x: hp.x, y: hp.y, opacity: seg(u, 0.30, 0.34) * fadeOut });
-            // the moonbeam finds the spot
-            if (beam) gsap.set(beam, { opacity: 0.35 * HOUSE(seg(u, 0.31, 0.55)), scaleY: 0.6 + 0.4 * HOUSE(seg(u, 0.31, 0.55)) });
-            // CONTACT at u 0.59 - the exact frame line 3 lands
-            const asc2 = HOUSE(seg(u, 0.62, 0.95));
+            // the moonbeam finds the spot (memorial: glow cap 0.7 - a holding)
+            if (beam) gsap.set(beam, { opacity: glow(0.35) * HOUSE(seg(u, 0.31, 0.55)), scaleY: 0.6 + 0.4 * HOUSE(seg(u, 0.31, 0.55)) });
+            // CONTACT at u 0.59 - the exact frame the contact line lands.
+            // Memorial: no ascension - the fused light STAYS at the meeting
+            // point inside the beam, held. That happened, completely.
+            const asc2 = hush ? 0 : HOUSE(seg(u, 0.62, 0.95));
             gsap.set(headOne, {
               x: 200 + cross.dir.x * 260 * asc2 - 200, y: 178 + cross.dir.y * 260 * asc2 - 178,
               scale: 0.7 + 0.3 * HOUSE(seg(u, 0.59, 0.63)), transformOrigin: "center",
-              opacity: seg(u, 0.59, 0.63) * (1 - seg(u, 0.95, 0.995)),
+              opacity: seg(u, 0.59, 0.63) * (hush ? 1 : 1 - seg(u, 0.95, 0.995)),
             });
-            if (threadE) gsap.set(threadE, { strokeDashoffset: 260 * (1 - asc2), opacity: 0.85 * seg(u, 0.62, 0.66) });
+            if (threadE) gsap.set(threadE, { strokeDashoffset: 260 * (1 - asc2), opacity: hush ? 0 : 0.85 * seg(u, 0.62, 0.66) });
             // the moon receives: one breath as the light reaches its rim
-            if (bloom) gsap.set(bloom, { scale: 1 + 0.06 * Math.sin(Math.PI * seg(u, 0.95, 1)) });
-            // the one play-once accent: iris + mote lift, guarded
-            if (u >= 0.59 && !contactFired) {
+            if (bloom && !hush) gsap.set(bloom, { scale: 1 + 0.06 * Math.sin(Math.PI * seg(u, 0.95, 1)) });
+            // the one play-once accent: iris + mote lift, guarded.
+            // Memorial: never - no iris, no lift. Stillness holds.
+            if (!hush && u >= 0.59 && !contactFired) {
               contactFired = true;
               if (irisE) gsap.fromTo(irisE, { opacity: 0.8, scale: 0.2 }, { opacity: 0, scale: 1, duration: 0.9, ease: HOUSE, transformOrigin: "center" });
               gsap.timeline()
@@ -1009,10 +1081,19 @@ export function CosmicBridge() {
           const t3 = gsap.timeline({ scrollTrigger: { trigger: soulsScene, start: "top 80%", end: "bottom 40%", scrub } });
           const uP = { u: 0 };
           t3.to(uP, { u: 1, ease: "none", duration: 6.8, onUpdate: () => draw3(uP.u) }, 0);
-          // the copy clock, untouched: u 0.13 / 0.31 / 0.59
-          if (lines[0]) t3.to(lines[0], { opacity: 1, y: 0, ease: HOUSE, duration: 0.7 }, 0.9);
-          if (lines[1]) t3.to(lines[1], { opacity: 1, y: 0, ease: HOUSE, duration: 0.8 }, 2.1);
-          if (lines[2]) t3.to(lines[2], { opacity: 1, y: 0, ease: HOUSE, duration: 0.9 }, 4.0);
+          if (hush) {
+            // memorial carries four lines; the last ("That happened,
+            // completely.") lands on the contact frame at u 0.59.
+            if (lines[0]) t3.to(lines[0], { opacity: 1, y: 0, ease: HOUSE, duration: 0.7 }, 0.9);
+            if (lines[1]) t3.to(lines[1], { opacity: 1, y: 0, ease: HOUSE, duration: 0.8 }, 2.1);
+            if (lines[2]) t3.to(lines[2], { opacity: 1, y: 0, ease: HOUSE, duration: 0.8 }, 3.2);
+            if (lines[3]) t3.to(lines[3], { opacity: 1, y: 0, ease: HOUSE, duration: 0.9 }, 4.0);
+          } else {
+            // the copy clock, untouched: u 0.13 / 0.31 / 0.59
+            if (lines[0]) t3.to(lines[0], { opacity: 1, y: 0, ease: HOUSE, duration: 0.7 }, 0.9);
+            if (lines[1]) t3.to(lines[1], { opacity: 1, y: 0, ease: HOUSE, duration: 0.8 }, 2.1);
+            if (lines[2]) t3.to(lines[2], { opacity: 1, y: 0, ease: HOUSE, duration: 0.9 }, 4.0);
+          }
         }
       }
 
@@ -1071,9 +1152,15 @@ export function CosmicBridge() {
         support.forEach((ln, i) => {
           t4.to(ln, { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.7 }, 1.2 + i * 0.9);
         });
-        if (closing[0]) t4.to(closing[0], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 4.2);
-        if (closing[1]) t4.to(closing[1], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 6.7);
-        if (closing[2]) t4.to(closing[2], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 8.6);
+        if (hush) {
+          // memorial closes on the one line: "Set the chart." - after the
+          // quiet hold, as the frame docks
+          if (closing[0]) t4.to(closing[0], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 8.6);
+        } else {
+          if (closing[0]) t4.to(closing[0], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 4.2);
+          if (closing[1]) t4.to(closing[1], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 6.7);
+          if (closing[2]) t4.to(closing[2], { yPercent: 0, opacity: 1, ease: HOUSE, duration: 0.8 }, 8.6);
+        }
         if (asc) t4.to(asc, { opacity: 1, y: 0, ease: HOUSE, duration: 1.0, onComplete: () => asc.classList.add("lit") }, 8.8);
         if (rule) t4.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: HOUSE, duration: 1.1 }, 8.9);
 
@@ -1109,19 +1196,23 @@ export function CosmicBridge() {
           if (ascDot) t4.to(ascDot, { opacity: 1, duration: 0.4, ease: HOUSE }, 3.6);
           // 4.2 - 6.7: the frame complete. Quiet hold, faint breath only.
           if (sealSvg) t4.to(sealSvg, { opacity: 0.86, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 1 }, 4.6);
-          // 6.7 "Now you can see it." - the seal lifts to be pressed
-          t4.to(traveler, { rotationX: 56, transformPerspective: 900, duration: 0.55, ease: HOUSE }, 6.55);
+          // 6.7 "Now you can see it." - the seal lifts to be pressed.
+          // Memorial: no tilt - the frame is carried down flat, unhurried.
+          if (!hush) t4.to(traveler, { rotationX: 56, transformPerspective: 900, duration: 0.55, ease: HOUSE }, 6.55);
           // 6.7 - 8.6: descent along the seam; match-cut onto the form's crest.
           // The dock point is constant: the trigger ends when the crest sits
           // at (0.50W, 0.58H), so the target never needs live tracking.
           t4.to(traveler, { x: () => 0.5 * window.innerWidth, y: () => 0.58 * window.innerHeight, scale: () => sealGeom().ds, duration: 1.9, ease: HOUSE, immediateRender: false }, 6.7)
-            .to(traveler, { rotationX: 0, duration: 1.4, ease: HOUSE }, 7.2)
             .to(traveler, { opacity: 0, duration: 0.3, ease: "none" }, 8.35);
-          // on dock: the crest flares ONCE (class toggle, threadCta precedent)
-          ScrollTrigger.create({
-            trigger: crestEl, start: "center 62%", once: true,
-            onEnter: () => crestEl.classList.add("lcb-docked"),
-          });
+          if (!hush) t4.to(traveler, { rotationX: 0, duration: 1.4, ease: HOUSE }, 7.2);
+          // on dock: the crest flares ONCE (class toggle, threadCta precedent).
+          // Memorial: no flare - the frame simply arrives.
+          if (!hush) {
+            ScrollTrigger.create({
+              trigger: crestEl, start: "center 62%", once: true,
+              onEnter: () => crestEl.classList.add("lcb-docked"),
+            });
+          }
           // post-submit guard: the form swaps to the journey and the crest
           // leaves the DOM - kill the handoff, hide the travelers
           sealKill = () => {
@@ -1282,13 +1373,20 @@ export function CosmicBridge() {
           gsap.set(q(".lcb-moon-img.blur"), { opacity: 0 });
           gsap.set(q(".lcb-moon-img.sharp"), { opacity: 1 });
           gsap.set([...allWords, ...allInners, ...qa(".lcb-souls-text .lcb-ln")], { opacity: 1, yPercent: 0, y: 0 });
-          gsap.set(q(".lcb-earthshine"), { opacity: 0.35 });
-          gsap.set(q(".lcb-moon-img.gold"), { opacity: 0.18 });
+          gsap.set(q(".lcb-earthshine"), { opacity: glow(0.35) });
+          gsap.set(q(".lcb-moon-img.gold"), { opacity: glow(0.18) });
           const dawnEl = q(".lcb-dawn");
-          if (dawnEl) gsap.set(dawnEl, { opacity: 0.85, yPercent: 4 });
-          gsap.set(q(".lcb-beam"), { opacity: 0.35 });
+          if (dawnEl) gsap.set(dawnEl, { opacity: glow(0.85), yPercent: 4 });
+          gsap.set(q(".lcb-beam"), { opacity: glow(0.35) });
           gsap.set(q(".lcb-head-one"), { opacity: 1 });
           gsap.set(q(".lcb-rule"), { scaleX: 1 });
+          if (hush) {
+            // memorial statics: the held star burns low; the moon's rim is
+            // hushed; the ascension thread never existed
+            const star = q(".lcb-memstar"); if (star) gsap.set(star, { opacity: 0.8 });
+            const rimEl = q(".lcb-moon-rim"); if (rimEl) gsap.set(rimEl, { opacity: glow(1) });
+            const threadEl = q(".lcb-thread"); if (threadEl) gsap.set(threadEl, { opacity: 0 });
+          }
           const asc = q(".lcb-asc"); if (asc) asc.classList.add("lit");
           return;
         }
@@ -1334,7 +1432,7 @@ export function CosmicBridge() {
       ScrollTrigger.removeEventListener("refresh", onSTRefresh);
       mm.revert();
     };
-  }, []);
+  }, [register]);
 
   // twelve house spokes for the beat-4 unset chart (r28 -> r72, every 30deg)
   const sealSpokes = Array.from({ length: 12 }, (_, i) => {
@@ -1346,7 +1444,12 @@ export function CosmicBridge() {
   });
 
   return (
-    <section ref={rootRef} className="lcb-root" aria-label="Why a birth chart">
+    <section
+      ref={rootRef}
+      key={register}
+      className={memorial ? "lcb-root lcb-memorial" : "lcb-root"}
+      aria-label="Why a birth chart"
+    >
       <style>{LCB_CSS}</style>
 
       {/* fixed graded night stage - the ONE sky for the whole page */}
@@ -1398,74 +1501,145 @@ export function CosmicBridge() {
       </div>
 
       <div className="lcb-beats">
-        {/* BEAT 1 - the sky replies */}
-        <div className="lcb-scene lcb-open">
-          <div className="lcb-dawn" aria-hidden="true" />
-          <div className="lcb-meteor" aria-hidden="true">
-            <div className="lcb-meteor-streak" />
-            <div className="lcb-meteor-head" />
-          </div>
-          <p className="lcb-beat lcb-split"><span className="lcb-ln">You know them by heart.</span></p>
-          <p className="lcb-beat lcb-support lcb-linemask">
-            <span className="lcb-ln">The exact thing that makes them lose their mind with joy.</span>
-            <span className="lcb-ln">The weight of them when they finally fall asleep on you.</span>
-            <span className="lcb-ln">The way you catch them watching you.</span>
-          </p>
-        </div>
-
-        {/* BEAT 2 - the sextant: the moon takes the measurement */}
-        <div className="lcb-scene lcb-chart-scene">
-          <p className="lcb-pivot-lead lcb-split">
-            <span className="lcb-ln">And still, one part of who they are has never had a name.</span>
-          </p>
-          <svg className="lcb-sxt" viewBox="0 0 390 480" aria-hidden="true" />
-          <div className="lcb-chart-copy">
-            <p className="lcb-pivot-body lcb-linemask">
-              <span className="lcb-ln">At the moment they arrived, every planet stood in an exact place.</span>
-              <span className="lcb-ln">Measured to the degree, the same order that <span className="lcb-ignite">names</span> an eclipse years before it happens.</span>
-            </p>
-          </div>
-        </div>
-
-        {/* BEAT 3 - out of everything: two lives, timed to meet */}
-        <div className="lcb-scene lcb-souls-scene">
-          <div className="lcb-souls-hold" aria-hidden="true">
-            <canvas className="lcb-cross-sky" />
-            <div className="lcb-beam" />
-            <div className="lcb-cross-zoom">
-              <svg className="lcb-souls-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
-                <path className="lcb-arc lcb-arc-human" d="M-30,10 C90,140 150,120 200,178" />
-                <path className="lcb-arc lcb-arc-pet" d="M430,252 C310,150 250,206 200,178" />
-                <line className="lcb-thread" x1="200" y1="178" x2="200" y2="-82" />
-                <circle className="lcb-head lcb-head-human" cx="0" cy="0" r="4.6" />
-                <circle className="lcb-head lcb-head-pet" cx="0" cy="0" r="4.6" />
-                <circle className="lcb-head lcb-head-one" cx="200" cy="178" r="5.2" />
-              </svg>
+        {memorial ? (
+          <>
+            {/* MEMORIAL BEAT 1 - the date changed */}
+            <div className="lcb-scene lcb-open">
+              <div className="lcb-dawn" aria-hidden="true" />
+              <div className="lcb-memstar" aria-hidden="true" />
+              <p className="lcb-beat lcb-split"><span className="lcb-ln">The date changed.</span></p>
+              <p className="lcb-beat lcb-support lcb-linemask">
+                <span className="lcb-ln">The light came through the window again.</span>
+                <span className="lcb-ln">The place they slept still has a name in your mind.</span>
+                <span className="lcb-ln">You notice the silence before you notice the room.</span>
+              </p>
             </div>
-            <div className="lcb-iris" />
-          </div>
-          <p className="lcb-beat lcb-support lcb-souls-text">
-            <span className="lcb-ln">And somehow, their small life crossed yours.</span>
-            <span className="lcb-ln">The one who waits at the door before your car has turned in.</span>
-            <span className="lcb-ln lcb-emph">Two lives, out of everything, timed to meet.</span>
-          </p>
-        </div>
 
-        {/* BEAT 4 - the seal is cast: read closely, then set the chart */}
-        <div className="lcb-scene lcb-payoff lcb-payoff-scene">
-          <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A birth chart is that one moment, read closely.</span></p>
-          <p className="lcb-beat lcb-support lcb-linemask">
-            <span className="lcb-ln">Who they are.</span>
-            <span className="lcb-ln">What steadies them.</span>
-            <span className="lcb-ln">Why they love the way they do.</span>
-          </p>
-          <p className="lcb-payoff-line lcb-close lcb-linemask">
-            <span className="lcb-ln">You have loved them without the map.</span>
-            <span className="lcb-ln">Now you can see it.</span>
-            <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
-          </p>
-          <span className="lcb-rule" aria-hidden="true" />
-        </div>
+            {/* MEMORIAL BEAT 2 - before the last day, a first one */}
+            <div className="lcb-scene lcb-chart-scene">
+              <p className="lcb-pivot-lead lcb-split">
+                <span className="lcb-ln">Before the last day, there was a first one.</span>
+              </p>
+              <svg className="lcb-sxt" viewBox="0 0 390 480" aria-hidden="true" />
+              <div className="lcb-chart-copy">
+                <p className="lcb-pivot-body lcb-linemask">
+                  <span className="lcb-ln">Their birth had a sky of its own.</span>
+                  <span className="lcb-ln">Planets, degrees, houses, all <span className="lcb-ignite">fixed</span>.</span>
+                  <span className="lcb-ln">Nothing after can touch that beginning.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* MEMORIAL BEAT 3 - the crossing becomes a holding */}
+            <div className="lcb-scene lcb-souls-scene">
+              <div className="lcb-souls-hold" aria-hidden="true">
+                <canvas className="lcb-cross-sky" />
+                <div className="lcb-beam" />
+                <div className="lcb-cross-zoom">
+                  <svg className="lcb-souls-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
+                    <path className="lcb-arc lcb-arc-human" d="M-30,10 C90,140 150,120 200,178" />
+                    <path className="lcb-arc lcb-arc-pet" d="M430,252 C310,150 250,206 200,178" />
+                    <line className="lcb-thread" x1="200" y1="178" x2="200" y2="-82" />
+                    <circle className="lcb-head lcb-head-human" cx="0" cy="0" r="4.6" />
+                    <circle className="lcb-head lcb-head-pet" cx="0" cy="0" r="4.6" />
+                    <circle className="lcb-head lcb-head-one" cx="200" cy="178" r="5.2" />
+                  </svg>
+                </div>
+                <div className="lcb-iris" />
+              </div>
+              <p className="lcb-beat lcb-support lcb-souls-text">
+                <span className="lcb-ln">They came into time, and into your life.</span>
+                <span className="lcb-ln">You knew the weight of them.</span>
+                <span className="lcb-ln">You learned the sound of them entering a room.</span>
+                <span className="lcb-ln lcb-emph">That happened, completely.</span>
+              </p>
+            </div>
+
+            {/* MEMORIAL BEAT 4 - who they were, held in the chart */}
+            <div className="lcb-scene lcb-payoff lcb-payoff-scene">
+              <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">The reading starts where their life started.</span></p>
+              <p className="lcb-beat lcb-support lcb-linemask">
+                <span className="lcb-ln">At the hour they arrived.</span>
+                <span className="lcb-ln">Who they were, held in the chart.</span>
+              </p>
+              <p className="lcb-payoff-line lcb-close lcb-linemask">
+                <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
+              </p>
+              <span className="lcb-rule" aria-hidden="true" />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* BEAT 1 - the sky replies */}
+            <div className="lcb-scene lcb-open">
+              <div className="lcb-dawn" aria-hidden="true" />
+              <div className="lcb-meteor" aria-hidden="true">
+                <div className="lcb-meteor-streak" />
+                <div className="lcb-meteor-head" />
+              </div>
+              <p className="lcb-beat lcb-split"><span className="lcb-ln">You know them by heart.</span></p>
+              <p className="lcb-beat lcb-support lcb-linemask">
+                <span className="lcb-ln">The exact thing that makes them lose their mind with joy.</span>
+                <span className="lcb-ln">The weight of them when they finally fall asleep on you.</span>
+                <span className="lcb-ln">The way you catch them watching you.</span>
+              </p>
+            </div>
+
+            {/* BEAT 2 - the sextant: the moon takes the measurement */}
+            <div className="lcb-scene lcb-chart-scene">
+              <p className="lcb-pivot-lead lcb-split">
+                <span className="lcb-ln">And still, one part of who they are has never had a name.</span>
+              </p>
+              <svg className="lcb-sxt" viewBox="0 0 390 480" aria-hidden="true" />
+              <div className="lcb-chart-copy">
+                <p className="lcb-pivot-body lcb-linemask">
+                  <span className="lcb-ln">At the moment they arrived, every planet stood in an exact place.</span>
+                  <span className="lcb-ln">Measured to the degree, the same order that <span className="lcb-ignite">names</span> an eclipse years before it happens.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* BEAT 3 - out of everything: two lives, timed to meet */}
+            <div className="lcb-scene lcb-souls-scene">
+              <div className="lcb-souls-hold" aria-hidden="true">
+                <canvas className="lcb-cross-sky" />
+                <div className="lcb-beam" />
+                <div className="lcb-cross-zoom">
+                  <svg className="lcb-souls-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
+                    <path className="lcb-arc lcb-arc-human" d="M-30,10 C90,140 150,120 200,178" />
+                    <path className="lcb-arc lcb-arc-pet" d="M430,252 C310,150 250,206 200,178" />
+                    <line className="lcb-thread" x1="200" y1="178" x2="200" y2="-82" />
+                    <circle className="lcb-head lcb-head-human" cx="0" cy="0" r="4.6" />
+                    <circle className="lcb-head lcb-head-pet" cx="0" cy="0" r="4.6" />
+                    <circle className="lcb-head lcb-head-one" cx="200" cy="178" r="5.2" />
+                  </svg>
+                </div>
+                <div className="lcb-iris" />
+              </div>
+              <p className="lcb-beat lcb-support lcb-souls-text">
+                <span className="lcb-ln">And somehow, their small life crossed yours.</span>
+                <span className="lcb-ln">The one who waits at the door before your car has turned in.</span>
+                <span className="lcb-ln lcb-emph">Two lives, out of everything, timed to meet.</span>
+              </p>
+            </div>
+
+            {/* BEAT 4 - the seal is cast: read closely, then set the chart */}
+            <div className="lcb-scene lcb-payoff lcb-payoff-scene">
+              <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A birth chart is that one moment, read closely.</span></p>
+              <p className="lcb-beat lcb-support lcb-linemask">
+                <span className="lcb-ln">Who they are.</span>
+                <span className="lcb-ln">What steadies them.</span>
+                <span className="lcb-ln">Why they love the way they do.</span>
+              </p>
+              <p className="lcb-payoff-line lcb-close lcb-linemask">
+                <span className="lcb-ln">You have loved them without the map.</span>
+                <span className="lcb-ln">Now you can see it.</span>
+                <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
+              </p>
+              <span className="lcb-rule" aria-hidden="true" />
+            </div>
+          </>
+        )}
       </div>
 
       {/* framing overlays (above the beats) */}
