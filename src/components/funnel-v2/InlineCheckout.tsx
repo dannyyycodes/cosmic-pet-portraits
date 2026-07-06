@@ -4,6 +4,7 @@ import { getReferralCode } from "@/lib/referralTracking";
 import { getUtm } from "@/lib/utm";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { HeartsBackdrop } from "./HeartsBackdrop";
+import { DossierCheckout } from "./DossierCheckout";
 
 function useScrollReveal(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -121,8 +122,9 @@ interface InlineCheckoutProps {
    * see the default, memorial is handled separately by memorialOnly. */
   path?: "new" | "discover" | "memorial";
   /** Optional visual shell for the new readings landing page. Keeps checkout
-   *  state + Stripe handoff intact while avoiding the legacy cream sales-card UI. */
-  visualMode?: "classic" | "cosmic";
+   *  state + Stripe handoff intact while avoiding the legacy cream sales-card UI.
+   *  "dossier" is checkout variant B (Phase 5): one door, Soul Bond as a +bump. */
+  visualMode?: "classic" | "cosmic" | "dossier";
 }
 
 // Volume discount mirrors create-checkout server-side rates for per-pet bundles.
@@ -449,12 +451,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       const funnelV2Variant = (() => {
         try { return localStorage.getItem("funnel_v2_variant"); } catch { return null; }
       })();
+      const checkoutVariant = (() => {
+        try { return localStorage.getItem("ls_checkout_variant"); } catch { return null; }
+      })();
       const sessionId = sessionStorage.getItem("analytics_session_id") || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       await supabase.from("page_analytics").insert([{
         session_id: sessionId,
         event_type: eventType,
         page_path: "/v2",
-        event_data: { ...eventData, ...getUtm(), funnel_v2_variant: funnelV2Variant } as never,
+        event_data: {
+          ...eventData,
+          ...getUtm(),
+          funnel_v2_variant: funnelV2Variant,
+          ...(checkoutVariant ? { checkout_variant: checkoutVariant } : {}),
+        } as never,
         user_agent: navigator.userAgent,
         referrer: document.referrer || null,
       }]);
@@ -1005,6 +1015,66 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       </article>
     );
   };
+
+  if (visualMode === "dossier") {
+    // Variant B: one door (Soul Reading), Soul Bond as a +bump that swaps the
+    // whole order to the EXISTING premium Stripe price. Single-tier cart:
+    // bond=false → basicQty=qty, bond=true → premiumQty=qty. Memorial never
+    // renders this mode (CheckoutSection forces the control for memorial intent).
+    const dossierBond = premiumQty > 0;
+    const dossierQty = Math.max(1, petCount);
+    const setDossierState = (nextBond: boolean, nextQty: number) => {
+      const q = Math.max(1, Math.min(MAX_PETS, nextQty));
+      const b = nextBond ? 0 : q;
+      const p = nextBond ? q : 0;
+      setBasicQty(b);
+      setPremiumQty(p);
+      setMemorialQty(0);
+      const nextSubtotal = b * basicPrice + p * premiumPrice;
+      const rate = getVolumeDiscount(q);
+      onSelectedPriceChange?.(Math.max(0, nextSubtotal * (1 - rate)));
+    };
+    return (
+      <section ref={sectionRef} id="checkout" style={{ position: "relative", padding: "0 20px" }}>
+        <DossierCheckout
+          ctaLabel={ctaLabel}
+          fmt={fmt}
+          unitNow={dossierBond ? premiumPrice : basicPrice}
+          unitWas={dossierBond ? prices.wasPremium : prices.wasBasic}
+          bondDelta={premiumPrice - basicPrice}
+          finalPrice={finalPrice + charityBonus * 100}
+          discountRate={discountRate}
+          isLocalized={isLocalized}
+          currencyCode={currencyCode}
+          bond={dossierBond}
+          qty={dossierQty}
+          onBondChange={(on) => setDossierState(on, dossierQty)}
+          onQtyChange={(q) => {
+            setDossierState(dossierBond, q);
+            trackFunnelEvent("v2_dossier_qty_changed", { qty: q, bond: dossierBond });
+          }}
+          email={email}
+          onEmailChange={(v) => { setEmail(v); setError(""); }}
+          error={error}
+          isLoading={isLoading}
+          onCheckout={handleCheckout}
+          codeOpen={codeOpen}
+          onCodeOpen={() => setCodeOpen(true)}
+          codeInput={codeInput}
+          onCodeInput={(v) => { setCodeInput(v); setCodeError(""); }}
+          codeStatus={codeStatus}
+          codeError={codeError}
+          appliedCoupon={appliedCoupon}
+          onApplyCode={handleApplyCode}
+          onRemoveCoupon={removeAppliedCoupon}
+          couponDiscountAmount={couponDiscountAmount}
+          selectedCharity={selectedCharity}
+          onCharityChange={setSelectedCharity}
+          onTrack={trackFunnelEvent}
+        />
+      </section>
+    );
+  }
 
   if (visualMode === "cosmic") {
     return (

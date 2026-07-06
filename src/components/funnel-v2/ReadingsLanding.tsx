@@ -11,6 +11,7 @@ import { CosmicBridge, HOUSE } from "./CosmicBridge";
 gsap.registerPlugin(ScrollTrigger);
 import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
+import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
 
 const C = {
   ink: "#141210",
@@ -1690,7 +1691,7 @@ function CosmicJourney({
           <form className="ls-offer-form" onSubmit={submitOffer}>
             <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (offerMsg) setOfferMsg(""); }} />
             <button type="submit" className="ls-gold-button ls-violet-button">
-              {name ? `Read all of ${name}` : "Read all of their chart"} <ArrowRight size={17} />
+              {name ? `Read the rest of ${name}` : "Read the rest of them"} <ArrowRight size={17} />
             </button>
           </form>
           {offerMsg && <p className="ls-chart-message is-error">{offerMsg}</p>}
@@ -1852,6 +1853,14 @@ function BirthSkyJourney() {
       const data = (await response.json()) as PetBirthChart;
       if (!data?.sun) throw new Error("incomplete");
       setChart(data);
+      // Hand the pet's identity to the checkout (dossier inscription +
+      // eyebrow). sessionStorage covers later mounts; the event covers the
+      // already-mounted checkout further down this same page.
+      try {
+        const petPayload = { name: petName.trim() || null, date };
+        sessionStorage.setItem("ls_chart_pet", JSON.stringify(petPayload));
+        window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: petPayload }));
+      } catch { /* ignore */ }
     } catch (error) {
       console.warn("[Little Souls] birth chart failed", error);
       setChart(null);
@@ -2568,6 +2577,30 @@ function CheckoutSection({
   selectedPrice: number;
   onSelectedPriceChange: (price: number) => void;
 }) {
+  // Phase 5 A/B: A = the cosmic two-card grid (control, untouched),
+  // B = the Reading Dossier. Assignment is a persisted 50/50 draw
+  // (localStorage `ls_checkout_variant`). Memorial-intent visitors are
+  // always shown the control — the dossier's endowed-progress rung and
+  // was-price have no place near grief — without their stored arm changing.
+  const [assignedVariant] = useState<CheckoutVariant>(() => getCheckoutVariant());
+  const memorialIntent = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("occasion") === "memorial" || params.get("memorial") === "1";
+    } catch {
+      return false;
+    }
+  }, []);
+  const variant: CheckoutVariant = memorialIntent ? "A" : assignedVariant;
+
+  // Expose the ACTIVE arm for QA + any downstream reader.
+  useEffect(() => {
+    try {
+      document.body.dataset.checkoutVariant = variant;
+    } catch { /* ignore */ }
+  }, [variant]);
+
   return (
     <section
       id="begin"
@@ -2586,7 +2619,7 @@ function CheckoutSection({
               memorialDefaultExpanded={false}
               memorialOnly={false}
               path="discover"
-              visualMode="cosmic"
+              visualMode={variant === "B" ? "dossier" : "cosmic"}
             />
           </div>
         </div>

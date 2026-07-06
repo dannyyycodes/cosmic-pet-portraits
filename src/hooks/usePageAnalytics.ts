@@ -27,6 +27,15 @@ const getFunnelV2Variant = () => {
   }
 };
 
+// Get checkout variant (Phase 5 A/B — A = cosmic grid, B = Reading Dossier)
+const getCheckoutVariantStored = () => {
+  try {
+    return localStorage.getItem('ls_checkout_variant') || null;
+  } catch {
+    return null;
+  }
+};
+
 interface TrackEventParams {
   eventType: string;
   eventData?: Json;
@@ -42,10 +51,12 @@ export const usePageAnalytics = (pagePath: string) => {
     try {
       const abVariant = getABVariant();
       const funnelV2Variant = getFunnelV2Variant();
+      const checkoutVariant = getCheckoutVariantStored();
       const enrichedEventData = {
         ...(eventData as Record<string, unknown> || {}),
         ab_variant: abVariant,
         ...(funnelV2Variant ? { funnel_v2_variant: funnelV2Variant } : {}),
+        ...(checkoutVariant ? { checkout_variant: checkoutVariant } : {}),
         // Per-account attribution: which account drove this visit, plus the
         // coarse landing avenue. getUtm() returns only the keys that have a
         // value, so absent params add nothing to the payload.
