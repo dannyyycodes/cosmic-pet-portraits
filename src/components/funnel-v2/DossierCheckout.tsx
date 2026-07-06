@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* ── The Reading Dossier — checkout variant B (Phase 5) ──
  *
@@ -229,6 +233,28 @@ export function DossierCheckout(props: DossierCheckoutProps) {
     );
     io.observe(el);
     return () => io.disconnect();
+  }, [reduce]);
+
+  /* SEAM — wheel travel into the dossier. A true shared element across a
+     ~2500px seam is too invasive, so the wheel ARRIVES here in the exact
+     entrance grammar of the reveal wheel above (scale .92, -8deg, settling
+     to rest): a matched-position crossfade. Scroll-scrubbed, so it holds
+     both for the animated descent and for a manual scroll. */
+  useEffect(() => {
+    const el = wheelHolderRef.current;
+    if (!el || reduce || typeof window === "undefined") return;
+    const tween = gsap.fromTo(
+      el,
+      { y: 52, scale: 0.92, rotate: -8, opacity: 0.2 },
+      {
+        y: 0, scale: 1, rotate: 0, opacity: 1, ease: "none",
+        scrollTrigger: { trigger: el, start: "top 98%", end: "top 52%", scrub: 1 },
+      }
+    );
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, [reduce]);
 
   /* kicker flash when a locked row is tapped */
@@ -956,8 +982,8 @@ function DossierStyles(): ReactNode {
       .dsr-cta{position:relative;overflow:hidden;border:0;cursor:pointer;
         display:block;width:100%;min-height:54px;
         background:var(--dsr-gold-metal);color:var(--dsr-gold-ink);
-        border-radius:12px;padding:16px 28px;
-        font:600 17px/1 'Newsreader',Georgia,serif;letter-spacing:.02em;
+        border-radius:12px;padding:16px 12px;white-space:nowrap;
+        font:600 clamp(15.5px,4.3vw,17px)/1 'Newsreader',Georgia,serif;letter-spacing:.02em;
         box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
                    0 6px 18px -6px rgba(208,169,82,.45);
         transition:filter .18s ease, box-shadow .18s ease, transform .06s ease}
@@ -971,6 +997,18 @@ function DossierStyles(): ReactNode {
         box-shadow:inset 0 2px 6px rgba(0,0,0,.35);transform:translateY(1px);filter:none}
       .dsr-cta:focus-visible{outline:2px solid var(--dsr-gold-100);outline-offset:3px}
       .dsr-cta:disabled{cursor:wait;filter:saturate(.7) brightness(.9)}
+
+      /* GOLD THREAD — once the moon's glow has settled, the CTA carries the
+         breath: one slow gold swell, the only moving light left on the page. */
+      .dsr-cta.is-thread{animation:dsrThread 7.5s var(--dsr-ease) 1.1s infinite}
+      @keyframes dsrThread{
+        0%,100%{box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
+          0 6px 18px -6px rgba(208,169,82,.45), 0 0 22px rgba(212,178,107,.16)}
+        38%{box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
+          0 9px 26px -6px rgba(208,169,82,.58), 0 0 38px rgba(212,178,107,.30)}
+        63%{box-shadow:0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
+          0 7px 22px -6px rgba(208,169,82,.5), 0 0 28px rgba(212,178,107,.22)}
+      }
 
       .dsr-error{margin:10px 0 0;text-align:center;font-size:14.5px;color:#e8b4b4}
 
@@ -1089,6 +1127,8 @@ function DossierStyles(): ReactNode {
       /* ---------- reduced motion ---------- */
       @media (prefers-reduced-motion: reduce){
         .dsr-root *, .dsr-root *::before, .dsr-root *::after{transition-duration:.01ms!important;animation:none!important}
+        .dsr-cta.is-thread{box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
+          0 6px 18px -6px rgba(208,169,82,.5), 0 0 26px rgba(212,178,107,.2)}
         .dsr-ring,.dsr-chord{stroke-dashoffset:0}
         .dsr-wglyph.lit,.dsr-wlabel,.dsr-glyph-halo{opacity:1}
         .dsr-wglyph.dim{opacity:.7}

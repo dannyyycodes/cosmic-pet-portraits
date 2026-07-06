@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Brush, Gift, Sparkles } from "lucide-react";
+import { Brush, Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { descendTo } from "@/lib/descend";
 import {
   Sheet,
   SheetContent,
@@ -21,6 +22,22 @@ const C = {
   cosmosText: "#f5efe6",
   cosmosDim: "#b8a89c",
 };
+
+/* the house metal-gold ramp (mockup material system) + its ink */
+const GOLD_METAL =
+  "linear-gradient(180deg,#f7e7b6 0%,#e9cd8b 18%,#d4b26b 40%,#c4a265 56%,#a9884f 80%,#8a6d3b 100%)";
+const GOLD_INK = "#2a1f0a";
+const GOLD_CTA_SHADOW =
+  "0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset, 0 4px 14px -6px rgba(208,169,82,.45)";
+
+/* the checkout lives at #begin on the funnel page; descend, never jump */
+function goToBegin(e: React.MouseEvent<HTMLAnchorElement>) {
+  const el = document.getElementById("begin");
+  if (el) {
+    e.preventDefault();
+    descendTo(el);
+  }
+}
 
 interface NavItem {
   label: string;
@@ -121,7 +138,7 @@ export function ReadingsNav() {
           <span
             style={{
               color: brandColor,
-              fontFamily: '"Playfair Display", Georgia, serif',
+              fontFamily: '"Fraunces", Georgia, serif',
               fontSize: 22,
               fontWeight: 600,
               letterSpacing: "-0.01em",
@@ -132,7 +149,7 @@ export function ReadingsNav() {
           <span
             style={{
               color: C.gold,
-              fontFamily: "Lato, system-ui, sans-serif",
+              fontFamily: '"Newsreader", Georgia, serif',
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: "0.16em",
@@ -152,7 +169,7 @@ export function ReadingsNav() {
                 className="inline-flex items-center gap-1.5 transition-colors"
                 style={{
                   color: linkColor,
-                  fontFamily: "Lato, system-ui, sans-serif",
+                  fontFamily: '"Newsreader", Georgia, serif',
                   fontSize: 13,
                   fontWeight: 500,
                 }}
@@ -171,7 +188,7 @@ export function ReadingsNav() {
             <Link
               to="/account"
               className="hidden min-h-10 items-center gap-2 px-3 text-sm font-medium sm:inline-flex"
-              style={{ color: linkColor, fontFamily: "Lato, system-ui, sans-serif" }}
+              style={{ color: linkColor, fontFamily: '"Newsreader", Georgia, serif' }}
               aria-label="My account"
             >
               <UserIcon /> Account
@@ -184,7 +201,7 @@ export function ReadingsNav() {
                 color: C.cosmosText,
                 border: "1px solid rgba(154,126,230,0.28)",
                 borderRadius: 8,
-                fontFamily: "Lato, system-ui, sans-serif",
+                fontFamily: '"Newsreader", Georgia, serif',
               }}
               aria-label="Sign in"
             >
@@ -193,18 +210,22 @@ export function ReadingsNav() {
           )}
 
           <a
-            href="/#checkout"
-            className="hidden min-h-10 items-center gap-1.5 px-4 text-sm font-medium transition-colors sm:inline-flex"
+            href="/#begin"
+            onClick={goToBegin}
+            className="hidden min-h-10 items-center gap-1.5 px-4 text-sm sm:inline-flex"
             style={{
-              background: C.goldLight,
-              borderRadius: 8,
-              color: C.ink,
-              fontFamily: "Lato, system-ui, sans-serif",
+              backgroundImage: GOLD_METAL,
+              borderRadius: 9,
+              color: GOLD_INK,
+              fontFamily: '"Newsreader", Georgia, serif',
+              fontWeight: 600,
+              letterSpacing: "0.02em",
+              boxShadow: GOLD_CTA_SHADOW,
+              transition: "filter .18s ease",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#9a7ee6")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = C.goldLight)}
+            onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.07) saturate(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
           >
-            <Sparkles className="h-3.5 w-3.5" />
             Begin Their Reading
           </a>
 
@@ -236,7 +257,7 @@ export function ReadingsNav() {
                         className="inline-flex items-center gap-2 px-4 py-3"
                         style={{
                           color: C.cosmosText,
-                          fontFamily: "Lato, system-ui, sans-serif",
+                          fontFamily: '"Newsreader", Georgia, serif',
                           fontSize: 16,
                           fontWeight: 500,
                         }}
@@ -257,7 +278,7 @@ export function ReadingsNav() {
                         border: "1px solid rgba(124,92,214,0.28)",
                         borderRadius: 8,
                         color: C.cosmosText,
-                        fontFamily: "Lato, system-ui, sans-serif",
+                        fontFamily: '"Newsreader", Georgia, serif',
                         fontSize: 15,
                         fontWeight: 500,
                       }}
@@ -267,18 +288,20 @@ export function ReadingsNav() {
                   </SheetClose>
                   <SheetClose asChild>
                     <a
-                      href="/#checkout"
+                      href="/#begin"
+                      onClick={goToBegin}
                       className="mx-4 mt-2 inline-flex items-center justify-center gap-2 px-4 py-3 text-center"
                       style={{
-                        background: C.goldLight,
-                        borderRadius: 8,
-                        color: C.ink,
-                        fontFamily: "Lato, system-ui, sans-serif",
+                        backgroundImage: GOLD_METAL,
+                        borderRadius: 10,
+                        color: GOLD_INK,
+                        fontFamily: '"Newsreader", Georgia, serif',
                         fontSize: 15,
                         fontWeight: 600,
+                        letterSpacing: "0.02em",
+                        boxShadow: GOLD_CTA_SHADOW,
                       }}
                     >
-                      <Sparkles className="h-4 w-4" />
                       Begin Their Reading
                     </a>
                   </SheetClose>

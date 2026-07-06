@@ -72,7 +72,7 @@ const CHART: Placement[] = ([
   { key: "ascendant", sign: "Sagittarius", deg: 2, min: 55 },
 ] as Omit<Placement, "lon">[]).map((p) => ({ ...p, lon: SIGN_LON[p.sign] + p.deg + p.min / 60 }));
 
-const GLYPH: Record<string, string> = {
+export const GLYPH: Record<string, string> = {
   aries: '<path class="gl-s" d="M-6,-1 C-6,-6 -1,-7 0,-1 C1,-7 6,-6 6,-1"/>',
   taurus: '<circle class="gl-s" cx="0" cy="2.7" r="4"/><path class="gl-s" d="M-5.6,-3.4 A5.4,4.8 0 0 1 5.6,-3.4"/>',
   gemini: '<path class="gl-s" d="M-4,-5.4 L-4,5.4 M4,-5.4 L4,5.4"/><path class="gl-s" d="M-5.7,-5.4 A3.2,2 0 0 1 5.7,-5.4 M-5.7,5.4 A3.2,2 0 0 0 5.7,5.4"/>',
@@ -202,6 +202,10 @@ const LCB_CSS = `
   /* pull the passage up under the hero: the hero's dead band after the CTAs
      becomes the shared handoff window (hero copy scrubs out, beat 1 rises in) */
   margin-top:-18svh;
+  /* the whole passage is narrative — nothing interactive lives in it. It
+     overlaps the hero's tail (and on short heroes, the hero CTAs), so it
+     must NEVER intercept a tap. */
+  pointer-events:none;
   font-family:"Newsreader",Georgia,serif;font-weight:400;
   -webkit-font-smoothing:antialiased;
 }
@@ -267,7 +271,10 @@ const LCB_CSS = `
 /* ---- beats layer ---- */
 /* perspective for the camera-tilt handoffs: leaving a beat reads as tilting
    your head to the next patch of sky (transform-only, scrubbed) */
-.lcb-beats{position:relative;z-index:2;perspective:1100px}
+/* pointer-events none: the beats are pure narrative (no interactive element
+   lives in them), and beat 1 overlaps the hero's tail — it must never eat a
+   tap meant for the hero CTAs. */
+.lcb-beats{position:relative;z-index:2;perspective:1100px;pointer-events:none}
 /* 88svh + px-capped padding: tall phones stop inflating dead air */
 .lcb-scene{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
   padding:clamp(56px,10svh,112px) clamp(24px,7vw,80px);text-align:center;gap:clamp(20px,3.6vw,34px);overflow:hidden}
@@ -882,6 +889,35 @@ export function CosmicBridge() {
         if (bloomCold && bloomGold) {
           spine.to(bloomCold, { opacity: 0, ease: "none", duration: 1.3 }, 2.4)
             .to(bloomGold, { opacity: 1, ease: "none", duration: 1.3 }, 2.4);
+        }
+
+        // ---- GOLD THREAD TERMINUS: the moon's glow settles into the CTA,
+        // the last moving pixel on the page. The gold bloom dims to an ember
+        // as the buy button rises into view; on the dossier arm the button
+        // then carries the breath (the .is-thread class). The window sits
+        // well BELOW the spine's end (checkout top 28%), so the two never
+        // write the same property on the same scroll tick.
+        const threadCta = document.querySelector<HTMLElement>("#begin .dsr-card .dsr-cta");
+        if (bloomGold && moonEl) {
+          gsap.timeline({
+            scrollTrigger: {
+              trigger: threadCta || checkout2,
+              start: threadCta ? "top 94%" : "top -25%",
+              end: threadCta ? "top 60%" : "top -60%",
+              scrub,
+              invalidateOnRefresh: true,
+            },
+          })
+            .to(bloomGold, { opacity: 0.32, ease: "none", duration: 1 }, 0)
+            .to(moonEl, { scale: 0.8, ease: "none", duration: 1 }, 0);
+        }
+        if (threadCta) {
+          ScrollTrigger.create({
+            trigger: threadCta,
+            start: "top 72%",
+            once: true,
+            onEnter: () => threadCta.classList.add("is-thread"),
+          });
         }
       }
 

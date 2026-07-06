@@ -6,12 +6,13 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { InlineCheckout } from "./InlineCheckout";
-import { CosmicBridge, HOUSE } from "./CosmicBridge";
+import { CosmicBridge, HOUSE, GLYPH as ZODIAC_GLYPH } from "./CosmicBridge";
 
 gsap.registerPlugin(ScrollTrigger);
 import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
+import { descendTo } from "@/lib/descend";
 
 const C = {
   ink: "#141210",
@@ -149,17 +150,6 @@ function AstroGlyph({ name, className }: { name: string; className?: string }) {
       aria-hidden="true"
     >
       {ASTRO_PATHS[name] ?? ASTRO_PATHS.sun}
-    </svg>
-  );
-}
-
-// Small padlock for the sealed placement rows (replaces no glyph; pairs with the
-// kept "Email to read" wording to read as a calm locked card, not a paywall stamp).
-function LockGlyph({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="5" y="10.5" width="14" height="10" rx="2.4" />
-      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
     </svg>
   );
 }
@@ -377,8 +367,12 @@ export function ReadingsLanding() {
     };
   }, [reduceMotion]);
 
+  // SEAM 4 — no hard jumps to the sale: an animated, touch-cancellable
+  // descent lets the dawn rise and the moon turn gold on the way down.
+  // Target the #begin section by id: the forwarded checkout ref is not
+  // guaranteed to reach a DOM node on every checkout arm.
   const scrollToCheckout = () => {
-    checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    descendTo("#begin");
   };
 
   return (
@@ -478,7 +472,14 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
             <button onClick={onBegin} className="ls-gold-button ls-violet-button">
               Begin Their Reading <ArrowRight size={17} />
             </button>
-            <a href="#computed-sky" className="ls-ghost-button">
+            <a
+              href="#computed-sky"
+              className="ls-ghost-button"
+              onClick={(e) => {
+                e.preventDefault();
+                descendTo("#computed-sky");
+              }}
+            >
               Compute their sky, free
             </a>
           </div>
@@ -905,9 +906,11 @@ function NatalWheel({
                   fill={fill}
                 />
                 <line x1={d0.x} y1={d0.y} x2={d1.x} y2={d1.y} stroke="rgba(154,126,230,0.32)" strokeWidth={0.75} />
-                <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={isSunSign ? "#dccdfa" : "#9a7ee6"} fontSize={16} className="ls-wheel-signglyph">
-                  {z.glyph}
-                </text>
+                <g
+                  className={`ls-wheel-zsym${isSunSign ? " is-sun" : ""}`}
+                  transform={`translate(${gp.x.toFixed(2)},${gp.y.toFixed(2)}) scale(1.12)`}
+                  dangerouslySetInnerHTML={{ __html: ZODIAC_GLYPH[z.name.toLowerCase()] || "" }}
+                />
               </g>
             );
           })}
@@ -976,9 +979,17 @@ function NatalWheel({
               {isFocus && <circle cx={gp.x} cy={gp.y} r={27} fill={tone} opacity={0.16} />}
               <line x1={gp.x} y1={gp.y} x2={tickEnd.x} y2={tickEnd.y} stroke={tone} strokeOpacity={0.4} strokeWidth={0.8} strokeDasharray="2 2" />
               <circle cx={gp.x} cy={gp.y} r={13} fill="#0a0712" stroke={tone} strokeWidth={isFocus ? 2 : 1.4} filter="url(#lsWheelGlow)" />
-              <text x={gp.x} y={gp.y} textAnchor="middle" dominantBaseline="central" fill={tone} fontSize={13} className="ls-wheel-planetglyph">
-                {meta?.glyph}
-              </text>
+              <g
+                transform={`translate(${(gp.x - 8.5).toFixed(2)},${(gp.y - 8.5).toFixed(2)}) scale(0.708)`}
+                fill="none"
+                stroke={tone}
+                strokeWidth={2.3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                color={tone}
+              >
+                {ASTRO_PATHS[p.key] ?? null}
+              </g>
             </motion.g>
           );
         })}
@@ -1288,7 +1299,7 @@ function OrreryInfoOverlay({
   const line = JOURNEY_LINES[activeKey] ?? meta.line;
   const activeBody = chart[activeKey as keyof PetBirthChart] as ChartBody | undefined;
   const activePlacement = activeBody?.sign
-    ? `${SIGN_GLYPHS[activeBody.sign] ?? ""} ${activeBody.sign}${typeof activeBody.degree === "number" ? ` ${Math.round(activeBody.degree)}°` : ""}`.trim()
+    ? `${activeBody.sign}${typeof activeBody.degree === "number" ? ` ${Math.round(activeBody.degree)}°` : ""}`.trim()
     : null;
 
   return (
@@ -1363,7 +1374,7 @@ function OrreryInfoOverlay({
                 transition={{ duration: reduce ? 0 : 0.32, ease }}
               >
                 <span className="ls-orrery-bubble-head">
-                  <span className="ls-orrery-bubble-glyph">{meta.glyph}</span>
+                  <span className="ls-orrery-bubble-glyph"><AstroGlyph name={activeKey} /></span>
                   <span className="ls-orrery-name">{meta.label}</span>
                 </span>
                 <p className="ls-orrery-line ls-orrery-line--info">{line}</p>
@@ -1743,13 +1754,9 @@ function BirthSkyJourney() {
 
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
-  const [email, setEmail] = useState("");
   const [chart, setChart] = useState<PetBirthChart | null>(null);
   const [status, setStatus] = useState<"idle" | "computing" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
-  const [emailBusy, setEmailBusy] = useState(false);
-  const [emailMsg, setEmailMsg] = useState("");
   const [whyOpen, setWhyOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -1843,7 +1850,6 @@ function BirthSkyJourney() {
     setStatus("computing");
     setMessage("");
     setChart(null);
-    setUnlocked(false);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
     try {
@@ -1884,26 +1890,7 @@ function BirthSkyJourney() {
     try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
   };
 
-  // Skim-table email wall: captures the lead AND unlocks the rest of the placements
-  // on the page (for people who skim instead of watching the journey to the end).
-  const handleSaveEmail = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const cleanEmail = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(cleanEmail)) { setEmailMsg("Add your email to read the rest."); return; }
-    setEmailBusy(true);
-    setEmailMsg("");
-    supabase.functions
-      .invoke("track-subscriber", {
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_skim", utm: getUtm() },
-      })
-      .catch((error) => console.warn("[Little Souls] lead capture failed", error));
-    try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
-    setUnlocked(true);
-    setEmailBusy(false);
-  };
-
-  const scrollToCheckout = () =>
-    document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollToCheckout = () => descendTo("#begin");
 
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
@@ -1950,51 +1937,32 @@ function BirthSkyJourney() {
               })}
             </div>
 
-            {/* The gate stays mounted and folds shut in place when it opens, so the
-                sealed rows below unseal exactly where the reader is looking — no jump. */}
-            <div className={`ls-gate2-wrap${unlocked ? " is-done" : ""}`} aria-hidden={unlocked || undefined}>
-              <div className="ls-gate2-clip">
-                <form className="ls-gate2" onSubmit={handleSaveEmail}>
-                  <h4 className="ls-gate2-title">Read all thirteen placements.</h4>
-                  <p className="ls-gate2-sub">
-                    Three are open above. Add your email and the rest of {name || "their"} chart opens right here.
-                  </p>
-                  <div className="ls-gate2-row">
-                    <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (emailMsg) setEmailMsg(""); }} />
-                    <button type="submit" className="ls-gold-button ls-violet-button" disabled={emailBusy}>
-                      {emailBusy ? "Opening…" : "Read the rest"}
-                      {!emailBusy && <ArrowRight size={16} />}
-                    </button>
-                  </div>
-                  {emailMsg && <p className="ls-chart-message is-error">{emailMsg}</p>}
-                  <p className="ls-gate2-trust">No noise. Just their chart, and the odd note when there is more.</p>
-                </form>
-              </div>
-            </div>
-
+            {/* ONE email ask on the page (the journey's end-offer). The ten
+                unread placements are a named tease — name and frame only, never
+                blurred body text — and every row hands the eye to the dossier. */}
             <div className="ls-chart-table ls-chart-table--rest">
               {REST_KEYS.map((key, i) => {
-                const b = bodyFor(key);
                 const m = PLANET_META[key];
-                const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
-                const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
                 return (
-                  <article
+                  <button
                     key={key}
-                    className={`ls-trow ls-rvrow ${unlocked ? "is-open" : "is-locked"}`}
-                    style={{ ...revealDelay(0.04 + i * 0.05), ["--ls-unseal" as string]: `${(i * 0.14).toFixed(2)}s` }}
+                    type="button"
+                    className="ls-trow ls-rvrow is-tease"
+                    style={revealDelay(0.04 + i * 0.05)}
+                    aria-label={`${m.label}. ${PLANET_FRAME[key]}. Still unread. Go to the full reading.`}
+                    onClick={scrollToCheckout}
                   >
                     <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
                     <div className="ls-trow-main">
                       <span className="ls-trow-top">
                         <strong className="ls-trow-name">{m.label}</strong>
-                        {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
                       </span>
                       <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
-                      <p className="ls-trow-line">{text}</p>
                     </div>
-                    {!unlocked && <span className="ls-trow-lock"><LockGlyph className="ls-trow-lock-ic" />Email to read</span>}
-                  </article>
+                    <svg className="ls-trow-chev" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M8 5l5 5-5 5" stroke="#9b8fd0" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
                 );
               })}
             </div>
@@ -2251,7 +2219,7 @@ function OrreryBody({
         ) : NASA_IMG[bodyKey] ? (
           <img src={NASA_IMG[bodyKey]} alt="" loading="lazy" className={dark ? "is-shadowed" : ""} />
         ) : (
-          <span className="ls-orrery-pt">{meta?.glyph}</span>
+          <span className="ls-orrery-pt"><AstroGlyph name={bodyKey} /></span>
         )}
       </span>
       {!isSun && showLabel && <span className="ls-orrery-label">{meta?.label}</span>}
@@ -2773,7 +2741,7 @@ function CosmicStyles() {
         transition-delay: var(--ls-delay, 0s);
         will-change: opacity, transform, filter;
         color: ${C.creamDim};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-weight: 400;
         font-size: clamp(1.2rem, 2.4vw, 1.55rem);
         line-height: 1.55;
@@ -3126,7 +3094,9 @@ function CosmicStyles() {
         transform: rotate(-45deg);
       }
       .ls-orrery-bubble-head { display: flex; align-items: center; gap: 8px; }
-      .ls-orrery-bubble-glyph { color: #b8a0ef; font-size: clamp(1rem, 2vw, 1.5rem); line-height: 1; }
+      .ls-orrery-bubble-glyph { color: #b8a0ef; font-size: clamp(1rem, 2vw, 1.5rem); line-height: 1; display: inline-flex; }
+      .ls-orrery-bubble-glyph svg { display: block; }
+      .ls-orrery-pt svg { display: block; width: 72%; height: auto; }
       .ls-orrery-bubble .ls-orrery-name { text-align: left; }
       .ls-orrery-bubble .ls-orrery-line { text-align: left; margin: 0; font-size: clamp(1.02rem, 1.9vw, 1.45rem); line-height: 1.18; }
       .ls-peng { flex: none; width: clamp(92px, 15vw, 158px); height: auto; display: block; transform-origin: 50% 100%; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5)); animation: ls-peng-bob 3.4s ease-in-out infinite; }
@@ -3149,7 +3119,7 @@ function CosmicStyles() {
       .ls-orrery-label {
         position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
         margin-top: 5px;
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: clamp(7px, 1vw, 11px);
         letter-spacing: 0.14em; text-transform: uppercase;
         color: rgba(224,218,242,0.62); white-space: nowrap;
@@ -3164,11 +3134,11 @@ function CosmicStyles() {
       }
       .ls-orrery-glyph { color: ${C.violetSoft}; font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1; }
       .ls-orrery-name {
-        color: #d8c5f5; font-family: Lato, system-ui, sans-serif;
+        color: #d8c5f5; font-family: "Newsreader", Georgia, serif;
         font-size: 0.78rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
       }
       .ls-orrery-line {
-        margin: 0; color: ${C.cream}; font-family: "Playfair Display", Georgia, serif;
+        margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.4rem, 4.4vw, 2.3rem); line-height: 1.1;
       }
       .ls-orrery-pips {
@@ -3289,7 +3259,7 @@ function CosmicStyles() {
         filter: drop-shadow(0 0 42px rgba(124,92,214,0.5)) drop-shadow(0 0 16px rgba(255,255,255,0.16));
       }
       .ls-journey-bigglyph {
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(5rem, 22vw, 11rem);
         line-height: 1;
         color: ${C.violetSoft};
@@ -3305,7 +3275,7 @@ function CosmicStyles() {
       }
       .ls-journey-name {
         color: ${C.violetSoft};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.8rem;
         font-weight: 800;
         letter-spacing: 0.22em;
@@ -3314,7 +3284,7 @@ function CosmicStyles() {
       .ls-journey-line {
         margin: 0;
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.55rem, 5.2vw, 2.8rem);
         line-height: 1.08;
       }
@@ -3342,7 +3312,7 @@ function CosmicStyles() {
       .ls-journey-tick.is-active { background: ${C.violet}; width: 30px; }
       .ls-journey-count {
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.74rem;
         letter-spacing: 0.16em;
         min-width: 64px;
@@ -3572,7 +3542,7 @@ function CosmicStyles() {
         color: ${C.cream};
         padding: 8px 14px;
         border-radius: 999px;
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.1em;
@@ -3709,7 +3679,7 @@ function CosmicStyles() {
       .ls-journey-focus-glyph { color: ${C.violetSoft}; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1; }
       .ls-journey-focus-label {
         color: ${C.violetSoft};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.76rem;
         font-weight: 800;
         letter-spacing: 0.16em;
@@ -3717,12 +3687,12 @@ function CosmicStyles() {
       }
       .ls-journey-focus-line {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.55rem, 5vw, 2.7rem);
         line-height: 1.08;
         margin: 0;
       }
-      .ls-journey-step-count { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; letter-spacing: 0.16em; }
+      .ls-journey-step-count { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.72rem; letter-spacing: 0.16em; }
       .ls-journey-nav { display: flex; align-items: center; gap: 14px; }
       .ls-journey-arrow {
         flex: none;
@@ -3764,10 +3734,10 @@ function CosmicStyles() {
         background: rgba(5,4,8,0.42);
         text-align: left;
       }
-      .ls-journey-reveal-item span { color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-      .ls-journey-reveal-item strong { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; }
-      .ls-journey-reveal-item small { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; }
-      .ls-journey-hint { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.22rem; line-height: 1.4; margin: 0; }
+      .ls-journey-reveal-item span { color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+      .ls-journey-reveal-item strong { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.3rem; font-weight: 500; }
+      .ls-journey-reveal-item small { color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.82rem; }
+      .ls-journey-hint { color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 1.22rem; line-height: 1.4; margin: 0; }
       .ls-journey-cta { width: 100%; justify-content: center; }
       .ls-journey-form-wrap .ls-lead-form { width: min(92vw, 460px); gap: 12px; }
       .ls-journey-form-wrap .ls-lead-row { grid-template-columns: 1fr; }
@@ -3810,7 +3780,7 @@ function CosmicStyles() {
       }
       .ls-process-number {
         color: ${C.gold};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: 4.6rem;
         line-height: 1;
         opacity: 0.86;
@@ -3848,7 +3818,7 @@ function CosmicStyles() {
       .ls-calc-head { display: grid; gap: 4px; }
       .ls-calc-title {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.15rem, 2.4vw, 1.5rem);
         line-height: 1.1;
       }
@@ -3869,7 +3839,7 @@ function CosmicStyles() {
       }
       .ls-calc-lead {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.05rem, 2.2vw, 1.3rem);
         line-height: 1.45;
         max-width: 640px;
@@ -3892,14 +3862,14 @@ function CosmicStyles() {
       }
       .ls-calc-stat {
         color: ${C.gold};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(2.2rem, 5vw, 3.1rem);
         line-height: 0.95;
         letter-spacing: -0.01em;
       }
       .ls-calc-stat-label {
         color: ${C.cream};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.14em;
@@ -3908,7 +3878,7 @@ function CosmicStyles() {
       .ls-calc-stat-body {
         margin-top: 4px;
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.84rem;
         line-height: 1.5;
       }
@@ -3992,13 +3962,13 @@ function CosmicStyles() {
       }
       .ls-chart-pill span {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: 1.16rem;
         line-height: 1.1;
       }
       .ls-chart-pill small {
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.78rem;
         line-height: 1.35;
       }
@@ -4009,7 +3979,7 @@ function CosmicStyles() {
       .ls-chart-form label,
       .ls-lead-form label {
         color: ${C.cream};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.08em;
@@ -4030,7 +4000,7 @@ function CosmicStyles() {
         background: rgba(5,4,7,0.62);
         color: ${C.cream};
         padding: 0 14px;
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         color-scheme: dark;
       }
       .ls-lead-form { display: grid; gap: 16px; max-width: 460px; }
@@ -4043,7 +4013,7 @@ function CosmicStyles() {
         gap: 6px;
         flex: none;
         color: ${C.gold};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.74rem;
         font-weight: 800;
         letter-spacing: 0.12em;
@@ -4109,7 +4079,7 @@ function CosmicStyles() {
       .ls-calc-figure figcaption {
         padding: 10px 14px;
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.72rem;
         line-height: 1.4;
         letter-spacing: 0.03em;
@@ -4121,7 +4091,7 @@ function CosmicStyles() {
         align-items: baseline;
         gap: 8px;
         color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.1em;
@@ -4130,14 +4100,14 @@ function CosmicStyles() {
       .ls-planet-glyph { color: ${C.gold}; font-size: 1.15rem; font-style: normal; }
       .ls-planet-sign {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: 1.18rem;
         font-weight: 500;
         line-height: 1.05;
       }
       .ls-planet-card small {
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.76rem;
         line-height: 1.35;
       }
@@ -4162,13 +4132,13 @@ function CosmicStyles() {
       }
       .ls-sky-gate p {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.4rem, 3.6vw, 1.9rem);
         line-height: 1.1;
       }
       .ls-sky-gate small {
         color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.86rem;
         line-height: 1.4;
         max-width: 360px;
@@ -4189,12 +4159,12 @@ function CosmicStyles() {
         background: rgba(5,4,7,0.72);
         color: ${C.cream};
         padding: 0 14px;
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
       }
       .ls-sky-bridge { margin-top: 22px; text-align: center; }
       .ls-sky-bridge-lead {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.1rem, 2.4vw, 1.45rem);
         line-height: 1.45;
         max-width: 560px;
@@ -4250,13 +4220,13 @@ function CosmicStyles() {
       .ls-seal-crest-asc { filter: drop-shadow(0 0 5px rgba(185,165,240,0.9)); }
       .ls-seal-glyph { font-size: 1.6rem; color: ${C.gold}; line-height: 1; }
       .ls-seal-title {
-        color: ${C.cream}; font-family: "Playfair Display", Georgia, serif;
+        color: ${C.cream}; font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.5rem, 4vw, 2.05rem); font-weight: 500; line-height: 1.1;
       }
-      .ls-seal-sub { color: rgba(222,214,244,0.85); font-family: Lato, system-ui, sans-serif; font-size: 0.95rem; letter-spacing: 0.01em; }
+      .ls-seal-sub { color: rgba(222,214,244,0.85); font-family: "Newsreader", Georgia, serif; font-size: 0.95rem; letter-spacing: 0.01em; }
       .ls-seal-field { width: 100%; display: grid; gap: 6px; text-align: left; }
       .ls-seal-field label {
-        color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif;
+        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif;
         font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
       }
       .ls-seal-field label span { color: rgba(200,192,226,0.6); font-weight: 500; text-transform: none; letter-spacing: 0; }
@@ -4265,7 +4235,7 @@ function CosmicStyles() {
         border: 1px solid rgba(124,92,214,0.42); border-radius: 12px;
         background: linear-gradient(180deg, rgba(8,6,15,0.85), rgba(13,10,22,0.72));
         color: ${C.cream}; padding: 0 16px;
-        font-family: Lato, system-ui, sans-serif; font-size: 1rem;
+        font-family: "Newsreader", Georgia, serif; font-size: 1rem;
         caret-color: ${C.violetBright}; color-scheme: dark;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
         transition: border-color 220ms ease, background 220ms ease, box-shadow 320ms ease;
@@ -4293,21 +4263,17 @@ function CosmicStyles() {
         35% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 5px rgba(154,126,230,0.26), 0 0 30px rgba(124,92,214,0.46); }
         100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18); }
       }
-      .ls-seal-help { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
+      .ls-seal-help { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
+      /* The form CTA rides the same metal-gold ramp as every buy-moment
+         button (storyboard mockup); only its halo breathes, warm and slow. */
       .ls-seal-card .ls-seal-cta {
-        position: relative; width: 100%; justify-content: center; margin-top: 6px;
-        min-height: 54px; border-radius: 14px; font-size: 15px; letter-spacing: 0.02em;
-        background: linear-gradient(180deg, #8f70e2 0%, ${C.violet} 58%, #6f4fc8 100%);
-        border: 1px solid rgba(185,165,240,0.75);
-        box-shadow: 0 12px 30px rgba(90,62,180,0.38), 0 3px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -10px 18px rgba(50,30,110,0.35);
-        text-shadow: 0 1px 0 rgba(30,16,70,0.35);
-      }
-      .ls-seal-card .ls-seal-cta:hover {
-        background: linear-gradient(180deg, #9d80ea 0%, #8a6ade 58%, #7a5bd0 100%);
+        width: 100%; justify-content: center; margin-top: 6px;
+        min-height: 54px; border-radius: 14px; font-size: 16.5px;
       }
       .ls-seal-card .ls-seal-cta::after {
         content: ""; position: absolute; inset: -3px; border-radius: 17px; pointer-events: none;
-        box-shadow: 0 0 26px 5px rgba(140,110,230,0.42);
+        background: none; mix-blend-mode: normal; transform: none;
+        box-shadow: 0 0 26px 5px rgba(212,178,107,0.34);
         opacity: 0.3; animation: ls-seal-cta-glow 4.2s ease-in-out infinite;
       }
       @keyframes ls-seal-cta-glow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.85; } }
@@ -4336,13 +4302,13 @@ function CosmicStyles() {
       .ls-seal-ring-3 i { width: 6px; height: 6px; background: ${C.cream}; }
       @keyframes ls-spin { to { transform: rotate(360deg); } }
       @keyframes ls-corepulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
-      .ls-seal-loading-text { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.95rem); line-height: 1.1; }
-      .ls-seal-loading-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.85rem; }
+      .ls-seal-loading-text { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.95rem); line-height: 1.1; }
+      .ls-seal-loading-sub { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.85rem; }
 
       /* the REAL placement shown on the solar-system bubble; generic meaning sits under it */
       .ls-orrery-placement {
         display: block; color: ${C.goldSoft};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.35rem, 3.2vw, 2rem); font-weight: 600; line-height: 1.04; margin: 3px 0 1px;
       }
       .ls-orrery-line--info { color: ${C.muted} !important; font-size: clamp(0.88rem, 1.6vw, 1.08rem) !important; }
@@ -4354,7 +4320,7 @@ function CosmicStyles() {
       .ls-reveal-stack { max-width: 980px; margin: 22px auto 0; padding: 0 4px; display: grid; gap: 22px; }
       .ls-reveal-eyebrow {
         text-align: center; color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800;
+        font-family: "Newsreader", Georgia, serif; font-size: 0.72rem; font-weight: 800;
         letter-spacing: 0.16em; text-transform: uppercase;
       }
       .ls-reveal-eyebrow--rest { margin-top: 6px; color: ${C.violetSoft}; }
@@ -4368,47 +4334,16 @@ function CosmicStyles() {
       }
       .ls-free-glyph { font-size: 1.5rem; color: ${C.violetSoft}; line-height: 1; }
       .ls-free-frame {
-        color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif;
+        color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif;
         font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
       }
-      .ls-free-sign { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.22rem; font-weight: 500; line-height: 1.1; }
-      .ls-free-card small { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; line-height: 1.4; }
-
-      /* When the gate opens it folds shut IN PLACE (height eases to zero) while
-         the rows beneath unseal — nothing teleports, nothing jumps under the eye. */
-      .ls-gate2-wrap {
-        display: grid; grid-template-rows: 1fr;
-        transition: grid-template-rows 560ms cubic-bezier(0.22,0.61,0.28,1) 160ms, opacity 320ms ease;
-      }
-      .ls-gate2-clip { overflow: hidden; min-height: 0; }
-      .ls-gate2-wrap.is-done {
-        grid-template-rows: 0fr; opacity: 0; visibility: hidden; pointer-events: none;
-        transition: grid-template-rows 560ms cubic-bezier(0.22,0.61,0.28,1) 160ms, opacity 320ms ease, visibility 0s linear 740ms;
-      }
-      .ls-gate2 {
-        display: grid; gap: 10px; justify-items: center; text-align: center;
-        max-width: 520px; margin: 4px auto 0; padding: clamp(22px, 4vw, 30px);
-        border: 1px solid ${C.lineViolet}; border-radius: 16px;
-        background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.16), transparent 60%), linear-gradient(180deg, rgba(21,16,28,0.9), rgba(13,10,20,0.95));
-      }
-      .ls-gate2-glyph { font-size: 1.4rem; color: ${C.violetSoft}; }
-      .ls-gate2-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.85rem); font-weight: 500; }
-      .ls-gate2-sub { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.9rem; line-height: 1.45; max-width: 380px; }
-      .ls-gate2-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; width: 100%; max-width: 440px; margin-top: 4px; }
-      @media (max-width: 520px) { .ls-gate2-row { grid-template-columns: 1fr; } }
-      .ls-gate2-row input {
-        min-height: 48px; width: 100%;
-        border: 1px solid rgba(154,126,230,0.38); border-radius: 8px;
-        background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px;
-        font-family: Lato, system-ui, sans-serif;
-      }
-      .ls-gate2-row input:focus { outline: none; border-color: ${C.violetSoft}; }
-      .ls-gate2-trust { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; letter-spacing: 0.02em; }
+      .ls-free-sign { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.22rem; font-weight: 500; line-height: 1.1; }
+      .ls-free-card small { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.8rem; line-height: 1.4; }
 
       .ls-locked-block { display: grid; gap: 14px; }
       .ls-locked-eyebrow {
         text-align: center; color: ${C.violetSoft};
-        font-family: Lato, system-ui, sans-serif; font-size: 0.72rem; font-weight: 800;
+        font-family: "Newsreader", Georgia, serif; font-size: 0.72rem; font-weight: 800;
         letter-spacing: 0.16em; text-transform: uppercase;
       }
       .ls-teaser-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -4426,8 +4361,8 @@ function CosmicStyles() {
       }
       .ls-teaser-lock { position: absolute; top: 12px; right: 12px; z-index: 1; color: ${C.gold}; font-size: 0.8rem; opacity: 0.8; }
       .ls-teaser-glyph { color: ${C.gold}; font-size: 1.3rem; line-height: 1; }
-      .ls-teaser-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.02rem; font-weight: 500; line-height: 1.15; }
-      .ls-teaser-line { color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.4; filter: blur(2.6px); user-select: none; }
+      .ls-teaser-title { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.02rem; font-weight: 500; line-height: 1.15; }
+      .ls-teaser-line { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.78rem; line-height: 1.4; filter: blur(2.6px); user-select: none; }
 
       .ls-upsell {
         display: grid; gap: 14px; justify-items: center; text-align: center;
@@ -4435,8 +4370,8 @@ function CosmicStyles() {
         border: 1px solid rgba(154,126,230,0.34); border-radius: 18px;
         background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.18), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.92), rgba(13,10,20,0.96));
       }
-      .ls-upsell-title { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 500; line-height: 1.12; }
-      .ls-upsell-pitch { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.96rem; line-height: 1.55; max-width: 540px; }
+      .ls-upsell-title { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 500; line-height: 1.12; }
+      .ls-upsell-pitch { color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.96rem; line-height: 1.55; max-width: 540px; }
       .ls-upsell-cta { margin-top: 4px; }
       @media (prefers-reduced-motion: reduce) {
         .ls-orrery-wrap.is-open .ls-orrery { animation: none !important; }
@@ -4528,7 +4463,7 @@ function CosmicStyles() {
       .ls-story-moment h3,
       .ls-receive-item strong {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.35rem, 2.5vw, 1.85rem);
         font-weight: 500;
         line-height: 1.08;
@@ -4537,7 +4472,7 @@ function CosmicStyles() {
       .ls-receive-item p {
         margin-top: 10px;
         color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.98rem;
         line-height: 1.65;
       }
@@ -4586,7 +4521,7 @@ function CosmicStyles() {
       .ls-disclosure-text { display: grid; gap: 6px; }
       .ls-disclosure-title {
         color: ${C.cream};
-        font-family: "Playfair Display", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.5rem, 3vw, 2.1rem);
         line-height: 1.05;
       }
@@ -4620,7 +4555,7 @@ function CosmicStyles() {
       .ls-chart-message {
         margin: 12px 0 0;
         color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 0.84rem;
         line-height: 1.45;
       }
@@ -4640,7 +4575,7 @@ function CosmicStyles() {
       .ls-stage-card { margin-inline: auto; }
       .ls-seal-why {
         background: none; border: 0; padding: 2px 0; cursor: pointer;
-        color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem;
+        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 0.8rem;
         text-decoration: underline; text-underline-offset: 3px;
         transition: color 180ms ease;
       }
@@ -4689,17 +4624,17 @@ function CosmicStyles() {
       .ls-compute-mote.is-lit { opacity: 1; transform: scale(1); }
       .ls-compute-readout {
         position: absolute; top: 60%; left: 0; right: 0; min-height: 1.2em; text-align: center;
-        color: ${C.violetBright}; font-family: Lato, system-ui, sans-serif; font-size: 0.92rem;
+        color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 0.92rem;
         letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
       }
       .ls-compute-line {
         position: absolute; bottom: 13%; left: 0; right: 0; margin: 0; padding: 0 24px; text-align: center;
-        color: ${C.cream}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.15rem, 3.4vw, 1.5rem); line-height: 1.35;
+        color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.15rem, 3.4vw, 1.5rem); line-height: 1.35;
       }
       .ls-sound-cta {
         display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px;
         border: 1px solid rgba(154,126,230,0.55); background: rgba(124,92,214,0.18); color: ${C.violetBright};
-        font-family: Lato, system-ui, sans-serif; font-size: 0.92rem; cursor: pointer;
+        font-family: "Newsreader", Georgia, serif; font-size: 0.92rem; cursor: pointer;
         animation: ls-soundpulse 2.6s ease-in-out infinite;
       }
       .ls-sound-cta:hover { background: rgba(124,92,214,0.34); color: ${C.cream}; border-color: ${C.violetSoft}; }
@@ -4707,33 +4642,35 @@ function CosmicStyles() {
 
       .ls-wheel { display: grid; justify-items: center; gap: 16px; }
       .ls-wheel-svg { width: min(92vw, 460px); height: auto; aspect-ratio: 1; display: block; }
-      .ls-wheel-signglyph, .ls-wheel-planetglyph {
-        font-family: "Noto Sans Symbols2", "Segoe UI Symbol", "Apple Symbols", system-ui, sans-serif;
-      }
-      .ls-wheel-centername { font-family: "Playfair Display", Georgia, serif; letter-spacing: 0.01em; }
+      /* Drawn zodiac + planet glyphs (one hand, no font-character fallbacks). */
+      .ls-wheel-zsym .gl-s { fill: none; stroke: #9a7ee6; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; }
+      .ls-wheel-zsym .gl-f { fill: #9a7ee6; stroke: none; }
+      .ls-wheel-zsym.is-sun .gl-s { stroke: #dccdfa; }
+      .ls-wheel-zsym.is-sun .gl-f { fill: #dccdfa; }
+      .ls-wheel-centername { font-family: "Fraunces", Georgia, serif; letter-spacing: 0.01em; }
       .ls-wheel-centerborn, .ls-wheel-centerdom {
-        font-family: Lato, system-ui, sans-serif; letter-spacing: 0.2em; font-weight: 700; text-transform: uppercase;
+        font-family: "Newsreader", Georgia, serif; letter-spacing: 0.2em; font-weight: 700; text-transform: uppercase;
       }
       .ls-wheel-info {
         display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px;
         border-radius: 999px; border: 1px solid rgba(154,126,230,0.45); background: rgba(13,10,20,0.6);
-        color: ${C.violetBright}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem; cursor: pointer;
+        color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 0.86rem; cursor: pointer;
         transition: border-color 200ms ease, color 200ms ease;
       }
       .ls-wheel-info:hover { border-color: ${C.violetSoft}; color: ${C.violetSoft}; }
       .ls-wheel-info-mark {
         display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
-        border: 1px solid rgba(154,126,230,0.65); font-family: "Playfair Display", Georgia, serif;
+        border: 1px solid rgba(154,126,230,0.65); font-family: "Fraunces", Georgia, serif;
         font-size: 0.8rem; line-height: 1; font-style: italic;
       }
       .ls-wheel-honesty {
         max-width: 50ch; margin: 0 auto; text-align: center; color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; line-height: 1.5;
+        font-family: "Newsreader", Georgia, serif; font-size: 0.82rem; line-height: 1.5;
       }
 
       .ls-free-head {
         display: inline-flex; align-items: center; gap: 8px; color: ${C.creamDim};
-        font-family: Lato, system-ui, sans-serif; font-size: 0.68rem; font-weight: 800;
+        font-family: "Newsreader", Georgia, serif; font-size: 0.68rem; font-weight: 800;
         letter-spacing: 0.12em; text-transform: uppercase;
       }
       .ls-free-glyph { font-size: 1.05rem; color: ${C.violetSoft}; line-height: 1; }
@@ -4770,7 +4707,7 @@ function CosmicStyles() {
          words, set large in the journey's serif so the eye has a place to land. */
       .ls-skim-title {
         text-align: center; color: ${C.cream};
-        font-family: "Cormorant", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: clamp(2rem, 6.4vw, 2.75rem);
         font-weight: 500; line-height: 1.16; letter-spacing: 0.004em;
         text-wrap: balance;
@@ -4783,9 +4720,9 @@ function CosmicStyles() {
       .ls-skim-title.ls-rvrow[data-in] { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
 
       .ls-chart-table { display: grid; gap: 10px; width: 100%; max-width: 760px; margin: 0 auto; }
-      /* The locked lattice sits tighter and quieter so ten sealed rows read as one
+      /* The tease lattice sits tighter and quieter so ten named rows read as one
          calm set, not a stack of ten paywall stamps. */
-      .ls-gate2-wrap + .ls-chart-table { gap: 7px; }
+      .ls-chart-table--rest { gap: 7px; margin-top: 14px; }
 
       .ls-trow {
         position: relative; display: grid; grid-template-columns: auto 1fr; gap: 15px; align-items: start;
@@ -4823,9 +4760,7 @@ function CosmicStyles() {
       }
       .ls-trow.ls-rvrow:not([data-in]) .ls-trow-glyph { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.7); }
       .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { opacity: 0; transform: translate3d(0, 34px, 0); filter: blur(10px); }
-      .ls-trow.ls-rvrow:not([data-in]) .ls-trow-lock { opacity: 0; }
-      .ls-trow-lock { transition: opacity 420ms ease calc(var(--ls-delay, 0s) + 260ms); }
-      /* The sealed lattice resolves chaos -> order: locked rows drift in from
+      /* The tease lattice resolves chaos -> order: named rows drift in from
          alternating sides and settle into the one aligned column. */
       .ls-chart-table--rest .ls-trow.ls-rvrow:not([data-in]) .ls-trow-main { transform: translate3d(-30px, 22px, 0); }
       .ls-chart-table--rest .ls-trow.ls-rvrow:nth-child(even):not([data-in]) .ls-trow-main { transform: translate3d(30px, 22px, 0); }
@@ -4853,13 +4788,13 @@ function CosmicStyles() {
       }
       .ls-trow-main { min-width: 0; display: grid; gap: 4px; }
       .ls-trow-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-      .ls-trow-name { color: ${C.cream}; font-family: "Playfair Display", Georgia, serif; font-size: 1.08rem; font-weight: 500; letter-spacing: 0.002em; }
-      .ls-trow-sign { color: ${C.violetBright}; font-family: Lato, system-ui, sans-serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+      .ls-trow-name { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.08rem; font-weight: 500; letter-spacing: 0.002em; }
+      .ls-trow-sign { color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
       /* Frame sits ABOVE the name (eyebrow -> name -> line), so every row reads
          with the same landing-strip texture instead of one uniform block. */
-      .ls-trow-frame { order: -1; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.82; }
+      .ls-trow-frame { order: -1; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.82; }
       .ls-trow-line {
-        margin: 5px 0 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif;
+        margin: 5px 0 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif;
         font-size: 0.92rem; line-height: 1.55; max-width: 58ch;
         transition: filter 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s), opacity 560ms ease var(--ls-unseal, 0s);
       }
@@ -4904,72 +4839,58 @@ function CosmicStyles() {
       .ls-trow.is-free .ls-trow-frame { color: ${C.violetSoft}; opacity: 1; }
       .ls-trow.is-free .ls-trow-line { font-size: 1.08rem; line-height: 1.6; color: ${C.creamDim}; }
 
-      /* LOCKED rows — dim, desaturated, visibly sealed. The BEFORE is staged
-         dark and grey on purpose so the unseal flip is unmistakable. */
-      .ls-trow.is-locked {
-        border-color: rgba(154,126,230,0.14);
-        background: linear-gradient(180deg, rgba(14,11,19,0.62), rgba(9,7,14,0.76));
-        padding-right: 118px;
-        filter: saturate(0.5) brightness(0.66);
+      /* TEASE rows — the ten unread placements. Named, never blurred; the same
+         quiet register as the dossier's locked rows so the skim table visibly
+         feeds the card below. Whole row is a 48px+ tap target to the sale. */
+      .ls-trow.is-tease {
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        min-height: 56px;
+        padding: 12px 14px 12px 18px;
+        border-color: rgba(154,126,230,0.18);
+        background: linear-gradient(180deg, rgba(17,13,24,0.6), rgba(11,8,17,0.72));
+        cursor: pointer; -webkit-tap-highlight-color: transparent;
+        font: inherit; color: inherit;
+        transition: border-color 300ms ease, background 300ms ease, transform 180ms cubic-bezier(0.22,0.61,0.28,1);
       }
-      .ls-trow.is-locked .ls-trow-glyph { color: rgba(154,126,230,0.46); border-color: rgba(154,126,230,0.16); background: rgba(154,126,230,0.04); }
-      .ls-trow.is-locked .ls-trow-name { color: rgba(255,255,255,0.72); }
-      .ls-trow.is-locked .ls-trow-line { filter: blur(7px); user-select: none; opacity: 0.6; }
-      /* UNSEALED rows — the AFTER: full brightness, lifted surface, and a single
-         violet light-wash crossing each row on its own beat of the cascade. */
-      .ls-chart-table--rest .ls-trow.is-open {
-        border-color: rgba(154,126,230,0.4);
-        background:
-          radial-gradient(ellipse at 0% 0%, rgba(154,126,230,0.09), transparent 42%),
-          linear-gradient(180deg, rgba(26,20,35,0.78), rgba(14,10,20,0.88));
-        box-shadow: 0 10px 28px rgba(0,0,0,0.26);
+      .ls-trow.is-tease:hover { border-color: rgba(154,126,230,0.38); }
+      .ls-trow.is-tease:active { transform: translateY(1px); background: linear-gradient(180deg, rgba(24,18,38,0.7), rgba(14,10,22,0.8)); }
+      .ls-trow.is-tease:focus-visible { outline: 2px solid ${C.violetBright}; outline-offset: 2px; }
+      .ls-trow.is-tease .ls-trow-glyph {
+        width: 38px; height: 38px; font-size: 1.18rem;
+        color: rgba(139,123,216,0.78); border-color: rgba(154,126,230,0.2);
+        background: rgba(154,126,230,0.05);
       }
-      .ls-chart-table--rest .ls-trow.is-open::after {
-        background: linear-gradient(105deg, transparent 12%, rgba(185,165,240,0.24) 50%, transparent 88%);
-        animation: ls-unseal-wash 820ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s) both;
+      .ls-trow.is-tease .ls-trow-main { gap: 2px; }
+      .ls-trow.is-tease .ls-trow-name { color: #b3a7e0; font-size: 1.02rem; }
+      .ls-trow.is-tease .ls-trow-frame {
+        order: 0; text-transform: none; letter-spacing: 0.004em;
+        font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400;
+        font-size: 0.95rem; color: #9b8fd0; opacity: 1;
       }
-      @keyframes ls-unseal-wash {
-        0% { opacity: 0; transform: translate3d(-35%, 0, 0); }
-        30% { opacity: 1; }
-        100% { opacity: 0; transform: translate3d(35%, 0, 0); }
-      }
-      .ls-trow-lock {
-        position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
-        display: inline-flex; align-items: center; gap: 6px;
-        color: rgba(185,165,240,0.76); font-family: Lato, system-ui, sans-serif;
-        font-size: 0.6rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
-      }
-      .ls-trow-lock-ic { font-size: 0.78rem; opacity: 0.9; }
-
-      @media (max-width: 460px) {
-        .ls-trow.is-locked { padding-right: 18px; }
-        .ls-trow-lock { position: static; transform: none; margin-top: 8px; }
-      }
+      .ls-trow-chev { width: 18px; height: 18px; flex: none; opacity: 0.55; }
 
       /* Tactile press on the reveal surface: fast in (60ms), soft out. */
       .ls-skim .ls-gold-button,
       .ls-seal-cta {
-        transition: background 180ms ease, border-color 180ms ease, color 180ms ease,
+        transition: filter 180ms ease, box-shadow 180ms ease, background 180ms ease,
+          border-color 180ms ease, color 180ms ease,
           transform 180ms cubic-bezier(0.22,0.61,0.28,1);
         touch-action: manipulation;
       }
       .ls-skim .ls-gold-button:hover, .ls-seal-cta:hover { transform: translateY(-1px); }
       .ls-skim .ls-gold-button:active, .ls-seal-cta:active {
-        transform: translateY(1px) scale(0.97); transition-duration: 180ms, 180ms, 180ms, 60ms;
+        transform: translateY(1px) scale(0.97);
       }
 
       @media (prefers-reduced-motion: reduce) {
         .ls-trow.ls-rvrow, .ls-trow.ls-rvrow .ls-trow-glyph, .ls-trow.ls-rvrow .ls-trow-main,
-        .ls-trow-lock, .ls-trow-line, .ls-skim-title.ls-rvrow, .ls-skim-seam.ls-rvrow .ls-skim-seam-line,
+        .ls-trow-line, .ls-skim-title.ls-rvrow, .ls-skim-seam.ls-rvrow .ls-skim-seam-line,
         .ls-skim-seam-mark {
           opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important;
         }
-        .ls-trow.is-locked .ls-trow-line { filter: blur(7px) !important; }
-        .ls-trow.is-locked { filter: saturate(0.5) brightness(0.66) !important; }
         .ls-trow::after { animation: none !important; opacity: 0 !important; }
         .ls-trow.is-free::before { transform: none !important; transition: none !important; }
-        .ls-gate2-wrap { transition: none; }
-        .ls-gate2-wrap.is-done { display: none; }
         .ls-skim .ls-gold-button, .ls-seal-cta,
         .ls-skim .ls-gold-button:hover, .ls-seal-cta:hover,
         .ls-skim .ls-gold-button:active, .ls-seal-cta:active { transform: none !important; transition: none !important; }
@@ -4989,7 +4910,7 @@ function CosmicStyles() {
       @keyframes ls-jglow { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
       @keyframes ls-jbreath { 0%,100% { transform: scale(1); } 50% { transform: scale(1.014); } }
       .ls-journey-cap { min-height: clamp(150px,22vh,210px); display: grid; place-items: center; padding: 4px 10px; cursor: pointer; width: 100%; }
-      .ls-cap-line { margin: 0; max-width: 21ch; text-align: center; color: ${C.cream}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.75rem, 5.9vw, 2.85rem); line-height: 1.32; font-weight: 500; letter-spacing: 0.004em; text-shadow: 0 2px 34px rgba(124,92,214,0.35); }
+      .ls-cap-line { margin: 0; max-width: 21ch; text-align: center; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.75rem, 5.9vw, 2.85rem); line-height: 1.32; font-weight: 500; letter-spacing: 0.004em; text-shadow: 0 2px 34px rgba(124,92,214,0.35); }
       .ls-cap-line.is-caveat { font-family: "Caveat", cursive; color: ${C.violetBright}; font-size: clamp(2.1rem, 7vw, 3.1rem); line-height: 1.2; }
       .ls-journey-dots { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; max-width: 280px; }
       .ls-jdot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: rgba(224,218,242,0.16); cursor: pointer; transition: transform .3s ease, background .3s ease; }
@@ -4997,7 +4918,7 @@ function CosmicStyles() {
       .ls-jdot.is-active { background: ${C.violetBright}; transform: scale(1.7); }
       .ls-journey-controls { display: flex; align-items: center; gap: 14px; opacity: 0.55; transition: opacity 250ms ease; }
       .ls-journey-controls:hover, .ls-journey-controls:focus-within { opacity: 1; }
-      .ls-jbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 1.18rem; cursor: pointer; transition: color 200ms ease; }
+      .ls-jbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: transparent; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 1.18rem; cursor: pointer; transition: color 200ms ease; }
       .ls-jbtn:hover { color: ${C.violetSoft}; }
       .ls-jbtn--play {
         color: ${C.violetBright}; font-size: 1.02rem; width: 46px; height: 46px; border-radius: 50%;
@@ -5009,19 +4930,19 @@ function CosmicStyles() {
       .ls-start { position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; border-radius: 28px; padding: 24px; background: radial-gradient(ellipse at 50% 45%, rgba(11,8,18,0.55), rgba(6,5,11,0.92) 72%); }
       .ls-journey--start .ls-wheel-svg { filter: blur(3px) brightness(0.85); opacity: 0.5; animation: none; }
       .ls-journey--start .ls-wheel-centername, .ls-journey--start .ls-wheel-centerborn, .ls-journey--start .ls-wheel-centerdom { display: none; }
-      .ls-start-eyebrow { color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
-      .ls-start-name { margin: 6px 0 0; color: ${C.violetBright}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2.6rem, 9.5vw, 4.4rem); line-height: 1; text-shadow: 0 2px 40px rgba(154,126,230,0.35); }
-      .ls-start-sub { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-size: 1.1rem; }
+      .ls-start-eyebrow { color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+      .ls-start-name { margin: 6px 0 0; color: ${C.violetBright}; font-family: "DM Serif Display", "Fraunces", Georgia, serif; font-size: clamp(2.6rem, 9.5vw, 4.4rem); line-height: 1; text-shadow: 0 2px 40px rgba(154,126,230,0.35); }
+      .ls-start-sub { color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-size: 1.1rem; }
       .ls-start-cta { margin-top: 16px; }
-      .ls-start-quiet { background: none; border: 0; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 4px; }
+      .ls-start-quiet { background: none; border: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 4px; }
       .ls-start-quiet:hover { color: ${C.creamDim}; }
       .ls-offer { width: 100%; max-width: 560px; display: grid; justify-items: center; text-align: center; gap: 13px; padding: clamp(24px,4vw,38px); border: 1px solid rgba(154,126,230,0.34); border-radius: 20px; background: radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.2), transparent 60%), linear-gradient(180deg, rgba(24,18,32,0.95), rgba(13,10,20,0.98)); box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
-      .ls-offer-title { color: ${C.cream}; font-family: "DM Serif Display", "Playfair Display", Georgia, serif; font-size: clamp(2rem, 5.6vw, 2.9rem); line-height: 1.05; }
-      .ls-offer-stack { color: ${C.creamDim}; font-family: "Cormorant", Georgia, serif; font-size: clamp(1.1rem, 3.1vw, 1.35rem); line-height: 1.5; max-width: 46ch; }
+      .ls-offer-title { color: ${C.cream}; font-family: "DM Serif Display", "Fraunces", Georgia, serif; font-size: clamp(2rem, 5.6vw, 2.9rem); line-height: 1.05; }
+      .ls-offer-stack { color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.1rem, 3.1vw, 1.35rem); line-height: 1.5; max-width: 46ch; }
       .ls-offer-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; width: 100%; max-width: 460px; margin-top: 6px; }
-      .ls-offer-form input { min-height: 48px; width: 100%; border: 1px solid rgba(154,126,230,0.38); border-radius: 8px; background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px; font-family: Lato, system-ui, sans-serif; }
+      .ls-offer-form input { min-height: 48px; width: 100%; border: 1px solid rgba(154,126,230,0.38); border-radius: 8px; background: rgba(5,4,7,0.72); color: ${C.cream}; padding: 0 14px; font-family: "Newsreader", Georgia, serif; }
       .ls-offer-form input:focus { outline: none; border-color: ${C.violetSoft}; }
-      .ls-offer-trust { color: ${C.muted}; font-family: "Cormorant", Georgia, serif; font-style: italic; font-size: 1.04rem; max-width: 44ch; }
+      .ls-offer-trust { color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 1.04rem; max-width: 44ch; }
       @media (max-width: 520px) { .ls-offer-form { grid-template-columns: 1fr; } }
       @media (prefers-reduced-motion: reduce) {
         .ls-journey-stage { transition: none !important; }
@@ -5031,11 +4952,11 @@ function CosmicStyles() {
       .ls-info-back {
         display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
         border-radius: 8px; border: 1px solid ${C.lineViolet}; background: transparent; cursor: pointer;
-        color: ${C.violetSoft}; font-family: Lato, system-ui, sans-serif; font-size: 0.86rem;
+        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 0.86rem;
       }
       .ls-info-back:hover { border-color: rgba(154,126,230,0.6); }
-      .ls-info-title { color: ${C.creamDim}; font-family: Lato, system-ui, sans-serif; font-size: 0.8rem; letter-spacing: 0.04em; }
-      .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: Lato, system-ui, sans-serif; font-size: 0.78rem; line-height: 1.5; }
+      .ls-info-title { color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.8rem; letter-spacing: 0.04em; }
+      .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.78rem; line-height: 1.5; }
       .ls-skim { width: min(100%, 760px); margin: clamp(30px,7vw,72px) auto 0; padding-top: clamp(24px,5vw,44px); border-top: 1px solid rgba(154,126,230,0.18); }
       @media (prefers-reduced-motion: reduce) {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
@@ -5065,45 +4986,69 @@ function CosmicStyles() {
       }
       .ls-gold-button,
       .ls-ghost-button {
-        min-height: 48px;
+        min-height: 52px;
         align-items: center;
         justify-content: center;
         display: inline-flex;
         gap: 10px;
-        border-radius: 8px;
-        padding: 0 24px;
-        font-family: Lato, system-ui, sans-serif;
-        font-size: 14px;
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 16.5px;
         font-weight: 600;
-        transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        transition: filter 180ms ease, box-shadow 180ms ease, border-color 180ms ease,
+          background 180ms ease, color 180ms ease, transform 60ms ease;
       }
-      .ls-gold-button {
-        background: ${C.violet};
-        color: ${C.cream};
-        border: 1px solid ${C.violetSoft};
+      /* Every buy-moment button carries the house metal-gold ramp (mockup
+         material system): graded metal, gold ink, inset bevel, warm throw. */
+      .ls-gold-button,
+      .ls-violet-button {
+        position: relative;
+        overflow: hidden;
+        border: 0;
+        background: linear-gradient(180deg,#f7e7b6 0%,#e9cd8b 18%,#d4b26b 40%,#c4a265 56%,#a9884f 80%,#8a6d3b 100%);
+        color: #2a1f0a;
+        box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
+          0 6px 18px -6px rgba(208,169,82,.45);
       }
-      .ls-gold-button:hover {
-        background: ${C.violetSoft};
+      .ls-gold-button::after,
+      .ls-violet-button::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(105deg,transparent 42%,rgba(255,255,255,.35) 50%,transparent 58%);
+        mix-blend-mode: overlay; transform: translateX(-120%); transition: transform .5s ease;
       }
+      .ls-gold-button:hover,
+      .ls-violet-button:hover {
+        filter: brightness(1.07) saturate(1.05);
+        box-shadow: 0 1px 0 rgba(255,255,255,.45) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
+          0 10px 26px -6px rgba(208,169,82,.6);
+      }
+      .ls-gold-button:hover::after,
+      .ls-violet-button:hover::after { transform: translateX(120%); }
+      .ls-gold-button:active,
+      .ls-violet-button:active {
+        background: linear-gradient(165deg,#d4b26b,#a9884f);
+        box-shadow: inset 0 2px 6px rgba(0,0,0,.35); transform: translateY(1px); filter: none;
+      }
+      .ls-gold-button:focus-visible,
+      .ls-violet-button:focus-visible { outline: 2px solid #f7e7b6; outline-offset: 3px; }
       .ls-gold-button:disabled {
         cursor: default;
-        opacity: 0.74;
+        filter: saturate(.7) brightness(.9);
       }
       .ls-ghost-button {
-        color: ${C.cream};
-        border: 1px solid ${C.line};
+        color: #cfc7ec;
+        border: 1px solid rgba(139,123,216,0.4);
+        font-weight: 400;
       }
       .ls-ghost-button:hover {
-        border-color: rgba(212,182,122,0.56);
-        background: rgba(245,239,230,0.04);
+        border-color: rgba(139,123,216,0.64);
+        background: rgba(139,123,216,0.07);
       }
-      .ls-violet-button {
-        background: ${C.violet};
-        color: ${C.cream};
-        border-color: ${C.violetSoft};
-      }
-      .ls-violet-button:hover {
-        background: ${C.violetSoft};
+      @media (prefers-reduced-motion: reduce) {
+        .ls-gold-button::after, .ls-violet-button::after { display: none; }
       }
       .ls-hero-section {
         background:
@@ -5178,13 +5123,13 @@ function CosmicStyles() {
         border-left: 1px solid rgba(212,182,122,0.34);
         padding-left: 16px;
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 12px;
       }
       .ls-video-seed strong {
         display: block;
         color: ${C.cream};
-        font-family: "Cormorant", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: 1.25rem;
         font-weight: 400;
         font-style: italic;
@@ -5224,13 +5169,13 @@ function CosmicStyles() {
         gap: 6px;
         padding: 16px;
         color: ${C.muted};
-        font-family: Lato, system-ui, sans-serif;
+        font-family: "Newsreader", Georgia, serif;
         font-size: 12px;
       }
       .ls-video-fallback strong {
         display: block;
         color: ${C.cream};
-        font-family: "Cormorant", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-size: 1.25rem;
         font-weight: 400;
         font-style: italic;
@@ -5270,7 +5215,7 @@ function CosmicStyles() {
         border-radius: 8px;
         background: rgba(13,10,20,0.86);
         color: ${C.cream};
-        font-family: "Cormorant", Georgia, serif;
+        font-family: "Fraunces", Georgia, serif;
         font-style: italic;
         font-size: 1.15rem;
         line-height: 1.28;
@@ -5475,7 +5420,7 @@ function revealDelay(seconds: number): CSSProperties {
 
 const heroLeadStyle = {
   color: C.cream,
-  fontFamily: "Lato, system-ui, sans-serif",
+  fontFamily: '"Newsreader", Georgia, serif',
   fontSize: "clamp(1.05rem, 2.1vw, 1.3rem)",
   fontWeight: 400,
   lineHeight: 1.5,
@@ -5483,7 +5428,7 @@ const heroLeadStyle = {
 
 const galleryCaptionStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "clamp(1.65rem, 4.2vw, 3.2rem)",
   fontWeight: 500,
   lineHeight: 1.04,
@@ -5492,7 +5437,7 @@ const galleryCaptionStyle = {
 
 const heroTitleStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "clamp(2.7rem, 8vw, 6.35rem)",
   fontWeight: 500,
   lineHeight: 0.92,
@@ -5501,7 +5446,7 @@ const heroTitleStyle = {
 
 const sectionTitleStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "clamp(2.55rem, 6vw, 4.9rem)",
   fontWeight: 500,
   lineHeight: 0.98,
@@ -5510,28 +5455,28 @@ const sectionTitleStyle = {
 
 const sectionBodyStyle = {
   color: C.creamDim,
-  fontFamily: "Lato, system-ui, sans-serif",
+  fontFamily: '"Newsreader", Georgia, serif',
   fontSize: "1.08rem",
   lineHeight: 1.74,
 } as const;
 
 const bodyStyle = {
   color: C.creamDim,
-  fontFamily: "Lato, system-ui, sans-serif",
+  fontFamily: '"Newsreader", Georgia, serif',
   fontSize: "0.98rem",
   lineHeight: 1.68,
 } as const;
 
 const smallBodyStyle = {
   color: C.muted,
-  fontFamily: "Lato, system-ui, sans-serif",
+  fontFamily: '"Newsreader", Georgia, serif',
   fontSize: "0.92rem",
   lineHeight: 1.62,
 } as const;
 
 const panelLeadStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "1.42rem",
   fontWeight: 500,
   lineHeight: 1.18,
@@ -5539,7 +5484,7 @@ const panelLeadStyle = {
 
 const cardTitleStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "1.92rem",
   fontWeight: 500,
   lineHeight: 1.06,
@@ -5547,7 +5492,7 @@ const cardTitleStyle = {
 
 const chartTitleStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "clamp(2rem, 4vw, 3.2rem)",
   fontWeight: 500,
   lineHeight: 1,
@@ -5555,7 +5500,7 @@ const chartTitleStyle = {
 
 const smallTitleStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "1.25rem",
   fontWeight: 500,
   lineHeight: 1.12,
@@ -5563,7 +5508,7 @@ const smallTitleStyle = {
 
 const faqTitleStyle = {
   color: C.cream,
-  fontFamily: '"Playfair Display", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "1.55rem",
   fontWeight: 500,
   lineHeight: 1.18,
@@ -5571,7 +5516,7 @@ const faqTitleStyle = {
 
 const whisperStyle = {
   color: C.creamDim,
-  fontFamily: '"Cormorant", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "1.48rem",
   fontStyle: "italic",
   lineHeight: 1.42,
@@ -5579,7 +5524,7 @@ const whisperStyle = {
 
 const quoteStyle = {
   color: C.cream,
-  fontFamily: '"Cormorant", Georgia, serif',
+  fontFamily: '"Fraunces", Georgia, serif',
   fontSize: "1.65rem",
   fontStyle: "italic",
   lineHeight: 1.42,
@@ -5588,7 +5533,7 @@ const quoteStyle = {
 function eyebrowStyle(color: string) {
   return {
     color,
-    fontFamily: "Lato, system-ui, sans-serif",
+    fontFamily: '"Newsreader", Georgia, serif',
     fontSize: 13,
     fontWeight: 600,
     letterSpacing: "0.14em",
