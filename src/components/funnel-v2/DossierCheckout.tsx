@@ -488,9 +488,10 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           ))}
         </ul>
 
-        {/* reviews: skeptic opens, grief given room, joy, gift */}
+        {/* reviews: grief given room, joy, gift. The skeptic now opens
+            earlier, on the journey itself, at the post-reveal doubt beat
+            (SkepticWhisper) — one voice, one place, no duplicate here. */}
         <div className="dsr-rev-block">
-          <Review kind="skeptic" variant="compact" />
           <Review kind="grief" variant="room" />
           <Review kind="joy" variant="compact" />
           <Review kind="gift" variant="compact" />
@@ -529,6 +530,9 @@ export function DossierCheckout(props: DossierCheckoutProps) {
             <b>{totalLabel} total.</b>
           </p>
         )}
+
+        {/* the returner — last social proof before the buy button */}
+        <Review kind="returner" variant="compact" />
 
         <div className="dsr-email-block">
           <label className="dsr-eyebrow" htmlFor="dsr-email">Where their reading opens</label>
@@ -583,9 +587,6 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           )}
           {codeError && <p className="dsr-error">{codeError}</p>}
         </div>
-
-        {/* the returner, last word before the small print */}
-        <Review kind="returner" variant="compact" />
 
         <details className="dsr-details">
           <summary>What opens<Chevron /></summary>

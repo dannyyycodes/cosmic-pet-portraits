@@ -390,6 +390,7 @@ export function ReadingsLanding() {
       <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
+      <SkepticWhisper />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -2659,6 +2660,99 @@ function CheckoutSection({
         </div>
         <span className="sr-only">Selected price {selectedPrice}</span>
       </div>
+    </section>
+  );
+}
+
+// The skeptic's whisper — the post-reveal doubt beat. It sits between the free
+// chart reveal and the checkout, where a reader who liked the free reading is
+// deciding whether the paid one is worth it. Verbatim from the approved review
+// set (Hannah + Nell), given one quiet place on the journey and removed from
+// the dossier's own review block, so the voice appears exactly once.
+//
+// Discovery path only: a "money-for-grief nonsense" testimonial has no place on
+// the memorial path, so it hides the instant memorial intent is chosen and
+// stays hidden. Fade-in is transform/opacity only (.ls-reveal), with a static
+// end-state under reduced motion.
+function SkepticWhisper() {
+  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+  if (memorialIntent) return null;
+
+  return (
+    <section className="ls-skeptic ls-parallax-band" aria-label="A reader who doubted">
+      <div className="ls-skeptic-inner ls-reveal">
+        <p className="ls-skeptic-eyebrow">A reader who doubted</p>
+        <figure className="ls-skeptic-card">
+          <span className="ls-skeptic-ph" aria-hidden="true">
+            <img src="/reviews/review-1.webp" alt="" width={128} height={128} loading="lazy" decoding="async" />
+          </span>
+          <div className="ls-skeptic-stars" role="img" aria-label="Five stars">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <svg key={i} viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
+              </svg>
+            ))}
+          </div>
+          <blockquote className="ls-skeptic-quote">
+            I thought it was money-for-grief nonsense, if I am honest. Then it mentioned Nell
+            guarding the stairs whenever Saturn feelings show up, and that is exactly where she
+            plants herself when anyone raises a voice, one white sock hanging over the top step.
+            I read that bit twice before I showed my husband.
+          </blockquote>
+          <figcaption className="ls-skeptic-attr">Hannah P. · Nell, whippet-lurcher</figcaption>
+        </figure>
+      </div>
+      <style>{`
+        .ls-skeptic { position: relative; padding: clamp(40px, 8svh, 88px) 20px clamp(8px, 2svh, 24px); }
+        .ls-skeptic-inner { max-width: 640px; margin: 0 auto; }
+        .ls-skeptic-eyebrow {
+          text-align: center; margin: 0 0 20px;
+          color: ${C.gold}; font-family: "Newsreader", Georgia, serif;
+          font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+        }
+        .ls-skeptic-card {
+          position: relative; margin: 0; padding: 30px 26px 26px;
+          border-radius: 18px; text-align: center;
+          background:
+            radial-gradient(120% 70% at 50% 0%, rgba(154,126,230,0.07), transparent 62%),
+            linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 18px 48px rgba(0,0,0,0.34);
+        }
+        .ls-skeptic-card::before {
+          content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+          background: linear-gradient(165deg, rgba(212,182,122,0.34) 0%, rgba(154,126,230,0.16) 46%, rgba(212,182,122,0.30) 100%);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+        }
+        .ls-skeptic-ph {
+          position: relative; display: inline-block; width: 72px; height: 72px;
+          border-radius: 50%; overflow: hidden; margin-bottom: 16px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,182,122,0.4);
+        }
+        .ls-skeptic-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .ls-skeptic-stars { display: flex; gap: 5px; justify-content: center; margin-bottom: 16px; }
+        .ls-skeptic-stars svg { width: 16px; height: 16px; display: block; fill: ${C.gold}; }
+        .ls-skeptic-quote {
+          margin: 0 auto 16px; max-width: 46ch;
+          color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-style: italic;
+          font-size: clamp(1.12rem, 4.4vw, 1.3rem); line-height: 1.5;
+        }
+        .ls-skeptic-quote::before { content: "\\201C"; }
+        .ls-skeptic-quote::after { content: "\\201D"; }
+        .ls-skeptic-attr {
+          color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
+          font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+        }
+        @media (min-width: 768px) {
+          .ls-skeptic-card { padding: 38px 40px 32px; }
+          .ls-skeptic-ph { width: 80px; height: 80px; }
+        }
+      `}</style>
     </section>
   );
 }
