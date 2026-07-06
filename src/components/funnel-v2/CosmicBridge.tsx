@@ -211,6 +211,13 @@ const LCB_CSS = `
 .lcb-front{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;will-change:opacity}
 
 .lcb-sky{position:absolute;inset:0;background:linear-gradient(180deg,var(--lcb-deep) 0%,var(--lcb-bg) 48%,var(--lcb-lift) 100%)}
+/* ONE SKY, DAWN GRADE — the same night, graded by scroll. Violet lifts at the
+   reveal; a bottom-anchored gold horizon (never above 25% alpha) rises behind
+   checkout. Both are composited opacity layers, never repainted gradients. */
+.lcb-sky-violet{position:absolute;inset:0;opacity:0;will-change:opacity;
+  background:linear-gradient(180deg,#0b0813 0%,#16111e 56%,#1b1526 100%)}
+.lcb-dawn-horizon{position:absolute;inset:0;opacity:0;will-change:opacity;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 130% 48% at 50% 108%, rgba(196,162,101,0.21) 0%, rgba(196,162,101,0.10) 36%, rgba(196,162,101,0.035) 58%, rgba(196,162,101,0) 76%)}
 .lcb-canvas-wrap{position:absolute;inset:-8% -6%;will-change:transform}
 .lcb-canvas{position:absolute;inset:0;width:100%;height:100%}
 
@@ -222,12 +229,17 @@ const LCB_CSS = `
 .lcb-moon{position:absolute;top:-6%;right:-8%;width:min(32vw,258px);aspect-ratio:1;will-change:transform}
 .lcb-moon-bloom{position:absolute;inset:-62%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
   background:radial-gradient(circle, rgba(150,160,210,0.20) 0%, rgba(150,160,210,0.09) 20%, rgba(150,160,210,0.03) 45%, rgba(150,160,210,0) 72%)}
+.lcb-moon-bloom-gold{position:absolute;inset:-62%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;opacity:0;
+  background:radial-gradient(circle, rgba(214,178,107,0.22) 0%, rgba(214,178,107,0.10) 22%, rgba(214,178,107,0.035) 46%, rgba(214,178,107,0) 72%)}
 .lcb-moon-disc{position:absolute;inset:0;border-radius:50%;
   -webkit-mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
   mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%)}
 .lcb-moon-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.06);
   filter:saturate(0.82) contrast(0.94) brightness(0.98)}
 .lcb-moon-img.blur{filter:saturate(0.8) contrast(0.92) brightness(0.98)}
+/* the SAME real moon photo, warmed: cold grey crossfades to gold as it becomes
+   their Sun descending behind checkout. Static filter, opacity-only tween. */
+.lcb-moon-img.gold{opacity:0;filter:sepia(0.55) saturate(1.45) hue-rotate(-12deg) brightness(1.06) contrast(0.95)}
 .lcb-moon-grade{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:multiply;
   background:radial-gradient(circle at 50% 54%, rgba(13,10,20,0) 56%, rgba(13,10,20,0.55) 100%),
     linear-gradient(180deg, rgba(120,132,180,0.05), rgba(13,10,20,0.12))}
@@ -253,7 +265,9 @@ const LCB_CSS = `
   background:radial-gradient(ellipse at 50% 44%, rgba(150,152,205,0.16) 0%, rgba(120,124,180,0.05) 42%, transparent 66%)}
 
 /* ---- beats layer ---- */
-.lcb-beats{position:relative;z-index:2}
+/* perspective for the camera-tilt handoffs: leaving a beat reads as tilting
+   your head to the next patch of sky (transform-only, scrubbed) */
+.lcb-beats{position:relative;z-index:2;perspective:1100px}
 /* 88svh + px-capped padding: tall phones stop inflating dead air */
 .lcb-scene{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
   padding:clamp(56px,10svh,112px) clamp(24px,7vw,80px);text-align:center;gap:clamp(20px,3.6vw,34px);overflow:hidden}
@@ -433,7 +447,7 @@ function makeCubicBezier(x1: number, y1: number, x2: number, y2: number): (t: nu
     return sy(t);
   };
 }
-const HOUSE = makeCubicBezier(0.16, 1, 0.3, 1);
+export const HOUSE = makeCubicBezier(0.16, 1, 0.3, 1);
 
 export function CosmicBridge() {
   const rootRef = useRef<HTMLElement>(null);
@@ -835,6 +849,65 @@ export function CosmicBridge() {
         if (asc) t4.to(asc, { opacity: 1, y: 0, ease: HOUSE, duration: 1.0, onComplete: () => asc.classList.add("lit") }, 8.8);
         if (rule) t4.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: HOUSE, duration: 1.1 }, 8.9);
       }
+
+      // ========== SPINE 2 — MOON BECOMES THEIR SUN (page-spanning) ==========
+      // After the passage the moon keeps travelling: it hangs above the seal
+      // card waiting, swings around the reveal, then descends behind checkout
+      // while its cold grey crossfades to gold. The sale is daybreak.
+      // Functional values + invalidateOnRefresh so the post-submit reveal
+      // growth only needs ScrollTrigger.refresh() to re-measure the spine.
+      const orrery2 = document.querySelector("#computed-sky");
+      const checkout2 = document.querySelector("#begin");
+      const moonEl = q(".lcb-moon");
+      const goldImg = q(".lcb-moon-img.gold");
+      const bloomCold = q(".lcb-moon-bloom");
+      const bloomGold = q(".lcb-moon-bloom-gold");
+      if (travel && orrery2 && checkout2) {
+        const W2 = () => window.innerWidth, H2 = () => window.innerHeight;
+        const spine = gsap.timeline({
+          scrollTrigger: { trigger: orrery2, start: "top bottom", endTrigger: checkout2, end: "top 28%", scrub, invalidateOnRefresh: true },
+        });
+        // leg 4 — hang above the form, waiting. Explicit "from" = leg 3's end so
+        // the two scrubbed timelines hand the moon over without a seam.
+        spine.fromTo(travel,
+          { x: () => 0.05 * W2() * amp, y: () => -0.11 * H2() * amp },
+          { x: () => (mobile ? -0.36 : -0.44) * W2(), y: () => 0.18 * H2(), ease: HOUSE, duration: 1, immediateRender: false }, 0.001)
+          // leg 5 — orbit the reveal wheel: swing wide and small around the stage
+          .to(travel, { x: () => (mobile ? -0.16 : -0.20) * W2(), y: () => 0.09 * H2(), ease: "sine.inOut", duration: 1.2 }, 1.001)
+          .to(moonEl, { scale: 0.8, ease: "none", duration: 1.2 }, 1.001)
+          // leg 6 — daybreak: descend into the horizon glow behind checkout
+          .to(travel, { x: () => (mobile ? -0.26 : -0.30) * W2(), y: () => 0.64 * H2(), ease: "none", duration: 1.6 }, 2.201)
+          .to(moonEl, { scale: 0.88, ease: "none", duration: 1.6 }, 2.201);
+        if (goldImg) spine.to(goldImg, { opacity: 1, ease: "none", duration: 1.3 }, 2.4);
+        if (bloomCold && bloomGold) {
+          spine.to(bloomCold, { opacity: 0, ease: "none", duration: 1.3 }, 2.4)
+            .to(bloomGold, { opacity: 1, ease: "none", duration: 1.3 }, 2.4);
+        }
+      }
+
+      // ========== CAMERA-TILT HANDOFFS ==========
+      // A slight rotateX/translate scrub at each beat boundary: leaving a beat
+      // reads as tilting your head to the next patch of sky. The payoff never
+      // tilts out (it hands flat into the form), beat 1 never tilts in (it
+      // rises under the hero).
+      const scenes = qa(".lcb-scene");
+      const tiltIn = mobile ? 1.6 : 2.6;
+      const tiltOut = mobile ? 1.4 : 2.2;
+      scenes.forEach((scene, i) => {
+        gsap.set(scene, { transformOrigin: "50% 50%" });
+        if (i > 0) {
+          gsap.fromTo(scene, { rotationX: -tiltIn, y: 26 * amp }, {
+            rotationX: 0, y: 0, ease: "none", immediateRender: false,
+            scrollTrigger: { trigger: scene, start: "top 98%", end: "top 55%", scrub },
+          });
+        }
+        if (i < scenes.length - 1) {
+          gsap.to(scene, {
+            rotationX: tiltOut, y: -20 * amp, ease: "none",
+            scrollTrigger: { trigger: scene, start: "bottom 48%", end: "bottom 10%", scrub },
+          });
+        }
+      });
     };
 
     mm.add(
@@ -849,25 +922,45 @@ export function CosmicBridge() {
         const noMotion = !!cond.reduce;
         const scrub = mobile ? 1.2 : 1;
 
-        // ---- stage opacity: enter ramp over the hero seam, exit ramp at the
-        // form. min(enter, exit) so the fixed night never veils the hero at load.
-        // Coverage ramps stay LINEAR: an eased coverage fade lights the night too
-        // early over the hero (HOUSE(0.29) ~= 0.78 at load). HOUSE lives on beats.
-        const stageOp = { enter: 0, exit: 1 };
+        // ---- ONE SKY: the stage lights as the hero sets and then STAYS ON for
+        // the rest of the page (form, reveal, checkout all live under the same
+        // night). Only the framing veils (.lcb-front) still exit at the form so
+        // the reveal + checkout keep full text contrast. Ramps stay LINEAR: an
+        // eased coverage fade lights the night too early over the hero
+        // (HOUSE(0.29) ~= 0.78 at load). HOUSE lives on the beats.
+        const stageOp = { enter: 0, frontExit: 1 };
         const applyStage = () => {
-          const op = Math.min(stageOp.enter, stageOp.exit);
-          if (back) (back as HTMLElement).style.opacity = String(op);
-          if (front) (front as HTMLElement).style.opacity = String(op);
+          if (back) (back as HTMLElement).style.opacity = String(stageOp.enter);
+          if (front) (front as HTMLElement).style.opacity = String(Math.min(stageOp.enter, stageOp.frontExit));
         };
         applyStage();
         gsap.fromTo(stageOp, { enter: 0 }, {
           enter: 1, ease: "none", onUpdate: applyStage,
           scrollTrigger: { trigger: root, start: "top 80%", end: "top 25%", scrub: noMotion ? true : scrub },
         });
-        gsap.fromTo(stageOp, { exit: 1 }, {
-          exit: 0, ease: "none", onUpdate: applyStage,
+        gsap.fromTo(stageOp, { frontExit: 1 }, {
+          frontExit: 0, ease: "none", onUpdate: applyStage,
           scrollTrigger: { trigger: root, start: "bottom 60%", end: "bottom 5%", scrub: noMotion ? true : scrub },
         });
+
+        // ---- DAWN GRADE: violet lifts at the reveal, the gold horizon rises
+        // behind checkout. Opacity-only, so it runs under reduced motion too.
+        const violetSky = q(".lcb-sky-violet");
+        const dawnSky = q(".lcb-dawn-horizon");
+        const orrerySec = document.querySelector("#computed-sky");
+        const checkoutSec = document.querySelector("#begin");
+        if (violetSky && orrerySec) {
+          gsap.fromTo(violetSky, { opacity: 0 }, {
+            opacity: 1, ease: "none",
+            scrollTrigger: { trigger: orrerySec, start: "top 70%", end: "top 12%", scrub: noMotion ? true : scrub },
+          });
+        }
+        if (dawnSky && checkoutSec) {
+          gsap.fromTo(dawnSky, { opacity: 0 }, {
+            opacity: 1, ease: "none",
+            scrollTrigger: { trigger: checkoutSec, start: "top 92%", end: "top 30%", scrub: noMotion ? true : scrub },
+          });
+        }
 
         // ================= REDUCED MOTION: honest final state =================
         if (noMotion) {
@@ -931,18 +1024,21 @@ export function CosmicBridge() {
     <section ref={rootRef} className="lcb-root" aria-label="Why a birth chart">
       <style>{LCB_CSS}</style>
 
-      {/* fixed graded night stage (behind the beats) */}
+      {/* fixed graded night stage — the ONE sky for the whole page */}
       <div className="lcb-back" aria-hidden="true">
         <div className="lcb-sky" />
+        <div className="lcb-sky-violet" />
         <div className="lcb-canvas-wrap"><canvas className="lcb-canvas" /></div>
         <div className="lcb-moon-travel">
           <div className="lcb-moon-b4">
             <div className="lcb-moon-pt">
               <div className="lcb-moon">
                 <div className="lcb-moon-bloom" />
+                <div className="lcb-moon-bloom-gold" />
                 <div className="lcb-moon-disc">
                   <img className="lcb-moon-img blur" src="/start/cosmos-moon-blur.webp" width={520} height={520} alt="" decoding="async" loading="lazy" />
                   <img className="lcb-moon-img sharp" src="/start/cosmos-moon.webp" width={520} height={520} alt="" decoding="async" loading="lazy" />
+                  <img className="lcb-moon-img gold" src="/start/cosmos-moon.webp" width={520} height={520} alt="" decoding="async" loading="lazy" />
                   <div className="lcb-moon-grade" />
                   <div className="lcb-moon-term" />
                   <div className="lcb-moon-rim" />
@@ -951,6 +1047,7 @@ export function CosmicBridge() {
             </div>
           </div>
         </div>
+        <div className="lcb-dawn-horizon" />
         <div className="lcb-grade" />
       </div>
 

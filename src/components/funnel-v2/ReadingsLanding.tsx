@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
 import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { InlineCheckout } from "./InlineCheckout";
-import { CosmicBridge } from "./CosmicBridge";
+import { CosmicBridge, HOUSE } from "./CosmicBridge";
+
+gsap.registerPlugin(ScrollTrigger);
 import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 
@@ -379,7 +383,6 @@ export function ReadingsLanding() {
   return (
     <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
-      <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
       <CosmicBridge />
       <BirthSkyJourney />
@@ -1734,6 +1737,8 @@ function CosmicJourney({
 function BirthSkyJourney() {
   const reduce = useReducedMotion() ?? false;
   const infoBtnRef = useRef<HTMLButtonElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const growFromRef = useRef(0);
 
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
@@ -1749,6 +1754,43 @@ function BirthSkyJourney() {
 
   const name = petName.trim();
   const ready = status === "ready";
+
+  // SEAM 3 (the hardest engineering point on the page): when the form hands
+  // into the reveal, this section grows from a one-card stage to the full
+  // journey + skim stack in a single React swap. Without easing the growth and
+  // re-measuring, every ScrollTrigger below (the moon spine, the dawn grade,
+  // the checkout trigger) keeps stale positions and the moon derails. So:
+  // height tween from the pre-swap height, then clear + ScrollTrigger.refresh()
+  // (the spine uses invalidateOnRefresh, so refresh IS the re-measure).
+  useLayoutEffect(() => {
+    if (!(ready && chart)) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const from = growFromRef.current;
+    growFromRef.current = 0;
+    const to = el.offsetHeight;
+    if (reduce || !from || Math.abs(to - from) < 80) {
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+      return;
+    }
+    const tween = gsap.fromTo(
+      el,
+      { height: from, overflow: "hidden" },
+      {
+        height: to,
+        duration: 0.9,
+        ease: HOUSE,
+        onComplete: () => {
+          gsap.set(el, { clearProps: "height,overflow" });
+          ScrollTrigger.refresh();
+        },
+      },
+    );
+    return () => {
+      tween.kill();
+      gsap.set(el, { clearProps: "height,overflow" });
+    };
+  }, [ready, chart, reduce]);
 
   // Beat-by-beat scroll reveal for the skim rows (they mount after the async
   // chart resolves, so the page-level reveal observer has already run — this
@@ -1855,7 +1897,7 @@ function BirthSkyJourney() {
     document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <section id="computed-sky" className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
+    <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
         <>
           <CosmicJourney
@@ -1969,7 +2011,11 @@ function BirthSkyJourney() {
                 name={name}
                 date={date}
                 reduce={reduce}
-                onDone={() => setStatus("ready")}
+                onDone={() => {
+                  // capture the pre-swap height so the reveal growth can tween
+                  growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
+                  setStatus("ready");
+                }}
               />
             ) : (
               <form className="ls-seal-card ls-stage-card ls-reveal" onSubmit={handleOpen}>
@@ -2637,30 +2683,10 @@ function HeroBackdropVideo() {
   );
 }
 
-function CosmicBackdrop() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,rgba(65,47,88,0.55),transparent_42%),radial-gradient(ellipse_at_88%_18%,rgba(212,182,122,0.12),transparent_26%),radial-gradient(ellipse_at_10%_70%,rgba(94,70,122,0.16),transparent_32%)]" />
-      <svg className="absolute inset-0 h-full w-full opacity-50" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
-        <g stroke="rgba(212,182,122,0.15)" strokeWidth="1" fill="none">
-          <path d="M110 220 188 174 275 238 360 188" />
-          <path d="M810 126 902 196 1010 156 1078 245" />
-          <path d="M704 662 780 602 856 678 942 624" />
-          <path d="M130 720 236 650 304 742" />
-        </g>
-        {[
-          [110, 220, 2], [188, 174, 2.8], [275, 238, 2.2], [360, 188, 2],
-          [810, 126, 2.4], [902, 196, 3], [1010, 156, 2], [1078, 245, 2.2],
-          [704, 662, 2], [780, 602, 2.6], [856, 678, 2.1], [942, 624, 2.5],
-          [510, 118, 1.4], [592, 322, 1.6], [110, 620, 1.5], [1090, 712, 1.4],
-          [130, 720, 1.8], [236, 650, 2.2], [304, 742, 1.8],
-        ].map(([cx, cy, r], i) => (
-          <circle key={i} cx={cx} cy={cy} r={r} fill="rgba(245,239,230,0.72)" />
-        ))}
-      </svg>
-    </div>
-  );
-}
+// The old fixed page backdrop (faint radials + constellation dots) is gone:
+// the ONE shared sky now lives in CosmicBridge's fixed stage, which stays lit
+// from the passage through the reveal to checkout and is graded by scroll
+// (deepest night -> violet at the reveal -> gold horizon behind checkout).
 
 function CosmicStyles() {
   return (
@@ -4917,23 +4943,11 @@ function CosmicStyles() {
       }
 
       /* === The narrated journey (cinematic) =============================== */
-      .ls-journey { position: relative; width: 100%; max-width: 880px; margin: clamp(16px,4vw,40px) auto 0; display: grid; justify-items: center; gap: clamp(20px,3.4vw,34px); padding: clamp(26px,5vw,54px) 16px clamp(20px,3vw,34px); border-radius: 28px; overflow: hidden; isolation: isolate; background: radial-gradient(125% 95% at 50% 6%, #16111e 0%, #0b0813 56%, #07060c 100%); box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 50px 130px rgba(0,0,0,0.55); }
+      /* ONE SKY: the journey's private radial card sky + drifting star layer are
+         gone — the reveal sits directly in the shared graded night (violet lift
+         arrives from the page backdrop, not a boxed panel). */
+      .ls-journey { position: relative; width: 100%; max-width: 880px; margin: clamp(16px,4vw,40px) auto 0; display: grid; justify-items: center; gap: clamp(20px,3.4vw,34px); padding: clamp(26px,5vw,54px) 16px clamp(20px,3vw,34px); border-radius: 28px; isolation: isolate; }
       .ls-journey > * { position: relative; z-index: 2; }
-      .ls-journey::before { content: ""; position: absolute; inset: -12%; z-index: 0; pointer-events: none; opacity: 0.5;
-        background-image:
-          radial-gradient(1px 1px at 22% 18%, #fff, transparent),
-          radial-gradient(1px 1px at 70% 28%, rgba(255,255,255,0.82), transparent),
-          radial-gradient(1.5px 1.5px at 44% 62%, #fff, transparent),
-          radial-gradient(1px 1px at 16% 80%, rgba(255,255,255,0.68), transparent),
-          radial-gradient(1px 1px at 86% 70%, rgba(255,255,255,0.7), transparent),
-          radial-gradient(1.6px 1.6px at 60% 90%, #fff, transparent),
-          radial-gradient(40% 50% at 28% 30%, rgba(124,92,214,0.12), transparent 70%),
-          radial-gradient(46% 46% at 78% 64%, rgba(94,70,122,0.14), transparent 72%);
-        background-size: 320px 320px, 320px 320px, 320px 320px, 320px 320px, 320px 320px, 320px 320px, 100% 100%, 100% 100%;
-        animation: ls-jdrift 90s linear infinite; }
-      .ls-journey::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: 28px;
-        background: radial-gradient(125% 80% at 50% 40%, transparent 50%, rgba(4,3,8,0.6) 100%); }
-      @keyframes ls-jdrift { to { transform: translate3d(-46px, -34px, 0); } }
       .ls-journey-stage { position: relative; height: auto; overflow: visible; padding: 0; width: 100%; display: grid; justify-items: center; pointer-events: none; transition: opacity 700ms ease, filter 700ms ease; }
       .ls-journey-stage.is-dim { opacity: 0.14; filter: blur(3px); }
       .ls-journey-stage .ls-wheel { position: relative; }
@@ -4978,7 +4992,7 @@ function CosmicStyles() {
       @media (max-width: 520px) { .ls-offer-form { grid-template-columns: 1fr; } }
       @media (prefers-reduced-motion: reduce) {
         .ls-journey-stage { transition: none !important; }
-        .ls-journey::before, .ls-journey-stage .ls-wheel::before, .ls-journey-stage .ls-wheel-svg { animation: none !important; }
+        .ls-journey-stage .ls-wheel::before, .ls-journey-stage .ls-wheel-svg { animation: none !important; }
       }
       .ls-info-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .ls-info-back {
@@ -4994,10 +5008,10 @@ function CosmicStyles() {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
 
-      /* Seamless reveal -> pricing junction: no boxed shell floating around the
-         checkout — just a soft violet dawn rising into the panel, same night sky. */
+      /* Seamless reveal -> pricing junction: no boxed shell, no private wash —
+         the dawn behind checkout now rises from the ONE shared sky. */
       .ls-checkout-shell {
-        background: radial-gradient(ellipse at 50% 0%, rgba(154,126,230,0.1), transparent 46%);
+        background: transparent;
         border: 0;
         border-radius: 0;
         box-shadow: none;
