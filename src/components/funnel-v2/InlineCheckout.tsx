@@ -1811,7 +1811,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 maxWidth: 440,
               }}
             >
-              A keepsake for the space they left &mdash; written reverently,
+              A keepsake for the space they left, written reverently,
               to be felt, not skimmed.
             </p>
           )}
@@ -1827,7 +1827,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 maxWidth: 460,
               }}
             >
-              Their first reading &mdash; the sky they arrived under,
+              Their first reading. The sky they arrived under,
               read line by line.
             </p>
           )}
@@ -1856,19 +1856,16 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </div>
         )}
 
-        {/* Live multi-pet discount hint. Suppressed on memorial — a
-            grieving visitor is holding one soul in mind, and prompting
-            "got more pets?" is tonally wrong. */}
-        {!memorialOnly && (
+        {/* Live multi-pet discount confirmation. Only shows once a second
+            pet is added; the old "got more pets?" prompt line is gone
+            (replaced later by the quiet multi-pet disclosure). Suppressed
+            on memorial — a grieving visitor is holding one soul in mind. */}
+        {!memorialOnly && petCount >= 2 && (
           <p
             className="text-center mb-5"
-            style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: petCount >= 2 ? "var(--rose, #bf524a)" : "var(--muted, #958779)" }}
+            style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: "var(--rose, #bf524a)" }}
           >
-            {petCount >= 2 ? (
-              <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied, {petCount} readings · {fmt(selectedPrice)}</>
-            ) : (
-              <>🐾 Got more pets? Use the + buttons above to save up to 30% on 2 or more</>
-            )}
+            {Math.round(discountRate * 100)}% multi-pet discount applied, {petCount} readings · {fmt(selectedPrice)}
           </p>
         )}
 
