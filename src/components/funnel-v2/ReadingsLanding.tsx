@@ -641,7 +641,7 @@ const SIGN_LINES: Record<string, Record<string, string>> = {
     Leo: "Plays to an audience and fights for the spotlight. Bold, a little dramatic, and genuinely proud of the prize they bring you.",
     Virgo: "Goes after what they want with quiet precision, not noise. This one studies the problem, then solves it on the third try.",
     Libra: "Hates a real fight, loves a fair game. They will charm their way to the treat long before they wrestle for it.",
-    Scorpio: "All or nothing, and they remember. This one locks onto a goal with a focus that is honestly a little intense.",
+    Scorpio: "All or nothing, and they remember. This one locks onto a goal with a focus that is a little intense.",
     Sagittarius: "Runs first, thinks later, and the whole world is the playing field. Restless, fearless, happiest in full sprint.",
     Capricorn: "Patient and relentless. This one paces themselves, never wastes a move, and quietly wins the long game.",
     Aquarius: "Picks their own fights for their own reasons. Stubborn in odd moments, unbothered in the ones you expect to spook them.",
@@ -1197,7 +1197,7 @@ function ComputeSequence({
     "Finding the Sun.",
     "Then the Moon.",
     "Measuring the angles between them.",
-    name ? `The chart for ${name}.` : "The chart, honest from the date alone.",
+    name ? `The chart for ${name}.` : "The chart, from the date alone.",
   ];
 
   let readout: ReactNode = null;
@@ -1462,7 +1462,7 @@ function OrreryInfoOverlay({
         </div>
 
         <p className="ls-info-note">
-          No rising sign here. That one honestly needs the exact minute and place of birth. Everything on the
+          No rising sign here. That one needs the exact minute and place of birth. Everything on the
           wheel comes from the date alone, and all of it is real.
         </p>
       </div>
@@ -2096,8 +2096,8 @@ function BirthSkyJourney() {
                 </button>
                 {whyOpen && (
                   <p className="ls-seal-help">
-                    Rising sign and houses need the exact minute and town. Planet positions only need the date, so
-                    everything on this chart is honest from that alone.
+                    Rising sign and houses need the exact minute and town. Planet positions don't, so
+                    everything on this chart stands on the date alone.
                   </p>
                 )}
               </form>
@@ -4739,11 +4739,6 @@ function CosmicStyles() {
         border: 1px solid rgba(154,126,230,0.65); font-family: "Fraunces", Georgia, serif;
         font-size: 0.8rem; line-height: 1; font-style: italic;
       }
-      .ls-wheel-honesty {
-        max-width: 50ch; margin: 0 auto; text-align: center; color: ${C.muted};
-        font-family: "Newsreader", Georgia, serif; font-size: 0.82rem; line-height: 1.5;
-      }
-
       .ls-free-head {
         display: inline-flex; align-items: center; gap: 8px; color: ${C.creamDim};
         font-family: "Newsreader", Georgia, serif; font-size: 0.68rem; font-weight: 800;
