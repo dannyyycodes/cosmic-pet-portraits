@@ -56,7 +56,9 @@ export function ReadingsNav() {
         const r = bridge.getBoundingClientRect();
         const vh = window.innerHeight || 1;
         const outP = clamp01((vh * 0.5 - r.top) / (vh * 0.22));
-        const backP = clamp01((r.bottom - 64) / (vh * 0.3));
+        // only return once the passage's last line has fully cleared the nav
+        // zone: ramp from bottom=100px (still hidden) to bottom=-80px (back)
+        const backP = clamp01((r.bottom + 80) / 180);
         op = 1 - Math.min(outP, backP) * 0.96;
       }
       header.style.opacity = op.toFixed(3);
