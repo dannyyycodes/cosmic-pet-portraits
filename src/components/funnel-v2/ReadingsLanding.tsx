@@ -2523,7 +2523,11 @@ function CheckoutSection({
   onSelectedPriceChange: (price: number) => void;
 }) {
   return (
-    <section id="begin" className="ls-parallax-band relative px-5 py-18 sm:py-28">
+    <section
+      id="begin"
+      className="ls-parallax-band relative px-5 pb-16 sm:pb-28"
+      style={{ paddingTop: "var(--funnel-gap, clamp(48px, 7svh, 88px))" }}
+    >
       <div className="mx-auto max-w-6xl">
         <div className="ls-checkout-shell mx-auto max-w-6xl p-3 sm:p-5">
           <div className="ls-checkout-vars">
@@ -2669,6 +2673,8 @@ function CosmicStyles() {
         --ls-scroll-y: 0;
         --ls-pointer-x: 0;
         --ls-pointer-y: 0;
+        /* one breath length for every seam below the passage */
+        --funnel-gap: clamp(48px, 7svh, 88px);
       }
       .ls-parallax-band {
         isolation: isolate;
@@ -2892,7 +2898,7 @@ function CosmicStyles() {
       .ls-orrery-section {
         position: relative;
         z-index: 1;
-        padding: clamp(44px, 7vw, 104px) 20px clamp(48px, 8vw, 112px);
+        padding: var(--funnel-gap, clamp(48px, 7svh, 88px)) 20px clamp(48px, 8vw, 112px);
         text-align: center;
       }
       /* Awaiting the date: the bridge's last line hands straight into the card —

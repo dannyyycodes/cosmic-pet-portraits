@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Brush, Gift, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,31 +37,77 @@ export function ReadingsNav() {
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 18);
-    onScroll();
+    const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+    let frame = 0;
+    const apply = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 18);
+      // Inside the cosmic passage the nav fades to near-invisible so no beat
+      // headline is ever sliced by a bar; it returns as the free reading
+      // (the passage's end) reaches the top of the viewport.
+      const header = headerRef.current;
+      if (!header) return;
+      const bridge = document.querySelector(".lcb-root");
+      let op = 1;
+      if (bridge) {
+        const r = bridge.getBoundingClientRect();
+        const vh = window.innerHeight || 1;
+        const outP = clamp01((vh * 0.5 - r.top) / (vh * 0.22));
+        const backP = clamp01((r.bottom - 64) / (vh * 0.3));
+        op = 1 - Math.min(outP, backP) * 0.96;
+      }
+      header.style.opacity = op.toFixed(3);
+      header.style.pointerEvents = op < 0.5 ? "none" : "";
+      header.style.visibility = op <= 0.05 ? "hidden" : "visible";
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
+    apply();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
-  const linkColor = scrolled ? C.cosmosDim : C.cosmosDim;
+  const linkColor = C.cosmosDim;
   const brandColor = C.cosmosText;
-  const navBg = scrolled ? "rgba(11, 9, 17, 0.95)" : "rgba(13, 10, 20, 0.18)";
 
   return (
     <header
-      className="fixed left-0 right-0 top-0 z-[60] transition-colors duration-300"
-      style={{
-        background: navBg,
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        borderBottom: scrolled ? `1px solid rgba(124,92,214,0.22)` : "1px solid rgba(154,126,230,0.16)",
-        height: 64,
-      }}
+      ref={headerRef}
+      className="fixed left-0 right-0 top-0 z-[60]"
+      style={{ height: 64 }}
     >
+      {/* transparent blur scrim: darkest at the very top, gone by ~96px down,
+          so it can never read as an opaque bar slicing a headline */}
       <div
-        className="mx-auto flex h-full items-center justify-between px-5 md:px-8"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 0,
+          height: 96,
+          pointerEvents: "none",
+          background: scrolled
+            ? "linear-gradient(180deg, rgba(11,9,17,0.82) 0%, rgba(11,9,17,0.42) 52%, rgba(11,9,17,0) 100%)"
+            : "linear-gradient(180deg, rgba(11,9,17,0.55) 0%, rgba(11,9,17,0.22) 52%, rgba(11,9,17,0) 100%)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          maskImage: "linear-gradient(180deg, #000 0%, #000 42%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(180deg, #000 0%, #000 42%, transparent 100%)",
+          transition: "background 0.3s ease",
+        }}
+      />
+      <div
+        className="relative mx-auto flex h-full items-center justify-between px-5 md:px-8"
         style={{ maxWidth: 1240 }}
       >
         <Link

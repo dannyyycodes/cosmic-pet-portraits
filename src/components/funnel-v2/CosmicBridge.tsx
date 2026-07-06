@@ -199,6 +199,9 @@ const LCB_CSS = `
   --lcb-ivory:#efe9dd; --lcb-body:#d8d0c1; --lcb-label:#b7af9f;
   --lcb-ease:cubic-bezier(.16,1,.3,1);
   position:relative;
+  /* pull the passage up under the hero: the hero's dead band after the CTAs
+     becomes the shared handoff window (hero copy scrubs out, beat 1 rises in) */
+  margin-top:-18svh;
   font-family:"Newsreader",Georgia,serif;font-weight:400;
   -webkit-font-smoothing:antialiased;
 }
@@ -251,8 +254,14 @@ const LCB_CSS = `
 
 /* ---- beats layer ---- */
 .lcb-beats{position:relative;z-index:2}
-.lcb-scene{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
-  padding:14svh clamp(24px,7vw,80px);text-align:center;gap:clamp(20px,3.6vw,34px);overflow:hidden}
+/* 88svh + px-capped padding: tall phones stop inflating dead air */
+.lcb-scene{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:clamp(56px,10svh,112px) clamp(24px,7vw,80px);text-align:center;gap:clamp(20px,3.6vw,34px);overflow:hidden}
+/* per-beat heights: the wheel keeps a full stage; the crossing holds only what it needs */
+.lcb-chart-scene{min-height:100svh}
+.lcb-souls-scene{min-height:64svh}
+/* overlap zones: each beat's exit shares 14svh with the next beat's entrance */
+.lcb-chart-scene,.lcb-souls-scene,.lcb-payoff{margin-top:-14svh}
 
 /* type: Fraunces display + Newsreader body. Every line rises out of an
    overflow:hidden mask. Body stays solid #d8d0c1 weight 400 — no blur. */
@@ -537,11 +546,13 @@ export function CosmicBridge() {
       ticking = false;
       const rect = root.getBoundingClientRect();
       const vh = window.innerHeight || 1;
-      const visT = Math.max(0, rect.top), visB = Math.min(vh, rect.bottom);
-      const covered = Math.max(0, visB - visT) / vh;
-      // Hold the night longer at both ends so the passage hands into the form
-      // inside one continuous sky (no seam as the fixed stage releases).
-      const op = Math.max(0, Math.min(1, (covered - 0.05) / 0.55));
+      // The passage now starts 18svh up inside the hero, so the stage must not
+      // veil the hero at load: it only lights as the passage top climbs the
+      // viewport (seam 1), and still holds the night late at the bottom end so
+      // the passage hands into the form inside one continuous sky.
+      const enterP = Math.max(0, Math.min(1, (vh * 0.8 - rect.top) / (vh * 0.55)));
+      const exitP = Math.max(0, Math.min(1, (Math.min(vh, rect.bottom) / vh - 0.05) / 0.55));
+      const op = Math.min(enterP, exitP);
       if (back) (back as HTMLElement).style.opacity = String(op);
       if (front) (front as HTMLElement).style.opacity = String(op);
       if (!reduced && canvasVisible && canvasWrap) {
@@ -635,6 +646,17 @@ export function CosmicBridge() {
           .to(travel, { x: -0.15 * W * amp, y: 0.10 * H * amp, ease: HOUSE, duration: 1 })
           .to(travel, { x: -0.02 * W * amp, y: 0.02 * H * amp, ease: HOUSE, duration: 1 })
           .to(travel, { x: 0.05 * W * amp, y: -0.11 * H * amp, ease: HOUSE, duration: 1 });
+      }
+
+      // ---- SEAM 1: the hero hands into the passage. Headline + CTAs scrub
+      // OUT across the shared -18svh window while beat 1 rises in; the moon
+      // glides down between them (the stage's enter ramp above). ----
+      const heroCopy = document.querySelector<HTMLElement>(".ls-hero-copy");
+      if (heroCopy && document.querySelector(".ls-hero-section")) {
+        gsap.to(heroCopy, {
+          opacity: 0, y: -34 * amp, ease: "none",
+          scrollTrigger: { trigger: ".ls-hero-section", start: "bottom 86%", end: "bottom 38%", scrub },
+        });
       }
 
       // =============== BEAT 1 — ARRIVAL (scroll = playhead) ===============
