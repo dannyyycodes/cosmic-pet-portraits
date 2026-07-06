@@ -4215,9 +4215,19 @@ function CosmicStyles() {
         background: linear-gradient(90deg, transparent, rgba(185,165,240,0.85), transparent);
         pointer-events: none;
       }
-      .ls-seal-crest { line-height: 0; margin-bottom: 2px; }
+      .ls-seal-crest { line-height: 0; margin-bottom: 2px; position: relative; }
       .ls-seal-crest svg { display: block; filter: drop-shadow(0 0 9px rgba(154,126,230,0.45)); }
       .ls-seal-crest-asc { filter: drop-shadow(0 0 5px rgba(185,165,240,0.9)); }
+      /* the seal docks: one flare when the passage's traveling ring
+         match-cuts onto the crest (class added once by CosmicBridge) */
+      .ls-seal-crest::after {
+        content: ""; position: absolute; inset: -16px; border-radius: 50%;
+        opacity: 0; pointer-events: none;
+        background: radial-gradient(circle, rgba(185,165,240,0.55) 0%, rgba(154,126,230,0.22) 46%, transparent 72%);
+      }
+      .ls-seal-crest.lcb-docked::after { animation: lsCrestFlare 1.3s cubic-bezier(.16,1,.3,1) 1; }
+      @keyframes lsCrestFlare { 0% { opacity: 0; } 24% { opacity: 1; } 100% { opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) { .ls-seal-crest.lcb-docked::after { animation: none; } }
       .ls-seal-glyph { font-size: 1.6rem; color: ${C.gold}; line-height: 1; }
       .ls-seal-title {
         color: ${C.cream}; font-family: "Fraunces", Georgia, serif;
