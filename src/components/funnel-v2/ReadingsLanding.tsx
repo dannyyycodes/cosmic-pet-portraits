@@ -6,6 +6,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { InlineCheckout } from "./InlineCheckout";
+import { REVIEWS } from "./DossierCheckout";
 import { CosmicBridge, HOUSE, GLYPH as ZODIAC_GLYPH } from "./CosmicBridge";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -390,7 +391,7 @@ export function ReadingsLanding() {
       <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
-      <SkepticWhisper />
+      <ReviewsWall />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -2664,17 +2665,19 @@ function CheckoutSection({
   );
 }
 
-// The skeptic's whisper — the post-reveal doubt beat. It sits between the free
+// The reviews wall — the post-reveal social-proof beat. It sits between the free
 // chart reveal and the checkout, where a reader who liked the free reading is
-// deciding whether the paid one is worth it. Verbatim from the approved review
-// set (Hannah + Nell), given one quiet place on the journey and removed from
-// the dossier's own review block, so the voice appears exactly once.
+// deciding whether the paid soul reading is worth it. The full approved set of
+// six verbatim voices, each a different angle (a doubter won over, a grief that
+// landed, everyday joy, a gift that opened someone up, a level-headed four-star,
+// a returning home), reads from the SAME REVIEWS object the dossier renders, so
+// the two never drift and the visitor meets real people before the threshold.
 //
-// Discovery path only: a "money-for-grief nonsense" testimonial has no place on
-// the memorial path, so it hides the instant memorial intent is chosen and
-// stays hidden. Fade-in is transform/opacity only (.ls-reveal), with a static
-// end-state under reduced motion.
-function SkepticWhisper() {
+// Discovery path only: this cheerful, mixed-tone wall has no place on the hushed
+// memorial path, so it hides the instant memorial intent is chosen and stays
+// hidden. Each card is its own .ls-reveal node, so the scroll paces them in one
+// at a time (staggered inside a row); static end-state under reduced motion.
+function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
   useEffect(() => {
     const onIntent = () => setMemorialIntent(getIntent() === "memorial");
@@ -2683,74 +2686,118 @@ function SkepticWhisper() {
   }, []);
   if (memorialIntent) return null;
 
+  const reviews = Object.values(REVIEWS);
+
   return (
-    <section className="ls-skeptic ls-parallax-band" aria-label="A reader who doubted">
-      <div className="ls-skeptic-inner ls-reveal">
-        <p className="ls-skeptic-eyebrow">A reader who doubted</p>
-        <figure className="ls-skeptic-card">
-          <span className="ls-skeptic-ph" aria-hidden="true">
-            <img src="/reviews/review-1.webp" alt="" width={128} height={128} loading="lazy" decoding="async" />
-          </span>
-          <div className="ls-skeptic-stars" role="img" aria-label="Five stars">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <svg key={i} viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
-              </svg>
-            ))}
-          </div>
-          <blockquote className="ls-skeptic-quote">
-            I thought it was money-for-grief nonsense, if I am honest. Then it mentioned Nell
-            guarding the stairs whenever Saturn feelings show up, and that is exactly where she
-            plants herself when anyone raises a voice, one white sock hanging over the top step.
-            I read that bit twice before I showed my husband.
-          </blockquote>
-          <figcaption className="ls-skeptic-attr">Hannah P. · Nell, whippet-lurcher</figcaption>
-        </figure>
+    <section
+      className="ls-reviews ls-parallax-band"
+      aria-labelledby="ls-reviews-title"
+    >
+      <div className="ls-reviews-inner">
+        <header className="ls-reviews-head ls-reveal">
+          <p className="ls-reviews-eyebrow">From people who did this</p>
+          <h2 id="ls-reviews-title" className="ls-reviews-title">What their people say</h2>
+        </header>
+        <ul className="ls-reviews-grid" role="list">
+          {reviews.map((r, i) => (
+            <li
+              key={r.img}
+              className="ls-rev ls-reveal"
+              style={{ "--ls-delay": `${(i % 3) * 0.09}s` } as CSSProperties}
+            >
+              <figure className="ls-rev-fig">
+                <div className="ls-rev-top">
+                  <span className="ls-rev-ph">
+                    <img src={r.img} alt={r.alt} width={128} height={128} loading="lazy" decoding="async" />
+                  </span>
+                  <div className="ls-rev-meta">
+                    <div
+                      className="ls-rev-stars"
+                      role="img"
+                      aria-label={r.stars === 5 ? "Five out of five stars" : `${r.stars} out of five stars`}
+                    >
+                      {[0, 1, 2, 3, 4].map((s) => (
+                        <svg key={s} viewBox="0 0 24 24" aria-hidden="true" className={s < r.stars ? "" : "off"}>
+                          <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <figcaption className="ls-rev-attr">{r.attr}</figcaption>
+                  </div>
+                </div>
+                <blockquote className="ls-rev-quote">{r.quote}</blockquote>
+              </figure>
+            </li>
+          ))}
+        </ul>
       </div>
       <style>{`
-        .ls-skeptic { position: relative; padding: clamp(40px, 8svh, 88px) 20px clamp(8px, 2svh, 24px); }
-        .ls-skeptic-inner { max-width: 640px; margin: 0 auto; }
-        .ls-skeptic-eyebrow {
-          text-align: center; margin: 0 0 20px;
-          color: ${C.gold}; font-family: "Newsreader", Georgia, serif;
+        .ls-reviews { position: relative; padding: clamp(56px, 10svh, 112px) 20px clamp(20px, 3svh, 36px); }
+        .ls-reviews-inner { max-width: 1120px; margin: 0 auto; }
+        .ls-reviews-head { text-align: center; max-width: 720px; margin: 0 auto clamp(30px, 5vw, 52px); }
+        .ls-reviews-eyebrow {
+          margin: 0 0 16px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif;
           font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
         }
-        .ls-skeptic-card {
-          position: relative; margin: 0; padding: 30px 26px 26px;
-          border-radius: 18px; text-align: center;
-          background:
-            radial-gradient(120% 70% at 50% 0%, rgba(154,126,230,0.07), transparent 62%),
-            linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
-          box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 18px 48px rgba(0,0,0,0.34);
+        .ls-reviews-title {
+          margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500;
+          font-size: clamp(2.1rem, 6.4vw, 3.6rem); line-height: 1.02; letter-spacing: -0.018em;
         }
-        .ls-skeptic-card::before {
+        .ls-reviews-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .ls-rev { margin: 0; min-width: 0; }
+        .ls-rev-fig {
+          position: relative; height: 100%; margin: 0; display: flex; flex-direction: column;
+          padding: 22px 20px 20px; border-radius: 16px;
+          background:
+            radial-gradient(130% 80% at 50% 0%, rgba(154,126,230,0.06), transparent 60%),
+            linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,0.45), 0 6px 18px rgba(0,0,0,0.4),
+            0 20px 50px rgba(0,0,0,0.32), 0 1px 0 rgba(247,231,182,0.05) inset;
+        }
+        .ls-rev-fig::before {
           content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(165deg, rgba(212,182,122,0.34) 0%, rgba(154,126,230,0.16) 46%, rgba(212,182,122,0.30) 100%);
+          background: linear-gradient(165deg, rgba(212,182,122,0.32) 0%, rgba(154,126,230,0.16) 46%, rgba(212,182,122,0.28) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
         }
-        .ls-skeptic-ph {
-          position: relative; display: inline-block; width: 72px; height: 72px;
-          border-radius: 50%; overflow: hidden; margin-bottom: 16px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,182,122,0.4);
+        .ls-rev-top { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
+        .ls-rev-ph {
+          position: relative; flex: none; width: 58px; height: 58px; border-radius: 14px; overflow: hidden;
+          background: ${C.cosmos3};
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(212,178,107,0.10);
         }
-        .ls-skeptic-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        .ls-skeptic-stars { display: flex; gap: 5px; justify-content: center; margin-bottom: 16px; }
-        .ls-skeptic-stars svg { width: 16px; height: 16px; display: block; fill: ${C.gold}; }
-        .ls-skeptic-quote {
-          margin: 0 auto 16px; max-width: 46ch;
-          color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-style: italic;
-          font-size: clamp(1.12rem, 4.4vw, 1.3rem); line-height: 1.5;
+        .ls-rev-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .ls-rev-ph::after {
+          content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+          background: linear-gradient(165deg, rgba(212,182,122,0.40) 0%, rgba(154,126,230,0.14) 46%, rgba(212,182,122,0.32) 100%);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
         }
-        .ls-skeptic-quote::before { content: "\\201C"; }
-        .ls-skeptic-quote::after { content: "\\201D"; }
-        .ls-skeptic-attr {
+        .ls-rev-meta { min-width: 0; }
+        .ls-rev-stars { display: flex; gap: 4px; margin-bottom: 7px; }
+        .ls-rev-stars svg { width: 15px; height: 15px; display: block; fill: ${C.gold}; }
+        .ls-rev-stars svg.off { fill: rgba(201,192,174,0.26); }
+        .ls-rev-attr {
           color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
-          font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+          font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.35;
+        }
+        .ls-rev-quote {
+          margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic;
+          font-size: 1.02rem; line-height: 1.6;
+        }
+        .ls-rev-quote::before { content: "\\201C"; }
+        .ls-rev-quote::after { content: "\\201D"; }
+        @media (min-width: 640px) {
+          .ls-reviews-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
         }
         @media (min-width: 768px) {
-          .ls-skeptic-card { padding: 38px 40px 32px; }
-          .ls-skeptic-ph { width: 80px; height: 80px; }
+          .ls-rev-fig { padding: 26px 24px 24px; }
+          .ls-rev-ph { width: 62px; height: 62px; }
+          .ls-rev-quote { font-size: 1.06rem; }
+        }
+        @media (min-width: 1024px) {
+          .ls-reviews-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
         }
       `}</style>
     </section>

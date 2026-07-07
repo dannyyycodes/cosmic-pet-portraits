@@ -90,8 +90,10 @@ function pt(angle: number, r: number): [number, number] {
   return [CX + r * Math.cos(rad), CY + r * Math.sin(rad)];
 }
 
-/* Reviews — verbatim from the approved set; images live first-party at /reviews/. */
-const REVIEWS = {
+/* Reviews — verbatim from the approved set; images live first-party at /reviews/.
+   Exported as the single source of truth: the landing's social-proof wall
+   (ReviewsWall in ReadingsLanding) reads the SAME object, so the two never drift. */
+export const REVIEWS = {
   skeptic: {
     img: "/reviews/review-1.webp", alt: "Nell", stars: 5,
     quote: "I thought it was money-for-grief nonsense, if I am honest. Then it mentioned Nell guarding the stairs whenever Saturn feelings show up, and that is exactly where she plants herself when anyone raises a voice, one white sock hanging over the top step. I read that bit twice before I showed my husband.",
@@ -488,9 +490,9 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           ))}
         </ul>
 
-        {/* reviews: grief given room, joy, gift. The skeptic now opens
-            earlier, on the journey itself, at the post-reveal doubt beat
-            (SkepticWhisper) — one voice, one place, no duplicate here. */}
+        {/* reviews: grief given room, joy, gift. The full six-voice wall
+            already ran earlier on the journey (ReviewsWall, post-reveal),
+            so this in-checkout block stays a tight, curated few. */}
         <div className="dsr-rev-block">
           <Review kind="grief" variant="room" />
           <Review kind="joy" variant="compact" />
