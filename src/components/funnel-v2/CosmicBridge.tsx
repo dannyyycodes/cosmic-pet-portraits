@@ -146,6 +146,157 @@ function buildSextant(): string {
   return out;
 }
 
+/* ---- STAR CONSTELLATION geometry (v5) --------------------------------
+   ONE source for the builder (draws the stars + lines) AND the timeline
+   (binds each star event to its key-word label). viewBox 400x460, the
+   pet star centred; three known stars form a tight cluster around it;
+   four unknown stars ride an outer ring; the constellation web connects
+   them; the degree mark rides one known node. All scale-invariant. */
+const CONSTEL = {
+  pet: { x: 200, y: 236 },
+  known: [
+    { id: "k1", x: 150, y: 198 },
+    { id: "k2", x: 258, y: 208 },
+    { id: "k3", x: 206, y: 300 },
+  ],
+  unknown: [
+    { id: "u1", x: 70, y: 104 },
+    { id: "u2", x: 332, y: 128 },
+    { id: "u3", x: 92, y: 372 },
+    { id: "u4", x: 330, y: 356 },
+  ],
+  // the web: pet to each known, the cluster triangle, then each known
+  // reaches its nearest unknown - a coherent constellation, not a mesh
+  lines: [
+    ["pet", "k1"], ["pet", "k2"], ["pet", "k3"],
+    ["k1", "k2"], ["k2", "k3"], ["k1", "k3"],
+    ["k1", "u1"], ["k2", "u2"], ["k3", "u3"], ["k2", "u4"],
+  ] as [string, string][],
+  degNode: "k2",              // the degree mark snaps onto this node
+  apex: { x: 196, y: 224 },   // where the two lights become one
+};
+
+// warm-known light layers (ivory family) for a star group
+const STAR_LAYERS = (r = 2.6) => `
+  <g class="lcb-glow lcb-glow-cool">
+    <circle class="lcb-halo" r="30" fill="url(#lcbHaloCool)"/>
+    <circle class="lcb-core" r="${r}" fill="url(#lcbCoreCool)"/>
+  </g>
+  <g class="lcb-glow lcb-glow-warm">
+    <circle class="lcb-chroma" r="15" fill="url(#lcbChroma)"/>
+    <circle class="lcb-halo" r="30" fill="url(#lcbHaloWarm)"/>
+    <circle class="lcb-core" r="${r}" fill="url(#lcbCoreWarm)"/>
+  </g>
+  <g class="lcb-glow lcb-glow-gold">
+    <circle class="lcb-halo" r="40" fill="url(#lcbHaloGold)"/>
+    <circle class="lcb-core" r="${r + 0.4}" fill="url(#lcbCoreGold)"/>
+  </g>
+  <g class="lcb-glint">
+    <path class="lcb-glint-v" d="M0,-14 L1.15,0 L0,14 L-1.15,0 Z"/>
+    <path class="lcb-glint-h" d="M-14,0 L0,-1.15 L14,0 L0,1.15 Z"/>
+  </g>`;
+
+function starGroup(cls: string, x: number, y: number, seedDelay: number, r = 2.6): string {
+  return `<g class="lcb-star ${cls}" style="transform:translate(${x}px,${y}px);--bd:${seedDelay}s">`
+    + `<g class="lcb-star-breathe">${STAR_LAYERS(r)}</g></g>`;
+}
+
+function buildConstellation(): string {
+  const C = CONSTEL;
+  const pos = (id: string) =>
+    id === "pet" ? C.pet
+    : C.known.find((k) => k.id === id) || C.unknown.find((u) => u.id === id) || C.pet;
+
+  let out = `
+<defs>
+  <radialGradient id="lcbHaloCool">
+    <stop offset="0%" stop-color="rgba(176,188,222,0.55)"/>
+    <stop offset="28%" stop-color="rgba(150,160,210,0.20)"/>
+    <stop offset="60%" stop-color="rgba(150,160,210,0.06)"/>
+    <stop offset="100%" stop-color="rgba(150,160,210,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbCoreCool">
+    <stop offset="0%" stop-color="rgba(226,232,248,0.95)"/>
+    <stop offset="42%" stop-color="rgba(196,206,232,0.55)"/>
+    <stop offset="78%" stop-color="rgba(176,188,222,0.10)"/>
+    <stop offset="100%" stop-color="rgba(176,188,222,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbHaloWarm">
+    <stop offset="0%" stop-color="rgba(246,235,207,0.72)"/>
+    <stop offset="26%" stop-color="rgba(240,222,180,0.26)"/>
+    <stop offset="58%" stop-color="rgba(240,217,159,0.07)"/>
+    <stop offset="100%" stop-color="rgba(240,217,159,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbCoreWarm">
+    <stop offset="0%" stop-color="rgba(255,251,240,0.98)"/>
+    <stop offset="40%" stop-color="rgba(248,238,214,0.6)"/>
+    <stop offset="80%" stop-color="rgba(246,235,207,0.10)"/>
+    <stop offset="100%" stop-color="rgba(246,235,207,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbChroma">
+    <stop offset="0%" stop-color="rgba(255,214,150,0)"/>
+    <stop offset="55%" stop-color="rgba(255,206,140,0.10)"/>
+    <stop offset="82%" stop-color="rgba(214,190,134,0.05)"/>
+    <stop offset="100%" stop-color="rgba(214,190,134,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbHaloGold">
+    <stop offset="0%" stop-color="rgba(255,236,180,0.85)"/>
+    <stop offset="24%" stop-color="rgba(240,217,159,0.34)"/>
+    <stop offset="55%" stop-color="rgba(214,190,134,0.09)"/>
+    <stop offset="100%" stop-color="rgba(214,190,134,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbCoreGold">
+    <stop offset="0%" stop-color="rgba(255,252,244,1)"/>
+    <stop offset="38%" stop-color="rgba(255,236,184,0.7)"/>
+    <stop offset="78%" stop-color="rgba(240,217,159,0.12)"/>
+    <stop offset="100%" stop-color="rgba(240,217,159,0)"/>
+  </radialGradient>
+  <radialGradient id="lcbApexBloom">
+    <stop offset="0%" stop-color="rgba(255,252,246,0.95)"/>
+    <stop offset="22%" stop-color="rgba(255,238,196,0.62)"/>
+    <stop offset="48%" stop-color="rgba(240,217,159,0.26)"/>
+    <stop offset="74%" stop-color="rgba(214,190,134,0.08)"/>
+    <stop offset="100%" stop-color="rgba(214,190,134,0)"/>
+  </radialGradient>
+</defs>`;
+
+  // constellation web first (behind the stars)
+  out += '<g class="lcb-cst">';
+  C.lines.forEach(([a, b], i) => {
+    const p = pos(a), q2 = pos(b);
+    out += `<line class="lcb-cst-line" data-i="${i}" x1="${p.x}" y1="${p.y}" x2="${q2.x}" y2="${q2.y}"/>`;
+  });
+  out += "</g>";
+
+  // unknown stars (outer ring), known cluster, pet last (brightest on top)
+  C.unknown.forEach((u, i) => { out += starGroup(u.id, u.x, u.y, 1.1 + i * 0.7, 2.4); });
+  C.known.forEach((k, i) => { out += starGroup(k.id, k.x, k.y, 0.4 + i * 0.5, 2.7); });
+  out += starGroup("lcb-pet", C.pet.x, C.pet.y, 0, 3.8);
+
+  // degree mark on the chosen node (real chart Moon figure, never invented)
+  const MOON = CHART.find((p) => p.key === "moon")!;
+  const dn = pos(C.degNode);
+  const pad2 = (n: number) => (n < 10 ? "0" : "") + n;
+  out += `<g class="lcb-degmark" data-node="${C.degNode}">`
+    + `<line class="lcb-deg-tick" x1="${dn.x + 12}" y1="${dn.y - 12}" x2="${dn.x + 22}" y2="${dn.y - 22}"/>`
+    + `<text class="lcb-deg-read" x="${dn.x + 26}" y="${dn.y - 22}">${MOON.deg}° ${pad2(MOON.min)}'</text>`
+    + "</g>";
+
+  // THE APEX: two converging lights + the merged bloom + a soft ray burst
+  out += '<g class="lcb-apex">';
+  out += `<g class="lcb-apex-ray" style="transform:translate(${C.apex.x}px,${C.apex.y}px)">`
+    + '<path d="M0,-46 L3.4,0 L0,46 L-3.4,0 Z" fill="url(#lcbCoreGold)"/>'
+    + '<path d="M-46,0 L0,-3.4 L46,0 L0,3.4 Z" fill="url(#lcbCoreGold)"/>'
+    + '<path d="M-32,-32 L1.6,-1.6 L32,32 L-1.6,1.6 Z" fill="url(#lcbCoreGold)" opacity="0.6"/>'
+    + '<path d="M32,-32 L1.6,1.6 L-32,32 L-1.6,-1.6 Z" fill="url(#lcbCoreGold)" opacity="0.6"/></g>';
+  out += `<circle class="lcb-apex-bloom" cx="${C.apex.x}" cy="${C.apex.y}" r="72" fill="url(#lcbApexBloom)"/>`;
+  out += `<g class="lcb-apex-light lcb-apex-you"><circle r="20" fill="url(#lcbHaloWarm)"/><circle r="3" fill="url(#lcbCoreWarm)"/></g>`;
+  out += `<g class="lcb-apex-light lcb-apex-petlight"><circle r="22" fill="url(#lcbHaloGold)"/><circle r="3.2" fill="url(#lcbCoreGold)"/></g>`;
+  out += "</g>";
+
+  return out;
+}
+
 // deterministic seeded prng for the beat-3 mote sky (positions are pure
 // functions of u, so the scrub reverses for free)
 function mulberry32(seed: number) {
@@ -373,6 +524,11 @@ const LCB_CSS = `
   filter:blur(15px)}
 /* the passage ends where the form begins: no dead sky after the gold rule */
 .lcb-scene.lcb-payoff{min-height:auto;padding-bottom:clamp(40px,7svh,68px)}
+/* v5 discovery: the ANSWER + INVITATION beats need real scroll room so each
+   line lands with stillness between events, and the apex holds until "love"
+   (no bunching, no beat-3/beat-4 bleed). */
+.lcb-root:not(.lcb-memorial) .lcb-answer-scene{min-height:98svh}
+.lcb-root:not(.lcb-memorial) .lcb-scene.lcb-payoff{min-height:104svh;padding-bottom:clamp(48px,10svh,120px)}
 .lcb-payoff-line{position:relative;z-index:1;margin:0;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
   color:var(--lcb-ivory);font-size:clamp(2.05rem,1.4rem + 3.1vw,3.5rem);line-height:1.16;
   letter-spacing:-0.02em;max-width:17ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
@@ -417,6 +573,60 @@ const LCB_CSS = `
    a state, never a burst. Pre-baked gradients, transform/opacity only. */
 .lcb-memstar{position:absolute;left:20%;bottom:24%;width:44px;height:44px;z-index:0;opacity:0;pointer-events:none;
   background:radial-gradient(circle, rgba(246,235,207,0.85) 0%, rgba(246,235,207,0.4) 10%, rgba(240,217,159,0.16) 30%, rgba(240,217,159,0) 62%)}
+
+/* ==================================================================
+   STAR CONSTELLATION STAGE (v5) - the ONE metaphor behind the passage.
+   Matched to the moon's law: layered radial gradients, static filters,
+   mix-blend-mode:screen over near-black, feathered edges, opacity /
+   transform / stroke tweens only, HOUSE ease on every settle. Inherits
+   the moon's grain + vignette + grade (it lives on the same graded sky).
+   ================================================================== */
+.lcb-stars-wrap{position:absolute;inset:0;z-index:1;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;opacity:1;will-change:opacity}
+.lcb-stars{width:min(84vw,430px);height:auto;aspect-ratio:400/460;overflow:visible;isolation:isolate}
+@media (max-width:768px){ .lcb-stars{width:min(90vw,356px)} }
+
+/* every luminous layer composites like the moon's blooms */
+.lcb-star .lcb-glow,.lcb-cst-line,.lcb-star .lcb-glint,.lcb-apex-light,.lcb-apex-bloom,.lcb-apex-ray{mix-blend-mode:screen}
+.lcb-star{transform-box:view-box}
+.lcb-star-breathe{transform-box:fill-box;transform-origin:center;will-change:transform,opacity}
+
+/* state layers - default DIM (cool base only). GSAP drives the crossfade
+   up in motion; these are the honest reduced-motion resting values. */
+.lcb-glow-cool{opacity:.55}
+.lcb-glow-warm{opacity:0}
+.lcb-glow-gold{opacity:0}
+.lcb-glint{opacity:0}
+.lcb-glint-v,.lcb-glint-h{fill:rgba(255,248,228,0.9)}
+
+/* PET star: warm-constant, alive from beat 1 (never extinguished) - the
+   warmest, brightest anchor of the whole sky (their pet) */
+.lcb-star.lcb-pet .lcb-glow-cool{opacity:.12}
+.lcb-star.lcb-pet .lcb-glow-warm{opacity:1}
+.lcb-star.lcb-pet .lcb-glint{opacity:.55}
+
+/* breathing: transform + opacity only, staggered per star via --bd */
+@keyframes lcbStarBreath{
+  0%,100%{transform:scale(1);opacity:.94}
+  50%    {transform:scale(1.05);opacity:1}
+}
+.lcb-motion .lcb-star-breathe{animation:lcbStarBreath 6.6s var(--lcb-ease) infinite;animation-delay:var(--bd,0s)}
+
+/* constellation strokes: thin, tapered by soft glow, drawn via dashoffset */
+.lcb-cst{overflow:visible}
+.lcb-cst-line{fill:none;stroke:var(--lcb-gold-soft);stroke-width:0.9;stroke-linecap:round;
+  vector-effect:non-scaling-stroke;opacity:0}
+
+/* DEGREE MARK: precise tick + tiny readout on one node */
+.lcb-degmark{opacity:0}
+.lcb-deg-tick{stroke:var(--lcb-gold);stroke-width:1;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.lcb-deg-read{fill:var(--lcb-label);font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:12px;letter-spacing:.05em}
+
+/* THE APEX: two lights converge into one bloom on the word "love" */
+.lcb-apex{opacity:1}
+.lcb-apex-light{opacity:0}
+.lcb-apex-bloom{opacity:0}
+.lcb-apex-ray{opacity:0}
 `;
 
 // exponential-falloff cubic-bezier(.16,1,.3,1) - the ONE house ease, solved
@@ -490,6 +700,10 @@ export function CosmicBridge() {
     // ---------- build the sextant (authored in its locked final state) ----------
     const sxt = q<SVGSVGElement>(".lcb-sxt");
     if (sxt) sxt.innerHTML = buildSextant();
+
+    // ---------- build the star constellation stage (v5 discovery) ----------
+    const starsSvg = q<SVGSVGElement>(".lcb-stars");
+    if (starsSvg) starsSvg.innerHTML = buildConstellation();
 
     // ---------- prep the mask reveals (wrap once, never per breakpoint) ----------
     // display beats -> per-word rise; support/body -> per-line rise.
@@ -597,6 +811,65 @@ export function CosmicBridge() {
     const moonPt = q(".lcb-moon-pt");
     const travel = q(".lcb-moon-travel");
     const moonEl = q(".lcb-moon");
+    const starsWrap = q(".lcb-stars-wrap");
+
+    // ---------- star-stage helpers (v5) ----------
+    // one star group -> its three luminous layers + glint, addressed by class.
+    // events tween these layer opacities so the visual COMPLETES as the bound
+    // key word lands. warm = the "known" state; gold = "ignited"/apex.
+    const starLayer = (id: string, layer: string) =>
+      starsSvg ? starsSvg.querySelector<SVGGElement>(`.lcb-star.${id} .${layer}`) : null;
+    const cstLines = starsSvg ? qa<SVGLineElement>(".lcb-cst-line", starsSvg) : [];
+    const degMark = starsSvg ? q<SVGGElement>(".lcb-degmark", starsSvg) : null;
+    // prime every star to its DIM base (cool only) - the honest starting sky
+    const primeStars = () => {
+      if (!starsSvg) return;
+      qa<SVGGElement>(".lcb-star", starsSvg).forEach((g) => {
+        if (g.classList.contains("lcb-pet")) return; // pet is warm-constant
+        gsap.set(g.querySelector(".lcb-glow-cool"), { opacity: 0.55 });
+        gsap.set(g.querySelector(".lcb-glow-warm"), { opacity: 0 });
+        gsap.set(g.querySelector(".lcb-glow-gold"), { opacity: 0 });
+        gsap.set(g.querySelector(".lcb-glint"), { opacity: 0 });
+        gsap.set(g, { opacity: 0 }); // unknown stars are not yet visible
+      });
+      // known stars ARE visible from the start (dim, waiting to warm)
+      CONSTEL.known.forEach((k) => gsap.set(q(`.lcb-star.${k.id}`, starsSvg), { opacity: 1 }));
+      qa<SVGLineElement>(".lcb-cst-line", starsSvg).forEach((ln) => {
+        const len = ln.getTotalLength ? ln.getTotalLength() : 200;
+        ln.style.strokeDasharray = String(len);
+        ln.style.strokeDashoffset = String(len);
+        ln.style.opacity = "0";
+      });
+      if (degMark) gsap.set(degMark, { opacity: 0 });
+      gsap.set(q(".lcb-apex-light", starsSvg), { opacity: 0 });
+      gsap.set(q(".lcb-apex-bloom", starsSvg), { opacity: 0, scale: 0.6, transformOrigin: "center" });
+      gsap.set(q(".lcb-apex-ray", starsSvg), { opacity: 0, scale: 0.4, transformOrigin: "center" });
+    };
+    // KNOWN ignition: cool damps, warm rises, glint appears - completes at the
+    // absolute time `end` (= the key word's label time), so it lands on the word
+    const igniteKnown = (tl: gsap.core.Timeline, id: string, end: number, dur = 0.6) => {
+      const warm = starLayer(id, "lcb-glow-warm");
+      const cool = starLayer(id, "lcb-glow-cool");
+      const glint = starLayer(id, "lcb-glint");
+      const at = Math.max(0, end - dur);
+      if (warm) tl.to(warm, { opacity: 1, ease: HOUSE, duration: dur }, at);
+      if (cool) tl.to(cool, { opacity: 0.22, ease: HOUSE, duration: dur }, at);
+      if (glint) tl.to(glint, { opacity: 0.45, ease: HOUSE, duration: dur }, at);
+    };
+    // GOLD ignition (beat 4): gold layer + full glint flare - completes at `end`
+    const igniteGold = (tl: gsap.core.Timeline, id: string, end: number, dur = 0.55) => {
+      const warm = starLayer(id, "lcb-glow-warm");
+      const gold = starLayer(id, "lcb-glow-gold");
+      const cool = starLayer(id, "lcb-glow-cool");
+      const glint = starLayer(id, "lcb-glint");
+      const star = starsSvg ? starsSvg.querySelector<SVGGElement>(`.lcb-star.${id}`) : null;
+      const at = Math.max(0, end - dur);
+      if (star) tl.to(star, { opacity: 1, ease: HOUSE, duration: Math.min(0.3, dur) }, at);
+      if (warm) tl.to(warm, { opacity: 1, ease: HOUSE, duration: dur }, at);
+      if (cool) tl.to(cool, { opacity: 0.12, ease: HOUSE, duration: dur }, at);
+      if (gold) tl.to(gold, { opacity: 1, ease: HOUSE, duration: dur }, at);
+      if (glint) tl.to(glint, { opacity: 0.85, ease: HOUSE, duration: dur }, at);
+    };
 
     // ---------- helpers ----------
     const samplePath = (path: SVGGeometryElement, n = 140) => {
@@ -910,65 +1183,45 @@ export function CosmicBridge() {
             .to(tw, { damp: 1, duration: setDur, ease: HOUSE, onUpdate: drawStars }, endAt("m1silence", setDur));
         } else {
           // ---- DISCOVERY BEAT 1: RECOGNITION ----
+          // The pet star already burns warm at centre. Three KNOWN stars sit
+          // dim in a tight cluster around it. As the reader is told what they
+          // already know (love / settles / you), each known star ignites warm
+          // beside the pet star, and the little bright cluster forms.
           const headLn = q(".lcb-beat:not(.lcb-support) .lcb-ln", open);
           const supLns = qa(".lcb-support .lcb-ln", open);
 
-          // D1-L1 "You know them by heart." - the sky snaps sharp the
-          // instant the reader is told they already see clearly: the blur
-          // crossfade COMPLETES at "know"; the settle finishes under the
-          // support lines.
+          // D1-L1 "No one KNOWS your pet the way you do." - the moon (their
+          // companion) arrives sharp; the crossfade COMPLETES at "knows".
           revealLine(t1, headLn, 0.35, "b1know", HEADP);
           const arrive = labelTime(t1, "b1know");
           t1.to(q(".lcb-moon-img.blur"), { opacity: 0, ease: "none", duration: arrive }, 0)
             .to(q(".lcb-moon-img.sharp"), { opacity: 1, ease: "none", duration: arrive }, 0)
             .fromTo(q(".lcb-moon"), { y: 14, scale: 1.04 }, { y: 0, scale: 1.0, ease: HOUSE, duration: 1.3 }, 0.05);
-          // AMBIENT: the dawn pool rises under everything, capped
-          t1.to(dawn, { opacity: 1, yPercent: 0, ease: HOUSE, duration: 1.25 }, 0.45);
+          // AMBIENT: the dawn pool rises under everything; the moon's own
+          // finish (earthshine + rim + faint warmth) settles as it arrives.
+          t1.to(dawn, { opacity: 0.9, yPercent: 0, ease: HOUSE, duration: 1.25 }, 0.45);
+          if (earthshine) t1.to(earthshine, { opacity: 0.35, duration: arrive, ease: "none" }, 0);
+          if (rim) t1.to(rim, { opacity: 1, duration: arrive, ease: "none" }, 0);
 
-          // D1-L2 "...lose their mind with JOY." - the meteor crosses
-          // during the key span's rise; its splash detonates the
-          // twinkle-wave exactly at "joy"; the wave rolls as wordless tail.
-          revealLine(t1, supLns[0], 1.15, "b1joy", SUPP);
-          if (meteor && streak) {
-            const mdx = 0.55 * W;
-            const mdy = -Math.tan((18 * Math.PI) / 180) * 0.55 * W;
-            t1.to(meteor, { opacity: 1, duration: 0.08, ease: "none" }, endAt("b1joy", 0.55))
-              .fromTo(meteor, { x: 0, y: 0 }, { x: mdx, y: mdy, duration: 0.55, ease: "none" }, endAt("b1joy", 0.55))
-              .to(streak, { scaleX: 1, duration: 0.2, ease: "none" }, endAt("b1joy", 0.55))
-              .to(streak, { scaleX: 0.15, duration: 0.3, ease: "none" }, endAt("b1joy", 0.3))
-              .to(meteor, { opacity: 0, duration: 0.18, ease: "none" }, endAt("b1joy", 0.12));
-          }
-          t1.fromTo(tw, { t: 0 }, { t: 1, duration: 0.4, ease: "none", onUpdate: drawStars }, "b1joy");
+          // D1-L2 "You know what they LOVE." - known star 1 ignites warm.
+          revealLine(t1, supLns[0], 1.15, "b1love", SUPP);
+          igniteKnown(t1, "k1", labelTime(t1, "b1love"));
 
-          // D1-L3 "The WEIGHT of them when they finally fall ASLEEP on you."
-          // Dual-half event: the drop starts the frame "weight" clears; the
-          // twinkle damps dead-flat as "asleep" lands, so "on you" reveals
-          // over a sky that has stopped moving.
-          revealLine(t1, supLns[1], 1.95, "b1weight", SUPP);
-          t1.addLabel("b1sleep", labelTime(t1, "b1weight") + 7 * SUPP.each);
-          const dropDur = labelTime(t1, "b1sleep") - labelTime(t1, "b1weight");
-          t1.to(q(".lcb-canvas"), { y: 6, duration: dropDur, ease: HOUSE }, "b1weight")
-            .to(q(".lcb-moon"), { y: 6, duration: dropDur, ease: HOUSE }, "b1weight")
-            .to(bloom, { opacity: 0.7, duration: dropDur, ease: HOUSE }, "b1weight")
-            .to(dawn, { opacity: 0.85, yPercent: 4, duration: dropDur, ease: HOUSE }, "b1weight")
-            .to(tw, { damp: 1, duration: dropDur, ease: HOUSE, onUpdate: drawStars }, "b1weight");
+          // D1-L3 "You know what SETTLES them." - known star 2 ignites warm.
+          revealLine(t1, supLns[1], 1.95, "b1settles", SUPP);
+          igniteKnown(t1, "k2", labelTime(t1, "b1settles"));
 
-          // D1-L4 "The way you catch them WATCHING you." - earthshine
-          // completes at "watching" (the hidden side was facing you all
-          // along); the moon blinks ONCE landing on "you".
-          revealLine(t1, supLns[2], 2.75, "b1watch", SUPP);
-          t1.addLabel("b1you", labelTime(t1, "b1watch") + 1 * SUPP.each);
-          if (earthshine) t1.to(earthshine, { opacity: 0.35, duration: 0.5, ease: HOUSE }, endAt("b1watch", 0.5));
-          if (rim) t1.to(rim, { opacity: 1, duration: 0.5, ease: HOUSE }, endAt("b1watch", 0.5));
-          if (goldImg) t1.to(goldImg, { opacity: 0.18, duration: 0.5, ease: "none" }, endAt("b1watch", 0.5));
-          t1.to(bloom, { opacity: 0.4, duration: 0.3, ease: "power2.in" }, "b1you")
-            .to(bloom, { opacity: 1, duration: 0.3, ease: HOUSE }, "b1you+=0.3");
+          // D1-L4 "...save only for YOU." - known star 3 ignites; the small
+          // bright cluster is now formed, and the pet-star bloom breathes once.
+          revealLine(t1, supLns[2], 2.75, "b1you2", SUPP);
+          igniteKnown(t1, "k3", labelTime(t1, "b1you2"));
+          t1.to(bloom, { opacity: 0.85, duration: 0.4, ease: HOUSE }, endAt("b1you2", 0.4));
         }
       }
 
-      // =============== BEAT 2 - THE SEXTANT (scroll = playhead) ===============
+      // =============== BEAT 2 - THE SEXTANT (memorial only) ===============
       const chart = q(".lcb-chart-scene");
-      if (chart && sxt) {
+      if (chart && sxt && hush) {
         const inst = q(".lcb-sxt-inst", sxt);
         const arcEl = q<SVGPathElement>(".lcb-sxt-arc", sxt);
         const ticks = qa<SVGLineElement>(".lcb-sxt-tick", sxt);
@@ -1187,13 +1440,56 @@ export function CosmicBridge() {
         }
       }
 
-      // =============== BEAT 3 - OUT OF EVERYTHING (scroll = playhead) ===============
+      // =============== BEAT 2 - THE GAP (discovery star stage) ===============
+      // The parts they cannot explain. The dim UNKNOWN stars fade in around
+      // the bright cluster (visible, still unlit), then pulse faintly - named
+      // by no one. This is the curiosity gap made visible.
+      const gapScene = q(".lcb-gap-scene");
+      if (gapScene && starsSvg && !hush) {
+        const leadLn = q(".lcb-pivot-lead .lcb-ln", gapScene);
+        const bodyLns = qa(".lcb-pivot-body .lcb-ln", gapScene);
+        const unknownG = CONSTEL.unknown.map((u) => q<SVGGElement>(`.lcb-star.${u.id}`, starsSvg));
+        const unknownCool = CONSTEL.unknown.map((u) => starLayer(u.id, "lcb-glow-cool"));
+        const tg = gsap.timeline({
+          scrollTrigger: { trigger: gapScene, start: "top 74%", end: "bottom 52%", scrub },
+        });
+
+        // G2-L1 "...never quite UNDERSTOOD." - the 4 dim stars appear around
+        // the cluster, completing (faded in) exactly at "understood".
+        revealLine(tg, leadLn, 0, "b2understood", LEADP);
+        const uT = labelTime(tg, "b2understood");
+        unknownG.forEach((g, i) => {
+          if (g) tg.to(g, { opacity: 1, ease: HOUSE, duration: 0.6 }, Math.max(0, uT - 0.6) + i * 0.06);
+        });
+
+        // G2-L2 "Why they are the way they ARE." - a soft faint pulse across
+        // the dim stars, cresting at "are" (no new element, just a glimmer).
+        revealLine(tg, bodyLns[0], 1.3, "b2are", SUPP);
+        const areT = labelTime(tg, "b2are");
+        unknownCool.forEach((c, i) => {
+          if (!c) return;
+          tg.to(c, { opacity: 0.85, duration: 0.3, ease: "sine.inOut" }, Math.max(0, areT - 0.3) + i * 0.03)
+            .to(c, { opacity: 0.55, duration: 0.45, ease: HOUSE }, areT + 0.05 + i * 0.03);
+        });
+
+        // G2-L3 "What they would say if they COULD." - one more faint pulse,
+        // cresting at "could". The gap opens; nothing answers it yet.
+        revealLine(tg, bodyLns[1], 2.2, "b2could", SUPP);
+        const couldT = labelTime(tg, "b2could");
+        unknownCool.forEach((c, i) => {
+          if (!c) return;
+          tg.to(c, { opacity: 0.85, duration: 0.3, ease: "sine.inOut" }, Math.max(0, couldT - 0.3) + i * 0.03)
+            .to(c, { opacity: 0.55, duration: 0.45, ease: HOUSE }, couldT + 0.05 + i * 0.03);
+        });
+      }
+
+      // =============== BEAT 3 - OUT OF EVERYTHING (memorial only) ===============
       // One proxy clock drives draw(u); every position is a pure function of
       // u, so the scrub reverses for free. Discovery line anchors read the
       // shared B3 table: box .15 / keys .37 / waits .46 / meet .59.
       const soulsScene = q(".lcb-souls-scene");
       const souls = q(".lcb-souls-hold");
-      if (souls && soulsScene) {
+      if (souls && soulsScene && hush) {
         const humanPath = q<SVGGeometryElement>(".lcb-arc-human", souls);
         const petPath = q<SVGGeometryElement>(".lcb-arc-pet", souls);
         const threadE = q<SVGGeometryElement>(".lcb-thread", souls);
@@ -1295,6 +1591,43 @@ export function CosmicBridge() {
         }
       }
 
+      // =============== BEAT 3 - THE ANSWER (discovery star stage) ===============
+      // It all began the day they were born. The constellation web draws
+      // between every star (born -> read), a degree mark snaps onto one node
+      // (exact), and it completes - still DIM, a real map no one has read.
+      const answerScene = q(".lcb-answer-scene");
+      if (answerScene && starsSvg && cstLines.length && !hush) {
+        const aLns = qa(".lcb-souls-text .lcb-ln", answerScene);
+        const ta = gsap.timeline({
+          scrollTrigger: { trigger: answerScene, start: "top 82%", end: "bottom 54%", scrub },
+        });
+
+        // place the three lines first so their key labels exist
+        revealLine(ta, aLns[0], 0.2, "b3born", SUPP);
+        revealLine(ta, aLns[1], 1.5, "b3exact", SUPP);
+        revealLine(ta, aLns[2], 2.7, "b3read", SUPP);
+
+        // A3-L1..L3 the web draws from "born" and completes at "read"
+        const drawStart = labelTime(ta, "b3born");
+        const drawEnd = labelTime(ta, "b3read");
+        const n = cstLines.length;
+        const drawDur = Math.max(0.4, Math.min(0.9, (drawEnd - drawStart) * 0.42));
+        const spread = Math.max(0.001, drawEnd - drawDur - drawStart);
+        cstLines.forEach((ln, i) => {
+          const at = drawStart + spread * (i / Math.max(1, n - 1));
+          ta.to(ln, { opacity: 0.7, duration: 0.14, ease: "none" }, at);
+          ta.to(ln, { strokeDashoffset: 0, duration: drawDur, ease: HOUSE }, at);
+        });
+
+        // A3-L2 "...an EXACT place." - the degree mark snaps onto its node
+        if (degMark) {
+          const dn = CONSTEL.known.find((k) => k.id === CONSTEL.degNode) || CONSTEL.pet;
+          gsap.set(degMark, { transformOrigin: `${dn.x}px ${dn.y}px` });
+          ta.fromTo(degMark, { opacity: 0, scale: 0.68 },
+            { opacity: 1, scale: 1, ease: HOUSE, duration: 0.42 }, endAt("b3exact", 0.42));
+        }
+      }
+
       // =============== BEAT 4 - THE SEAL IS CAST (scroll = playhead) ===============
       // ONE clock from the payoff into the form's crest. The moon GIVES a
       // 40-degree arc of its own rim light; it closes to a ring at stage
@@ -1336,15 +1669,16 @@ export function CosmicBridge() {
           return out;
         };
 
-        const t4 = gsap.timeline({
-          scrollTrigger: {
-            trigger: payoff, start: "top 75%",
-            endTrigger: crestEl || payoff, end: crestEl ? "center 58%" : "bottom 40%",
-            scrub, invalidateOnRefresh: true,
-          },
-        });
-
         if (hush) {
+          // memorial keeps the seal that closes from the moon and docks onto
+          // the form crest, so its clock spans payoff -> crest
+          const t4 = gsap.timeline({
+            scrollTrigger: {
+              trigger: payoff, start: "top 75%",
+              endTrigger: crestEl || payoff, end: crestEl ? "center 58%" : "bottom 40%",
+              scrub, invalidateOnRefresh: true,
+            },
+          });
           // ---- MEMORIAL BEAT 4: HELD IN THE CHART ----
           // The discovery triplet, past tense, hushed to two lines. The chart
           // gives up a piece of the moon's light and closes to a ring; the
@@ -1414,84 +1748,83 @@ export function CosmicBridge() {
             };
           }
         } else {
-          // ---- DISCOVERY BEAT 4: THE SEAL IS CAST ----
+          // ---- DISCOVERY BEAT 4: THE INVITATION - THE APEX ----
+          // The reading opens it. The dim UNKNOWN stars ignite gold one by
+          // one; then, on "love", two lights (you + their pet) glide together
+          // and MERGE into one bloom - the emotional peak - and hand into form.
+          // Its OWN payoff-scoped clock (not the far crest) so each line lands
+          // with real stillness and the apex holds until "love".
           const headLn = q(".lcb-payoff-line:not(.lcb-close) .lcb-ln", payoff);
           const supLns = qa(".lcb-support .lcb-ln", payoff);
           const closeLns = qa(".lcb-close .lcb-ln", payoff);
+          const t4d = gsap.timeline({
+            scrollTrigger: { trigger: payoff, start: "top 60%", end: "bottom 38%", scrub },
+          });
 
-          // D4-L1 "A birth chart is that sky, held STILL." / triplet /
-          // "...without the MAP." "Now you can SEE it." / "Set the chart."
-          revealLine(t4, headLn, 0, "b4still", LEADP);
-          revealLine(t4, supLns[0], 1.2, "b4are", SUPP);
-          revealLine(t4, supLns[1], 2.1, "b4stead", SUPP);
-          revealLine(t4, supLns[2], 3.0, "b4love", SUPP);
-          t4.addLabel("b4do", labelTime(t4, "b4love") + 4 * SUPP.each);
-          revealLine(t4, closeLns[0], 4.2, "b4map", LEADP);
-          revealLine(t4, closeLns[1], 6.4, "b4see", LEADP);
-          revealLine(t4, closeLns[2], 8.6, "b4chart", LEADP);
+          revealLine(t4d, headLn, 0.3, "b4opens", LEADP);     // "...OPENS it..."
+          revealLine(t4d, supLns[0], 1.9, "b4are", SUPP);      // "Who they ARE."
+          revealLine(t4d, supLns[1], 3.4, "b4need", SUPP);     // "What they NEED."
+          revealLine(t4d, supLns[2], 5.1, "b4love", SUPP);     // "Why they LOVE you..."
+          revealLine(t4d, closeLns[0], 7.2, "b4chart", LEADP); // "Set the chart."
+
+          // "OPENS" - the dim stars begin igniting gold, one by one
+          igniteGold(t4d, "u1", labelTime(t4d, "b4opens"));
+          igniteGold(t4d, "u4", labelTime(t4d, "b4opens") + 0.4);
+          // "ARE" - one flares gold. "NEED" - the next flares gold.
+          igniteGold(t4d, "u2", labelTime(t4d, "b4are"));
+          igniteGold(t4d, "u3", labelTime(t4d, "b4need"));
+
+          // THE APEX on "LOVE": two lights become one bloom of light.
+          if (starsSvg) {
+            const apexYou = q(".lcb-apex-you", starsSvg);
+            const apexPet = q(".lcb-apex-petlight", starsSvg);
+            const apexBloom = q(".lcb-apex-bloom", starsSvg);
+            const apexRay = q(".lcb-apex-ray", starsSvg);
+            const AX = CONSTEL.apex;
+            const loveT = labelTime(t4d, "b4love");
+            gsap.set(apexYou, { x: 72, y: 302, opacity: 0 });
+            gsap.set(apexPet, { x: 212, y: 250, opacity: 0 });
+            gsap.set(apexBloom, { opacity: 0, scale: 0.6, transformOrigin: "center" });
+            gsap.set(apexRay, { opacity: 0, scale: 0.4, transformOrigin: "center" });
+            // stillness after "need", THEN the two lights appear and rush in
+            if (apexYou) t4d.to(apexYou, { opacity: 1, duration: 0.5, ease: HOUSE }, loveT - 1.5);
+            if (apexPet) t4d.to(apexPet, { opacity: 1, duration: 0.5, ease: HOUSE }, loveT - 1.5);
+            // they GLIDE toward each other, arriving together exactly at "love"
+            const glide = 1.2;
+            if (apexYou) t4d.to(apexYou, { x: AX.x, y: AX.y, ease: HOUSE, duration: glide }, loveT - glide);
+            if (apexPet) t4d.to(apexPet, { x: AX.x, y: AX.y, ease: HOUSE, duration: glide }, loveT - glide);
+            // MERGE: the bloom rises as they meet, a soft ray burst flashes,
+            // the two lights fade into the single light. Lens-quality, eased.
+            if (apexBloom) {
+              t4d.to(apexBloom, { opacity: 1, scale: 1.28, duration: 0.42, ease: HOUSE }, loveT - 0.42)
+                .to(apexBloom, { scale: 1.04, duration: 0.5, ease: HOUSE }, loveT);
+            }
+            if (apexRay) {
+              t4d.to(apexRay, { opacity: 0.9, scale: 1.0, duration: 0.28, ease: "power2.out" }, loveT - 0.28)
+                .to(apexRay, { opacity: 0, scale: 1.25, duration: 0.55, ease: HOUSE }, loveT);
+            }
+            if (apexYou) t4d.to(apexYou, { opacity: 0, duration: 0.3, ease: "none" }, loveT);
+            if (apexPet) t4d.to(apexPet, { opacity: 0, duration: 0.3, ease: "none" }, loveT);
+            // the moon receives the light: one breath as the bloom crests
+            const bloomM = q(".lcb-moon-bloom");
+            if (bloomM) t4d.to(bloomM, { opacity: 1, duration: 0.3, ease: "power2.in" }, loveT)
+              .to(bloomM, { opacity: 0.7, duration: 0.5, ease: HOUSE }, loveT + 0.3);
+            // "Set the chart." - the merged light settles and glows; the line
+            // lights gold and the rule draws underneath, handing into the form
+            if (apexBloom) t4d.to(apexBloom, { opacity: 0.82, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 1 }, "b4chart");
+          }
 
           // "Set the chart." lights gold, then the rule draws underneath
-          t4.call(() => { if (asc) asc.classList.add("lit"); }, [], "b4chart+=0.15");
-          if (rule) t4.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: HOUSE, duration: 0.5 }, "b4chart+=0.2");
-
-          // the seal itself (writes ONLY the travelers + crest classes)
-          if (moonArcC && traveler && sealArc && crestEl) {
-            gsap.set(traveler, { opacity: 0, xPercent: -50, yPercent: -50 });
-            gsap.set(moonArcC, { strokeDashoffset: 100 });
-            gsap.set(sealArc, { strokeDashoffset: 88.89 });
-            if (rimA && rimB) primeDraw([rimA, rimB]);
-            if (degRing) gsap.set(degRing, { opacity: 0, rotation: 8, svgOrigin: "0 0" });
-            if (spokes.length) primeDraw(spokes);
-            // the moon gives up a 40-degree arc of its own light; it
-            // detaches, travels to stage centre and closes into a perfect
-            // ring completing exactly at "still" - the frame rests with it
-            t4.to(moonArcC, { opacity: 0.9, duration: 0.1, ease: "none" }, endAt("b4still", 0.9))
-              .to(moonArcC, { strokeDashoffset: 88.89, duration: 0.5, ease: HOUSE }, endAt("b4still", 0.85))
-              .to(moonArcC, { opacity: 0, duration: 0.16, ease: "none" }, endAt("b4still", 0.3))
-              .to(traveler, { opacity: 1, duration: 0.08, ease: "none" }, endAt("b4still", 0.3))
-              .fromTo(traveler,
-                { x: () => sealGeom().bx, y: () => sealGeom().by, scale: () => sealGeom().bs },
-                { x: () => 0.5 * window.innerWidth, y: () => 0.46 * window.innerHeight, scale: 1, duration: 0.3, ease: HOUSE, immediateRender: false }, endAt("b4still", 0.3))
-              .to(sealArc, { strokeDashoffset: 0, duration: 0.3, ease: HOUSE }, endAt("b4still", 0.3));
-            // "Who they ARE." - the rim pair completes on the word
-            if (rimA) t4.to(rimA, { strokeDashoffset: 0, duration: 0.5, ease: HOUSE }, endAt("b4are", 0.5));
-            if (rimB) t4.to(rimB, { strokeDashoffset: 0, duration: 0.35, ease: HOUSE }, endAt("b4are", 0.35));
-            // "What STEADIES them." - the degree ring literally settles
-            if (degRing) {
-              t4.to(degRing, { opacity: 0.55, duration: 0.4, ease: "none" }, endAt("b4stead", 0.45))
-                .to(degRing, { rotation: 0, duration: 0.45, ease: HOUSE }, endAt("b4stead", 0.45));
-            }
-            if (hub) t4.to(hub, { opacity: 0.9, duration: 0.3, ease: HOUSE }, endAt("b4stead", 0.3));
-            // "Why they LOVE the way they do." - the twelve house spokes
-            // fan from the hub; the ascendant dot glows on terminal "do"
-            const spokeSpan = 0.3 + (spokes.length - 1) * 0.03;
-            if (spokes.length) t4.to(spokes, { strokeDashoffset: 0, duration: 0.3, ease: HOUSE, stagger: 0.03 }, endAt("b4love", spokeSpan));
-            if (ascDot) t4.to(ascDot, { opacity: 1, duration: 0.3, ease: HOUSE }, endAt("b4do", 0.3));
-            // "...without the MAP." - the completed frame takes its single
-            // quiet breath, starting at the word (it was there all along)
-            if (sealSvg) t4.to(sealSvg, { opacity: 0.86, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, "b4map");
-            // "Now you can SEE it." - the seal lifts to be looked at,
-            // completing at "see", then descends the seam in silence and
-            // docks onto the form's crest exactly at "chart"
-            t4.to(traveler, { rotationX: 56, transformPerspective: 900, duration: 0.55, ease: HOUSE }, endAt("b4see", 0.55));
-            const descDur = labelTime(t4, "b4chart") - labelTime(t4, "b4see");
-            t4.to(traveler, { x: () => 0.5 * window.innerWidth, y: () => 0.58 * window.innerHeight, scale: () => sealGeom().ds, duration: descDur, ease: HOUSE, immediateRender: false }, "b4see")
-              .to(traveler, { rotationX: 0, duration: 1.4, ease: HOUSE }, "b4see+=0.1")
-              .to(traveler, { opacity: 0, duration: 0.3, ease: "none" }, endAt("b4chart", 0.3));
-            // on dock: the crest flares ONCE, fired from the timeline at
-            // the label itself (forward passes only, then it stays)
-            t4.call(() => {
+          t4d.call(() => { if (asc) asc.classList.add("lit"); }, [], "b4chart+=0.15");
+          if (rule) t4d.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: HOUSE, duration: 0.5 }, "b4chart+=0.2");
+          // the moon's old seal-arc stays retired in discovery v5 (the apex is
+          // the payoff). Keep the form crest reaching its docked final state.
+          if (crestEl) {
+            t4d.call(() => {
               if (!crestEl || crestEl.classList.contains("lcb-docked")) return;
-              if (t4.scrollTrigger && t4.scrollTrigger.direction < 0) return;
+              if (t4d.scrollTrigger && t4d.scrollTrigger.direction < 0) return;
               crestEl.classList.add("lcb-docked");
             }, [], "b4chart");
-            // post-submit guard: the form swaps to the journey and the crest
-            // leaves the DOM - kill the handoff, hide the travelers
-            sealKill = () => {
-              t4.scrollTrigger?.kill();
-              gsap.set(traveler, { opacity: 0 });
-              gsap.set(moonArcC, { opacity: 0 });
-            };
           }
         }
       }
@@ -1515,10 +1848,13 @@ export function CosmicBridge() {
         spine.fromTo(travel,
           { x: () => 0.05 * W2() * amp, y: () => -0.11 * H2() * amp },
           { x: () => (mobile ? -0.36 : -0.44) * W2(), y: () => 0.18 * H2(), ease: HOUSE, duration: 1, immediateRender: false }, 0.001)
-          // leg 5 - retire: drift up, shrink a breath, dim to nothing
+          // leg 5 - retire: drift up, shrink a breath, dim to nothing. The
+          // star constellation retires WITH the moon (it never wanders below
+          // the passage, especially on mobile - the v5 retirement law).
           .to(travel, { y: () => 0.04 * H2(), ease: "none", duration: 0.8 }, 1.001)
           .to(moonEl, { scale: 0.86, ease: "none", duration: 0.8 }, 1.001)
           .to(moonEl, { opacity: 0, ease: "none", duration: 0.8 }, 1.001);
+        if (starsWrap) spine.to(starsWrap, { opacity: 0, ease: "none", duration: 0.7 }, 0.4);
 
         // the dossier CTA still takes up the thread once it arrives (a
         // page-side breath, not a moon effect)
@@ -1627,6 +1963,33 @@ export function CosmicBridge() {
           gsap.set(q(".lcb-beam"), { opacity: glow(0.35) });
           gsap.set(q(".lcb-head-one"), { opacity: 1 });
           gsap.set(q(".lcb-rule"), { scaleX: 1 });
+          // v5 discovery star stage: the honest FINAL frame - every star lit,
+          // constellation drawn, degree mark set, the two lights merged into
+          // one bloom. No ignition sequence, no apex glide.
+          if (!hush && starsSvg) {
+            CONSTEL.known.forEach((k) => {
+              const g = starsSvg.querySelector<SVGGElement>(`.lcb-star.${k.id}`);
+              if (!g) return;
+              gsap.set(g, { opacity: 1 });
+              gsap.set(g.querySelector(".lcb-glow-cool"), { opacity: 0.22 });
+              gsap.set(g.querySelector(".lcb-glow-warm"), { opacity: 1 });
+              gsap.set(g.querySelector(".lcb-glint"), { opacity: 0.45 });
+            });
+            CONSTEL.unknown.forEach((u) => {
+              const g = starsSvg.querySelector<SVGGElement>(`.lcb-star.${u.id}`);
+              if (!g) return;
+              gsap.set(g, { opacity: 1 });
+              gsap.set(g.querySelector(".lcb-glow-cool"), { opacity: 0.12 });
+              gsap.set(g.querySelector(".lcb-glow-warm"), { opacity: 1 });
+              gsap.set(g.querySelector(".lcb-glow-gold"), { opacity: 1 });
+              gsap.set(g.querySelector(".lcb-glint"), { opacity: 0.85 });
+            });
+            cstLines.forEach((ln) => { ln.style.strokeDashoffset = "0"; ln.style.opacity = "0.7"; });
+            if (degMark) gsap.set(degMark, { opacity: 1 });
+            gsap.set(q(".lcb-apex-light", starsSvg), { opacity: 0 });
+            gsap.set(q(".lcb-apex-bloom", starsSvg), { opacity: 0.82, scale: 1, transformOrigin: "center" });
+            gsap.set(q(".lcb-apex-ray", starsSvg), { opacity: 0 });
+          }
           if (hush) {
             // memorial statics: the held star burns low; the moon's rim is
             // hushed; the ascension thread never existed
@@ -1645,6 +2008,8 @@ export function CosmicBridge() {
         gsap.set(allInners, { yPercent: 118, opacity: 0 });
         gsap.set(q(".lcb-moon-img.sharp"), { opacity: 0 });
         gsap.set(q(".lcb-moon-img.blur"), { opacity: 1 });
+        // prime the star constellation to its dim starting sky (discovery)
+        primeStars();
 
         // slow starfield parallax on the same clock
         if (canvasWrap) {
@@ -1727,6 +2092,13 @@ export function CosmicBridge() {
             </div>
           </div>
         </div>
+        {/* v5 STAR CONSTELLATION STAGE (discovery) - one graded sky behind
+            the passage, built at setup, every event bound to a key word */}
+        {!memorial && (
+          <div className="lcb-stars-wrap" aria-hidden="true">
+            <svg className="lcb-stars" viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet" />
+          </div>
+        )}
         {/* BEAT 4: the traveling seal ring (the unset chart) */}
         <div className="lcb-seal-travel" aria-hidden="true">
           <svg className="lcb-seal-svg" viewBox="-110 -110 220 220">
@@ -1817,72 +2189,55 @@ export function CosmicBridge() {
           </>
         ) : (
           <>
-            {/* BEAT 1 - recognition: the sky replies */}
+            {/* BEAT 1 - RECOGNITION: you already know them. Three known stars
+                ignite warm beside the pet star as the reader is told what they
+                know (love / settles / you). */}
             <div className="lcb-scene lcb-open">
               <div className="lcb-dawn" aria-hidden="true" />
-              <div className="lcb-meteor" aria-hidden="true">
-                <div className="lcb-meteor-streak" />
-                <div className="lcb-meteor-head" />
-              </div>
-              <p className="lcb-beat lcb-split"><span className="lcb-ln">You <span className="lcb-key">know</span> them by heart.</span></p>
+              <p className="lcb-beat lcb-split"><span className="lcb-ln">No one <span className="lcb-key">knows</span> your pet the way you do.</span></p>
               <p className="lcb-beat lcb-support lcb-split">
-                <span className="lcb-ln">The exact thing that makes them lose their mind with <span className="lcb-key">joy.</span></span>
-                <span className="lcb-ln">The <span className="lcb-key">weight</span> of them when they finally fall asleep on you.</span>
-                <span className="lcb-ln">The way you catch them <span className="lcb-key">watching</span> you.</span>
+                <span className="lcb-ln">You know what they <span className="lcb-key">love.</span></span>
+                <span className="lcb-ln">You know what <span className="lcb-key">settles</span> them.</span>
+                <span className="lcb-ln">You know the look they save only for <span className="lcb-key">you.</span></span>
               </p>
             </div>
 
-            {/* BEAT 2 - the unnamed part, measured */}
-            <div className="lcb-scene lcb-chart-scene">
+            {/* BEAT 2 - GAP: the parts you cannot explain. The dim unknown
+                stars fade in around the cluster (visible, unlit), then pulse. */}
+            <div className="lcb-scene lcb-chart-scene lcb-gap-scene">
               <p className="lcb-pivot-lead lcb-split">
-                <span className="lcb-ln">Their chin finds the same corner of the sofa. <span className="lcb-key">Every time.</span></span>
+                <span className="lcb-ln">But there are parts of them you have never quite <span className="lcb-key">understood.</span></span>
               </p>
-              <svg className="lcb-sxt" viewBox="0 0 390 480" aria-hidden="true" />
               <div className="lcb-chart-copy">
                 <p className="lcb-pivot-body lcb-split">
-                  <span className="lcb-ln">The ears up before the cupboard opens. Nobody taught them <span className="lcb-key">that.</span></span>
-                  <span className="lcb-ln">The date on their vet card had a sky. Every planet in it stood at an exact <span className="lcb-key">address.</span></span>
-                  <span className="lcb-ln">Measured to the <span className="lcb-key">degree.</span> The same order that knows the afternoon the sky will go dark, years before it happens.</span>
+                  <span className="lcb-ln">Why they are the way they <span className="lcb-key">are.</span></span>
+                  <span className="lcb-ln">What they would say if they <span className="lcb-key">could.</span></span>
                 </p>
               </div>
             </div>
 
-            {/* BEAT 3 - out of everything: two lives, timed to meet */}
-            <div className="lcb-scene lcb-souls-scene">
-              <div className="lcb-souls-hold" aria-hidden="true">
-                <canvas className="lcb-cross-sky" />
-                <div className="lcb-beam" />
-                <div className="lcb-cross-zoom">
-                  <svg className="lcb-souls-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
-                    <path className="lcb-arc lcb-arc-human" d="M-30,10 C90,140 150,120 200,178" />
-                    <path className="lcb-arc lcb-arc-pet" d="M430,252 C310,150 250,206 200,178" />
-                    <line className="lcb-thread" x1="200" y1="178" x2="200" y2="-82" />
-                    <circle className="lcb-head lcb-head-human" cx="0" cy="0" r="4.6" />
-                    <circle className="lcb-head lcb-head-pet" cx="0" cy="0" r="4.6" />
-                    <circle className="lcb-head lcb-head-one" cx="200" cy="178" r="5.2" />
-                  </svg>
-                </div>
-                <div className="lcb-iris" />
-              </div>
+            {/* BEAT 3 - ANSWER: it began the day they were born. The
+                constellation draws between every star, a degree mark snaps on
+                one node, then it completes, still dim, waiting to be read. */}
+            <div className="lcb-scene lcb-souls-scene lcb-answer-scene">
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
-                <span className="lcb-ln">A cardboard <span className="lcb-key">box</span> on someone else&apos;s floor.</span>
-                <span className="lcb-ln">Your coat on. <span className="lcb-key">Keys</span> in your hand.</span>
-                <span className="lcb-ln">The one who <span className="lcb-key">waits</span> at the door before your car has turned in.</span>
-                <span className="lcb-ln lcb-emph">Two lives, out of everything, timed to <span className="lcb-key">meet.</span></span>
+                <span className="lcb-ln">All of it began the day they were <span className="lcb-key">born.</span></span>
+                <span className="lcb-ln">The sky that day was set just for them, every planet in an <span className="lcb-key">exact</span> place.</span>
+                <span className="lcb-ln lcb-emph">A map of who they are, that no one has ever <span className="lcb-key">read.</span></span>
               </p>
             </div>
 
-            {/* BEAT 4 - the seal is cast: that sky held still, then set the chart */}
+            {/* BEAT 4 - INVITATION: the reading opens it. The dim stars ignite
+                gold one by one, then the two lights (you + their pet) become
+                one bloom exactly on "love" - the apex - and hand into the form. */}
             <div className="lcb-scene lcb-payoff lcb-payoff-scene">
-              <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A birth chart is that sky, held <span className="lcb-key">still.</span></span></p>
+              <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A soul reading <span className="lcb-key">opens</span> it, piece by piece.</span></p>
               <p className="lcb-beat lcb-support lcb-split">
                 <span className="lcb-ln">Who they <span className="lcb-key">are.</span></span>
-                <span className="lcb-ln">What <span className="lcb-key">steadies</span> them.</span>
-                <span className="lcb-ln">Why they <span className="lcb-key">love</span> the way they do.</span>
+                <span className="lcb-ln">What they <span className="lcb-key">need.</span></span>
+                <span className="lcb-ln lcb-emph">Why they <span className="lcb-key">love</span> you the way they do.</span>
               </p>
               <p className="lcb-payoff-line lcb-close lcb-split">
-                <span className="lcb-ln">You have loved them without the <span className="lcb-key">map.</span></span>
-                <span className="lcb-ln">Now you can <span className="lcb-key">see</span> it.</span>
                 <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
               </p>
               <span className="lcb-rule" aria-hidden="true" />
