@@ -3046,7 +3046,13 @@ function FullReadingOpens() {
         </p>
       </div>
       <style>{`
-                .ls-fo { position: relative; z-index: 1; padding: clamp(30px, 5svh, 64px) 20px clamp(30px, 5vw, 64px); }
+                /* Own an opaque cosmic backdrop. The section sits over the graded
+                   sky and its stars use screen-blend, so a solid ${C.cosmos} reads
+                   identically, and it guarantees nothing from an adjacent section
+                   (e.g. the passage's own constellation under reduced motion, where
+                   section heights collapse and can overlap) ever bleeds through the
+                   reading. The section paints its own sky, always clean. */
+                .ls-fo { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(30px, 5svh, 64px) 20px clamp(30px, 5vw, 64px); }
         .ls-fo-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
         .ls-fo-head { text-align: center; max-width: 660px; margin: 0 auto clamp(18px, 3vw, 36px); }
         .ls-fo-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
@@ -3058,7 +3064,7 @@ function FullReadingOpens() {
         .ls-fo-sr { position: relative; }
         .ls-fo-chartcol { position: sticky; top: 0; z-index: 2; }
         .ls-fo-chartcol-inner { height: 46svh; min-height: 296px; display: grid; place-items: center; }
-        .dfo-stage { position: relative; display: grid; place-items: center; width: 100%; }
+        .dfo-stage { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; }
         .dfo-stage-dust {
           position: absolute; inset: -6% -4%; pointer-events: none;
           background-image:
@@ -3072,6 +3078,24 @@ function FullReadingOpens() {
           will-change: transform;
         }
         .dfo-chart { height: 42svh; width: auto; aspect-ratio: 400 / 520; max-width: 92vw; overflow: visible; isolation: isolate; pointer-events: none; display: block; }
+
+        /* Mobile only: the pinned chart is a solid "sky window". Passed beats
+           scroll UP behind it and must vanish, not bleed through the transparent
+           SVG. A full-bleed cosmos panel (feathered at its lower edge so a beat
+           emerging below fades in, not clips) sits behind the stars (z 0) and
+           above the rail text (rail is z auto; chartcol is z 2). */
+        @media (max-width: 767px) {
+          .ls-fo-chartcol-inner::after {
+            content: ""; position: absolute; left: 50%; top: 0; z-index: 0;
+            width: 100vw; height: 100%; transform: translateX(-50%);
+            pointer-events: none;
+            background: linear-gradient(180deg,
+              ${C.cosmos} 0%,
+              ${C.cosmos} 78%,
+              rgba(13,10,20,0.72) 90%,
+              rgba(13,10,20,0) 100%);
+          }
+        }
 
         .ls-fo-rail { list-style: none; margin: 0 auto; padding: 0; max-width: 31rem; text-align: center; }
         .dfo-beat {
@@ -3173,6 +3197,18 @@ function FullReadingOpens() {
           .dfo-stage-dust { transform: none; }
           .dfo-beat { opacity: 1 !important; transform: none !important; transition: none; }
           .ls-fo-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        }
+
+        /* Reduced motion on a phone: nothing ignites, so a sticky chart would
+           just sit under a column of full-strength text and collide with it.
+           Unpin it so the resolved sky becomes one static image at the top, then
+           the eight placements read as a clean, tight stacked list beneath. */
+        @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+          .ls-fo-chartcol { position: static; z-index: 1; }
+          .ls-fo-chartcol-inner { position: static; height: auto; min-height: 0; padding: 2svh 0 1svh; }
+          .ls-fo-chartcol-inner::after { display: none; }
+          .dfo-chart { height: auto; width: min(82vw, 320px); max-width: 82vw; }
+          .dfo-beat { min-height: 0; padding: 18px 2px; }
         }
       `}</style>
     </section>
