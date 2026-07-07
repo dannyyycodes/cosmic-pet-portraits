@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, ChevronDown, Volume2, Sun, Moon } from "lucide-react";
+import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -503,73 +503,159 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
    downstream section treats as discovery. A memorial choice hushes the
    passage and the checkout. Neither answer changes price or tier, and either
    choice reopens via "change" — grief state, and discovery, are never fixed. */
+// Bespoke celestial marks for the two paths. Dots of light on a thread, a dawn
+// horizon, a crescent — the brand's own star metaphor, drawn first-party. No
+// sparkles, no icon-set glyphs. currentColor inherits the path's gold/violet.
+function DiscoveryMark() {
+  return (
+    <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+      <circle className="ls-pm-core" cx="48" cy="44" r="16" />
+      <path className="ls-pm-line" d="M16 68 Q48 58 80 68" strokeWidth="1.4" strokeLinecap="round" />
+      <path className="ls-pm-thread" d="M27 32 L48 44 L69 27" strokeWidth="1" />
+      <circle className="ls-pm-star" cx="48" cy="44" r="3.4" />
+      <circle className="ls-pm-star s2" cx="27" cy="32" r="2" />
+      <circle className="ls-pm-star s3" cx="69" cy="27" r="2" />
+    </svg>
+  );
+}
+
+function MemorialMark() {
+  return (
+    <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+      <circle className="ls-pm-core" cx="42" cy="46" r="18" />
+      <path className="ls-pm-crescent" d="M55 26 a21 21 0 1 0 0 42 a15.5 15.5 0 1 1 0 -42 Z" />
+      <path className="ls-pm-thread" d="M66 34 L75 52 L61 63" strokeWidth="1" />
+      <circle className="ls-pm-star" cx="75" cy="52" r="3" />
+      <circle className="ls-pm-star s2" cx="66" cy="34" r="1.8" />
+      <circle className="ls-pm-star s3" cx="61" cy="63" r="1.8" />
+    </svg>
+  );
+}
+
 function IntentFork() {
   const [intent, setIntentState] = useState<Intent | null>(() => getIntent());
+  const rootRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const onIntent = () => setIntentState(getIntent());
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
 
-  // Already chosen: collapse to one quiet marker with a way back. Discovery is
-  // the default, so its marker stays as unobtrusive as the memorial one.
+  // Self-contained reveal, re-run whenever the state flips (chooser <-> banner),
+  // so a returning visitor who taps "Change" always sees the chooser fade in.
+  // The page-level observer only runs once, so this section owns its own.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+    const nodes = Array.from(root.querySelectorAll<HTMLElement>(".ls-path-rv"));
+    if (!nodes.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      nodes.forEach((n) => n.setAttribute("data-in", "1"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.setAttribute("data-in", "1");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.14 },
+    );
+    nodes.forEach((n) => io.observe(n));
+    return () => io.disconnect();
+  }, [intent]);
+
+  // Already chosen: a dignified, clearly-visible path banner (never a tiny grey
+  // line). The reader always sees which path their reading is on, carries the
+  // same celestial mark from the chooser, and gets one clear control to change it.
   if (intent === "memorial" || intent === "discovery") {
-    const label = intent === "memorial" ? "Reading in remembrance" : "Reading for the soul beside you";
+    const isMemorial = intent === "memorial";
     return (
-      <section id="passage-fork" className="ls-fork ls-fork-held" aria-label="Reading path">
-        <p className="ls-fork-note">
-          {label}
-          <span aria-hidden="true"> · </span>
-          <button type="button" className="ls-fork-change" onClick={() => clearIntent()}>
-            change
+      <section
+        ref={rootRef}
+        id="passage-fork"
+        className={`ls-path ls-path-held ls-parallax-band ${isMemorial ? "is-memorial" : "is-discovery"}`}
+        aria-label="Your reading path"
+      >
+        <div className="ls-path-held-inner ls-path-rv">
+          <span className="ls-path-mark" aria-hidden="true">
+            {isMemorial ? <MemorialMark /> : <DiscoveryMark />}
+          </span>
+          <div className="ls-path-held-text">
+            <p className="ls-path-held-label">
+              {isMemorial ? "Reading in remembrance" : "Reading for the soul beside you"}
+            </p>
+            <p className="ls-path-held-desc">
+              {isMemorial ? "A reading in their memory" : "Discover who they are"}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="ls-path-change"
+            onClick={() => clearIntent()}
+            aria-label="Change your reading path"
+          >
+            Change
+            <ArrowRight size={15} aria-hidden="true" />
           </button>
-        </p>
+        </div>
       </section>
     );
   }
 
-  // Not yet chosen: the clear two-option chooser. Discovery is first and primary;
-  // leaving without choosing keeps the discovery path.
+  // Not yet chosen: the full, unmissable chooser as its own journey moment.
+  // Discovery is first and primary (gold); memorial is second (violet). Leaving
+  // without choosing keeps the discovery path.
   return (
-    <section id="passage-fork" className="ls-fork" aria-labelledby="ls-fork-title">
-      <p className="ls-fork-eyebrow ls-reveal">Before their reading begins</p>
-      <h2 id="ls-fork-title" className="ls-fork-title ls-reveal" style={revealDelay(0.06)}>
-        Who is this reading for?
-      </h2>
-      <p className="ls-fork-sub ls-reveal" style={revealDelay(0.1)}>
-        Pick the path that fits your companion. It shapes the whole reading, and never changes the price.
-      </p>
-      <div className="ls-fork-cards">
-        <button
-          type="button"
-          className="ls-fork-card is-discovery ls-reveal"
-          style={revealDelay(0.16)}
-          onClick={() => setIntent("discovery")}
-        >
-          <span className="ls-fork-mark" aria-hidden="true">
-            <Sun size={22} strokeWidth={1.5} />
-          </span>
-          <span className="ls-fork-text">
-            <span className="ls-fork-label">My pet is here with me</span>
-            <span className="ls-fork-desc">Discover who they are</span>
-          </span>
-          <ArrowRight className="ls-fork-go" size={18} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="ls-fork-card is-memorial ls-reveal"
-          style={revealDelay(0.24)}
-          onClick={() => setIntent("memorial")}
-        >
-          <span className="ls-fork-mark" aria-hidden="true">
-            <Moon size={20} strokeWidth={1.5} />
-          </span>
-          <span className="ls-fork-text">
-            <span className="ls-fork-label">My pet has passed</span>
-            <span className="ls-fork-desc">A reading in their memory</span>
-          </span>
-          <ArrowRight className="ls-fork-go" size={18} aria-hidden="true" />
-        </button>
+    <section ref={rootRef} id="passage-fork" className="ls-path ls-parallax-band" aria-labelledby="ls-path-title">
+      <div className="ls-path-sky" aria-hidden="true" />
+      <div className="ls-path-inner">
+        <p className="ls-path-eyebrow ls-path-rv">Before their reading begins</p>
+        <h2 id="ls-path-title" className="ls-path-title ls-path-rv" style={revealDelay(0.06)}>
+          Who is this reading for?
+        </h2>
+        <p className="ls-path-sub ls-path-rv" style={revealDelay(0.1)}>
+          Pick the path that fits your companion. It shapes the whole reading, and never changes the price.
+        </p>
+        <div className="ls-path-cards">
+          <button
+            type="button"
+            className="ls-path-card is-discovery ls-path-rv"
+            style={revealDelay(0.16)}
+            onClick={() => setIntent("discovery")}
+          >
+            <span className="ls-path-mark" aria-hidden="true">
+              <DiscoveryMark />
+            </span>
+            <span className="ls-path-card-text">
+              <span className="ls-path-card-label">My pet is here with me</span>
+              <span className="ls-path-card-desc">Discover who they are</span>
+            </span>
+            <span className="ls-path-card-go" aria-hidden="true">
+              <ArrowRight size={17} />
+            </span>
+          </button>
+          <button
+            type="button"
+            className="ls-path-card is-memorial ls-path-rv"
+            style={revealDelay(0.24)}
+            onClick={() => setIntent("memorial")}
+          >
+            <span className="ls-path-mark" aria-hidden="true">
+              <MemorialMark />
+            </span>
+            <span className="ls-path-card-text">
+              <span className="ls-path-card-label">My pet has passed</span>
+              <span className="ls-path-card-desc">A reading in their memory</span>
+            </span>
+            <span className="ls-path-card-go" aria-hidden="true">
+              <ArrowRight size={17} />
+            </span>
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -813,6 +899,12 @@ const PREMIUM_TEASERS = [
   { glyph: "✶", title: "Their Soul Archetype", line: "Guardian, mirror, healer, wanderer, witness. The ancient pattern behind their presence." },
   { glyph: "❂", title: "The Full Celestial Synthesis", line: "Where all thirteen placements become one clear portrait of who they are with you." },
 ] as const;
+
+// The teasers whose glyph is a real astrological symbol tied to a real placement
+// (Moon, Saturn, Chiron, North Node, Black Moon Lilith) render that glyph in the
+// brand serif; the three syntheses render a bespoke unlit-star node instead of
+// any decorative icon. No sparkles, no filler glyphs.
+const REAL_GLYPHS = new Set(["☾", "♄", "⚷", "☊", "⚸"]);
 
 // ── Real natal wheel ────────────────────────────────────────────────────────
 // A bespoke gold-on-night zodiac wheel drawn straight from the VSOP87 placements.
@@ -2722,6 +2814,24 @@ function FullReadingOpens() {
 
   return (
     <section ref={rootRef} className="ls-fo ls-parallax-band" aria-labelledby="ls-fo-title">
+      <div className="ls-fo-sky" aria-hidden="true">
+        <svg viewBox="0 0 800 340" fill="none" preserveAspectRatio="xMidYMid slice">
+          <path
+            className="ls-fo-sky-line"
+            d="M60 250 L170 120 L300 190 L410 90 L520 200 L620 110 L720 210"
+            strokeWidth="1"
+          />
+          <g className="ls-fo-sky-stars">
+            <circle cx="60" cy="250" r="2.4" />
+            <circle cx="170" cy="120" r="2" />
+            <circle cx="300" cy="190" r="2.6" />
+            <circle cx="410" cy="90" r="2.2" />
+            <circle cx="520" cy="200" r="2.4" />
+            <circle cx="620" cy="110" r="2" />
+            <circle cx="720" cy="210" r="2.6" />
+          </g>
+        </svg>
+      </div>
       <div className="ls-fo-inner">
         <header className="ls-fo-head">
           <p className="ls-fo-eyebrow ls-fo-rv">The rest of their sky</p>
@@ -2741,10 +2851,12 @@ function FullReadingOpens() {
               className="ls-fo-card ls-fo-rv"
               style={revealDelay(0.05 + (i % 2) * 0.05 + Math.floor(i / 2) * 0.06)}
             >
-              <span className="ls-fo-star" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round">
-                  <path d="M12 2.6c.45 4.3 2.5 6.35 6.8 6.8-4.3.45-6.35 2.5-6.8 6.8-.45-4.3-2.5-6.35-6.8-6.8 4.3-.45 6.35-2.5 6.8-6.8Z" />
-                </svg>
+              <span className="ls-fo-node" aria-hidden="true">
+                {REAL_GLYPHS.has(teaser.glyph) ? (
+                  <span className="ls-fo-glyph">{teaser.glyph}</span>
+                ) : (
+                  <span className="ls-fo-node-dot" />
+                )}
               </span>
               <div className="ls-fo-card-main">
                 <h3 className="ls-fo-card-title">{teaser.title}</h3>
@@ -2759,49 +2871,74 @@ function FullReadingOpens() {
         </p>
       </div>
       <style>{`
-        .ls-fo { position: relative; z-index: 1; padding: clamp(30px, 5svh, 60px) 20px clamp(28px, 4vw, 52px); text-align: center; }
-        .ls-fo-inner { max-width: 940px; margin: 0 auto; }
-        .ls-fo-head { max-width: 640px; margin: 0 auto clamp(24px, 4.5vw, 42px); }
+        .ls-fo { position: relative; z-index: 1; overflow: hidden; padding: clamp(34px, 6svh, 72px) 20px clamp(30px, 5vw, 60px); text-align: center; }
+        .ls-fo-sky {
+          position: absolute; z-index: 0; top: 3%; left: -4%; width: 108%; height: 94%; pointer-events: none;
+          color: rgba(185,165,240,0.5); opacity: 0.42;
+          transform: translate3d(calc(var(--ls-pointer-x, 0) * 12px), calc((var(--ls-scroll-y, 0) * -0.008px) + (var(--ls-pointer-y, 0) * 10px)), 0);
+          will-change: transform;
+        }
+        .ls-fo-sky svg { width: 100%; height: 100%; display: block; }
+        .ls-fo-sky-line { stroke: currentColor; opacity: 0.6; stroke-dasharray: 2 7; stroke-linecap: round; }
+        .ls-fo-sky-stars circle { fill: ${C.goldSoft}; animation: ls-fo-twinkle 4.4s ease-in-out infinite; }
+        .ls-fo-sky-stars circle:nth-child(2n) { fill: ${C.violetBright}; animation-duration: 5.6s; animation-delay: .8s; }
+        .ls-fo-sky-stars circle:nth-child(3n) { animation-duration: 6.4s; animation-delay: 1.6s; }
+        @keyframes ls-fo-twinkle { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+        .ls-fo-inner { position: relative; z-index: 1; max-width: 940px; margin: 0 auto; }
+        .ls-fo-head { max-width: 640px; margin: 0 auto clamp(26px, 4.5vw, 44px); }
         .ls-fo-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
         .ls-fo-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
         .ls-fo-lead { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
         .ls-fo-lead strong { color: ${C.violetBright}; font-weight: 600; }
         .ls-fo-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; text-align: left; }
         .ls-fo-card {
-          position: relative; display: flex; align-items: flex-start; gap: 14px; margin: 0;
-          padding: 17px 18px; border-radius: 15px;
+          position: relative; display: flex; align-items: flex-start; gap: 15px; margin: 0;
+          padding: 18px 18px; border-radius: 15px;
           background:
             radial-gradient(130% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 58%),
             linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
           box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.3);
+          transition: transform .4s cubic-bezier(.22,.7,.2,1), box-shadow .4s ease;
         }
         .ls-fo-card::before {
           content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
           background: linear-gradient(160deg, rgba(212,182,122,0.26) 0%, rgba(154,126,230,0.16) 48%, rgba(212,182,122,0.2) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
+          transition: background .4s ease;
         }
-        .ls-fo-star {
-          flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%;
+        .ls-fo-node {
+          flex: none; position: relative; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%;
           color: ${C.gold};
-          background: radial-gradient(circle at 50% 38%, rgba(212,182,122,0.14), transparent 70%);
-          border: 1px solid rgba(212,182,122,0.28);
-          box-shadow: inset 0 0 12px rgba(154,126,230,0.14);
-          opacity: 0.92;
+          background: radial-gradient(circle at 50% 42%, rgba(212,182,122,0.15), transparent 68%);
+          border: 1px solid rgba(212,182,122,0.3);
+          box-shadow: inset 0 0 14px rgba(154,126,230,0.16);
+          transition: box-shadow .4s ease, border-color .4s ease, transform .4s cubic-bezier(.22,.7,.2,1);
         }
-        .ls-fo-star svg { display: block; filter: drop-shadow(0 0 4px rgba(185,165,240,0.4)); }
+        .ls-fo-glyph { font-family: "Fraunces", "Newsreader", Georgia, serif; font-size: 1.34rem; line-height: 1; color: ${C.goldSoft}; filter: drop-shadow(0 0 6px rgba(185,165,240,0.42)); }
+        .ls-fo-node-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.goldSoft}; box-shadow: 0 0 10px 2px rgba(240,217,159,0.5), 0 0 0 4px rgba(212,182,122,0.08); animation: ls-fo-twinkle 4s ease-in-out infinite; }
+        .ls-fo-card:nth-child(2n) .ls-fo-node-dot { animation-duration: 5.2s; animation-delay: .6s; }
+        .ls-fo-card:nth-child(3n) .ls-fo-node-dot { animation-duration: 6s; animation-delay: 1.2s; }
+        .ls-fo-card:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 16px 40px rgba(0,0,0,0.34); }
+        .ls-fo-card:hover::before { background: linear-gradient(160deg, rgba(240,217,159,0.4) 0%, rgba(185,165,240,0.24) 48%, rgba(240,217,159,0.32) 100%); }
+        .ls-fo-card:hover .ls-fo-node { border-color: rgba(240,217,159,0.6); box-shadow: inset 0 0 16px rgba(154,126,230,0.22), 0 0 18px -2px rgba(212,182,122,0.42); transform: translateY(-1px); }
         .ls-fo-card-main { min-width: 0; }
         .ls-fo-card-title { margin: 0 0 5px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.14rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.002em; }
         .ls-fo-card-line { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.95rem; line-height: 1.5; }
-        .ls-fo-close { margin: clamp(22px, 4vw, 38px) auto 0; max-width: 32ch; color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 2.7vw, 1.3rem); line-height: 1.45; }
+        .ls-fo-close { position: relative; z-index: 1; margin: clamp(24px, 4vw, 40px) auto 0; max-width: 32ch; color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 2.7vw, 1.3rem); line-height: 1.45; }
         .ls-fo-rv { opacity: 0; transform: translate3d(0, 24px, 0); filter: blur(8px); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1), filter 0.8s cubic-bezier(0.22,0.7,0.2,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
         .ls-fo-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
         @media (min-width: 640px) {
           .ls-fo-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
-          .ls-fo-card { padding: 20px 20px; }
+          .ls-fo-card { padding: 20px 20px; gap: 16px; }
+          .ls-fo-node { width: 46px; height: 46px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .ls-fo-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+          .ls-fo-sky { transform: none; }
+          .ls-fo-sky-stars circle, .ls-fo-node-dot { animation: none; }
+          .ls-fo-card:hover { transform: none; }
+          .ls-fo-card:hover .ls-fo-node { transform: none; }
         }
       `}</style>
     </section>
@@ -5411,168 +5548,286 @@ function CosmicStyles() {
       }
       .ls-hero-memorial:hover { color: #efe9dd; text-decoration-color: rgba(240,217,159,0.55); }
       .ls-hero-memorial:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 4px; border-radius: 4px; }
-      /* ── the reading-path chooser (intent fork) ── */
-      .ls-fork {
+      /* ── the reading-path chooser (intent capture) ───────────────────────
+         Its own journey-moment section directly after the hero. First visit:
+         a tall, unmissable chooser (discovery / gold first, memorial / violet
+         second). Returning: a dignified, clearly-visible path banner, never a
+         tiny grey line. Bespoke celestial marks (no icon-set glyphs). */
+      .ls-path {
         position: relative;
         z-index: 2;
         display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: min(88svh, 780px);
+        padding: clamp(56px, 11svh, 128px) 20px;
+        text-align: center;
+        overflow: hidden;
+      }
+      .ls-path-sky {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+          radial-gradient(1.5px 1.5px at 12% 22%, rgba(255,255,255,0.7), transparent 60%),
+          radial-gradient(1.3px 1.3px at 82% 16%, rgba(240,217,159,0.6), transparent 60%),
+          radial-gradient(1.7px 1.7px at 68% 76%, rgba(185,165,240,0.6), transparent 60%),
+          radial-gradient(1.2px 1.2px at 26% 70%, rgba(255,255,255,0.55), transparent 60%),
+          radial-gradient(1.3px 1.3px at 46% 32%, rgba(255,255,255,0.5), transparent 60%),
+          radial-gradient(1.1px 1.1px at 91% 54%, rgba(255,255,255,0.45), transparent 60%),
+          radial-gradient(1.2px 1.2px at 8% 52%, rgba(185,165,240,0.5), transparent 60%);
+        opacity: 0.7;
+        transform: translate3d(calc(var(--ls-pointer-x, 0) * 14px), calc((var(--ls-scroll-y, 0) * -0.01px) + (var(--ls-pointer-y, 0) * 12px)), 0);
+        will-change: transform;
+      }
+      .ls-path-inner {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 940px;
+        margin: 0 auto;
+        display: flex;
         flex-direction: column;
         align-items: center;
-        gap: clamp(8px, 1.6vw, 14px);
-        padding: clamp(40px, 7svh, 88px) 20px clamp(52px, 9svh, 104px);
-        text-align: center;
       }
-      .ls-fork-held {
-        gap: 0;
-        padding: clamp(16px, 3svh, 30px) 20px clamp(40px, 7svh, 80px);
+      .ls-path-rv {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0);
+        filter: blur(8px);
+        transition: opacity .8s cubic-bezier(.22,.7,.2,1), transform .8s cubic-bezier(.22,.7,.2,1), filter .8s cubic-bezier(.22,.7,.2,1);
+        transition-delay: var(--ls-delay, 0s);
+        will-change: opacity, transform;
       }
-      .ls-fork-eyebrow {
+      .ls-path-rv[data-in] { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+      .ls-path-eyebrow {
         margin: 0;
         font-family: "Newsreader", Georgia, serif;
-        font-size: 0.72rem;
+        font-size: 0.75rem;
         font-weight: 500;
-        letter-spacing: 0.26em;
+        letter-spacing: 0.28em;
         text-transform: uppercase;
         color: #b9a5f0;
       }
-      .ls-fork-title {
-        margin: 6px 0 0;
+      .ls-path-title {
+        margin: 15px 0 0;
         font-family: "Fraunces", Georgia, serif;
         font-weight: 500;
-        font-size: clamp(1.7rem, 1.28rem + 2.1vw, 2.5rem);
-        line-height: 1.04;
-        letter-spacing: -0.014em;
+        font-size: clamp(2.15rem, 1.42rem + 3.2vw, 3.75rem);
+        line-height: 1.02;
+        letter-spacing: -0.018em;
         color: #ffffff;
       }
-      .ls-fork-sub {
-        margin: 0;
-        max-width: 30rem;
+      .ls-path-sub {
+        margin: 16px 0 0;
+        max-width: 34rem;
         font-family: "Newsreader", Georgia, serif;
-        font-size: clamp(0.98rem, 0.92rem + 0.4vw, 1.1rem);
-        line-height: 1.5;
+        font-size: clamp(1rem, 0.94rem + 0.5vw, 1.18rem);
+        line-height: 1.55;
         color: #c8c8d2;
       }
-      .ls-fork-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
+      .ls-path-cards {
+        margin-top: clamp(34px, 5.5vw, 56px);
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
         width: 100%;
-        max-width: 27rem;
-        margin-top: clamp(20px, 3vw, 32px);
+        max-width: 30rem;
       }
-      .ls-fork-card {
+      .ls-path-card {
         appearance: none;
         -webkit-appearance: none;
         cursor: pointer;
+        position: relative;
+        overflow: hidden;
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 18px;
         width: 100%;
-        min-height: 92px;
-        padding: 18px 20px;
+        min-height: 112px;
+        padding: 22px 22px;
         text-align: left;
-        border-radius: 16px;
+        border-radius: 20px;
         border: 1px solid rgba(245,239,230,0.12);
         background:
           linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
-          rgba(9,7,13,0.6);
+          rgba(9,7,13,0.62);
         color: #efe9dd;
-        transition: transform .3s cubic-bezier(.22,.7,.2,1), border-color .3s ease, box-shadow .3s ease;
+        transition: transform .4s cubic-bezier(.22,.7,.2,1), border-color .4s ease, box-shadow .4s ease;
       }
-      .ls-fork-card.is-discovery {
+      .ls-path-card.is-discovery {
         border-color: rgba(212,182,122,0.42);
-        box-shadow: 0 0 0 1px rgba(212,182,122,0.10) inset, 0 14px 34px -22px rgba(212,182,122,0.5);
+        box-shadow: 0 0 0 1px rgba(212,182,122,0.10) inset, 0 16px 40px -26px rgba(212,182,122,0.55);
       }
-      .ls-fork-card.is-memorial {
+      .ls-path-card.is-memorial {
         border-color: rgba(154,126,230,0.34);
+        box-shadow: 0 16px 40px -28px rgba(124,92,214,0.5);
       }
-      .ls-fork-card:hover { transform: translateY(-2px); }
-      .ls-fork-card.is-discovery:hover {
-        border-color: rgba(240,217,159,0.75);
-        box-shadow: 0 0 0 1px rgba(240,217,159,0.18) inset, 0 18px 40px -20px rgba(212,182,122,0.62);
+      .ls-path-card:hover { transform: translateY(-3px); }
+      .ls-path-card.is-discovery:hover {
+        border-color: rgba(240,217,159,0.78);
+        box-shadow: 0 0 0 1px rgba(240,217,159,0.2) inset, 0 22px 46px -22px rgba(212,182,122,0.65);
       }
-      .ls-fork-card.is-memorial:hover {
-        border-color: rgba(185,165,240,0.6);
-        box-shadow: 0 16px 38px -24px rgba(124,92,214,0.6);
+      .ls-path-card.is-memorial:hover {
+        border-color: rgba(185,165,240,0.62);
+        box-shadow: 0 20px 44px -24px rgba(124,92,214,0.62);
       }
-      .ls-fork-card:focus-visible { outline: 2px solid rgba(240,217,159,0.8); outline-offset: 3px; }
-      .ls-fork-card.is-memorial:focus-visible { outline-color: rgba(185,165,240,0.85); }
-      .ls-fork-mark {
-        flex: none;
-        display: grid;
-        place-items: center;
-        width: 46px;
-        height: 46px;
-        border-radius: 50%;
-        border: 1px solid rgba(245,239,230,0.14);
-      }
-      .is-discovery .ls-fork-mark {
-        color: #f0d99f;
-        border-color: rgba(212,182,122,0.5);
-        background: radial-gradient(circle at 50% 40%, rgba(240,217,159,0.18), rgba(240,217,159,0.02) 70%);
-      }
-      .is-memorial .ls-fork-mark {
-        color: #b9a5f0;
-        border-color: rgba(154,126,230,0.42);
-        background: radial-gradient(circle at 50% 40%, rgba(154,126,230,0.2), rgba(154,126,230,0.02) 70%);
-      }
-      .ls-fork-text {
+      .ls-path-card:focus-visible { outline: 2px solid rgba(240,217,159,0.85); outline-offset: 3px; }
+      .ls-path-card.is-memorial:focus-visible { outline-color: rgba(185,165,240,0.9); }
+      .ls-path-card-text {
         flex: 1 1 auto;
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 5px;
       }
-      .ls-fork-label {
+      .ls-path-card-label {
         font-family: "Fraunces", Georgia, serif;
         font-weight: 500;
-        font-size: clamp(1.12rem, 1.02rem + 0.5vw, 1.32rem);
-        line-height: 1.12;
+        font-size: clamp(1.16rem, 1.04rem + 0.6vw, 1.42rem);
+        line-height: 1.1;
         letter-spacing: -0.008em;
         color: #ffffff;
       }
-      .ls-fork-desc {
+      .ls-path-card-desc {
         font-family: "Newsreader", Georgia, serif;
-        font-size: 0.92rem;
-        line-height: 1.3;
+        font-size: 0.96rem;
+        line-height: 1.35;
         color: #c8c8d2;
       }
-      .is-discovery .ls-fork-desc { color: #e7dcc2; }
-      .ls-fork-go {
+      .is-discovery .ls-path-card-desc { color: #e7dcc2; }
+      .ls-path-card-go {
         flex: none;
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid rgba(245,239,230,0.16);
         color: #8f8798;
-        transition: transform .3s ease, color .3s ease;
+        transition: transform .35s cubic-bezier(.22,.7,.2,1), color .3s ease, border-color .3s ease, background .3s ease;
       }
-      .ls-fork-card:hover .ls-fork-go { transform: translateX(3px); }
-      .is-discovery:hover .ls-fork-go { color: #f0d99f; }
-      .is-memorial:hover .ls-fork-go { color: #b9a5f0; }
-      @media (prefers-reduced-motion: reduce) {
-        .ls-fork-card, .ls-fork-go { transition: border-color .3s ease, box-shadow .3s ease, color .3s ease; }
-        .ls-fork-card:hover { transform: none; }
-        .ls-fork-card:hover .ls-fork-go { transform: none; }
+      .ls-path-card:hover .ls-path-card-go { transform: translateX(3px); }
+      .is-discovery:hover .ls-path-card-go { color: #0d0a14; background: #f0d99f; border-color: #f0d99f; }
+      .is-memorial:hover .ls-path-card-go { color: #0d0a14; background: #b9a5f0; border-color: #b9a5f0; }
+      /* bespoke celestial marks — dots of light, crescent, horizon. No sparkles. */
+      .ls-path-mark {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 66px;
+        height: 66px;
       }
-      .ls-fork-note {
+      .ls-path-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+      .is-discovery .ls-path-mark { color: #f0d99f; }
+      .is-memorial .ls-path-mark { color: #b9a5f0; }
+      .ls-pm-line { stroke: currentColor; opacity: 0.55; }
+      .ls-pm-thread { stroke: currentColor; opacity: 0.4; }
+      .ls-pm-core { fill: currentColor; opacity: 0.16; animation: ls-pm-core 6s ease-in-out infinite; }
+      .ls-pm-crescent { fill: currentColor; opacity: 0.9; }
+      .ls-pm-star { fill: currentColor; animation: ls-pm-twinkle 3.8s ease-in-out infinite; }
+      .ls-pm-star.s2 { animation-duration: 4.6s; animation-delay: .7s; }
+      .ls-pm-star.s3 { animation-duration: 5.4s; animation-delay: 1.5s; }
+      @keyframes ls-pm-twinkle { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+      @keyframes ls-pm-core { 0%, 100% { opacity: .12; } 50% { opacity: .26; } }
+      /* returning-visitor path banner — dignified, always visible, easy change */
+      .ls-path-held {
+        min-height: clamp(210px, 32svh, 280px);
+        padding: clamp(30px, 6svh, 56px) 20px;
+      }
+      .ls-path-held-inner {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 580px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 24px;
+        border-radius: 20px;
+        border: 1px solid rgba(245,239,230,0.12);
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012)),
+          rgba(9,7,13,0.55);
+        text-align: left;
+      }
+      .ls-path-held.is-discovery .ls-path-held-inner {
+        border-color: rgba(212,182,122,0.42);
+        box-shadow: 0 0 0 1px rgba(212,182,122,0.09) inset, 0 20px 48px -32px rgba(212,182,122,0.55);
+      }
+      .ls-path-held.is-memorial .ls-path-held-inner {
+        border-color: rgba(154,126,230,0.38);
+        box-shadow: 0 20px 48px -32px rgba(124,92,214,0.55);
+      }
+      .ls-path-held .ls-path-mark { width: 58px; height: 58px; }
+      .ls-path-held-text { flex: 1 1 auto; min-width: 0; }
+      .ls-path-held-label {
         margin: 0;
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 500;
+        font-size: clamp(1.18rem, 1.04rem + 0.65vw, 1.46rem);
+        line-height: 1.12;
+        letter-spacing: -0.006em;
+        color: #ffffff;
+      }
+      .ls-path-held-desc {
+        margin: 6px 0 0;
         font-family: "Newsreader", Georgia, serif;
-        font-size: 12px;
-        letter-spacing: 0.04em;
-        color: #8f8798;
+        font-size: 0.96rem;
+        line-height: 1.35;
+        color: #c8c8d2;
       }
-      .ls-fork-change {
-        appearance: none;
-        -webkit-appearance: none;
-        background: none;
-        border: 0;
+      .ls-path-held.is-discovery .ls-path-held-desc { color: #e7dcc2; }
+      .ls-path-change {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 44px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(245,239,230,0.24);
+        background: rgba(255,255,255,0.03);
         cursor: pointer;
-        padding: 12px 6px;
-        margin: -12px 0;
-        color: #a89f92;
-        font: inherit;
-        text-decoration: underline;
-        text-underline-offset: 3px;
+        color: #d8d0c1;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 0.92rem;
+        letter-spacing: 0.01em;
+        transition: color .3s ease, border-color .3s ease, background .3s ease;
       }
-      .ls-fork-change:hover { color: #d8d0c1; }
-      .ls-fork-change:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 2px; border-radius: 3px; }
+      .ls-path-change svg { transition: transform .3s ease; }
+      .ls-path-change:hover { color: #ffffff; border-color: rgba(240,217,159,0.6); background: rgba(255,255,255,0.06); }
+      .ls-path-held.is-memorial .ls-path-change:hover { border-color: rgba(185,165,240,0.66); }
+      .ls-path-change:hover svg { transform: translateX(2px); }
+      .ls-path-change:focus-visible { outline: 2px solid rgba(240,217,159,0.85); outline-offset: 3px; }
+      @media (min-width: 760px) {
+        .ls-path-cards {
+          grid-template-columns: 1fr 1fr;
+          gap: 22px;
+          max-width: 720px;
+        }
+        .ls-path-card {
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: flex-start;
+          gap: 22px;
+          min-height: 306px;
+          padding: 32px 30px;
+        }
+        .ls-path-card .ls-path-mark { width: 80px; height: 80px; }
+        .ls-path-card-go { position: absolute; right: 26px; bottom: 28px; }
+        .ls-path-card-text { gap: 7px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-path-card, .ls-path-card-go { transition: border-color .3s ease, box-shadow .3s ease, color .3s ease; }
+        .ls-path-card:hover { transform: none; }
+        .ls-path-card:hover .ls-path-card-go { transform: none; }
+        .ls-path-sky { transform: none; }
+        .ls-pm-core, .ls-pm-star { animation: none; opacity: 1; }
+        .ls-pm-core { opacity: .2; }
+        .ls-path-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+      }
       .ls-hero-section {
         background:
           linear-gradient(100deg, rgba(8,6,11,0.74), rgba(8,6,11,0.16)),
