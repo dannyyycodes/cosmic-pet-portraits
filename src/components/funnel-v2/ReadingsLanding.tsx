@@ -384,6 +384,7 @@ export function ReadingsLanding() {
       <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
+      <FullReadingOpens />
       <ReviewsWall />
       <CheckoutSection
         checkoutRef={checkoutRef}
@@ -1565,7 +1566,7 @@ function buildBeats(chart: PetBirthChart, name: string): Beat[] {
     { scene: 7, audio: "s7e", text: nm ? `We measured all of ${nm}. Right now, you are seeing three.` : "We measured all of them. Right now, you are seeing three." },
     { scene: 8, audio: "s8a", text: "The lines between them are how all of it talks to each other." },
     { scene: 8, audio: "s8b", text: "The full reading is where they stop being thirteen facts and start being one whole creature." },
-    { scene: 8, audio: "s8c", text: "And the deeper shape only the full reading draws, where it all comes together." },
+    { scene: 8, audio: "s8c", text: "And the deeper shape drawn beneath them, where it all comes together." },
     { scene: 9, audio: "s9a", text: nm ? `You came here to find out who ${nm} really is.` : "You came here to find out who they really are." },
     { scene: 9, audio: "s9b", text: "These three say it is real. The other ten say how deep it goes." },
     { scene: 9, audio: "s9c", text: "You have met three of them tonight. The full reading is where you meet all of who they are." },
@@ -1990,9 +1991,10 @@ function BirthSkyJourney() {
             onCheckout={scrollToCheckout}
           />
 
-          {/* Skim-worthy breakdown for people who do not watch the journey. The
-              email wall sits EARLY (after the three free placements), and the rest
-              of the chart unlocks in place. */}
+          {/* Skim-worthy breakdown for people who do not watch the journey: the
+              three free placements, named and framed. What the full reading opens
+              is its own desire section below (FullReadingOpens), then the reviews,
+              then the pricing. */}
           <div className="ls-reveal-stack ls-skim" ref={skimRef}>
             <div className="ls-skim-seam ls-rvrow" aria-hidden="true">
               <span className="ls-skim-seam-line" />
@@ -2020,47 +2022,6 @@ function BirthSkyJourney() {
                   </article>
                 );
               })}
-            </div>
-
-            {/* ONE email ask on the page (the journey's end-offer). The ten
-                unread placements are a named tease — name and frame only, never
-                blurred body text — and every row hands the eye to the dossier. */}
-            <div className="ls-chart-table ls-chart-table--rest">
-              {REST_KEYS.map((key, i) => {
-                const m = PLANET_META[key];
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className="ls-trow ls-rvrow is-tease"
-                    style={revealDelay(0.04 + i * 0.05)}
-                    aria-label={`${m.label}. ${PLANET_FRAME[key]}. Still unread. Go to the full reading.`}
-                    onClick={scrollToCheckout}
-                  >
-                    <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
-                    <div className="ls-trow-main">
-                      <span className="ls-trow-top">
-                        <strong className="ls-trow-name">{m.label}</strong>
-                      </span>
-                      <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
-                    </div>
-                    <svg className="ls-trow-chev" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M8 5l5 5-5 5" stroke="#9b8fd0" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="ls-upsell">
-              <h4 className="ls-upsell-title">You&apos;ve met {name || "them"}. Now understand what it means between you.</h4>
-              <p className="ls-upsell-pitch">
-                This is every placement they were born under. The full reading turns the whole pattern into a
-                portrait of their nature, their needs, and the bond only the two of you share.
-              </p>
-              <button type="button" className="ls-gold-button ls-violet-button ls-upsell-cta" onClick={scrollToCheckout}>
-                Read {name || "their"} full reading <ArrowRight size={17} />
-              </button>
             </div>
           </div>
         </>
@@ -2658,9 +2619,18 @@ function CheckoutSection({
     <section
       id="begin"
       className="ls-parallax-band relative px-5 pb-16 sm:pb-28"
-      style={{ paddingTop: "var(--funnel-gap, clamp(48px, 7svh, 88px))" }}
+      style={{ paddingTop: "var(--funnel-gap, clamp(34px, 5svh, 64px))" }}
     >
       <div className="mx-auto max-w-6xl">
+        {!memorialIntent && (
+          <header className="ls-pricelead">
+            <p className="ls-pricelead-eyebrow ls-reveal">The full soul reading</p>
+            <h2 className="ls-pricelead-title ls-reveal" style={revealDelay(0.05)}>Open all of who they are.</h2>
+            <p className="ls-pricelead-sub ls-reveal" style={revealDelay(0.1)}>
+              Every placement, every pattern, drawn into one soul reading.
+            </p>
+          </header>
+        )}
         <div className="ls-checkout-shell mx-auto max-w-6xl p-3 sm:p-5">
           <div className="ls-checkout-vars">
             <InlineCheckout
@@ -2678,6 +2648,162 @@ function CheckoutSection({
         </div>
         <span className="sr-only">Selected price {selectedPrice}</span>
       </div>
+      <style>{`
+        .ls-pricelead { max-width: 640px; margin: 0 auto clamp(22px, 4vw, 40px); text-align: center; }
+        .ls-pricelead-eyebrow { margin: 0 0 12px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+        .ls-pricelead-title { margin: 0 0 12px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 5.6vw, 3rem); line-height: 1.05; letter-spacing: -0.018em; }
+        .ls-pricelead-sub { margin: 0 auto; max-width: 40ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.4vw, 1.18rem); line-height: 1.5; }
+      `}</style>
+    </section>
+  );
+}
+
+// ── What the full reading opens ──────────────────────────────────────────────
+// The desire beat between the free reveal and the reviews. It names what stays
+// unread once the free three are met, and lets the ache build with no price and
+// no buy button (those wait for the pricing block below the reviews). Discovery
+// path only, and only once a chart has been computed (the copy leans on "you have
+// met three"). Its own IntersectionObserver paces the cards, because this section
+// mounts after the page-level reveal observer has already run.
+function FullReadingOpens() {
+  const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
+  const [pet, setPet] = useState<{ name: string | null } | null>(() => {
+    try {
+      const raw = sessionStorage.getItem("ls_chart_pet");
+      return raw ? (JSON.parse(raw) as { name: string | null }) : null;
+    } catch {
+      return null;
+    }
+  });
+  const rootRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const onIntent = () => setMemorial(getIntent() === "memorial");
+    const onPet = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      setPet(detail && typeof detail === "object" ? (detail as { name: string | null }) : null);
+    };
+    window.addEventListener(INTENT_EVENT, onIntent);
+    window.addEventListener("ls-chart-pet", onPet as EventListener);
+    return () => {
+      window.removeEventListener(INTENT_EVENT, onIntent);
+      window.removeEventListener("ls-chart-pet", onPet as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (memorial || !pet) return;
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+    const rows = Array.from(root.querySelectorAll<HTMLElement>(".ls-fo-rv"));
+    if (!rows.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      rows.forEach((r) => r.setAttribute("data-in", "1"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.setAttribute("data-in", "1");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.18 },
+    );
+    rows.forEach((r) => io.observe(r));
+    return () => io.disconnect();
+  }, [memorial, pet]);
+
+  if (memorial || !pet) return null;
+  const name = (pet.name || "").trim();
+  const possessive = name ? `${name}'s` : "Their";
+
+  return (
+    <section ref={rootRef} className="ls-fo ls-parallax-band" aria-labelledby="ls-fo-title">
+      <div className="ls-fo-inner">
+        <header className="ls-fo-head">
+          <p className="ls-fo-eyebrow ls-fo-rv">The rest of their sky</p>
+          <h2 id="ls-fo-title" className="ls-fo-title ls-fo-rv" style={revealDelay(0.05)}>
+            You have met three.
+          </h2>
+          <p className="ls-fo-lead ls-fo-rv" style={revealDelay(0.1)}>
+            {possessive} chart holds <strong>{REST_KEYS.length} more placements</strong>, and the pattern that ties
+            them together. Named now, still dark. This is what the full reading opens.
+          </p>
+        </header>
+
+        <ul className="ls-fo-grid" role="list">
+          {PREMIUM_TEASERS.map((teaser, i) => (
+            <li
+              key={teaser.title}
+              className="ls-fo-card ls-fo-rv"
+              style={revealDelay(0.05 + (i % 2) * 0.05 + Math.floor(i / 2) * 0.06)}
+            >
+              <span className="ls-fo-star" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round">
+                  <path d="M12 2.6c.45 4.3 2.5 6.35 6.8 6.8-4.3.45-6.35 2.5-6.8 6.8-.45-4.3-2.5-6.35-6.8-6.8 4.3-.45 6.35-2.5 6.8-6.8Z" />
+                </svg>
+              </span>
+              <div className="ls-fo-card-main">
+                <h3 className="ls-fo-card-title">{teaser.title}</h3>
+                <p className="ls-fo-card-line">{teaser.line}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <p className="ls-fo-close ls-fo-rv">
+          Read together, they stop being points of light and become one whole soul.
+        </p>
+      </div>
+      <style>{`
+        .ls-fo { position: relative; z-index: 1; padding: clamp(30px, 5svh, 60px) 20px clamp(28px, 4vw, 52px); text-align: center; }
+        .ls-fo-inner { max-width: 940px; margin: 0 auto; }
+        .ls-fo-head { max-width: 640px; margin: 0 auto clamp(24px, 4.5vw, 42px); }
+        .ls-fo-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+        .ls-fo-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
+        .ls-fo-lead { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
+        .ls-fo-lead strong { color: ${C.violetBright}; font-weight: 600; }
+        .ls-fo-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; text-align: left; }
+        .ls-fo-card {
+          position: relative; display: flex; align-items: flex-start; gap: 14px; margin: 0;
+          padding: 17px 18px; border-radius: 15px;
+          background:
+            radial-gradient(130% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 58%),
+            linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .ls-fo-card::before {
+          content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+          background: linear-gradient(160deg, rgba(212,182,122,0.26) 0%, rgba(154,126,230,0.16) 48%, rgba(212,182,122,0.2) 100%);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+        }
+        .ls-fo-star {
+          flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%;
+          color: ${C.gold};
+          background: radial-gradient(circle at 50% 38%, rgba(212,182,122,0.14), transparent 70%);
+          border: 1px solid rgba(212,182,122,0.28);
+          box-shadow: inset 0 0 12px rgba(154,126,230,0.14);
+          opacity: 0.92;
+        }
+        .ls-fo-star svg { display: block; filter: drop-shadow(0 0 4px rgba(185,165,240,0.4)); }
+        .ls-fo-card-main { min-width: 0; }
+        .ls-fo-card-title { margin: 0 0 5px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.14rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.002em; }
+        .ls-fo-card-line { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.95rem; line-height: 1.5; }
+        .ls-fo-close { margin: clamp(22px, 4vw, 38px) auto 0; max-width: 32ch; color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 2.7vw, 1.3rem); line-height: 1.45; }
+        .ls-fo-rv { opacity: 0; transform: translate3d(0, 24px, 0); filter: blur(8px); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1), filter 0.8s cubic-bezier(0.22,0.7,0.2,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
+        .ls-fo-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
+        @media (min-width: 640px) {
+          .ls-fo-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+          .ls-fo-card { padding: 20px 20px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ls-fo-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        }
+      `}</style>
     </section>
   );
 }
@@ -2749,7 +2875,7 @@ function ReviewsWall() {
         </ul>
       </div>
       <style>{`
-        .ls-reviews { position: relative; padding: clamp(56px, 10svh, 112px) 20px clamp(20px, 3svh, 36px); }
+        .ls-reviews { position: relative; padding: clamp(30px, 5svh, 60px) 20px clamp(18px, 3svh, 32px); }
         .ls-reviews-inner { max-width: 1120px; margin: 0 auto; }
         .ls-reviews-head { text-align: center; max-width: 720px; margin: 0 auto clamp(30px, 5vw, 52px); }
         .ls-reviews-eyebrow {
@@ -2925,7 +3051,7 @@ function CosmicStyles() {
         --ls-pointer-x: 0;
         --ls-pointer-y: 0;
         /* one breath length for every seam below the passage */
-        --funnel-gap: clamp(48px, 7svh, 88px);
+        --funnel-gap: clamp(34px, 5svh, 64px);
       }
       .ls-parallax-band {
         isolation: isolate;
@@ -3149,7 +3275,7 @@ function CosmicStyles() {
       .ls-orrery-section {
         position: relative;
         z-index: 1;
-        padding: var(--funnel-gap, clamp(48px, 7svh, 88px)) 20px clamp(48px, 8vw, 112px);
+        padding: var(--funnel-gap, clamp(34px, 5svh, 64px)) 20px clamp(28px, 4vw, 56px);
         text-align: center;
       }
       /* Awaiting the date: the bridge's last line hands straight into the card —
@@ -3386,24 +3512,7 @@ function CosmicStyles() {
       }
       /* === end orrery ====================================================== */
       .ls-journey { position: relative; }
-      .ls-journey-stage {
-        position: sticky;
-        top: 0;
-        height: 100svh;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        gap: clamp(10px, 2vh, 20px);
-        padding: clamp(18px, 5vh, 46px) 20px clamp(22px, 5vh, 48px);
-        text-align: center;
-        z-index: 2;
-      }
       .ls-journey-eyebrow { margin: 0; }
-      .ls-journey-track { position: relative; z-index: 1; pointer-events: none; }
-      .ls-journey-step { height: 24svh; }
-      .ls-journey-step--final { height: 64svh; }
       .ls-journey-eyebrow { position: relative; z-index: 3; margin: 0; }
       .ls-journey-stars {
         position: absolute;
@@ -5186,7 +5295,7 @@ function CosmicStyles() {
       .ls-info-back:hover { border-color: rgba(154,126,230,0.6); }
       .ls-info-title { color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.8rem; letter-spacing: 0.04em; }
       .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.78rem; line-height: 1.5; }
-      .ls-skim { width: min(100%, 760px); margin: clamp(30px,7vw,72px) auto 0; padding-top: clamp(24px,5vw,44px); border-top: 1px solid rgba(154,126,230,0.18); }
+      .ls-skim { width: min(100%, 760px); margin: clamp(20px,4.5vw,40px) auto 0; padding-top: clamp(18px,3.5vw,30px); border-top: 1px solid rgba(154,126,230,0.18); }
       @media (prefers-reduced-motion: reduce) {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
