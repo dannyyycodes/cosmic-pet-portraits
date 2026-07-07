@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
+import { ArrowRight, ChevronDown, Volume2, Sun, Moon } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -377,17 +377,10 @@ export function ReadingsLanding() {
     descendTo("#begin");
   };
 
-  // The hero's memorial escape hatch: set the intent, then carry the reader
-  // to the threshold (the memorial passage begins right below it).
-  const beginMemorial = () => {
-    setIntent("memorial");
-    descendTo("#passage-fork");
-  };
-
   return (
     <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
-      <HeroSection onBegin={scrollToCheckout} onMemorial={beginMemorial} />
+      <HeroSection onBegin={scrollToCheckout} />
       <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
@@ -468,7 +461,7 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>) {
   }, [pageRef]);
 }
 
-function HeroSection({ onBegin, onMemorial }: { onBegin: () => void; onMemorial: () => void }) {
+function HeroSection({ onBegin }: { onBegin: () => void }) {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
@@ -494,25 +487,21 @@ function HeroSection({ onBegin, onMemorial }: { onBegin: () => void; onMemorial:
               Compute their sky, free
             </a>
           </div>
-          {/* the memorial escape hatch: one quiet line, the site's established
-              intake register, for the reader the CTAs were not written for */}
-          <button type="button" className="ls-hero-memorial ls-reveal" style={revealDelay(0.34)} onClick={onMemorial}>
-            For a pet no longer at your side, begin here.
-          </button>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── The threshold line ──────────────────────────────────────────────
-   One quiet question between the hero and the passage: two points and a
-   hairline thread, the constellation grammar the page already speaks.
-   No images, no cards, no radio chrome. Both answers carry identical
-   size, colour and weight; skipping is genuinely free; answering never
-   changes price or tier. A memorial choice collapses the section to a
-   single muted line whose "change" clears the intent (grief state is
-   not fixed). Discovery or no answer: the section yields to the page. */
+/* ── The reading-path chooser ─────────────────────────────────────────
+   The first real fork, made big and unmistakable: is this reading for a
+   companion who is here, or one who has passed. A short heading names the
+   choice; two large cards each carry a plain label plus a line saying who
+   the path is for. DISCOVERY leads and reads as primary, and it is the
+   default: ignoring or skipping the chooser leaves intent unset, which every
+   downstream section treats as discovery. A memorial choice hushes the
+   passage and the checkout. Neither answer changes price or tier, and either
+   choice reopens via "change" — grief state, and discovery, are never fixed. */
 function IntentFork() {
   const [intent, setIntentState] = useState<Intent | null>(() => getIntent());
   useEffect(() => {
@@ -521,11 +510,14 @@ function IntentFork() {
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
 
-  if (intent === "memorial") {
+  // Already chosen: collapse to one quiet marker with a way back. Discovery is
+  // the default, so its marker stays as unobtrusive as the memorial one.
+  if (intent === "memorial" || intent === "discovery") {
+    const label = intent === "memorial" ? "Reading in remembrance" : "Reading for the soul beside you";
     return (
-      <section id="passage-fork" className="ls-fork ls-fork-held" aria-label="Reading in remembrance">
+      <section id="passage-fork" className="ls-fork ls-fork-held" aria-label="Reading path">
         <p className="ls-fork-note">
-          Reading in remembrance
+          {label}
           <span aria-hidden="true"> · </span>
           <button type="button" className="ls-fork-change" onClick={() => clearIntent()}>
             change
@@ -535,24 +527,49 @@ function IntentFork() {
     );
   }
 
-  // answered "discovery", or nothing to ask: the page simply continues
-  if (intent === "discovery") return <div id="passage-fork" aria-hidden="true" />;
-
+  // Not yet chosen: the clear two-option chooser. Discovery is first and primary;
+  // leaving without choosing keeps the discovery path.
   return (
-    <section id="passage-fork" className="ls-fork" aria-label="Where do you carry them?">
-      <p className="ls-fork-q ls-reveal">Where do you carry them?</p>
-      <div className="ls-fork-row ls-reveal" style={revealDelay(0.12)}>
-        <button type="button" className="ls-fork-choice" onClick={() => setIntent("discovery")}>
-          <span>At my side</span>
-          <span className="ls-fork-dot" aria-hidden="true" />
+    <section id="passage-fork" className="ls-fork" aria-labelledby="ls-fork-title">
+      <p className="ls-fork-eyebrow ls-reveal">Before their reading begins</p>
+      <h2 id="ls-fork-title" className="ls-fork-title ls-reveal" style={revealDelay(0.06)}>
+        Who is this reading for?
+      </h2>
+      <p className="ls-fork-sub ls-reveal" style={revealDelay(0.1)}>
+        Pick the path that fits your companion. It shapes the whole reading, and never changes the price.
+      </p>
+      <div className="ls-fork-cards">
+        <button
+          type="button"
+          className="ls-fork-card is-discovery ls-reveal"
+          style={revealDelay(0.16)}
+          onClick={() => setIntent("discovery")}
+        >
+          <span className="ls-fork-mark" aria-hidden="true">
+            <Sun size={22} strokeWidth={1.5} />
+          </span>
+          <span className="ls-fork-text">
+            <span className="ls-fork-label">My pet is here with me</span>
+            <span className="ls-fork-desc">Discover who they are</span>
+          </span>
+          <ArrowRight className="ls-fork-go" size={18} aria-hidden="true" />
         </button>
-        <span className="ls-fork-thread" aria-hidden="true" />
-        <button type="button" className="ls-fork-choice" onClick={() => setIntent("memorial")}>
-          <span className="ls-fork-dot" aria-hidden="true" />
-          <span>In my memory</span>
+        <button
+          type="button"
+          className="ls-fork-card is-memorial ls-reveal"
+          style={revealDelay(0.24)}
+          onClick={() => setIntent("memorial")}
+        >
+          <span className="ls-fork-mark" aria-hidden="true">
+            <Moon size={20} strokeWidth={1.5} />
+          </span>
+          <span className="ls-fork-text">
+            <span className="ls-fork-label">My pet has passed</span>
+            <span className="ls-fork-desc">A reading in their memory</span>
+          </span>
+          <ArrowRight className="ls-fork-go" size={18} aria-hidden="true" />
         </button>
       </div>
-      <p className="ls-fork-skip ls-reveal" style={revealDelay(0.2)}>Not sure? Keep reading.</p>
     </section>
   );
 }
@@ -5285,77 +5302,145 @@ function CosmicStyles() {
       }
       .ls-hero-memorial:hover { color: #efe9dd; text-decoration-color: rgba(240,217,159,0.55); }
       .ls-hero-memorial:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 4px; border-radius: 4px; }
-      /* ── the threshold line (intent fork) ── */
+      /* ── the reading-path chooser (intent fork) ── */
       .ls-fork {
         position: relative;
         z-index: 2;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: clamp(14px, 2.4vw, 22px);
-        padding: clamp(30px, 5svh, 60px) 24px clamp(56px, 10svh, 110px);
+        gap: clamp(8px, 1.6vw, 14px);
+        padding: clamp(40px, 7svh, 88px) 20px clamp(52px, 9svh, 104px);
         text-align: center;
       }
-      .ls-fork-held { padding: clamp(18px, 3svh, 34px) 24px clamp(44px, 8svh, 88px); }
-      .ls-fork-q {
+      .ls-fork-held {
+        gap: 0;
+        padding: clamp(16px, 3svh, 30px) 20px clamp(40px, 7svh, 80px);
+      }
+      .ls-fork-eyebrow {
         margin: 0;
         font-family: "Newsreader", Georgia, serif;
-        font-style: italic;
-        font-weight: 400;
-        font-size: clamp(1.14rem, 1rem + 1.2vw, 1.42rem);
-        letter-spacing: 0.012em;
-        color: #cfc7b8;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: #b9a5f0;
       }
-      .ls-fork-row {
+      .ls-fork-title {
+        margin: 6px 0 0;
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 500;
+        font-size: clamp(1.7rem, 1.28rem + 2.1vw, 2.5rem);
+        line-height: 1.04;
+        letter-spacing: -0.014em;
+        color: #ffffff;
+      }
+      .ls-fork-sub {
+        margin: 0;
+        max-width: 30rem;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: clamp(0.98rem, 0.92rem + 0.4vw, 1.1rem);
+        line-height: 1.5;
+        color: #c8c8d2;
+      }
+      .ls-fork-cards {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(10px, 3vw, 22px);
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+        max-width: 27rem;
+        margin-top: clamp(20px, 3vw, 32px);
       }
-      .ls-fork-choice {
+      .ls-fork-card {
         appearance: none;
         -webkit-appearance: none;
-        background: none;
-        border: 0;
         cursor: pointer;
-        display: inline-flex;
+        display: flex;
         align-items: center;
-        gap: 10px;
-        min-height: 48px;
-        padding: 10px 8px;
+        gap: 16px;
+        width: 100%;
+        min-height: 92px;
+        padding: 18px 20px;
+        text-align: left;
+        border-radius: 16px;
+        border: 1px solid rgba(245,239,230,0.12);
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+          rgba(9,7,13,0.6);
         color: #efe9dd;
-        font-family: "Newsreader", Georgia, serif;
-        font-weight: 400;
-        font-size: clamp(1.05rem, 0.95rem + 0.9vw, 1.3rem);
-        letter-spacing: 0.01em;
+        transition: transform .3s cubic-bezier(.22,.7,.2,1), border-color .3s ease, box-shadow .3s ease;
       }
-      .ls-fork-choice span:not(.ls-fork-dot) {
-        border-bottom: 1px solid transparent;
-        padding-bottom: 2px;
-        transition: border-color .35s ease;
+      .ls-fork-card.is-discovery {
+        border-color: rgba(212,182,122,0.42);
+        box-shadow: 0 0 0 1px rgba(212,182,122,0.10) inset, 0 14px 34px -22px rgba(212,182,122,0.5);
       }
-      .ls-fork-choice:hover span:not(.ls-fork-dot) { border-color: rgba(240,217,159,0.55); }
-      .ls-fork-choice:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 4px; border-radius: 4px; }
-      .ls-fork-dot {
+      .ls-fork-card.is-memorial {
+        border-color: rgba(154,126,230,0.34);
+      }
+      .ls-fork-card:hover { transform: translateY(-2px); }
+      .ls-fork-card.is-discovery:hover {
+        border-color: rgba(240,217,159,0.75);
+        box-shadow: 0 0 0 1px rgba(240,217,159,0.18) inset, 0 18px 40px -20px rgba(212,182,122,0.62);
+      }
+      .ls-fork-card.is-memorial:hover {
+        border-color: rgba(185,165,240,0.6);
+        box-shadow: 0 16px 38px -24px rgba(124,92,214,0.6);
+      }
+      .ls-fork-card:focus-visible { outline: 2px solid rgba(240,217,159,0.8); outline-offset: 3px; }
+      .ls-fork-card.is-memorial:focus-visible { outline-color: rgba(185,165,240,0.85); }
+      .ls-fork-mark {
         flex: none;
-        width: 5px;
-        height: 5px;
+        display: grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
         border-radius: 50%;
-        background: #f0d99f;
-        box-shadow: 0 0 9px rgba(240,217,159,0.5);
+        border: 1px solid rgba(245,239,230,0.14);
       }
-      .ls-fork-thread {
-        flex: none;
-        width: clamp(24px, 8vw, 74px);
-        height: 1px;
-        background: linear-gradient(90deg, rgba(240,217,159,0), rgba(240,217,159,0.45), rgba(240,217,159,0));
+      .is-discovery .ls-fork-mark {
+        color: #f0d99f;
+        border-color: rgba(212,182,122,0.5);
+        background: radial-gradient(circle at 50% 40%, rgba(240,217,159,0.18), rgba(240,217,159,0.02) 70%);
       }
-      .ls-fork-skip {
-        margin: 0;
+      .is-memorial .ls-fork-mark {
+        color: #b9a5f0;
+        border-color: rgba(154,126,230,0.42);
+        background: radial-gradient(circle at 50% 40%, rgba(154,126,230,0.2), rgba(154,126,230,0.02) 70%);
+      }
+      .ls-fork-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .ls-fork-label {
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 500;
+        font-size: clamp(1.12rem, 1.02rem + 0.5vw, 1.32rem);
+        line-height: 1.12;
+        letter-spacing: -0.008em;
+        color: #ffffff;
+      }
+      .ls-fork-desc {
         font-family: "Newsreader", Georgia, serif;
-        font-size: 0.8rem;
-        letter-spacing: 0.03em;
+        font-size: 0.92rem;
+        line-height: 1.3;
+        color: #c8c8d2;
+      }
+      .is-discovery .ls-fork-desc { color: #e7dcc2; }
+      .ls-fork-go {
+        flex: none;
         color: #8f8798;
+        transition: transform .3s ease, color .3s ease;
+      }
+      .ls-fork-card:hover .ls-fork-go { transform: translateX(3px); }
+      .is-discovery:hover .ls-fork-go { color: #f0d99f; }
+      .is-memorial:hover .ls-fork-go { color: #b9a5f0; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-fork-card, .ls-fork-go { transition: border-color .3s ease, box-shadow .3s ease, color .3s ease; }
+        .ls-fork-card:hover { transform: none; }
+        .ls-fork-card:hover .ls-fork-go { transform: none; }
       }
       .ls-fork-note {
         margin: 0;
