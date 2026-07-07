@@ -2757,6 +2757,60 @@ function CheckoutSection({
 // path only, and only once a chart has been computed (the copy leans on "you have
 // met three"). Its own IntersectionObserver paces the cards, because this section
 // mounts after the page-level reveal observer has already run.
+// ── Desire section: the living constellation ────────────────────────────────
+// The next beat of the passage's own sky. The pet anchor and three known stars
+// stay lit (the three you have met); five real-glyph placement stars ride an arc
+// that ignites one at a time as the reading rail scrolls, threads drawing inward
+// to the anchor, until the whole web resolves into one portrait at the apex.
+// Same star primitive + HOUSE ease as CosmicBridge, but every gradient id is
+// dfo-prefixed so the two charts on one page never fight over url(#...).
+const DFO = {
+  apex: { x: 200, y: 250 },
+  pet: { x: 200, y: 360 },
+  you: { x: 150, y: 398 },
+  known: [
+    { x: 148, y: 326 },
+    { x: 252, y: 332 },
+    { x: 206, y: 412 },
+  ],
+  // five placement stars, bottom-left sweeping clockwise up toward the apex.
+  // beat = index into PREMIUM_TEASERS (moon = 1 … lilith = 5).
+  place: [
+    { key: "moon", beat: 1, x: 74, y: 442 },
+    { key: "saturn", beat: 2, x: 56, y: 288 },
+    { key: "chiron", beat: 3, x: 116, y: 142 },
+    { key: "northNode", beat: 4, x: 230, y: 102 },
+    { key: "lilith", beat: 5, x: 338, y: 198 },
+  ],
+} as const;
+const dfoDist = (ax: number, ay: number, bx: number, by: number) => Math.hypot(ax - bx, ay - by);
+const DFO_THREADS = DFO.place.map((p) => ({
+  beat: p.beat,
+  x1: p.x, y1: p.y, x2: DFO.pet.x, y2: DFO.pet.y,
+  len: dfoDist(p.x, p.y, DFO.pet.x, DFO.pet.y),
+}));
+const DFO_BOND = { x1: DFO.pet.x, y1: DFO.pet.y, x2: DFO.you.x, y2: DFO.you.y, len: dfoDist(DFO.pet.x, DFO.pet.y, DFO.you.x, DFO.you.y) };
+const DFO_CLUSTER = DFO.known.map((k) => ({ x1: DFO.pet.x, y1: DFO.pet.y, x2: k.x, y2: k.y }));
+// Moon readout mirrors the passage's placeholder chart (Virgo 24°37'); a real
+// per-pet chart is a one-line swap later, exactly like CosmicBridge's CHART.
+const DFO_MOON_READ = "24° 37'";
+
+function DfoStar({ x, y, r = 2.6, cls = "", glyph }: { x: number; y: number; r?: number; cls?: string; glyph?: string }) {
+  return (
+    <g className={`dfo-star ${cls}`} transform={`translate(${x} ${y})`}>
+      <g className="dfo-breathe">
+        <g className="dfo-glow dfo-glow-cool"><circle r={30} fill="url(#dfoHaloCool)" /><circle r={r} fill="url(#dfoCoreCool)" /></g>
+        <g className="dfo-glow dfo-glow-warm"><circle r={30} fill="url(#dfoHaloWarm)" /><circle r={r} fill="url(#dfoCoreWarm)" /></g>
+        <g className="dfo-glow dfo-glow-gold"><circle r={40} fill="url(#dfoHaloGold)" /><circle r={r + 0.4} fill="url(#dfoCoreGold)" /></g>
+        <g className="dfo-glint"><path d="M0,-12 L0.95,0 L0,12 L-0.95,0 Z" /><path d="M-12,0 L0,-0.95 L12,0 L0,0.95 Z" /></g>
+      </g>
+      {glyph ? (
+        <g className="dfo-glyph" transform="scale(0.6) translate(-12 -12)">{ASTRO_PATHS[glyph] ?? ASTRO_PATHS.sun}</g>
+      ) : null}
+    </g>
+  );
+}
+
 function FullReadingOpens() {
   const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
   const [pet, setPet] = useState<{ name: string | null } | null>(() => {
@@ -2768,6 +2822,8 @@ function FullReadingOpens() {
     }
   });
   const rootRef = useRef<HTMLElement>(null);
+  const [active, setActive] = useState(0);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     const onIntent = () => setMemorial(getIntent() === "memorial");
@@ -2808,30 +2864,57 @@ function FullReadingOpens() {
     return () => io.disconnect();
   }, [memorial, pet]);
 
+  // Scroll driver: the beat nearest the reading line is "active"; its star
+  // ignites, passed stars fall to embers, unreached stay dark. One at a time,
+  // fully reversible, transform/opacity only. Reduced motion skips it and the
+  // chart renders its resolved state (see .dfo-reduce).
+  useEffect(() => {
+    if (memorial || !pet || reduce) return;
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+    const beats = Array.from(root.querySelectorAll<HTMLElement>(".dfo-beat"));
+    if (!beats.length) return;
+    const mob = window.matchMedia("(max-width: 767px)");
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      const line = window.innerHeight * (mob.matches ? 0.66 : 0.5);
+      let best = 0;
+      let bestD = Infinity;
+      beats.forEach((b, i) => {
+        const rect = b.getBoundingClientRect();
+        const centre = rect.top + rect.height / 2;
+        const d = Math.abs(centre - line);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      setActive((prev) => (prev === best ? prev : best));
+    };
+    const onScroll = () => { if (!raf) raf = window.requestAnimationFrame(compute); };
+    compute();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [memorial, pet, reduce]);
+
   if (memorial || !pet) return null;
   const name = (pet.name || "").trim();
   const possessive = name ? `${name}'s` : "Their";
+  const chartCls =
+    "dfo-chart" +
+    (reduce ? " dfo-reduce" : "") +
+    (reduce || active >= 6 ? " is-shape" : "") +
+    (reduce || active >= 7 ? " is-synth" : "");
+  const starState = (beat: number) =>
+    reduce ? "is-rlit" : active === beat ? "is-active" : active > beat ? "is-lit" : "is-dark";
+  const beatState = (i: number) =>
+    reduce ? "rest" : i === active ? "active" : i < active ? "lit" : "dark";
 
   return (
-    <section ref={rootRef} className="ls-fo ls-parallax-band" aria-labelledby="ls-fo-title">
-      <div className="ls-fo-sky" aria-hidden="true">
-        <svg viewBox="0 0 800 340" fill="none" preserveAspectRatio="xMidYMid slice">
-          <path
-            className="ls-fo-sky-line"
-            d="M60 250 L170 120 L300 190 L410 90 L520 200 L620 110 L720 210"
-            strokeWidth="1"
-          />
-          <g className="ls-fo-sky-stars">
-            <circle cx="60" cy="250" r="2.4" />
-            <circle cx="170" cy="120" r="2" />
-            <circle cx="300" cy="190" r="2.6" />
-            <circle cx="410" cy="90" r="2.2" />
-            <circle cx="520" cy="200" r="2.4" />
-            <circle cx="620" cy="110" r="2" />
-            <circle cx="720" cy="210" r="2.6" />
-          </g>
-        </svg>
-      </div>
+    <section ref={rootRef} id="the-rest" className="ls-fo ls-parallax-band" aria-labelledby="ls-fo-title">
       <div className="ls-fo-inner">
         <header className="ls-fo-head">
           <p className="ls-fo-eyebrow ls-fo-rv">The rest of their sky</p>
@@ -2844,101 +2927,252 @@ function FullReadingOpens() {
           </p>
         </header>
 
-        <ul className="ls-fo-grid" role="list">
-          {PREMIUM_TEASERS.map((teaser, i) => (
-            <li
-              key={teaser.title}
-              className="ls-fo-card ls-fo-rv"
-              style={revealDelay(0.05 + (i % 2) * 0.05 + Math.floor(i / 2) * 0.06)}
-            >
-              <span className="ls-fo-node" aria-hidden="true">
-                {REAL_GLYPHS.has(teaser.glyph) ? (
-                  <span className="ls-fo-glyph">{teaser.glyph}</span>
-                ) : (
-                  <span className="ls-fo-node-dot" />
-                )}
-              </span>
-              <div className="ls-fo-card-main">
-                <h3 className="ls-fo-card-title">{teaser.title}</h3>
-                <p className="ls-fo-card-line">{teaser.line}</p>
+        <div className="ls-fo-sr">
+          <div className="ls-fo-chartcol">
+            <div className="ls-fo-chartcol-inner">
+              <div className="dfo-stage">
+                <div className="dfo-stage-dust" aria-hidden="true" />
+                <svg className={chartCls} viewBox="0 0 400 520" fill="none" aria-hidden="true">
+                  <defs>
+                    <radialGradient id="dfoHaloCool">
+                      <stop offset="0%" stopColor="rgba(176,188,222,0.55)" />
+                      <stop offset="28%" stopColor="rgba(150,160,210,0.20)" />
+                      <stop offset="60%" stopColor="rgba(150,160,210,0.06)" />
+                      <stop offset="100%" stopColor="rgba(150,160,210,0)" />
+                    </radialGradient>
+                    <radialGradient id="dfoCoreCool">
+                      <stop offset="0%" stopColor="rgba(226,232,248,0.95)" />
+                      <stop offset="42%" stopColor="rgba(196,206,232,0.55)" />
+                      <stop offset="78%" stopColor="rgba(176,188,222,0.10)" />
+                      <stop offset="100%" stopColor="rgba(176,188,222,0)" />
+                    </radialGradient>
+                    <radialGradient id="dfoHaloWarm">
+                      <stop offset="0%" stopColor="rgba(246,235,207,0.72)" />
+                      <stop offset="26%" stopColor="rgba(240,222,180,0.26)" />
+                      <stop offset="58%" stopColor="rgba(240,217,159,0.07)" />
+                      <stop offset="100%" stopColor="rgba(240,217,159,0)" />
+                    </radialGradient>
+                    <radialGradient id="dfoCoreWarm">
+                      <stop offset="0%" stopColor="rgba(255,251,240,0.98)" />
+                      <stop offset="40%" stopColor="rgba(248,238,214,0.6)" />
+                      <stop offset="80%" stopColor="rgba(246,235,207,0.10)" />
+                      <stop offset="100%" stopColor="rgba(246,235,207,0)" />
+                    </radialGradient>
+                    <radialGradient id="dfoHaloGold">
+                      <stop offset="0%" stopColor="rgba(255,236,180,0.85)" />
+                      <stop offset="24%" stopColor="rgba(240,217,159,0.34)" />
+                      <stop offset="55%" stopColor="rgba(214,190,134,0.09)" />
+                      <stop offset="100%" stopColor="rgba(214,190,134,0)" />
+                    </radialGradient>
+                    <radialGradient id="dfoCoreGold">
+                      <stop offset="0%" stopColor="rgba(255,252,244,1)" />
+                      <stop offset="38%" stopColor="rgba(255,236,184,0.7)" />
+                      <stop offset="78%" stopColor="rgba(240,217,159,0.12)" />
+                      <stop offset="100%" stopColor="rgba(240,217,159,0)" />
+                    </radialGradient>
+                    <radialGradient id="dfoApexBloom">
+                      <stop offset="0%" stopColor="rgba(255,252,246,0.95)" />
+                      <stop offset="22%" stopColor="rgba(255,238,196,0.62)" />
+                      <stop offset="48%" stopColor="rgba(240,217,159,0.26)" />
+                      <stop offset="74%" stopColor="rgba(214,190,134,0.08)" />
+                      <stop offset="100%" stopColor="rgba(214,190,134,0)" />
+                    </radialGradient>
+                  </defs>
+
+                  <g className="dfo-cluster">
+                    {DFO_CLUSTER.map((l, i) => (
+                      <line key={i} className="dfo-cluster-line" x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} />
+                    ))}
+                  </g>
+
+                  <g className="dfo-threads">
+                    {DFO_THREADS.map((t, i) => {
+                      const drawn = reduce || active >= t.beat;
+                      return (
+                        <line
+                          key={i}
+                          className={`dfo-thread ${drawn ? "is-drawn" : ""}`}
+                          x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+                          style={{ strokeDasharray: t.len, strokeDashoffset: drawn ? 0 : t.len }}
+                        />
+                      );
+                    })}
+                    <line
+                      className={`dfo-thread dfo-bond is-drawn ${active === 0 && !reduce ? "is-pulse" : ""}`}
+                      x1={DFO_BOND.x1} y1={DFO_BOND.y1} x2={DFO_BOND.x2} y2={DFO_BOND.y2}
+                      style={{ strokeDasharray: DFO_BOND.len, strokeDashoffset: 0 }}
+                    />
+                  </g>
+
+                  <circle className="dfo-apex-bloom" cx={DFO.apex.x} cy={DFO.apex.y} r={70} fill="url(#dfoApexBloom)" />
+
+                  {DFO.known.map((k, i) => (
+                    <DfoStar key={`k${i}`} x={k.x} y={k.y} r={2.6} cls="dfo-known" />
+                  ))}
+                  <DfoStar x={DFO.you.x} y={DFO.you.y} r={2.1} cls={`dfo-you ${active === 0 && !reduce ? "is-active" : ""}`} />
+                  <DfoStar x={DFO.pet.x} y={DFO.pet.y} r={3.8} cls="dfo-pet" />
+
+                  {DFO.place.map((p) => (
+                    <DfoStar key={p.key} x={p.x} y={p.y} r={2.2} glyph={p.key} cls={`dfo-place ${starState(p.beat)}`} />
+                  ))}
+
+                  <g className={`dfo-degmark ${reduce || active >= 1 ? "is-shown" : ""}`}>
+                    <line className="dfo-deg-tick" x1={DFO.place[0].x + 12} y1={DFO.place[0].y - 10} x2={DFO.place[0].x + 22} y2={DFO.place[0].y - 20} />
+                    <text className="dfo-deg-read" x={DFO.place[0].x + 26} y={DFO.place[0].y - 18}>{DFO_MOON_READ}</text>
+                  </g>
+                </svg>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          </div>
+
+          <ol className="ls-fo-rail" role="list">
+            {PREMIUM_TEASERS.map((teaser, i) => (
+              <li
+                key={teaser.title}
+                className="dfo-beat"
+                data-idx={i}
+                data-state={beatState(i)}
+                {...(i === 7 ? { "data-synth": "1" } : {})}
+              >
+                <h3 className="dfo-beat-title">{teaser.title}</h3>
+                <p className="dfo-beat-line">{teaser.line}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
 
         <p className="ls-fo-close ls-fo-rv">
           Read together, they stop being points of light and become one whole soul.
         </p>
       </div>
       <style>{`
-        .ls-fo { position: relative; z-index: 1; overflow: hidden; padding: clamp(34px, 6svh, 72px) 20px clamp(30px, 5vw, 60px); text-align: center; }
-        .ls-fo-sky {
-          position: absolute; z-index: 0; top: 3%; left: -4%; width: 108%; height: 94%; pointer-events: none;
-          color: rgba(185,165,240,0.5); opacity: 0.42;
-          transform: translate3d(calc(var(--ls-pointer-x, 0) * 12px), calc((var(--ls-scroll-y, 0) * -0.008px) + (var(--ls-pointer-y, 0) * 10px)), 0);
-          will-change: transform;
-        }
-        .ls-fo-sky svg { width: 100%; height: 100%; display: block; }
-        .ls-fo-sky-line { stroke: currentColor; opacity: 0.6; stroke-dasharray: 2 7; stroke-linecap: round; }
-        .ls-fo-sky-stars circle { fill: ${C.goldSoft}; animation: ls-fo-twinkle 4.4s ease-in-out infinite; }
-        .ls-fo-sky-stars circle:nth-child(2n) { fill: ${C.violetBright}; animation-duration: 5.6s; animation-delay: .8s; }
-        .ls-fo-sky-stars circle:nth-child(3n) { animation-duration: 6.4s; animation-delay: 1.6s; }
-        @keyframes ls-fo-twinkle { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
-        .ls-fo-inner { position: relative; z-index: 1; max-width: 940px; margin: 0 auto; }
-        .ls-fo-head { max-width: 640px; margin: 0 auto clamp(26px, 4.5vw, 44px); }
+                .ls-fo { position: relative; z-index: 1; padding: clamp(30px, 5svh, 64px) 20px clamp(30px, 5vw, 64px); }
+        .ls-fo-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
+        .ls-fo-head { text-align: center; max-width: 660px; margin: 0 auto clamp(18px, 3vw, 36px); }
         .ls-fo-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
         .ls-fo-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
         .ls-fo-lead { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
         .ls-fo-lead strong { color: ${C.violetBright}; font-weight: 600; }
-        .ls-fo-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; text-align: left; }
-        .ls-fo-card {
-          position: relative; display: flex; align-items: flex-start; gap: 15px; margin: 0;
-          padding: 18px 18px; border-radius: 15px;
-          background:
-            radial-gradient(130% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 58%),
-            linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
-          box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.3);
-          transition: transform .4s cubic-bezier(.22,.7,.2,1), box-shadow .4s ease;
+
+        /* the stage + rail — mobile: sticky chart on top, reading rail below */
+        .ls-fo-sr { position: relative; }
+        .ls-fo-chartcol { position: sticky; top: 0; z-index: 2; }
+        .ls-fo-chartcol-inner { height: 46svh; min-height: 296px; display: grid; place-items: center; }
+        .dfo-stage { position: relative; display: grid; place-items: center; width: 100%; }
+        .dfo-stage-dust {
+          position: absolute; inset: -6% -4%; pointer-events: none;
+          background-image:
+            radial-gradient(1.4px 1.4px at 20% 26%, rgba(255,255,255,0.5), transparent 60%),
+            radial-gradient(1.2px 1.2px at 78% 18%, rgba(240,217,159,0.45), transparent 60%),
+            radial-gradient(1.5px 1.5px at 64% 74%, rgba(185,165,240,0.45), transparent 60%),
+            radial-gradient(1.1px 1.1px at 32% 66%, rgba(255,255,255,0.4), transparent 60%),
+            radial-gradient(1.2px 1.2px at 88% 52%, rgba(255,255,255,0.35), transparent 60%);
+          opacity: 0.7;
+          transform: translate3d(calc(var(--ls-pointer-x, 0) * 10px), calc((var(--ls-scroll-y, 0) * -0.006px) + (var(--ls-pointer-y, 0) * 8px)), 0);
+          will-change: transform;
         }
-        .ls-fo-card::before {
-          content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(160deg, rgba(212,182,122,0.26) 0%, rgba(154,126,230,0.16) 48%, rgba(212,182,122,0.2) 100%);
-          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor; mask-composite: exclude;
-          transition: background .4s ease;
+        .dfo-chart { height: 42svh; width: auto; aspect-ratio: 400 / 520; max-width: 92vw; overflow: visible; isolation: isolate; pointer-events: none; display: block; }
+
+        .ls-fo-rail { list-style: none; margin: 0 auto; padding: 0; max-width: 31rem; text-align: center; }
+        .dfo-beat {
+          display: flex; flex-direction: column; justify-content: center; min-height: 38svh; margin: 0; padding: 6px 2px;
+          opacity: 0.26; transform: translate3d(0, 10px, 0);
+          transition: opacity 0.6s cubic-bezier(0.22,0.7,0.2,1), transform 0.6s cubic-bezier(0.22,0.7,0.2,1);
         }
-        .ls-fo-node {
-          flex: none; position: relative; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%;
-          color: ${C.gold};
-          background: radial-gradient(circle at 50% 42%, rgba(212,182,122,0.15), transparent 68%);
-          border: 1px solid rgba(212,182,122,0.3);
-          box-shadow: inset 0 0 14px rgba(154,126,230,0.16);
-          transition: box-shadow .4s ease, border-color .4s ease, transform .4s cubic-bezier(.22,.7,.2,1);
+        .dfo-beat[data-state="lit"] { opacity: 0.5; transform: none; }
+        .dfo-beat[data-state="active"], .dfo-beat[data-state="rest"] { opacity: 1; transform: none; }
+        .dfo-beat-title { margin: 0; color: #8f88a8; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.34rem, 4.6vw, 1.72rem); line-height: 1.14; letter-spacing: -0.01em; transition: color 0.6s ease; }
+        .dfo-beat[data-state="active"] .dfo-beat-title, .dfo-beat[data-state="rest"] .dfo-beat-title { color: ${C.cream}; }
+        .dfo-beat[data-state="active"][data-synth] .dfo-beat-title { color: ${C.goldSoft}; }
+        .dfo-beat-line { margin: 11px auto 0; max-width: 34ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.7vw, 1.14rem); line-height: 1.5; transition: color 0.6s ease; }
+        .dfo-beat[data-state="active"] .dfo-beat-line, .dfo-beat[data-state="rest"] .dfo-beat-line { color: ${C.creamDim}; }
+
+        .ls-fo-close { position: relative; z-index: 1; margin: clamp(22px, 3.5vw, 44px) auto 0; max-width: 32ch; color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 2.7vw, 1.3rem); line-height: 1.45; text-align: center; }
+
+        /* the star primitive (dfo-* mirrors the passage grammar) */
+        .dfo-glow, .dfo-glint, .dfo-apex-bloom, .dfo-thread, .dfo-cluster-line { mix-blend-mode: screen; }
+        .dfo-star { transform-box: view-box; }
+        .dfo-breathe { transform-box: fill-box; transform-origin: center; }
+        .dfo-glow-cool { opacity: 0.38; }
+        .dfo-glow-warm { opacity: 0; }
+        .dfo-glow-gold { opacity: 0; }
+        .dfo-glint { opacity: 0; }
+        .dfo-glint path { fill: rgba(255,248,228,0.9); }
+        .dfo-star .dfo-glow, .dfo-star .dfo-glint { transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .dfo-glyph { color: #9a7ee6; stroke: #9a7ee6; fill: none; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; opacity: 0.62; transition: opacity 0.8s ease, color 0.8s ease, stroke 0.8s ease; }
+
+        .dfo-star.dfo-place.is-lit .dfo-glow-cool { opacity: 0.3; }
+        .dfo-star.dfo-place.is-lit .dfo-glow-warm { opacity: 0.16; }
+        .dfo-star.dfo-place.is-lit .dfo-glyph { opacity: 0.46; }
+        .dfo-star.dfo-place.is-active .dfo-glow-cool { opacity: 0.12; }
+        .dfo-star.dfo-place.is-active .dfo-glow-warm { opacity: 1; }
+        .dfo-star.dfo-place.is-active .dfo-glow-gold { opacity: 1; }
+        .dfo-star.dfo-place.is-active .dfo-glint { opacity: 0.85; }
+        .dfo-star.dfo-place.is-active .dfo-glyph { color: ${C.goldSoft}; stroke: ${C.goldSoft}; opacity: 1; }
+
+        .dfo-star.dfo-known .dfo-glow-cool { opacity: 0.18; }
+        .dfo-star.dfo-known .dfo-glow-warm { opacity: 0.34; }
+        .dfo-star.dfo-pet .dfo-glow-cool { opacity: 0.12; }
+        .dfo-star.dfo-pet .dfo-glow-warm { opacity: 1; }
+        .dfo-star.dfo-pet .dfo-glint { opacity: 0.55; }
+        .dfo-star.dfo-you .dfo-glow-cool { opacity: 0.24; }
+        .dfo-star.dfo-you .dfo-glow-warm { opacity: 0; }
+        .dfo-star.dfo-you.is-active .dfo-glow-warm { opacity: 0.5; }
+
+        @keyframes dfoBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .dfo-chart:not(.dfo-reduce) .dfo-breathe { animation: dfoBreath 6.8s cubic-bezier(0.16,1,0.3,1) infinite; }
+
+        /* threads: the constellation web, drawn inward on ignite */
+        .dfo-cluster-line { fill: none; stroke: ${C.goldSoft}; stroke-width: 0.7; opacity: 0.16; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+        .dfo-thread { fill: none; stroke: ${C.goldSoft}; stroke-width: 0.9; stroke-linecap: round; vector-effect: non-scaling-stroke; opacity: 0; transition: stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1), opacity 0.6s ease, stroke-width 0.5s ease; }
+        .dfo-thread.is-drawn { opacity: 0.5; }
+        .dfo-bond { stroke: #cbb6f2; }
+        .dfo-bond.is-pulse { animation: dfoBond 2.6s ease-in-out infinite; }
+        @keyframes dfoBond { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.72; } }
+        .dfo-chart.is-shape .dfo-thread.is-drawn { stroke-width: 1.5; opacity: 0.82; }
+
+        /* apex: every thread becomes one light */
+        .dfo-apex-bloom { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(0.6); transition: opacity 1s ease, transform 1.2s cubic-bezier(0.16,1,0.3,1); }
+        .dfo-chart.is-synth .dfo-apex-bloom { opacity: 1; transform: scale(1); }
+
+        /* the one genuinely-computed node */
+        .dfo-degmark { opacity: 0; transition: opacity 0.8s ease; }
+        .dfo-degmark.is-shown { opacity: 1; }
+        .dfo-deg-tick { stroke: ${C.gold}; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+        .dfo-deg-read { fill: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 12px; letter-spacing: 0.05em; }
+
+        /* header reveal — blur only >=768 (mobile perf: opacity + translate) */
+        .ls-fo-rv { opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
+        .ls-fo-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
+
+        /* resolved static chart under reduced motion — the whole sky at rest */
+        .dfo-chart.dfo-reduce .dfo-place .dfo-glow-cool { opacity: 0.16; }
+        .dfo-chart.dfo-reduce .dfo-place .dfo-glow-warm { opacity: 0.5; }
+        .dfo-chart.dfo-reduce .dfo-place .dfo-glow-gold { opacity: 0.26; }
+        .dfo-chart.dfo-reduce .dfo-place .dfo-glint { opacity: 0.38; }
+        .dfo-chart.dfo-reduce .dfo-glyph { color: ${C.goldSoft}; stroke: ${C.goldSoft}; opacity: 0.85; }
+        .dfo-chart.dfo-reduce .dfo-thread { opacity: 0.4; }
+        .dfo-chart.dfo-reduce .dfo-apex-bloom { opacity: 0.4; transform: scale(1); }
+
+        @media (min-width: 768px) {
+          .ls-fo { padding: clamp(40px, 6svh, 88px) 24px clamp(40px, 6vw, 88px); }
+          .ls-fo-sr { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 72px); align-items: stretch; }
+          .ls-fo-chartcol { position: relative; top: auto; z-index: 1; }
+          .ls-fo-chartcol-inner { position: sticky; top: 0; height: 100vh; min-height: 0; }
+          .dfo-chart { height: auto; width: min(42vw, 460px); max-width: none; }
+          .ls-fo-rail { margin: 0; max-width: 520px; text-align: left; padding: 6vh 0; }
+          .dfo-beat { min-height: 44vh; padding: 8px 0; align-items: flex-start; text-align: left; }
+          .dfo-beat-line { margin-left: 0; margin-right: 0; }
+          .ls-fo-rv { filter: blur(8px); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1), filter 0.8s cubic-bezier(0.22,0.7,0.2,1); }
+          .ls-fo-rv[data-in] { filter: blur(0); }
         }
-        .ls-fo-glyph { font-family: "Fraunces", "Newsreader", Georgia, serif; font-size: 1.34rem; line-height: 1; color: ${C.goldSoft}; filter: drop-shadow(0 0 6px rgba(185,165,240,0.42)); }
-        .ls-fo-node-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.goldSoft}; box-shadow: 0 0 10px 2px rgba(240,217,159,0.5), 0 0 0 4px rgba(212,182,122,0.08); animation: ls-fo-twinkle 4s ease-in-out infinite; }
-        .ls-fo-card:nth-child(2n) .ls-fo-node-dot { animation-duration: 5.2s; animation-delay: .6s; }
-        .ls-fo-card:nth-child(3n) .ls-fo-node-dot { animation-duration: 6s; animation-delay: 1.2s; }
-        .ls-fo-card:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 16px 40px rgba(0,0,0,0.34); }
-        .ls-fo-card:hover::before { background: linear-gradient(160deg, rgba(240,217,159,0.4) 0%, rgba(185,165,240,0.24) 48%, rgba(240,217,159,0.32) 100%); }
-        .ls-fo-card:hover .ls-fo-node { border-color: rgba(240,217,159,0.6); box-shadow: inset 0 0 16px rgba(154,126,230,0.22), 0 0 18px -2px rgba(212,182,122,0.42); transform: translateY(-1px); }
-        .ls-fo-card-main { min-width: 0; }
-        .ls-fo-card-title { margin: 0 0 5px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: 1.14rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.002em; }
-        .ls-fo-card-line { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 0.95rem; line-height: 1.5; }
-        .ls-fo-close { position: relative; z-index: 1; margin: clamp(24px, 4vw, 40px) auto 0; max-width: 32ch; color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 2.7vw, 1.3rem); line-height: 1.45; }
-        .ls-fo-rv { opacity: 0; transform: translate3d(0, 24px, 0); filter: blur(8px); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1), filter 0.8s cubic-bezier(0.22,0.7,0.2,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
-        .ls-fo-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); filter: blur(0); }
-        @media (min-width: 640px) {
-          .ls-fo-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
-          .ls-fo-card { padding: 20px 20px; gap: 16px; }
-          .ls-fo-node { width: 46px; height: 46px; }
-        }
+
         @media (prefers-reduced-motion: reduce) {
+          .dfo-breathe, .dfo-bond.is-pulse { animation: none; }
+          .dfo-star .dfo-glow, .dfo-star .dfo-glint, .dfo-thread, .dfo-apex-bloom, .dfo-degmark, .dfo-glyph { transition: none; }
+          .dfo-stage-dust { transform: none; }
+          .dfo-beat { opacity: 1 !important; transform: none !important; transition: none; }
           .ls-fo-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
-          .ls-fo-sky { transform: none; }
-          .ls-fo-sky-stars circle, .ls-fo-node-dot { animation: none; }
-          .ls-fo-card:hover { transform: none; }
-          .ls-fo-card:hover .ls-fo-node { transform: none; }
         }
       `}</style>
     </section>
