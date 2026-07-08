@@ -369,18 +369,10 @@ export function ReadingsLanding() {
     };
   }, [reduceMotion]);
 
-  // SEAM 4 — no hard jumps to the sale: an animated, touch-cancellable
-  // descent lets the dawn rise and the moon turn gold on the way down.
-  // Target the #begin section by id: the forwarded checkout ref is not
-  // guaranteed to reach a DOM node on every checkout arm.
-  const scrollToCheckout = () => {
-    descendTo("#begin");
-  };
-
   return (
     <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
-      <HeroSection onBegin={scrollToCheckout} />
+      <HeroSection />
       <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
@@ -462,7 +454,7 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>) {
   }, [pageRef]);
 }
 
-function HeroSection({ onBegin }: { onBegin: () => void }) {
+function HeroSection() {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
@@ -473,20 +465,8 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
             Behind every soul, a cosmos.
           </h1>
-          <div className="ls-reveal mt-9 flex flex-col gap-3 sm:flex-row" style={revealDelay(0.24)}>
-            <button onClick={onBegin} className="ls-gold-button ls-violet-button">
-              Begin Their Reading <ArrowRight size={17} />
-            </button>
-            <a
-              href="#computed-sky"
-              className="ls-ghost-button"
-              onClick={(e) => {
-                e.preventDefault();
-                descendTo("#computed-sky");
-              }}
-            >
-              Compute their chart, free
-            </a>
+          <div className="ls-reveal ls-hero-scroll mt-12 sm:mt-14" style={revealDelay(0.34)} aria-hidden="true">
+            <span className="ls-hero-scroll-rail"><i className="ls-hero-scroll-mote" /></span>
           </div>
         </div>
       </div>
@@ -6070,6 +6050,39 @@ function CosmicStyles() {
       }
       .ls-hero-copy {
         text-shadow: 0 2px 18px rgba(0,0,0,0.72), 0 8px 46px rgba(0,0,0,0.62);
+      }
+      .ls-hero-scroll {
+        display: flex;
+        align-items: center;
+      }
+      .ls-hero-scroll-rail {
+        position: relative;
+        display: block;
+        width: 1px;
+        height: 58px;
+        background: linear-gradient(to bottom, rgba(212,182,122,0.55), rgba(212,182,122,0.06) 78%, rgba(212,182,122,0));
+        overflow: visible;
+      }
+      .ls-hero-scroll-mote {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 4px;
+        height: 4px;
+        margin-left: -2px;
+        border-radius: 50%;
+        background: #f0d99f;
+        box-shadow: 0 0 9px rgba(240,217,159,0.9);
+        animation: ls-hero-descend 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      @keyframes ls-hero-descend {
+        0% { transform: translateY(0); opacity: 0; }
+        18% { opacity: 1; }
+        78% { opacity: 1; }
+        100% { transform: translateY(54px); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-hero-scroll-mote { animation: none; opacity: 0.85; }
       }
       .ls-hero-orbit {
         position: relative;

@@ -209,26 +209,6 @@ export function ReadingsNav() {
             </Link>
           )}
 
-          <a
-            href="/#begin"
-            onClick={goToBegin}
-            className="hidden min-h-10 items-center gap-1.5 px-4 text-sm sm:inline-flex"
-            style={{
-              backgroundImage: GOLD_METAL,
-              borderRadius: 9,
-              color: GOLD_INK,
-              fontFamily: '"Newsreader", Georgia, serif',
-              fontWeight: 600,
-              letterSpacing: "0.02em",
-              boxShadow: GOLD_CTA_SHADOW,
-              transition: "filter .18s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.07) saturate(1.05)")}
-            onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
-          >
-            Begin Their Reading
-          </a>
-
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button

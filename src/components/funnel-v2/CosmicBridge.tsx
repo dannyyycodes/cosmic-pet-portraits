@@ -378,20 +378,6 @@ const LCB_CSS = `
 .lcb-moonarc{position:absolute;inset:0;overflow:visible;pointer-events:none}
 .lcb-moonarc circle{fill:none;stroke:var(--lcb-gold);stroke-width:1.4;opacity:0}
 
-/* BEAT 4: the traveling seal ring - lives on the fixed stage (z1) so it can
-   cross the beat/form seam and dock onto the form's crest */
-.lcb-seal-travel{position:absolute;left:0;top:0;width:min(88vw,470px);aspect-ratio:1;opacity:0;
-  pointer-events:none;will-change:transform}
-.lcb-seal-svg{display:block;width:100%;height:100%;overflow:visible}
-.lcb-seal-arc{fill:none;stroke:var(--lcb-gold);stroke-width:1.3;opacity:.9}
-.lcb-seal-rim{fill:none;stroke:var(--lcb-gold-soft);stroke-width:1}
-.lcb-seal-rimA{opacity:.85}
-.lcb-seal-rimB{opacity:.45}
-.lcb-seal-deg{fill:none;stroke:var(--lcb-gold-soft);stroke-width:5;stroke-dasharray:1 10.5;opacity:.55}
-.lcb-seal-spoke{stroke:var(--lcb-gold-soft);stroke-width:1;opacity:.4}
-.lcb-seal-hub{fill:var(--lcb-gold);opacity:0}
-.lcb-seal-ascdot{fill:#f6ebcf;opacity:0;filter:drop-shadow(0 0 5px rgba(240,217,159,0.85))}
-
 .lcb-grade{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;
   background:linear-gradient(158deg, rgba(20,18,46,0.5) 0%, rgba(120,126,180,0.08) 55%, rgba(201,199,252,0.10) 100%)}
 
@@ -1643,34 +1629,8 @@ export function CosmicBridge() {
         const rule = q(".lcb-rule", payoff);
         const crestEl = document.querySelector<HTMLElement>(".ls-seal-crest");
         const moonArcC = q<SVGCircleElement>(".lcb-moonarc circle");
-        const traveler = q(".lcb-seal-travel");
-        const sealSvg = q<SVGSVGElement>(".lcb-seal-svg");
-        const sealArc = q<SVGCircleElement>(".lcb-seal-arc");
-        const rimA = q<SVGCircleElement>(".lcb-seal-rimA");
-        const rimB = q<SVGCircleElement>(".lcb-seal-rimB");
-        const degRing = q<SVGGElement>(".lcb-seal-degring");
-        const spokes = qa<SVGLineElement>(".lcb-seal-spoke");
-        const hub = q<SVGCircleElement>(".lcb-seal-hub");
-        const ascDot = q<SVGCircleElement>(".lcb-seal-ascdot");
         // both registers split "Set the chart." as a single word unit (the
         // .lcb-asc span), so the global word preset already hides it
-
-        // birth / dock geometry, read live at each refresh (functional values)
-        const sealGeom = () => {
-          const out = { bx: 0.5 * window.innerWidth, by: 0.4 * window.innerHeight, bs: 0.4, ds: 0.1 };
-          const box = traveler ? traveler.getBoundingClientRect().width || 300 : 300;
-          const ringD = box * (200 / 220);
-          if (moonEl && travel) {
-            const mr = moonEl.getBoundingClientRect();
-            out.bx = mr.left + mr.width / 2 - gp(travel, "x") + 0.05 * window.innerWidth * amp;
-            out.by = mr.top + mr.height / 2 - gp(travel, "y") + -0.11 * window.innerHeight * amp;
-            out.bs = (mr.width * 0.92) / ringD;
-          }
-          const crest = document.querySelector<HTMLElement>(".ls-seal-crest svg");
-          const cw = crest ? crest.getBoundingClientRect().width || 46 : 46;
-          out.ds = (cw * (54 / 64)) / ringD;
-          return out;
-        };
 
         if (hush) {
           // ---- MEMORIAL BEAT 4: INVITATION - THE RESTING ----
@@ -2046,15 +2006,6 @@ export function CosmicBridge() {
     };
   }, [register]);
 
-  // twelve house spokes for the beat-4 unset chart (r28 -> r72, every 30deg)
-  const sealSpokes = Array.from({ length: 12 }, (_, i) => {
-    const a = (i * 30 * Math.PI) / 180;
-    return {
-      x1: Math.round(Math.cos(a) * 28 * 100) / 100, y1: Math.round(Math.sin(a) * 28 * 100) / 100,
-      x2: Math.round(Math.cos(a) * 72 * 100) / 100, y2: Math.round(Math.sin(a) * 72 * 100) / 100,
-    };
-  });
-
   return (
     <section
       ref={rootRef}
@@ -2097,22 +2048,6 @@ export function CosmicBridge() {
             discovery ignites and merges; memorial rests the two lights. */}
         <div className="lcb-stars-wrap" aria-hidden="true">
           <svg className="lcb-stars" viewBox="0 0 400 460" preserveAspectRatio="xMidYMid meet" />
-        </div>
-        {/* BEAT 4: the traveling seal ring (the unset chart) */}
-        <div className="lcb-seal-travel" aria-hidden="true">
-          <svg className="lcb-seal-svg" viewBox="-110 -110 220 220">
-            <circle className="lcb-seal-arc" cx="0" cy="0" r="100" pathLength={100} strokeDasharray="100" transform="rotate(70)" />
-            <circle className="lcb-seal-rim lcb-seal-rimA" cx="0" cy="0" r="100" />
-            <circle className="lcb-seal-rim lcb-seal-rimB" cx="0" cy="0" r="76" />
-            <g className="lcb-seal-degring">
-              <circle className="lcb-seal-deg" cx="0" cy="0" r="88" />
-            </g>
-            {sealSpokes.map((sp, i) => (
-              <line key={i} className="lcb-seal-spoke" x1={sp.x1} y1={sp.y1} x2={sp.x2} y2={sp.y2} />
-            ))}
-            <circle className="lcb-seal-hub" cx="0" cy="0" r="2.5" />
-            <circle className="lcb-seal-ascdot" cx="0" cy="-100" r="3" />
-          </svg>
         </div>
         <div className="lcb-dawn-horizon" />
         <div className="lcb-grade" />
