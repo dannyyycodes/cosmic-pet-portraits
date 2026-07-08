@@ -401,11 +401,12 @@ const LCB_CSS = `
    tap meant for the hero CTAs. */
 .lcb-beats{position:relative;z-index:2;perspective:1100px;pointer-events:none}
 /* 88svh + px-capped padding: tall phones stop inflating dead air */
-.lcb-scene{position:relative;min-height:88svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
-  padding:clamp(56px,10svh,112px) clamp(24px,7vw,80px);text-align:center;gap:clamp(20px,3.6vw,34px);overflow:hidden}
-/* per-beat heights: the sextant keeps a full stage; the crossing holds only what it needs */
-.lcb-chart-scene{min-height:100svh}
-.lcb-souls-scene{min-height:64svh}
+.lcb-scene{position:relative;min-height:70svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:clamp(40px,7svh,84px) clamp(24px,7vw,80px);text-align:center;gap:clamp(16px,3vw,26px);overflow:hidden}
+/* per-beat heights: the sextant keeps a full stage; the crossing holds only what it needs.
+   Tightened so the beats read as one connected passage, not tall empty gaps. */
+.lcb-chart-scene{min-height:80svh}
+.lcb-souls-scene{min-height:54svh}
 /* overlap zones: each beat's exit shares 14svh with the next beat's entrance */
 .lcb-chart-scene,.lcb-souls-scene,.lcb-payoff{margin-top:-14svh}
 
@@ -513,8 +514,8 @@ const LCB_CSS = `
 /* v5 discovery: the ANSWER + INVITATION beats need real scroll room so each
    line lands with stillness between events, and the apex holds until "love"
    (no bunching, no beat-3/beat-4 bleed). */
-.lcb-root:not(.lcb-memorial) .lcb-answer-scene{min-height:98svh}
-.lcb-root:not(.lcb-memorial) .lcb-scene.lcb-payoff{min-height:104svh;padding-bottom:clamp(48px,10svh,120px)}
+.lcb-root:not(.lcb-memorial) .lcb-answer-scene{min-height:78svh}
+.lcb-root:not(.lcb-memorial) .lcb-scene.lcb-payoff{min-height:82svh;padding-bottom:clamp(36px,7svh,84px)}
 .lcb-payoff-line{position:relative;z-index:1;margin:0;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
   color:var(--lcb-ivory);font-size:clamp(2.05rem,1.4rem + 3.1vw,3.5rem);line-height:1.16;
   letter-spacing:-0.02em;max-width:17ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
@@ -552,9 +553,9 @@ const LCB_CSS = `
    collapsed "Reading in remembrance" line sits there, and the headline
    must never rise into it. The seam breathes instead. */
 .lcb-memorial{margin-top:-2svh}
-.lcb-memorial .lcb-scene{min-height:118svh}
-.lcb-memorial .lcb-chart-scene{min-height:135svh}
-.lcb-memorial .lcb-souls-scene{min-height:86svh}
+.lcb-memorial .lcb-scene{min-height:94svh}
+.lcb-memorial .lcb-chart-scene{min-height:104svh}
+.lcb-memorial .lcb-souls-scene{min-height:70svh}
 /* beat 1, memorial: ONE star low in frame that fades up and HOLDS -
    a state, never a burst. Pre-baked gradients, transform/opacity only. */
 .lcb-memstar{position:absolute;left:20%;bottom:24%;width:44px;height:44px;z-index:0;opacity:0;pointer-events:none;
@@ -1867,9 +1868,17 @@ export function CosmicBridge() {
           if (front) (front as HTMLElement).style.opacity = String(Math.min(stageOp.enter, stageOp.frontExit));
         };
         applyStage();
+        // The night sky (.lcb-back) and its framing veils (.lcb-front) are
+        // position:fixed and cover the whole viewport. The chooser ("Who is
+        // this reading for?") sits just above this passage and, because of the
+        // -18svh overlap, is still fully on screen the instant this section
+        // enters. If the sky ramps in on "top 80%" it paints over the chooser
+        // before a card can be tapped. Hold the sky OFF until the chooser has
+        // scrolled up and off (root's top reaches the top quarter), so the
+        // cards stay clean + tappable, then light it as beat 1 rises in.
         gsap.fromTo(stageOp, { enter: 0 }, {
           enter: 1, ease: "none", onUpdate: applyStage,
-          scrollTrigger: { trigger: root, start: "top 80%", end: "top 25%", scrub: noMotion ? true : scrub },
+          scrollTrigger: { trigger: root, start: "top 25%", end: "top -30%", scrub: noMotion ? true : scrub },
         });
         gsap.fromTo(stageOp, { frontExit: 1 }, {
           frontExit: 0, ease: "none", onUpdate: applyStage,

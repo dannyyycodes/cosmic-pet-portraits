@@ -231,7 +231,9 @@ const NASA_IMG: Record<string, string> = {
   lilith: "/readings/planets-nasa/moon.png",
   mars: "/readings/planets-nasa/mars.png",
   jupiter: "/readings/planets-nasa/jupiter.png",
-  saturn: "/readings/planets-nasa/saturn.png",
+  // Square full-disc asset (512x512) so the rings sit whole inside the circular
+  // frame; the wide planets-nasa crop (560x271) lost half the rings to object-fit.
+  saturn: "/readings/planets/saturn.png",
   chiron: "/readings/planets-nasa/chiron.png",
   uranus: "/readings/planets-nasa/uranus.png",
   neptune: "/readings/planets-nasa/neptune.png",
@@ -349,6 +351,24 @@ export function ReadingsLanding() {
   const pageRef = useRef<HTMLElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
   const [selectedPrice, setSelectedPrice] = useState(0);
+  // The lower funnel (the rest of who they are + reviews + pricing) stays out of
+  // the page entirely until the free reading is actually revealed. It unlocks
+  // once the reader has been carried through the three free placements and
+  // reaches the desire turn, at which point FreeReveal fires "ls-reading-revealed".
+  // Before that a visitor cannot scroll past an unfilled form into reviews/pricing.
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const onRevealed = () => setRevealed(true);
+    window.addEventListener("ls-reading-revealed", onRevealed);
+    return () => window.removeEventListener("ls-reading-revealed", onRevealed);
+  }, []);
+  // When the gated sections mount, the page grows: re-measure so every
+  // scroll-driven trigger (the moon spine, the dawn grade) stays aligned.
+  useEffect(() => {
+    if (!revealed) return;
+    const id = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => cancelAnimationFrame(id);
+  }, [revealed]);
   useCosmicParallax(pageRef);
   useScrollReveal(pageRef);
   const reduceMotion = useReducedMotion();
@@ -376,13 +396,17 @@ export function ReadingsLanding() {
       <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
-      <FullReadingOpens />
-      <ReviewsWall />
-      <CheckoutSection
-        checkoutRef={checkoutRef}
-        selectedPrice={selectedPrice}
-        onSelectedPriceChange={setSelectedPrice}
-      />
+      {revealed && (
+        <>
+          <FullReadingOpens />
+          <ReviewsWall />
+          <CheckoutSection
+            checkoutRef={checkoutRef}
+            selectedPrice={selectedPrice}
+            onSelectedPriceChange={setSelectedPrice}
+          />
+        </>
+      )}
     </main>
   );
 }
@@ -465,9 +489,6 @@ function HeroSection() {
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
             Behind every soul, a cosmos.
           </h1>
-          <div className="ls-reveal ls-hero-scroll mt-12 sm:mt-14" style={revealDelay(0.34)} aria-hidden="true">
-            <span className="ls-hero-scroll-rail"><i className="ls-hero-scroll-mote" /></span>
-          </div>
         </div>
       </div>
     </section>
@@ -2001,6 +2022,39 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
     return () => io.disconnect();
   }, [reduce]);
 
+  // Reading-revealed gate: the lower funnel (the rest + reviews + pricing) only
+  // enters the page once the reader has been carried through the three free
+  // placements and reaches the desire turn. Fire once when the turn scrolls in.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const root = rootRef.current;
+    if (!root) return;
+    let done = false;
+    const fire = () => {
+      if (done) return;
+      done = true;
+      window.dispatchEvent(new Event("ls-reading-revealed"));
+    };
+    const target = root.querySelector<HTMLElement>(".ls-fr-turn");
+    if (!target || !("IntersectionObserver" in window)) {
+      fire();
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            fire();
+            io.disconnect();
+          }
+        });
+      },
+      { rootMargin: "0px 0px -18% 0px", threshold: 0.1 },
+    );
+    io.observe(target);
+    return () => io.disconnect();
+  }, []);
+
   const bodyFor = (k: "sun" | "moon") => chart[k] as ChartBody | undefined;
 
   return (
@@ -2112,10 +2166,16 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-disc { position: relative; z-index: 2; width: clamp(150px, 46vw, 218px); height: clamp(150px, 46vw, 218px); border-radius: 50%; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 22px 60px rgba(4,2,12,0.66); animation: lsFrBreatheDisc 7.6s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.018); } }
         .ls-fr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); filter: brightness(0.86) contrast(1.05) saturate(1.03); background: #050310; }
-        .ls-fr-term { position: absolute; top: 50%; left: 50%; z-index: 3; width: 134%; height: 134%; border-radius: 50%; transform: translate(-50%, -50%) translateX(112%); background: radial-gradient(circle at 50% 50%, rgba(6,4,14,0.80) 0%, rgba(8,5,17,0.78) 42%, rgba(10,7,20,0.66) 53%, rgba(12,9,24,0.32) 63%, rgba(14,10,28,0) 73%); animation: lsFrSweep 7.4s cubic-bezier(0.42,0,0.58,1) infinite; animation-play-state: paused; }
-        .ls-fr-spec { position: absolute; top: 50%; left: 50%; z-index: 4; width: 120%; height: 120%; border-radius: 50%; transform: translate(-50%, -50%) translateX(-118%); mix-blend-mode: screen; pointer-events: none; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--glow) 32%, white) 0%, color-mix(in srgb, var(--glow) 16%, transparent) 26%, transparent 46%); opacity: 0.5; animation: lsFrSweepBright 7.4s cubic-bezier(0.42,0,0.58,1) infinite; animation-play-state: paused; }
-        @keyframes lsFrSweep { 0% { transform: translate(-50%, -50%) translateX(112%); } 50% { transform: translate(-50%, -50%) translateX(-112%); } 100% { transform: translate(-50%, -50%) translateX(112%); } }
-        @keyframes lsFrSweepBright { 0% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; } 50% { transform: translate(-50%, -50%) translateX(118%); opacity: 0.6; } 100% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; } }
+        /* STILL day/night shading, light from the upper-left. No sweep. */
+        .ls-fr-term { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%; transform: none; pointer-events: none; background: radial-gradient(circle at 66% 40%, rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%); }
+        /* the one moving light per world — distinct per key, low intensity. */
+        .ls-fr-spec { position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; border-radius: 50%; transform: none; mix-blend-mode: screen; pointer-events: none; background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--glow) 32%, white) 0%, color-mix(in srgb, var(--glow) 14%, transparent) 26%, transparent 50%); opacity: 0; will-change: opacity, transform; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
+        /* Moon — a single gentle light-shift */
+        .ls-fr-planet.is-moon .ls-fr-spec { animation-name: lsFrGlow; animation-duration: 9.5s; }
+        /* Rising (the horizon) — a slow cool sheen */
+        .ls-fr-planet.is-rising .ls-fr-spec { background: radial-gradient(ellipse 60% 116% at 40% 28%, color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%); animation-name: lsFrSheen; animation-duration: 13s; }
+        @keyframes lsFrGlow { 0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); } 50% { opacity: 0.34; transform: translate(6%, 2%); } }
+        @keyframes lsFrSheen { 0%, 100% { opacity: 0.10; transform: translate(-9%, -6%); } 50% { opacity: 0.28; transform: translate(7%, 6%); } }
         .ls-fr-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.50); }
         .ls-fr-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 60%, transparent), inset 0 0 10px 0 color-mix(in srgb, var(--glow) 32%, transparent); }
         .ls-fr-planet.is-rising .ls-fr-disc::after { box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.42), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 34%, transparent); }
@@ -2171,7 +2231,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         @media (prefers-reduced-motion: reduce) {
           .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-settle i, .ls-fr-handoff-cta svg { animation: none !important; }
           .ls-fr-term { display: none !important; }
-          .ls-fr-spec { opacity: 0.3 !important; transform: translate(-50%, -50%) !important; }
+          .ls-fr-spec { opacity: 0.24 !important; transform: none !important; }
           .ls-fr-photo { filter: brightness(0.96) contrast(1.04) saturate(1.02) !important; }
           .ls-fr-halo { opacity: 0.6 !important; }
           .ls-fr-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
@@ -3164,7 +3224,7 @@ function FullReadingOpens() {
             >
               <div className="ls-rs-stage">
                 <div className="ls-rs-halo" />
-                <div className={`ls-rs-disc is-${body.kind}`}>
+                <div className={`ls-rs-disc is-${body.kind} rs-${body.key}`}>
                   <img
                     className="ls-rs-photo"
                     src={body.img}
@@ -3257,35 +3317,67 @@ function FullReadingOpens() {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
           transform: scale(1.03); filter: brightness(0.82) contrast(1.04) saturate(1.02); background: #050310;
         }
-        /* dark terminator sweep = the day/night line crossing the world */
+        /* STILL day/night shading (no sweep) — light reads from the upper-left,
+           a soft shadow settles on the lower-right. Static, so it never draws
+           the eye; the only motion is the per-world light below, and it differs
+           for every planet (no two share the same terminator sweep). */
         .ls-rs-term {
-          position: absolute; top: 50%; left: 50%; z-index: 3; width: 134%; height: 134%; border-radius: 50%;
-          transform: translate(-50%, -50%) translateX(112%);
-          background: radial-gradient(circle at 50% 50%,
-            rgba(6,4,14,0.80) 0%, rgba(8,5,17,0.78) 42%, rgba(10,7,20,0.66) 53%,
-            rgba(12,9,24,0.32) 63%, rgba(14,10,28,0) 73%);
-          will-change: transform;
-          animation: lsRsSweep 7s cubic-bezier(0.42,0,0.58,1) infinite; animation-delay: calc(var(--rsi, 0) * -0.83s); animation-play-state: paused;
+          position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%;
+          transform: none; pointer-events: none;
+          background: radial-gradient(circle at 66% 40%,
+            rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%);
         }
-        /* bright specular sweep = the sun catching the curve */
+        /* the one moving light per world — minimal, low intensity, distinct by
+           kind. Base carries no animation-name (nothing runs) until a kind rule
+           names one; play-state stays paused until the disc is on screen. */
         .ls-rs-spec {
-          position: absolute; top: 50%; left: 50%; z-index: 4; width: 120%; height: 120%; border-radius: 50%;
-          transform: translate(-50%, -50%) translateX(-118%); mix-blend-mode: screen; pointer-events: none;
-          background: radial-gradient(circle at 50% 50%,
+          position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; border-radius: 50%;
+          transform: none; mix-blend-mode: screen; pointer-events: none;
+          background: radial-gradient(circle at 34% 30%,
             color-mix(in srgb, var(--glow) 30%, white) 0%,
-            color-mix(in srgb, var(--glow) 16%, transparent) 26%, transparent 46%);
-          opacity: 0.5;
-          animation: lsRsSweepBright 7s cubic-bezier(0.42,0,0.58,1) infinite; animation-delay: calc(var(--rsi, 0) * -0.83s); animation-play-state: paused;
+            color-mix(in srgb, var(--glow) 12%, transparent) 26%, transparent 50%);
+          opacity: 0; will-change: opacity, transform;
+          animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+          animation-delay: calc(var(--rsi, 0) * -0.8s); animation-play-state: paused;
         }
-        @keyframes lsRsSweep {
-          0% { transform: translate(-50%, -50%) translateX(112%); }
-          50% { transform: translate(-50%, -50%) translateX(-112%); }
-          100% { transform: translate(-50%, -50%) translateX(112%); }
+        /* rocky worlds — a single, gentle light-shift */
+        .ls-rs-disc.is-rocky .ls-rs-spec { animation-name: lsRsGlow; animation-duration: 9.5s; }
+        /* gas giants — a slow band of light drifting across the disc */
+        .ls-rs-disc.is-gas .ls-rs-spec {
+          background: linear-gradient(96deg, transparent 14%, color-mix(in srgb, var(--glow) 14%, transparent) 34%,
+            color-mix(in srgb, var(--glow) 30%, white) 50%, color-mix(in srgb, var(--glow) 14%, transparent) 66%, transparent 86%);
+          animation-name: lsRsBands; animation-duration: 16s; animation-timing-function: linear;
         }
-        @keyframes lsRsSweepBright {
-          0% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; }
-          50% { transform: translate(-50%, -50%) translateX(118%); opacity: 0.6; }
-          100% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; }
+        /* ice giants — a cool diagonal sheen */
+        .ls-rs-disc.is-ice .ls-rs-spec {
+          background: radial-gradient(ellipse 58% 118% at 38% 28%,
+            color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%);
+          animation-name: lsRsSheen; animation-duration: 13s;
+        }
+        /* Saturn — mostly still; a soft glint crosses the rings now and then */
+        .ls-rs-disc.rs-saturn .ls-rs-spec {
+          background: linear-gradient(74deg, transparent 42%, color-mix(in srgb, var(--glow) 34%, white) 50%, transparent 58%);
+          animation-name: lsRsRing; animation-duration: 12s; animation-delay: -3s;
+        }
+        /* Saturn — hold the full rings inside the circular frame (square 512 asset) */
+        .ls-rs-disc.rs-saturn .ls-rs-photo { transform: scale(0.98); filter: brightness(0.92) contrast(1.03) saturate(1.02); }
+        @keyframes lsRsGlow {
+          0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); }
+          50% { opacity: 0.34; transform: translate(6%, 2%); }
+        }
+        @keyframes lsRsBands {
+          0% { opacity: 0.14; transform: translateX(-34%); }
+          50% { opacity: 0.30; }
+          100% { opacity: 0.14; transform: translateX(34%); }
+        }
+        @keyframes lsRsSheen {
+          0%, 100% { opacity: 0.10; transform: translate(-9%, -6%); }
+          50% { opacity: 0.28; transform: translate(7%, 6%); }
+        }
+        @keyframes lsRsRing {
+          0%, 66%, 100% { opacity: 0; transform: translateX(-42%); }
+          80% { opacity: 0.32; transform: translateX(0%); }
+          90% { opacity: 0; transform: translateX(42%); }
         }
         /* limb darkening, rocky worlds read as spheres */
         .ls-rs-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 26px 8px rgba(4,2,12,0.55); }
@@ -6284,39 +6376,6 @@ function CosmicStyles() {
       }
       .ls-hero-copy {
         text-shadow: 0 2px 18px rgba(0,0,0,0.72), 0 8px 46px rgba(0,0,0,0.62);
-      }
-      .ls-hero-scroll {
-        display: flex;
-        align-items: center;
-      }
-      .ls-hero-scroll-rail {
-        position: relative;
-        display: block;
-        width: 1px;
-        height: 58px;
-        background: linear-gradient(to bottom, rgba(212,182,122,0.55), rgba(212,182,122,0.06) 78%, rgba(212,182,122,0));
-        overflow: visible;
-      }
-      .ls-hero-scroll-mote {
-        position: absolute;
-        left: 50%;
-        top: 0;
-        width: 4px;
-        height: 4px;
-        margin-left: -2px;
-        border-radius: 50%;
-        background: #f0d99f;
-        box-shadow: 0 0 9px rgba(240,217,159,0.9);
-        animation: ls-hero-descend 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      }
-      @keyframes ls-hero-descend {
-        0% { transform: translateY(0); opacity: 0; }
-        18% { opacity: 1; }
-        78% { opacity: 1; }
-        100% { transform: translateY(54px); opacity: 0; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .ls-hero-scroll-mote { animation: none; opacity: 0.85; }
       }
       .ls-hero-orbit {
         position: relative;
