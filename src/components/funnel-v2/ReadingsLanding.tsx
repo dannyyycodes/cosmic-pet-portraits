@@ -2750,64 +2750,78 @@ function CheckoutSection({
   );
 }
 
-// ── What the full reading opens ──────────────────────────────────────────────
-// The desire beat between the free reveal and the reviews. It names what stays
-// unread once the free three are met, and lets the ache build with no price and
-// no buy button (those wait for the pricing block below the reviews). Discovery
-// path only, and only once a chart has been computed (the copy leans on "you have
-// met three"). Its own IntersectionObserver paces the cards, because this section
-// mounts after the page-level reveal observer has already run.
-// ── Desire section: the living constellation ────────────────────────────────
-// The next beat of the passage's own sky. The pet anchor and three known stars
-// stay lit (the three you have met); five real-glyph placement stars ride an arc
-// that ignites one at a time as the reading rail scrolls, threads drawing inward
-// to the anchor, until the whole web resolves into one portrait at the apex.
-// Same star primitive + HOUSE ease as CosmicBridge, but every gradient id is
-// dfo-prefixed so the two charts on one page never fight over url(#...).
-const DFO = {
-  apex: { x: 200, y: 250 },
-  pet: { x: 200, y: 360 },
-  you: { x: 150, y: 398 },
-  known: [
-    { x: 148, y: 326 },
-    { x: 252, y: 332 },
-    { x: 206, y: 412 },
-  ],
-  // five placement stars, bottom-left sweeping clockwise up toward the apex.
-  // beat = index into PREMIUM_TEASERS (moon = 1 … lilith = 5).
-  place: [
-    { key: "moon", beat: 1, x: 74, y: 442 },
-    { key: "saturn", beat: 2, x: 56, y: 288 },
-    { key: "chiron", beat: 3, x: 116, y: 142 },
-    { key: "northNode", beat: 4, x: 230, y: 102 },
-    { key: "lilith", beat: 5, x: 338, y: 198 },
-  ],
-} as const;
-const dfoDist = (ax: number, ay: number, bx: number, by: number) => Math.hypot(ax - bx, ay - by);
-const DFO_THREADS = DFO.place.map((p) => ({
-  beat: p.beat,
-  x1: p.x, y1: p.y, x2: DFO.pet.x, y2: DFO.pet.y,
-  len: dfoDist(p.x, p.y, DFO.pet.x, DFO.pet.y),
-}));
-const DFO_BOND = { x1: DFO.pet.x, y1: DFO.pet.y, x2: DFO.you.x, y2: DFO.you.y, len: dfoDist(DFO.pet.x, DFO.pet.y, DFO.you.x, DFO.you.y) };
-const DFO_CLUSTER = DFO.known.map((k) => ({ x1: DFO.pet.x, y1: DFO.pet.y, x2: k.x, y2: k.y }));
-// Moon readout mirrors the passage's placeholder chart (Virgo 24°37'); a real
-// per-pet chart is a one-line swap later, exactly like CosmicBridge's CHART.
-const DFO_MOON_READ = "24° 37'";
+// ── The rest of their sky ─────────────────────────────────────────────────────
+// The desire beat between the free reveal and the reviews. The free reading opened
+// three worlds (Sun, Moon, Rising); here the nine planets that stay sealed are read
+// one real world at a time. Each is a genuine NASA / observatory disc lit by a moving
+// terminator + specular sweep, an atmospheric rim, a slow breath and a drift of
+// foreground dust, exactly as the approved reading preview does. The photo never
+// spins (a flat disc rotating reads as a sticker); life is implied only by light
+// crossing the sphere. No price, no buy button here — those wait below the reviews.
+// Discovery path only, and only once a chart has been computed.
+type RestKind = "rocky" | "gas" | "ice";
+interface RestBody {
+  key: string;
+  name: string;
+  img: string;
+  glow: string;
+  kind: RestKind;
+  place: { pre: string; em: string; post: string };
+  hook: string;
+}
+const REST_SKY: RestBody[] = [
+  {
+    key: "mercury", name: "Mercury", img: NASA_IMG.mercury, glow: "#c3b39a", kind: "rocky",
+    place: { pre: "How they read ", em: "you", post: "" },
+    hook: "How they take you in. The signals they catch before words, and the way they answer back.",
+  },
+  {
+    key: "venus", name: "Venus", img: NASA_IMG.venus, glow: "#e6bd7a", kind: "gas",
+    place: { pre: "How they ", em: "love", post: "" },
+    hook: "Their language of affection. What they give once they trust you, and how they long for it returned.",
+  },
+  {
+    key: "mars", name: "Mars", img: NASA_IMG.mars, glow: "#d1785a", kind: "rocky",
+    place: { pre: "What they ", em: "chase", post: "" },
+    hook: "The drive underneath the stillness. What they pursue, what they defend, what they will not drop.",
+  },
+  {
+    key: "jupiter", name: "Jupiter", img: NASA_IMG.jupiter, glow: "#e0a86a", kind: "gas",
+    place: { pre: "Where their joy runs ", em: "biggest", post: "" },
+    hook: "Where they overflow. The one place their delight has no ceiling and no shame.",
+  },
+  {
+    key: "saturn", name: "Saturn", img: NASA_IMG.saturn, glow: "#e6cf9a", kind: "gas",
+    place: { pre: "What ", em: "steadies", post: " them" },
+    hook: "Their quiet backbone. The structure that keeps them sure of themselves when everything else moves.",
+  },
+  {
+    key: "uranus", name: "Uranus", img: NASA_IMG.uranus, glow: "#9fd8e0", kind: "ice",
+    place: { pre: "The streak nothing ", em: "tames", post: "" },
+    hook: "The wild note in them. The part no routine will ever fully settle, and you would not want it to.",
+  },
+  {
+    key: "neptune", name: "Neptune", img: NASA_IMG.neptune, glow: "#6f8fe8", kind: "ice",
+    place: { pre: "What they sense ", em: "first", post: "" },
+    hook: "Their sixth sense. What they feel move through a room long before it ever reaches you.",
+  },
+  {
+    key: "pluto", name: "Pluto", img: NASA_IMG.pluto, glow: "#c09080", kind: "rocky",
+    place: { pre: "The deep ", em: "pull", post: "" },
+    hook: "The undertow beneath it all. The bond so deep it quietly rewrote them, and rewrote you.",
+  },
+  {
+    key: "chiron", name: "Chiron", img: NASA_IMG.chiron, glow: "#9bb8cc", kind: "ice",
+    place: { pre: "The wound that became a ", em: "gift", post: "" },
+    hook: "The old ache turned into tenderness. What they quietly heal in you, just by being near.",
+  },
+];
 
-function DfoStar({ x, y, r = 2.6, cls = "", glyph }: { x: number; y: number; r?: number; cls?: string; glyph?: string }) {
+function RestLock() {
   return (
-    <g className={`dfo-star ${cls}`} transform={`translate(${x} ${y})`}>
-      <g className="dfo-breathe">
-        <g className="dfo-glow dfo-glow-cool"><circle r={30} fill="url(#dfoHaloCool)" /><circle r={r} fill="url(#dfoCoreCool)" /></g>
-        <g className="dfo-glow dfo-glow-warm"><circle r={30} fill="url(#dfoHaloWarm)" /><circle r={r} fill="url(#dfoCoreWarm)" /></g>
-        <g className="dfo-glow dfo-glow-gold"><circle r={40} fill="url(#dfoHaloGold)" /><circle r={r + 0.4} fill="url(#dfoCoreGold)" /></g>
-        <g className="dfo-glint"><path d="M0,-12 L0.95,0 L0,12 L-0.95,0 Z" /><path d="M-12,0 L0,-0.95 L12,0 L0,0.95 Z" /></g>
-      </g>
-      {glyph ? (
-        <g className="dfo-glyph" transform="scale(0.6) translate(-12 -12)">{ASTRO_PATHS[glyph] ?? ASTRO_PATHS.sun}</g>
-      ) : null}
-    </g>
+    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+      <path d="M17 9V7a5 5 0 0 0-10 0v2H5v13h14V9h-2zM9 7a3 3 0 0 1 6 0v2H9V7z" />
+    </svg>
   );
 }
 
@@ -2822,9 +2836,11 @@ function FullReadingOpens() {
     }
   });
   const rootRef = useRef<HTMLElement>(null);
-  const [active, setActive] = useState(0);
   const reduce = useReducedMotion();
 
+  // Keep the free-reveal handoff intact: intent (memorial vs discovery) and the
+  // computed pet chart, read on mount and updated live when the chart is computed
+  // lower on the page.
   useEffect(() => {
     const onIntent = () => setMemorial(getIntent() === "memorial");
     const onPet = (event: Event) => {
@@ -2839,376 +2855,275 @@ function FullReadingOpens() {
     };
   }, []);
 
+  // One IntersectionObserver drives both the reveal latch (data-in, permanent) and
+  // the per-planet ASMR play-state (is-live, toggles so only on-screen discs run).
   useEffect(() => {
     if (memorial || !pet) return;
     const root = rootRef.current;
     if (!root || typeof window === "undefined") return;
-    const rows = Array.from(root.querySelectorAll<HTMLElement>(".ls-fo-rv"));
-    if (!rows.length) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
-      rows.forEach((r) => r.setAttribute("data-in", "1"));
+    const reveals = Array.from(root.querySelectorAll<HTMLElement>(".ls-rs-rv"));
+    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      reveals.forEach((el) => el.setAttribute("data-in", "1"));
+      return;
+    }
+    if (!("IntersectionObserver" in window)) {
+      reveals.forEach((el) => el.setAttribute("data-in", "1"));
+      root.querySelectorAll<HTMLElement>(".ls-rs-row").forEach((el) => el.classList.add("is-live"));
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          const el = entry.target as HTMLElement;
           if (entry.isIntersecting) {
-            entry.target.setAttribute("data-in", "1");
-            io.unobserve(entry.target);
+            el.setAttribute("data-in", "1");
+            el.classList.add("is-live");
+          } else {
+            el.classList.remove("is-live");
           }
         });
       },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.18 },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.22 },
     );
-    rows.forEach((r) => io.observe(r));
+    root.querySelectorAll<HTMLElement>(".ls-rs-rv, .ls-rs-row").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, [memorial, pet]);
 
-  // Scroll driver: the beat nearest the reading line is "active"; its star
-  // ignites, passed stars fall to embers, unreached stay dark. One at a time,
-  // fully reversible, transform/opacity only. Reduced motion skips it and the
-  // chart renders its resolved state (see .dfo-reduce).
+  // Foreground dust: a few drifting motes per disc, injected once so each planet
+  // has its own cosmic dust. Skipped entirely under reduced motion.
   useEffect(() => {
     if (memorial || !pet || reduce) return;
     const root = rootRef.current;
     if (!root || typeof window === "undefined") return;
-    const beats = Array.from(root.querySelectorAll<HTMLElement>(".dfo-beat"));
-    if (!beats.length) return;
-    const mob = window.matchMedia("(max-width: 767px)");
-    let raf = 0;
-    const compute = () => {
-      raf = 0;
-      const line = window.innerHeight * (mob.matches ? 0.66 : 0.5);
-      let best = 0;
-      let bestD = Infinity;
-      beats.forEach((b, i) => {
-        const rect = b.getBoundingClientRect();
-        const centre = rect.top + rect.height / 2;
-        const d = Math.abs(centre - line);
-        if (d < bestD) { bestD = d; best = i; }
-      });
-      setActive((prev) => (prev === best ? prev : best));
-    };
-    const onScroll = () => { if (!raf) raf = window.requestAnimationFrame(compute); };
-    compute();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    return () => {
-      if (raf) window.cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    root.querySelectorAll<HTMLElement>(".ls-rs-dust").forEach((field) => {
+      if (field.childElementCount) return;
+      for (let i = 0; i < 6; i++) {
+        const p = document.createElement("span");
+        p.style.left = `${(12 + Math.random() * 76).toFixed(1)}%`;
+        p.style.top = `${(20 + Math.random() * 66).toFixed(1)}%`;
+        p.style.setProperty("--dx", `${(Math.random() * 30 - 15).toFixed(1)}px`);
+        p.style.setProperty("--dy", `${(-14 - Math.random() * 26).toFixed(1)}px`);
+        p.style.animationDelay = `${(Math.random() * 9).toFixed(1)}s`;
+        p.style.animationDuration = `${(7 + Math.random() * 6).toFixed(1)}s`;
+        field.appendChild(p);
+      }
+    });
   }, [memorial, pet, reduce]);
 
   if (memorial || !pet) return null;
   const name = (pet.name || "").trim();
-  const possessive = name ? `${name}'s` : "Their";
-  const chartCls =
-    "dfo-chart" +
-    (reduce ? " dfo-reduce" : "") +
-    (reduce || active >= 6 ? " is-shape" : "") +
-    (reduce || active >= 7 ? " is-synth" : "");
-  const starState = (beat: number) =>
-    reduce ? "is-rlit" : active === beat ? "is-active" : active > beat ? "is-lit" : "is-dark";
-  const beatState = (i: number) =>
-    reduce ? "rest" : i === active ? "active" : i < active ? "lit" : "dark";
+  const possessive = name ? `${name}'s` : "their";
 
   return (
-    <section ref={rootRef} id="the-rest" className="ls-fo ls-parallax-band" aria-labelledby="ls-fo-title">
-      <div className="ls-fo-inner">
-        <header className="ls-fo-head">
-          <p className="ls-fo-eyebrow ls-fo-rv">The rest of their sky</p>
-          <h2 id="ls-fo-title" className="ls-fo-title ls-fo-rv" style={revealDelay(0.05)}>
+    <section ref={rootRef} id="the-rest" className="ls-rs ls-parallax-band" aria-labelledby="ls-rs-title">
+      <div className="ls-rs-grain" aria-hidden="true" />
+      <div className="ls-rs-wash" aria-hidden="true" />
+      <div className="ls-rs-inner">
+        <header className="ls-rs-head">
+          <p className="ls-rs-eyebrow ls-rs-rv">The rest of their sky</p>
+          <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
             You have met three.
           </h2>
-          <p className="ls-fo-lead ls-fo-rv" style={revealDelay(0.1)}>
-            {possessive} chart holds <strong>{REST_KEYS.length} more placements</strong>, and the pattern that ties
-            them together. Named now, still dark. This is what the full reading opens.
+          <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
+            Nine more real worlds are still sealed in {possessive} chart, each one ruling a part of them you
+            have not opened yet.
           </p>
         </header>
 
-        <div className="ls-fo-sr">
-          <div className="ls-fo-chartcol">
-            <div className="ls-fo-chartcol-inner">
-              <div className="dfo-stage">
-                <div className="dfo-stage-dust" aria-hidden="true" />
-                <svg className={chartCls} viewBox="0 0 400 520" fill="none" aria-hidden="true">
-                  <defs>
-                    <radialGradient id="dfoHaloCool">
-                      <stop offset="0%" stopColor="rgba(176,188,222,0.55)" />
-                      <stop offset="28%" stopColor="rgba(150,160,210,0.20)" />
-                      <stop offset="60%" stopColor="rgba(150,160,210,0.06)" />
-                      <stop offset="100%" stopColor="rgba(150,160,210,0)" />
-                    </radialGradient>
-                    <radialGradient id="dfoCoreCool">
-                      <stop offset="0%" stopColor="rgba(226,232,248,0.95)" />
-                      <stop offset="42%" stopColor="rgba(196,206,232,0.55)" />
-                      <stop offset="78%" stopColor="rgba(176,188,222,0.10)" />
-                      <stop offset="100%" stopColor="rgba(176,188,222,0)" />
-                    </radialGradient>
-                    <radialGradient id="dfoHaloWarm">
-                      <stop offset="0%" stopColor="rgba(246,235,207,0.72)" />
-                      <stop offset="26%" stopColor="rgba(240,222,180,0.26)" />
-                      <stop offset="58%" stopColor="rgba(240,217,159,0.07)" />
-                      <stop offset="100%" stopColor="rgba(240,217,159,0)" />
-                    </radialGradient>
-                    <radialGradient id="dfoCoreWarm">
-                      <stop offset="0%" stopColor="rgba(255,251,240,0.98)" />
-                      <stop offset="40%" stopColor="rgba(248,238,214,0.6)" />
-                      <stop offset="80%" stopColor="rgba(246,235,207,0.10)" />
-                      <stop offset="100%" stopColor="rgba(246,235,207,0)" />
-                    </radialGradient>
-                    <radialGradient id="dfoHaloGold">
-                      <stop offset="0%" stopColor="rgba(255,236,180,0.85)" />
-                      <stop offset="24%" stopColor="rgba(240,217,159,0.34)" />
-                      <stop offset="55%" stopColor="rgba(214,190,134,0.09)" />
-                      <stop offset="100%" stopColor="rgba(214,190,134,0)" />
-                    </radialGradient>
-                    <radialGradient id="dfoCoreGold">
-                      <stop offset="0%" stopColor="rgba(255,252,244,1)" />
-                      <stop offset="38%" stopColor="rgba(255,236,184,0.7)" />
-                      <stop offset="78%" stopColor="rgba(240,217,159,0.12)" />
-                      <stop offset="100%" stopColor="rgba(240,217,159,0)" />
-                    </radialGradient>
-                    <radialGradient id="dfoApexBloom">
-                      <stop offset="0%" stopColor="rgba(255,252,246,0.95)" />
-                      <stop offset="22%" stopColor="rgba(255,238,196,0.62)" />
-                      <stop offset="48%" stopColor="rgba(240,217,159,0.26)" />
-                      <stop offset="74%" stopColor="rgba(214,190,134,0.08)" />
-                      <stop offset="100%" stopColor="rgba(214,190,134,0)" />
-                    </radialGradient>
-                  </defs>
-
-                  <g className="dfo-cluster">
-                    {DFO_CLUSTER.map((l, i) => (
-                      <line key={i} className="dfo-cluster-line" x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} />
-                    ))}
-                  </g>
-
-                  <g className="dfo-threads">
-                    {DFO_THREADS.map((t, i) => {
-                      const drawn = reduce || active >= t.beat;
-                      return (
-                        <line
-                          key={i}
-                          className={`dfo-thread ${drawn ? "is-drawn" : ""}`}
-                          x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
-                          style={{ strokeDasharray: t.len, strokeDashoffset: drawn ? 0 : t.len }}
-                        />
-                      );
-                    })}
-                    <line
-                      className={`dfo-thread dfo-bond is-drawn ${active === 0 && !reduce ? "is-pulse" : ""}`}
-                      x1={DFO_BOND.x1} y1={DFO_BOND.y1} x2={DFO_BOND.x2} y2={DFO_BOND.y2}
-                      style={{ strokeDasharray: DFO_BOND.len, strokeDashoffset: 0 }}
-                    />
-                  </g>
-
-                  <circle className="dfo-apex-bloom" cx={DFO.apex.x} cy={DFO.apex.y} r={70} fill="url(#dfoApexBloom)" />
-
-                  {DFO.known.map((k, i) => (
-                    <DfoStar key={`k${i}`} x={k.x} y={k.y} r={2.6} cls="dfo-known" />
-                  ))}
-                  <DfoStar x={DFO.you.x} y={DFO.you.y} r={2.1} cls={`dfo-you ${active === 0 && !reduce ? "is-active" : ""}`} />
-                  <DfoStar x={DFO.pet.x} y={DFO.pet.y} r={3.8} cls="dfo-pet" />
-
-                  {DFO.place.map((p) => (
-                    <DfoStar key={p.key} x={p.x} y={p.y} r={2.2} glyph={p.key} cls={`dfo-place ${starState(p.beat)}`} />
-                  ))}
-
-                  <g className={`dfo-degmark ${reduce || active >= 1 ? "is-shown" : ""}`}>
-                    <line className="dfo-deg-tick" x1={DFO.place[0].x + 12} y1={DFO.place[0].y - 10} x2={DFO.place[0].x + 22} y2={DFO.place[0].y - 20} />
-                    <text className="dfo-deg-read" x={DFO.place[0].x + 26} y={DFO.place[0].y - 18}>{DFO_MOON_READ}</text>
-                  </g>
-                </svg>
+        <div className="ls-rs-sky">
+          {REST_SKY.map((body, i) => (
+            <article
+              key={body.key}
+              className={`ls-rs-row ls-rs-rv${i % 2 === 1 ? " is-rev" : ""}`}
+              style={{ ["--glow" as string]: body.glow, ["--rsi" as string]: i } as CSSProperties}
+            >
+              <div className="ls-rs-stage">
+                <div className="ls-rs-halo" />
+                <div className={`ls-rs-disc is-${body.kind}`}>
+                  <img
+                    className="ls-rs-photo"
+                    src={body.img}
+                    alt={`The real ${body.name}`}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
+                  <div className="ls-rs-term" />
+                  <div className="ls-rs-spec" />
+                  <div className="ls-rs-rim" />
+                  <div className="ls-rs-dust" aria-hidden="true" />
+                </div>
               </div>
-            </div>
-          </div>
-
-          <ol className="ls-fo-rail" role="list">
-            {PREMIUM_TEASERS.map((teaser, i) => (
-              <li
-                key={teaser.title}
-                className="dfo-beat"
-                data-idx={i}
-                data-state={beatState(i)}
-                {...(i === 7 ? { "data-synth": "1" } : {})}
-              >
-                <h3 className="dfo-beat-title">{teaser.title}</h3>
-                <p className="dfo-beat-line">{teaser.line}</p>
-              </li>
-            ))}
-          </ol>
+              <div className="ls-rs-copy">
+                <div className="ls-rs-name">{body.name}</div>
+                <h3 className="ls-rs-placement">
+                  {body.place.pre}<em>{body.place.em}</em>{body.place.post}
+                </h3>
+                <p className="ls-rs-hook">{body.hook}</p>
+                <div className="ls-rs-seal"><RestLock />Sealed in the full reading</div>
+              </div>
+            </article>
+          ))}
         </div>
 
-        <p className="ls-fo-close ls-fo-rv">
-          Read together, they stop being points of light and become one whole soul.
-        </p>
+        <div className="ls-rs-close ls-rs-rv">
+          <h2 className="ls-rs-close-title">Break every seal.</h2>
+          <p className="ls-rs-close-line">
+            The full reading opens all nine, each one written for this soul alone and no other.
+          </p>
+        </div>
       </div>
       <style>{`
-                /* Own an opaque cosmic backdrop. The section sits over the graded
-                   sky and its stars use screen-blend, so a solid ${C.cosmos} reads
-                   identically, and it guarantees nothing from an adjacent section
-                   (e.g. the passage's own constellation under reduced motion, where
-                   section heights collapse and can overlap) ever bleeds through the
-                   reading. The section paints its own sky, always clean. */
-                .ls-fo { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(30px, 5svh, 64px) 20px clamp(30px, 5vw, 64px); }
-        .ls-fo-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
-        .ls-fo-head { text-align: center; max-width: 660px; margin: 0 auto clamp(18px, 3vw, 36px); }
-        .ls-fo-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
-        .ls-fo-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
-        .ls-fo-lead { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
-        .ls-fo-lead strong { color: ${C.violetBright}; font-weight: 600; }
+        /* The section paints its own opaque cosmos so nothing from an adjacent band
+           ever bleeds through the sealed sky. Grain + wash + per-planet halos carry
+           the premium atmosphere; the planets themselves carry the life. */
+        .ls-rs { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(34px, 5svh, 76px) 20px clamp(38px, 5vw, 84px); }
+        .ls-rs-grain {
+          position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.05; mix-blend-mode: overlay;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        }
+        .ls-rs-wash {
+          position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background:
+            radial-gradient(120% 84% at 50% -8%, rgba(124,92,214,0.18), transparent 58%),
+            radial-gradient(120% 88% at 50% 116%, rgba(212,182,122,0.09), transparent 55%),
+            radial-gradient(120% 100% at 50% 44%, transparent 56%, rgba(6,4,12,0.6) 100%);
+        }
+        .ls-rs-inner { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; }
 
-        /* the stage + rail — mobile: sticky chart on top, reading rail below */
-        .ls-fo-sr { position: relative; }
-        .ls-fo-chartcol { position: sticky; top: 0; z-index: 2; }
-        .ls-fo-chartcol-inner { height: 46svh; min-height: 296px; display: grid; place-items: center; }
-        .dfo-stage { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; }
-        .dfo-stage-dust {
-          position: absolute; inset: -6% -4%; pointer-events: none;
-          background-image:
-            radial-gradient(1.4px 1.4px at 20% 26%, rgba(255,255,255,0.5), transparent 60%),
-            radial-gradient(1.2px 1.2px at 78% 18%, rgba(240,217,159,0.45), transparent 60%),
-            radial-gradient(1.5px 1.5px at 64% 74%, rgba(185,165,240,0.45), transparent 60%),
-            radial-gradient(1.1px 1.1px at 32% 66%, rgba(255,255,255,0.4), transparent 60%),
-            radial-gradient(1.2px 1.2px at 88% 52%, rgba(255,255,255,0.35), transparent 60%);
-          opacity: 0.7;
-          transform: translate3d(calc(var(--ls-pointer-x, 0) * 10px), calc((var(--ls-scroll-y, 0) * -0.006px) + (var(--ls-pointer-y, 0) * 8px)), 0);
+        .ls-rs-head { text-align: center; max-width: 640px; margin: 0 auto clamp(22px, 3.5vw, 46px); }
+        .ls-rs-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; }
+        .ls-rs-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
+        .ls-rs-lead { margin: 0 auto; max-width: 44ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
+
+        /* the sealed sky — a tight alternating column of real worlds */
+        .ls-rs-sky { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(30px, 6vw, 54px); }
+        .ls-rs-row { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+
+        /* the planet (shared ASMR machine — light crosses it, it never spins) */
+        .ls-rs-stage {
+          position: relative; flex: 0 0 auto; display: grid; place-items: center;
+          width: clamp(150px, 44vw, 208px); height: clamp(150px, 44vw, 208px);
+          transform: translate3d(calc(var(--ls-pointer-x, 0) * 7px), calc(var(--ls-pointer-y, 0) * 6px), 0);
           will-change: transform;
         }
-        .dfo-chart { height: 42svh; width: auto; aspect-ratio: 400 / 520; max-width: 92vw; overflow: visible; isolation: isolate; pointer-events: none; display: block; }
-
-        /* Mobile only: the pinned chart is a solid "sky window". Passed beats
-           scroll UP behind it and must vanish, not bleed through the transparent
-           SVG. A full-bleed cosmos panel (feathered at its lower edge so a beat
-           emerging below fades in, not clips) sits behind the stars (z 0) and
-           above the rail text (rail is z auto; chartcol is z 2). */
-        @media (max-width: 767px) {
-          .ls-fo-chartcol-inner::after {
-            content: ""; position: absolute; left: 50%; top: 0; z-index: 0;
-            width: 100vw; height: 100%; transform: translateX(-50%);
-            pointer-events: none;
-            background: linear-gradient(180deg,
-              ${C.cosmos} 0%,
-              ${C.cosmos} 78%,
-              rgba(13,10,20,0.72) 90%,
-              rgba(13,10,20,0) 100%);
-          }
+        .ls-rs-halo {
+          position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none;
+          background: radial-gradient(circle,
+            color-mix(in srgb, var(--glow) 42%, transparent) 0%,
+            color-mix(in srgb, var(--glow) 20%, transparent) 34%,
+            color-mix(in srgb, var(--glow) 7%, transparent) 54%,
+            transparent 72%);
+          filter: blur(8px); opacity: 0.72;
+          animation: lsRsBreathe 5.8s ease-in-out infinite; animation-delay: calc(var(--rsi, 0) * -0.5s); animation-play-state: paused;
         }
+        @keyframes lsRsBreathe { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.08); opacity: 0.86; } }
 
-        .ls-fo-rail { list-style: none; margin: 0 auto; padding: 0; max-width: 31rem; text-align: center; }
-        .dfo-beat {
-          display: flex; flex-direction: column; justify-content: center; min-height: 38svh; margin: 0; padding: 6px 2px;
-          opacity: 0.26; transform: translate3d(0, 10px, 0);
-          transition: opacity 0.6s cubic-bezier(0.22,0.7,0.2,1), transform 0.6s cubic-bezier(0.22,0.7,0.2,1);
+        .ls-rs-disc {
+          position: relative; z-index: 2; width: clamp(120px, 34vw, 166px); height: clamp(120px, 34vw, 166px);
+          border-radius: 50%; overflow: hidden; isolation: isolate;
+          box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 20px 56px rgba(4,2,12,0.66);
+          animation: lsRsBreatheDisc 7.4s ease-in-out infinite; animation-delay: calc(var(--rsi, 0) * -0.6s); animation-play-state: paused;
         }
-        .dfo-beat[data-state="lit"] { opacity: 0.5; transform: none; }
-        .dfo-beat[data-state="active"], .dfo-beat[data-state="rest"] { opacity: 1; transform: none; }
-        .dfo-beat-title { margin: 0; color: #8f88a8; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.34rem, 4.6vw, 1.72rem); line-height: 1.14; letter-spacing: -0.01em; transition: color 0.6s ease; }
-        .dfo-beat[data-state="active"] .dfo-beat-title, .dfo-beat[data-state="rest"] .dfo-beat-title { color: ${C.cream}; }
-        .dfo-beat[data-state="active"][data-synth] .dfo-beat-title { color: ${C.goldSoft}; }
-        .dfo-beat-line { margin: 11px auto 0; max-width: 34ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.7vw, 1.14rem); line-height: 1.5; transition: color 0.6s ease; }
-        .dfo-beat[data-state="active"] .dfo-beat-line, .dfo-beat[data-state="rest"] .dfo-beat-line { color: ${C.creamDim}; }
+        @keyframes lsRsBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.016); } }
+        .ls-rs-photo {
+          position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+          transform: scale(1.03); filter: brightness(0.82) contrast(1.04) saturate(1.02); background: #050310;
+        }
+        /* dark terminator sweep = the day/night line crossing the world */
+        .ls-rs-term {
+          position: absolute; top: 50%; left: 50%; z-index: 3; width: 134%; height: 134%; border-radius: 50%;
+          transform: translate(-50%, -50%) translateX(112%);
+          background: radial-gradient(circle at 50% 50%,
+            rgba(6,4,14,0.96) 0%, rgba(8,5,17,0.94) 42%, rgba(10,7,20,0.80) 53%,
+            rgba(12,9,24,0.38) 63%, rgba(14,10,28,0) 73%);
+          will-change: transform;
+          animation: lsRsSweep 7s cubic-bezier(0.42,0,0.58,1) infinite; animation-delay: calc(var(--rsi, 0) * -0.83s); animation-play-state: paused;
+        }
+        /* bright specular sweep = the sun catching the curve */
+        .ls-rs-spec {
+          position: absolute; top: 50%; left: 50%; z-index: 4; width: 120%; height: 120%; border-radius: 50%;
+          transform: translate(-50%, -50%) translateX(-118%); mix-blend-mode: screen; pointer-events: none;
+          background: radial-gradient(circle at 50% 50%,
+            color-mix(in srgb, var(--glow) 30%, white) 0%,
+            color-mix(in srgb, var(--glow) 16%, transparent) 26%, transparent 46%);
+          opacity: 0.5;
+          animation: lsRsSweepBright 7s cubic-bezier(0.42,0,0.58,1) infinite; animation-delay: calc(var(--rsi, 0) * -0.83s); animation-play-state: paused;
+        }
+        @keyframes lsRsSweep {
+          0% { transform: translate(-50%, -50%) translateX(112%); }
+          50% { transform: translate(-50%, -50%) translateX(-112%); }
+          100% { transform: translate(-50%, -50%) translateX(112%); }
+        }
+        @keyframes lsRsSweepBright {
+          0% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; }
+          50% { transform: translate(-50%, -50%) translateX(118%); opacity: 0.6; }
+          100% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; }
+        }
+        /* limb darkening, rocky worlds read as spheres */
+        .ls-rs-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 26px 8px rgba(4,2,12,0.55); }
+        /* limb brighten, gas giants + atmospheres get a warm rim */
+        .ls-rs-disc.is-gas::after { box-shadow: inset 0 0 26px 8px rgba(4,2,12,0.36), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 40%, transparent); }
+        .ls-rs-disc.is-ice::after { box-shadow: inset 0 0 24px 7px rgba(4,2,12,0.42), inset 0 0 10px 1px color-mix(in srgb, var(--glow) 34%, transparent); }
+        .ls-rs-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 55%, transparent); }
+        .ls-rs-disc.is-gas .ls-rs-rim, .ls-rs-disc.is-ice .ls-rs-rim { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 70%, transparent), inset 0 0 8px 0 color-mix(in srgb, var(--glow) 40%, transparent); }
+        /* foreground cosmic dust */
+        .ls-rs-dust { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+        .ls-rs-dust span { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #efe8ff; opacity: 0; box-shadow: 0 0 6px 1px rgba(224,214,250,0.7); animation: lsRsDust 9s linear infinite; animation-play-state: paused; }
+        @keyframes lsRsDust {
+          0% { opacity: 0; transform: translate3d(0,0,0) scale(0.6); }
+          20% { opacity: 0.7; } 80% { opacity: 0.5; }
+          100% { opacity: 0; transform: translate3d(var(--dx, 14px), var(--dy, -20px), 0) scale(1); }
+        }
+        /* only on-screen discs animate */
+        .ls-rs-row.is-live .ls-rs-halo,
+        .ls-rs-row.is-live .ls-rs-disc,
+        .ls-rs-row.is-live .ls-rs-term,
+        .ls-rs-row.is-live .ls-rs-spec,
+        .ls-rs-row.is-live .ls-rs-dust span { animation-play-state: running; }
 
-        .ls-fo-close { position: relative; z-index: 1; margin: clamp(22px, 3.5vw, 44px) auto 0; max-width: 32ch; color: ${C.muted}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 2.7vw, 1.3rem); line-height: 1.45; text-align: center; }
+        /* the copy */
+        .ls-rs-copy { flex: 1 1 auto; min-width: 0; }
+        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 12px; color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; }
+        .ls-rs-name::before, .ls-rs-name::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 70%, transparent)); }
+        .ls-rs-placement { margin: 0 0 10px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5.4vw, 2.05rem); line-height: 1.08; letter-spacing: -0.015em; }
+        .ls-rs-placement em { font-style: italic; color: ${C.goldSoft}; }
+        .ls-rs-hook { margin: 0 auto; max-width: 40ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.14rem); line-height: 1.5; }
+        .ls-rs-seal { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
+        .ls-rs-seal svg { width: 12px; height: 13px; }
 
-        /* the star primitive (dfo-* mirrors the passage grammar) */
-        .dfo-glow, .dfo-glint, .dfo-apex-bloom, .dfo-thread, .dfo-cluster-line { mix-blend-mode: screen; }
-        .dfo-star { transform-box: view-box; }
-        .dfo-breathe { transform-box: fill-box; transform-origin: center; }
-        .dfo-glow-cool { opacity: 0.38; }
-        .dfo-glow-warm { opacity: 0; }
-        .dfo-glow-gold { opacity: 0; }
-        .dfo-glint { opacity: 0; }
-        .dfo-glint path { fill: rgba(255,248,228,0.9); }
-        .dfo-star .dfo-glow, .dfo-star .dfo-glint { transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1); }
-        .dfo-glyph { color: #9a7ee6; stroke: #9a7ee6; fill: none; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; opacity: 0.62; transition: opacity 0.8s ease, color 0.8s ease, stroke 0.8s ease; }
+        /* the close — ache only, no price, no button (pricing waits below reviews) */
+        .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
+        .ls-rs-close-title { margin: 0 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.06; letter-spacing: -0.015em; }
+        .ls-rs-close-line { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.5vw, 1.18rem); line-height: 1.55; }
 
-        .dfo-star.dfo-place.is-lit .dfo-glow-cool { opacity: 0.3; }
-        .dfo-star.dfo-place.is-lit .dfo-glow-warm { opacity: 0.16; }
-        .dfo-star.dfo-place.is-lit .dfo-glyph { opacity: 0.46; }
-        .dfo-star.dfo-place.is-active .dfo-glow-cool { opacity: 0.12; }
-        .dfo-star.dfo-place.is-active .dfo-glow-warm { opacity: 1; }
-        .dfo-star.dfo-place.is-active .dfo-glow-gold { opacity: 1; }
-        .dfo-star.dfo-place.is-active .dfo-glint { opacity: 0.85; }
-        .dfo-star.dfo-place.is-active .dfo-glyph { color: ${C.goldSoft}; stroke: ${C.goldSoft}; opacity: 1; }
-
-        .dfo-star.dfo-known .dfo-glow-cool { opacity: 0.18; }
-        .dfo-star.dfo-known .dfo-glow-warm { opacity: 0.34; }
-        .dfo-star.dfo-pet .dfo-glow-cool { opacity: 0.12; }
-        .dfo-star.dfo-pet .dfo-glow-warm { opacity: 1; }
-        .dfo-star.dfo-pet .dfo-glint { opacity: 0.55; }
-        .dfo-star.dfo-you .dfo-glow-cool { opacity: 0.24; }
-        .dfo-star.dfo-you .dfo-glow-warm { opacity: 0; }
-        .dfo-star.dfo-you.is-active .dfo-glow-warm { opacity: 0.5; }
-
-        @keyframes dfoBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        .dfo-chart:not(.dfo-reduce) .dfo-breathe { animation: dfoBreath 6.8s cubic-bezier(0.16,1,0.3,1) infinite; }
-
-        /* threads: the constellation web, drawn inward on ignite */
-        .dfo-cluster-line { fill: none; stroke: ${C.goldSoft}; stroke-width: 0.7; opacity: 0.16; vector-effect: non-scaling-stroke; stroke-linecap: round; }
-        .dfo-thread { fill: none; stroke: ${C.goldSoft}; stroke-width: 0.9; stroke-linecap: round; vector-effect: non-scaling-stroke; opacity: 0; transition: stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1), opacity 0.6s ease, stroke-width 0.5s ease; }
-        .dfo-thread.is-drawn { opacity: 0.5; }
-        .dfo-bond { stroke: #cbb6f2; }
-        .dfo-bond.is-pulse { animation: dfoBond 2.6s ease-in-out infinite; }
-        @keyframes dfoBond { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.72; } }
-        .dfo-chart.is-shape .dfo-thread.is-drawn { stroke-width: 1.5; opacity: 0.82; }
-
-        /* apex: every thread becomes one light */
-        .dfo-apex-bloom { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(0.6); transition: opacity 1s ease, transform 1.2s cubic-bezier(0.16,1,0.3,1); }
-        .dfo-chart.is-synth .dfo-apex-bloom { opacity: 1; transform: scale(1); }
-
-        /* the one genuinely-computed node */
-        .dfo-degmark { opacity: 0; transition: opacity 0.8s ease; }
-        .dfo-degmark.is-shown { opacity: 1; }
-        .dfo-deg-tick { stroke: ${C.gold}; stroke-width: 1; vector-effect: non-scaling-stroke; stroke-linecap: round; }
-        .dfo-deg-read { fill: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 12px; letter-spacing: 0.05em; }
-
-        /* header reveal — blur only >=768 (mobile perf: opacity + translate) */
-        .ls-fo-rv { opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
-        .ls-fo-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
-
-        /* resolved static chart under reduced motion — the whole sky at rest */
-        .dfo-chart.dfo-reduce .dfo-place .dfo-glow-cool { opacity: 0.16; }
-        .dfo-chart.dfo-reduce .dfo-place .dfo-glow-warm { opacity: 0.5; }
-        .dfo-chart.dfo-reduce .dfo-place .dfo-glow-gold { opacity: 0.26; }
-        .dfo-chart.dfo-reduce .dfo-place .dfo-glint { opacity: 0.38; }
-        .dfo-chart.dfo-reduce .dfo-glyph { color: ${C.goldSoft}; stroke: ${C.goldSoft}; opacity: 0.85; }
-        .dfo-chart.dfo-reduce .dfo-thread { opacity: 0.4; }
-        .dfo-chart.dfo-reduce .dfo-apex-bloom { opacity: 0.4; transform: scale(1); }
+        /* reveal — opacity + rise on mobile, blur added on desktop */
+        .ls-rs-rv { opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
+        .ls-rs-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
 
         @media (min-width: 768px) {
-          .ls-fo { padding: clamp(40px, 6svh, 88px) 24px clamp(40px, 6vw, 88px); }
-          .ls-fo-sr { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 72px); align-items: stretch; }
-          .ls-fo-chartcol { position: relative; top: auto; z-index: 1; }
-          .ls-fo-chartcol-inner { position: sticky; top: 0; height: 100vh; min-height: 0; }
-          .dfo-chart { height: auto; width: min(42vw, 460px); max-width: none; }
-          .ls-fo-rail { margin: 0; max-width: 520px; text-align: left; padding: 6vh 0; }
-          .dfo-beat { min-height: 44vh; padding: 8px 0; align-items: flex-start; text-align: left; }
-          .dfo-beat-line { margin-left: 0; margin-right: 0; }
-          .ls-fo-rv { filter: blur(8px); transition: opacity 0.8s cubic-bezier(0.22,0.7,0.2,1), transform 0.8s cubic-bezier(0.22,0.7,0.2,1), filter 0.8s cubic-bezier(0.22,0.7,0.2,1); }
-          .ls-fo-rv[data-in] { filter: blur(0); }
+          .ls-rs { padding: clamp(48px, 6svh, 104px) 24px clamp(48px, 6vw, 104px); }
+          .ls-rs-sky { gap: clamp(40px, 6vw, 66px); }
+          .ls-rs-row { flex-direction: row; text-align: left; gap: clamp(30px, 5vw, 56px); }
+          .ls-rs-row.is-rev { flex-direction: row-reverse; text-align: right; }
+          .ls-rs-name { justify-content: flex-start; }
+          .ls-rs-row.is-rev .ls-rs-name { justify-content: flex-end; }
+          .ls-rs-hook { margin: 0; }
+          .ls-rs-row.is-rev .ls-rs-hook { margin-left: auto; }
+          .ls-rs-rv { filter: blur(6px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1), filter 0.9s cubic-bezier(0.16,1,0.3,1); }
+          .ls-rs-rv[data-in] { filter: blur(0); }
         }
 
+        /* reduced motion: real planets static + lit, no sweeps, no drift, no dust */
         @media (prefers-reduced-motion: reduce) {
-          .dfo-breathe, .dfo-bond.is-pulse { animation: none; }
-          .dfo-star .dfo-glow, .dfo-star .dfo-glint, .dfo-thread, .dfo-apex-bloom, .dfo-degmark, .dfo-glyph { transition: none; }
-          .dfo-stage-dust { transform: none; }
-          .dfo-beat { opacity: 1 !important; transform: none !important; transition: none; }
-          .ls-fo-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
-        }
-
-        /* Reduced motion on a phone: nothing ignites, so a sticky chart would
-           just sit under a column of full-strength text and collide with it.
-           Unpin it so the resolved sky becomes one static image at the top, then
-           the eight placements read as a clean, tight stacked list beneath. */
-        @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
-          .ls-fo-chartcol { position: static; z-index: 1; }
-          .ls-fo-chartcol-inner { position: static; height: auto; min-height: 0; padding: 2svh 0 1svh; }
-          .ls-fo-chartcol-inner::after { display: none; }
-          .dfo-chart { height: auto; width: min(82vw, 320px); max-width: 82vw; }
-          .dfo-beat { min-height: 0; padding: 18px 2px; }
+          .ls-rs-halo, .ls-rs-disc, .ls-rs-term, .ls-rs-spec, .ls-rs-dust span { animation: none !important; }
+          .ls-rs-term { display: none !important; }
+          .ls-rs-spec { opacity: 0.32 !important; transform: translate(-50%, -50%) !important; }
+          .ls-rs-photo { filter: brightness(0.94) contrast(1.03) saturate(1.02) !important; }
+          .ls-rs-halo { opacity: 0.58 !important; transform: none !important; }
+          .ls-rs-stage { transform: none !important; }
+          .ls-rs-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
         }
       `}</style>
     </section>
