@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- LCP: the hero <video> poster is the largest paint (esp. on mobile), but
+         it is only discovered after the JS bundle mounts the video element, so
+         the paint lands ~4s in. Preloading it up front lets the browser fetch it
+         during HTML parse, pulling the largest contentful paint well under the
+         load threshold. Same asset is used on desktop, so nothing is wasted. -->
+    <link rel="preload" as="image" href="/readings/hero/hero-motion-husky-shooting-star-poster.jpg" fetchpriority="high" />
     <script>
       /* Dark mode was removed — clear any cached preference from prior visits
          so returning users don't land on a broken dark state. Safe to remove
