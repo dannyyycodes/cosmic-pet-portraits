@@ -680,37 +680,39 @@ const FREE_FRAME: Record<string, string> = {
 };
 
 // Sign-true free-card lines for the three placements owners care about most.
-// Honest to each sign's real archetype (Sun = identity, Moon = what soothes them,
-// Venus = how they show love), present tense, ungendered for unnamed pets. Falls
-// back to the planet-meaning line in JOURNEY_LINES if a sign is ever missing.
+// True to each sign's real archetype (Sun = core identity, Moon = what settles
+// them, Venus = how they show love), present tense, ungendered and species-neutral
+// for unnamed pets. Each names one thing the owner can actually see or feel, so it
+// reads accurate rather than generic. Falls back to JOURNEY_LINES if a sign is ever
+// missing.
 const SIGN_LINES: Record<string, Record<string, string>> = {
   sun: {
-    Aries: "First through every door, last to back down. The want is loud and immediate, and they expect you to keep up.",
-    Taurus: "Slow to move, impossible to rush. Comfort is a need, not a treat, and the loyalty settles in like weight on the bed.",
-    Gemini: "Two moods before breakfast, curious about everything. They read the room, then change it.",
-    Cancer: "Tender at the core, ruled by whoever feels like home. Their whole world is the people in it.",
-    Leo: "Built for the best seat in the house, and they let you know when it is taken. The warmth is real, and it wants an audience of one. You.",
-    Virgo: "Watchful and particular, quietly in charge of the routine. They notice the thing you moved.",
-    Libra: "Happiest when the room is calm and the bond is even. They mirror your mood back, softer.",
-    Scorpio: "All or nothing, and they decide which. What they give, they give completely, and they remember everything.",
-    Sagittarius: "Born mid-adventure, nose to the wind. Fences are suggestions and the world is theirs to sniff.",
-    Capricorn: "Serious for their age, steady under pressure. They earn their place, then hold it.",
-    Aquarius: "Their own creature on their own clock. Affection on their terms, and odd, better terms than yours.",
-    Pisces: "Soft-edged and tuned to feeling, yours before they are their own. They wait at the door and mean it.",
+    Aries: "No gap between wanting and doing. First through the door, first at the food, already halfway into the thing before they have thought it through.",
+    Taurus: "Slow, certain, and impossible to hurry. Comfort is a need, not a treat, and once they have picked their spot the rest of the world can wait.",
+    Gemini: "Two thoughts running before they finish the first, curious about anything that moves. They take in the whole room at a glance, then need something new to do with it.",
+    Cancer: "Their whole self is built around the ones they love. Soft at the center, watchful of the door, happiest when everyone they belong to is home.",
+    Leo: "Made for the warm middle of the room, and they know when their seat is taken. The affection is real and generous, and it wants one pair of eyes on it. Yours.",
+    Virgo: "Watchful and precise, quietly running a routine nobody assigned them. They notice the thing you moved and the second you changed your mind, and they let you know they saw.",
+    Libra: "Only fully themselves when the room is calm and the bond feels even. They read your mood and hand it back a shade softer.",
+    Scorpio: "All in or not at all, and they are the one who decides which. What they give, they give completely, and they forget nothing that passes between you.",
+    Sagittarius: "Born mid-adventure with their nose already to the wind. The horizon is the whole point, a shut gate is a dare, and the world is theirs to go and read.",
+    Capricorn: "Serious past their years, steady when everything else wobbles. They do not beg for their place, they earn it quietly, then hold it like it was always theirs.",
+    Aquarius: "Their own creature on their own odd clock, and coaxing does not change it. The loyalty is real, it just arrives sideways, on terms only they understand.",
+    Pisces: "Soft to the edges and tuned to whatever the room is feeling. Yours before they were their own, waiting at the door and meaning every minute of it.",
   },
   moon: {
-    Aries: "Settles by doing, not sitting. Burn the energy off and the calm follows.",
-    Taurus: "Safe means warm, fed, and exactly where they always sleep. Move the bed and you will hear about it.",
-    Gemini: "Needs something to watch and someone to chatter at. Boredom is their only real fear.",
-    Cancer: "Wants you close and the routine kept. A small sulk over a skipped cuddle is not unusual.",
-    Leo: "Feels safest when seen. A little praise resets their whole day.",
-    Virgo: "Calms when the order is right. A clean bowl in the same spot, and the world is fine.",
-    Libra: "Settles in pairs, unsettles alone. They borrow their calm from yours.",
-    Scorpio: "Watches from somewhere high, then decides you are safe. Once it decides, it does not change its mind.",
-    Sagittarius: "Needs room and a horizon. A long walk does more than any blanket.",
-    Capricorn: "Steadies on a schedule they can trust. Surprises are not a gift to them.",
-    Aquarius: "Comforted by space, not smothering. They come to you, and that is the rule.",
-    Pisces: "Soothed by quiet and your nearness. Loud days send them under the bed.",
+    Aries: "Settles by burning it off, never by being told to sit still. Let the energy out first and the calm follows on its own.",
+    Taurus: "Safe means warm, fed, and in the exact spot they always sleep. Move their bed a foot and you will hear about it for a week.",
+    Gemini: "Calm comes from something to watch and someone to answer. A quiet, empty room is the thing that truly unsettles them, so they invent a game to fill it.",
+    Cancer: "Feels safe only with you close and the day in its usual order. A skipped goodbye or a broken routine tips them into a small, wounded sulk.",
+    Leo: "Feels safest the moment they are seen. A word of praise resets the whole day, and being overlooked stings far more than they let on.",
+    Virgo: "Calms when everything sits in its right place. The same bowl in the same corner, the routine kept, and their anxious edge finally goes quiet.",
+    Libra: "Steadies in company, frays alone. They borrow their calm straight from yours, so a tense room becomes a tense them within minutes.",
+    Scorpio: "Watches from somewhere high and safe before they trust the room. Once they decide you are the one who stays, that trust is total and does not come undone.",
+    Sagittarius: "Needs room and a horizon more than a soft place to lie. Open ground does more for them than any blanket could.",
+    Capricorn: "Steadies on a schedule they can count on. Surprises are no gift to this one, and a day that runs to plan is a day they can finally relax into.",
+    Aquarius: "Comforted by room to breathe, not by being held close. They come to you when they are ready, and letting that be the rule keeps them settled.",
+    Pisces: "Soothed by quiet and the plain fact of you nearby. They soak up the whole mood of the house, so a loud day sends them under the nearest place to hide.",
   },
   venus: {
     Aries: "Loves head-on. Crashes into you, then waits, tail going, for the same back.",
