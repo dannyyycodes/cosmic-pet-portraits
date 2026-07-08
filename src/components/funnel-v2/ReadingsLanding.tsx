@@ -485,7 +485,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
                 descendTo("#computed-sky");
               }}
             >
-              Compute their sky, free
+              Compute their chart, free
             </a>
           </div>
         </div>
@@ -2858,7 +2858,7 @@ function FullReadingOpens() {
   // One IntersectionObserver drives both the reveal latch (data-in, permanent) and
   // the per-planet ASMR play-state (is-live, toggles so only on-screen discs run).
   useEffect(() => {
-    if (memorial || !pet) return;
+    if (!pet) return;
     const root = rootRef.current;
     if (!root || typeof window === "undefined") return;
     const reveals = Array.from(root.querySelectorAll<HTMLElement>(".ls-rs-rv"));
@@ -2892,7 +2892,7 @@ function FullReadingOpens() {
   // Foreground dust: a few drifting motes per disc, injected once so each planet
   // has its own cosmic dust. Skipped entirely under reduced motion.
   useEffect(() => {
-    if (memorial || !pet || reduce) return;
+    if (!pet || reduce) return;
     const root = rootRef.current;
     if (!root || typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -2911,24 +2911,34 @@ function FullReadingOpens() {
     });
   }, [memorial, pet, reduce]);
 
-  if (memorial || !pet) return null;
-  const name = (pet.name || "").trim();
-  const possessive = name ? `${name}'s` : "their";
+  if (!pet) return null;
 
   return (
-    <section ref={rootRef} id="the-rest" className="ls-rs ls-parallax-band" aria-labelledby="ls-rs-title">
+    <section ref={rootRef} id="the-rest" className={`ls-rs ls-parallax-band${memorial ? " is-memorial" : ""}`} aria-labelledby="ls-rs-title">
       <div className="ls-rs-grain" aria-hidden="true" />
       <div className="ls-rs-wash" aria-hidden="true" />
       <div className="ls-rs-inner">
         <header className="ls-rs-head">
-          <p className="ls-rs-eyebrow ls-rs-rv">The rest of their sky</p>
-          <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
-            You have met three.
-          </h2>
-          <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
-            Nine more real worlds are still sealed in {possessive} chart, each one ruling a part of them you
-            have not opened yet.
-          </p>
+          {memorial ? (
+            <>
+              <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
+                Who they were is still here.
+              </h2>
+              <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
+                Every part of them, still yours to read.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="ls-rs-eyebrow ls-rs-rv">The rest of who they are</p>
+              <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
+                You have met three parts of them.
+              </h2>
+              <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
+                Nine more make up who they are.
+              </p>
+            </>
+          )}
         </header>
 
         <div className="ls-rs-sky">
@@ -2961,18 +2971,20 @@ function FullReadingOpens() {
                   {body.place.pre}<em>{body.place.em}</em>{body.place.post}
                 </h3>
                 <p className="ls-rs-hook">{body.hook}</p>
-                <div className="ls-rs-seal"><RestLock />Sealed in the full reading</div>
+                {!memorial && <div className="ls-rs-seal"><RestLock />Sealed in the full reading</div>}
               </div>
             </article>
           ))}
         </div>
 
-        <div className="ls-rs-close ls-rs-rv">
-          <h2 className="ls-rs-close-title">Break every seal.</h2>
-          <p className="ls-rs-close-line">
-            The full reading opens all nine, each one written for this soul alone and no other.
-          </p>
-        </div>
+        {!memorial && (
+          <div className="ls-rs-close ls-rs-rv">
+            <h2 className="ls-rs-close-title">Break every seal.</h2>
+            <p className="ls-rs-close-line">
+              The full reading opens all nine, each one written for this soul alone and no other.
+            </p>
+          </div>
+        )}
       </div>
       <style>{`
         /* The section paints its own opaque cosmos so nothing from an adjacent band
@@ -3036,8 +3048,8 @@ function FullReadingOpens() {
           position: absolute; top: 50%; left: 50%; z-index: 3; width: 134%; height: 134%; border-radius: 50%;
           transform: translate(-50%, -50%) translateX(112%);
           background: radial-gradient(circle at 50% 50%,
-            rgba(6,4,14,0.96) 0%, rgba(8,5,17,0.94) 42%, rgba(10,7,20,0.80) 53%,
-            rgba(12,9,24,0.38) 63%, rgba(14,10,28,0) 73%);
+            rgba(6,4,14,0.80) 0%, rgba(8,5,17,0.78) 42%, rgba(10,7,20,0.66) 53%,
+            rgba(12,9,24,0.32) 63%, rgba(14,10,28,0) 73%);
           will-change: transform;
           animation: lsRsSweep 7s cubic-bezier(0.42,0,0.58,1) infinite; animation-delay: calc(var(--rsi, 0) * -0.83s); animation-play-state: paused;
         }
@@ -3114,6 +3126,16 @@ function FullReadingOpens() {
           .ls-rs-rv { filter: blur(6px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1), filter 0.9s cubic-bezier(0.16,1,0.3,1); }
           .ls-rs-rv[data-in] { filter: blur(0); }
         }
+
+        /* memorial — the same real worlds, hushed: softer light + lower contrast,
+           no seal and no pay-pressure. Still lit, still theirs. */
+        .ls-rs.is-memorial .ls-rs-wash {
+          background:
+            radial-gradient(120% 84% at 50% -8%, rgba(120,108,150,0.12), transparent 58%),
+            radial-gradient(120% 100% at 50% 46%, transparent 58%, rgba(6,4,12,0.6) 100%);
+        }
+        .ls-rs.is-memorial .ls-rs-photo { filter: brightness(0.72) contrast(0.99) saturate(0.9); }
+        .ls-rs.is-memorial .ls-rs-halo { opacity: 0.52; }
 
         /* reduced motion: real planets static + lit, no sweeps, no drift, no dust */
         @media (prefers-reduced-motion: reduce) {
