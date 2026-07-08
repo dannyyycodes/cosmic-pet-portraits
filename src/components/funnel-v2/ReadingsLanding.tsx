@@ -1904,6 +1904,283 @@ function CosmicJourney({
   );
 }
 
+// The guided one-way free reading. Replaces the old tap-through narrated journey
+// (Next / audio / click-to-advance). After the chart settles the reader is only
+// ever carried forward: an opening beat, then the three placements the date can
+// give freely (Sun, Moon, Rising), each a real world lit with the same living
+// light as the desire section, revealed one at a time on scroll. Then the desire
+// turn (the gap), then the handoff into "the rest of who they are". Scroll is the
+// only control, nothing drifts under the pointer, and the reader cannot get lost.
+// CSP safe (IntersectionObserver plus CSS only), reduced motion safe (all shown,
+// no sweeps, one clear order). Note: the compute returns no ascendant (a rising
+// needs the exact minute and place), so the Rising slot never fabricates a sign.
+type FreePlanetKey = "sun" | "moon" | "rising";
+type FreePlanet = { key: FreePlanetKey; eyebrow: string; frame: string; reveal: string; hook: string; glow: string; photo: string; alt: string };
+
+const FREE_PLANETS: FreePlanet[] = [
+  {
+    key: "sun",
+    eyebrow: "The Sun",
+    frame: "Who they are, all the way down.",
+    reveal: "This is the part of them that was never taught and never trained. The one that shows up whether the day was good or bad.",
+    hook: "It is the thing they do the second the door opens, every single time, like you had been gone a year.",
+    glow: "#f3b64e",
+    photo: "/readings/sun/sun-opt1.png?v=3",
+    alt: "The real Sun",
+  },
+  {
+    key: "moon",
+    eyebrow: "The Moon",
+    frame: "How they feel, and what settles them.",
+    reveal: "This is the part that comes out when the house goes quiet. What they need to feel safe. What they reach for when the day has been too much.",
+    hook: "It is why, when it has all been too much, they end up in the one spot that still holds your warmth.",
+    glow: "#cdd6e8",
+    photo: NASA_IMG.moon,
+    alt: "The real Moon",
+  },
+  {
+    key: "rising",
+    eyebrow: "The Rising",
+    frame: "The first face they show the world.",
+    reveal: "This is what a room meets before it meets the rest of them. The front door, not the whole house. How they meet a stranger, and how long it takes to see the real one.",
+    hook: "It is the version of them everyone else describes, and the version only you get to see underneath.",
+    glow: "#87b0e2",
+    photo: NASA_IMG.earth,
+    alt: "The horizon at first light",
+  },
+];
+
+// The five sealed parts, named in the desire turn (approved copy, verbatim).
+const FREE_DARK: string[] = [
+  "What they are afraid of, and what steadies them when it comes.",
+  "How they love you back, in the one language only they use.",
+  "What they carry from before you, and what they let go once they were yours.",
+  "Who they trust on sight, and who they never quite forgive.",
+  "What they want that they cannot ask you for.",
+];
+
+// The Rising placement is never fabricated: a date alone cannot draw a rising, it
+// turns on the exact minute and place they arrived. So this slot tells the truth
+// and pulls forward, while Sun and Moon carry their real computed signs.
+const RISING_PLACE = "Two of these stand on the day alone. A rising turns on the exact minute they arrived, so this is the one face only the full reading can draw.";
+
+function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // One observer: latches each line in once (data-in, permanent) and toggles the
+  // ASMR play-state per world (is-live) so only the on-screen planet animates.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+    const revs = Array.from(root.querySelectorAll<HTMLElement>(".ls-fr-rv"));
+    const worlds = Array.from(root.querySelectorAll<HTMLElement>(".ls-fr-planet"));
+    const reduced = reduce || (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    if (reduced || !("IntersectionObserver" in window)) {
+      revs.forEach((el) => el.setAttribute("data-in", "1"));
+      worlds.forEach((el) => el.classList.add("is-live"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          const el = e.target as HTMLElement;
+          if (el.classList.contains("ls-fr-planet")) {
+            el.classList.toggle("is-live", e.isIntersecting);
+            return;
+          }
+          if (e.isIntersecting) {
+            el.setAttribute("data-in", "1");
+            io.unobserve(el);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.18 },
+    );
+    revs.forEach((el) => io.observe(el));
+    worlds.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [reduce]);
+
+  const bodyFor = (k: "sun" | "moon") => chart[k] as ChartBody | undefined;
+
+  return (
+    <div className="ls-fr" ref={rootRef}>
+      {/* Opening: the chart settles, and we name the love they already feel. */}
+      <div className="ls-fr-open">
+        <span className="ls-fr-settle" aria-hidden="true"><i /><i /><i /></span>
+        <p className="ls-fr-open-hero ls-fr-rv">Here they are.</p>
+        <p className="ls-fr-open-sub ls-fr-rv" style={revealDelay(0.06)}>The whole of them, mapped to the sky the day they arrived.</p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.14)}>You already know some of this. You know the exact thing that makes them lose their mind with joy.</p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.2)}>You know the weight of them when they finally fall asleep on you.</p>
+        <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.28)}>You have felt who they are for a long time. This is where it gets its name.</p>
+      </div>
+
+      {/* Three real worlds, one at a time, forward only. */}
+      {FREE_PLANETS.map((p) => {
+        const body = p.key === "rising" ? undefined : bodyFor(p.key);
+        const sign = body?.sign;
+        const deg = typeof body?.degree === "number" ? `${Math.round(body.degree)}` : "";
+        const line = p.key === "rising" ? "" : ((sign && SIGN_LINES[p.key]?.[sign]) || JOURNEY_LINES[p.key] || PLANET_META[p.key]?.line || "");
+        return (
+          <section key={p.key} className={`ls-fr-planet is-${p.key}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
+            <p className="ls-fr-eyebrow ls-fr-rv">{p.eyebrow}</p>
+            <div className="ls-fr-stage ls-fr-rv" style={revealDelay(0.04)}>
+              <span className="ls-fr-halo" aria-hidden="true" />
+              {p.key === "sun" ? (
+                <span className="ls-fr-sun">
+                  <img src={p.photo} alt={p.alt} />
+                  <span className="ls-fr-sun-shine" aria-hidden="true" />
+                </span>
+              ) : (
+                <span className="ls-fr-disc">
+                  <img className="ls-fr-photo" src={p.photo} alt={p.alt} loading="lazy" decoding="async" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
+                  <span className="ls-fr-term" aria-hidden="true" />
+                  <span className="ls-fr-spec" aria-hidden="true" />
+                  <span className="ls-fr-rim" aria-hidden="true" />
+                </span>
+              )}
+            </div>
+            <p className="ls-fr-frame ls-fr-rv" style={revealDelay(0.08)}>{p.frame}</p>
+            <p className="ls-fr-reveal ls-fr-rv" style={revealDelay(0.14)}>{p.reveal}</p>
+            <div className="ls-fr-place ls-fr-rv" style={revealDelay(0.2)}>
+              {p.key === "rising" ? (
+                <p className="ls-fr-line is-sealed">{RISING_PLACE}</p>
+              ) : (
+                <>
+                  {sign && <span className="ls-fr-chip">{deg ? `${sign} ${deg}°` : sign}</span>}
+                  <p className="ls-fr-line">{line}</p>
+                </>
+              )}
+            </div>
+            <p className="ls-fr-hook ls-fr-rv" style={revealDelay(0.26)}>{p.hook}</p>
+          </section>
+        );
+      })}
+
+      {/* The desire turn: the gap opens. */}
+      <section className="ls-fr-turn">
+        <p className="ls-fr-turn-lead ls-fr-rv">You have met three of them. Who they are, how they feel, the face they show first.</p>
+        <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.05)}>There are ten more, still dark on the wheel:</p>
+        <ul className="ls-fr-dark">
+          {FREE_DARK.map((d, i) => (
+            <li key={i} className="ls-fr-dark-row ls-fr-rv" style={revealDelay(0.05 + i * 0.05)}>
+              <span className="ls-fr-dark-dot" aria-hidden="true" />
+              <span>{d}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="ls-fr-turn-own ls-fr-rv">Three of thirteen, yours already.</p>
+        <p className="ls-fr-turn-one ls-fr-rv" style={revealDelay(0.05)}>And there is one thing no single planet can show you.</p>
+        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together. The reason they pick the exact spot on you they always pick. The reason they watch you the way they watch you.</p>
+        <p className="ls-fr-turn-whole ls-fr-rv" style={revealDelay(0.16)}>The whole of them, read in one place.</p>
+      </section>
+
+      {/* Handoff into the rest of who they are. */}
+      <div className="ls-fr-handoff ls-fr-rv">
+        <button type="button" className="ls-fr-handoff-cta" onClick={() => descendTo("#the-rest")}>
+          Meet the rest of who they are
+          <ChevronDown size={20} strokeWidth={1.6} />
+        </button>
+      </div>
+
+      <style>{`
+        .ls-fr { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; padding: clamp(8px, 2.5vw, 22px) 6px 0; text-align: center; }
+        .ls-fr-rv { opacity: 0; transform: translate3d(0, 24px, 0); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
+        .ls-fr-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
+
+        /* Opening */
+        .ls-fr-open { position: relative; display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 2.4vw, 20px); padding: clamp(12px, 4vw, 40px) 0 clamp(40px, 9svh, 96px); }
+        .ls-fr-settle { position: absolute; top: clamp(-8px, -1vw, 0px); left: 50%; width: min(78vw, 420px); aspect-ratio: 1; transform: translateX(-50%); pointer-events: none; z-index: -1; }
+        .ls-fr-settle i { position: absolute; inset: 0; margin: auto; border-radius: 50%; border: 1px solid ${C.lineViolet}; animation: lsFrSettle 6.5s ease-in-out infinite; }
+        .ls-fr-settle i:nth-child(1) { width: 40%; height: 40%; }
+        .ls-fr-settle i:nth-child(2) { width: 66%; height: 66%; animation-delay: -1.6s; opacity: 0.6; }
+        .ls-fr-settle i:nth-child(3) { width: 96%; height: 96%; animation-delay: -3.2s; opacity: 0.32; }
+        @keyframes lsFrSettle { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.82; } }
+        .ls-fr-open-hero { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.1rem, 7.2vw, 3.4rem); line-height: 1.02; letter-spacing: -0.02em; }
+        .ls-fr-open-sub { margin: 0; max-width: 26ch; color: ${C.goldSoft}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.1rem, 3vw, 1.5rem); line-height: 1.32; }
+        .ls-fr-open-body { margin: 0; max-width: 34ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.5vw, 1.16rem); line-height: 1.5; }
+        .ls-fr-open-turn { margin: clamp(6px, 1.4vw, 12px) 0 0; max-width: 32ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.04rem, 2.7vw, 1.24rem); line-height: 1.45; }
+
+        /* One world */
+        .ls-fr-planet { position: relative; display: flex; flex-direction: column; align-items: center; padding: clamp(30px, 7svh, 84px) 0; }
+        .ls-fr-eyebrow { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(16px, 3vw, 26px); color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.36em; text-transform: uppercase; }
+        .ls-fr-eyebrow::before, .ls-fr-eyebrow::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
+        .ls-fr-stage { position: relative; display: grid; place-items: center; width: clamp(200px, 60vw, 292px); height: clamp(200px, 60vw, 292px); margin: 0 0 clamp(22px, 4vw, 34px); }
+        .ls-fr-halo { position: absolute; inset: -6%; border-radius: 50%; z-index: 1; pointer-events: none; background: radial-gradient(circle, color-mix(in srgb, var(--glow) 40%, transparent) 0%, color-mix(in srgb, var(--glow) 18%, transparent) 36%, color-mix(in srgb, var(--glow) 6%, transparent) 56%, transparent 72%); filter: blur(10px); opacity: 0.68; animation: lsFrBreathe 6s ease-in-out infinite; animation-play-state: paused; }
+        @keyframes lsFrBreathe { 0%, 100% { transform: scale(1); opacity: 0.56; } 50% { transform: scale(1.08); opacity: 0.84; } }
+
+        .ls-fr-disc { position: relative; z-index: 2; width: clamp(150px, 46vw, 218px); height: clamp(150px, 46vw, 218px); border-radius: 50%; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 22px 60px rgba(4,2,12,0.66); animation: lsFrBreatheDisc 7.6s ease-in-out infinite; animation-play-state: paused; }
+        @keyframes lsFrBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.018); } }
+        .ls-fr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); filter: brightness(0.86) contrast(1.05) saturate(1.03); background: #050310; }
+        .ls-fr-term { position: absolute; top: 50%; left: 50%; z-index: 3; width: 134%; height: 134%; border-radius: 50%; transform: translate(-50%, -50%) translateX(112%); background: radial-gradient(circle at 50% 50%, rgba(6,4,14,0.80) 0%, rgba(8,5,17,0.78) 42%, rgba(10,7,20,0.66) 53%, rgba(12,9,24,0.32) 63%, rgba(14,10,28,0) 73%); animation: lsFrSweep 7.4s cubic-bezier(0.42,0,0.58,1) infinite; animation-play-state: paused; }
+        .ls-fr-spec { position: absolute; top: 50%; left: 50%; z-index: 4; width: 120%; height: 120%; border-radius: 50%; transform: translate(-50%, -50%) translateX(-118%); mix-blend-mode: screen; pointer-events: none; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--glow) 32%, white) 0%, color-mix(in srgb, var(--glow) 16%, transparent) 26%, transparent 46%); opacity: 0.5; animation: lsFrSweepBright 7.4s cubic-bezier(0.42,0,0.58,1) infinite; animation-play-state: paused; }
+        @keyframes lsFrSweep { 0% { transform: translate(-50%, -50%) translateX(112%); } 50% { transform: translate(-50%, -50%) translateX(-112%); } 100% { transform: translate(-50%, -50%) translateX(112%); } }
+        @keyframes lsFrSweepBright { 0% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; } 50% { transform: translate(-50%, -50%) translateX(118%); opacity: 0.6; } 100% { transform: translate(-50%, -50%) translateX(-118%); opacity: 0.12; } }
+        .ls-fr-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.50); }
+        .ls-fr-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 60%, transparent), inset 0 0 10px 0 color-mix(in srgb, var(--glow) 32%, transparent); }
+        .ls-fr-planet.is-rising .ls-fr-disc::after { box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.42), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 34%, transparent); }
+
+        /* The Sun: a real star, no night side, alive by breath and a slow shine. */
+        .ls-fr-sun { position: relative; z-index: 2; display: grid; place-items: center; width: clamp(210px, 60vw, 300px); height: clamp(210px, 60vw, 300px); animation: lsFrBreatheDisc 8s ease-in-out infinite; animation-play-state: paused; }
+        .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(243,150,40,0.42)); }
+        .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,246,214,0.5) 0%, rgba(255,196,90,0.16) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
+        @keyframes lsFrShine { 0%, 100% { transform: translate(-4%, -3%) scale(1); opacity: 0.4; } 50% { transform: translate(5%, 4%) scale(1.08); opacity: 0.68; } }
+
+        .ls-fr-planet.is-live .ls-fr-halo,
+        .ls-fr-planet.is-live .ls-fr-disc,
+        .ls-fr-planet.is-live .ls-fr-term,
+        .ls-fr-planet.is-live .ls-fr-spec,
+        .ls-fr-planet.is-live .ls-fr-sun,
+        .ls-fr-planet.is-live .ls-fr-sun-shine { animation-play-state: running; }
+
+        /* The words for each world */
+        .ls-fr-frame { margin: 0 0 clamp(12px, 2.4vw, 18px); max-width: 18ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.6rem, 5.8vw, 2.4rem); line-height: 1.06; letter-spacing: -0.018em; }
+        .ls-fr-reveal { margin: 0 auto clamp(18px, 3vw, 26px); max-width: 40ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.7vw, 1.22rem); line-height: 1.5; }
+        .ls-fr-place { margin: 0 auto clamp(16px, 3vw, 24px); max-width: 40ch; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow) 46%, transparent); background: color-mix(in srgb, var(--glow) 11%, transparent); color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+        .ls-fr-line { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.12rem, 3vw, 1.34rem); line-height: 1.42; }
+        .ls-fr-line.is-sealed { color: ${C.creamDim}; font-style: italic; }
+        .ls-fr-hook { margin: 0 auto; max-width: 38ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
+
+        /* The desire turn */
+        .ls-fr-turn { position: relative; max-width: 44ch; margin: 0 auto; padding: clamp(46px, 10svh, 118px) 0 clamp(28px, 6svh, 68px); display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.6vw, 20px); }
+        .ls-fr-turn::before { content: ""; position: absolute; top: 0; left: 50%; width: 1px; height: clamp(34px, 7svh, 78px); transform: translateX(-50%); background: linear-gradient(180deg, transparent, ${C.lineViolet}); }
+        .ls-fr-turn-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.12; letter-spacing: -0.015em; }
+        .ls-fr-turn-sub { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.6vw, 1.2rem); line-height: 1.5; }
+        .ls-fr-dark { list-style: none; margin: clamp(4px, 1vw, 10px) 0; padding: 0; width: 100%; max-width: 40ch; display: flex; flex-direction: column; gap: clamp(10px, 2vw, 15px); }
+        .ls-fr-dark-row { display: flex; align-items: flex-start; gap: 14px; text-align: left; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.42; }
+        .ls-fr-dark-dot { flex: 0 0 auto; margin-top: 0.52em; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, rgba(154,126,230,0.5), rgba(20,16,30,0.9)); box-shadow: inset 0 0 0 1px rgba(154,126,230,0.4); }
+        .ls-fr-turn-own { margin: clamp(10px, 2vw, 18px) 0 0; color: ${C.goldSoft}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.15rem); line-height: 1.08; letter-spacing: -0.015em; }
+        .ls-fr-turn-one { margin: clamp(14px, 3vw, 24px) 0 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); line-height: 1.45; }
+        .ls-fr-turn-what { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 2.9vw, 1.3rem); line-height: 1.46; }
+        .ls-fr-turn-whole { margin: clamp(6px, 1.4vw, 12px) 0 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.44rem, 4.8vw, 2rem); line-height: 1.1; letter-spacing: -0.01em; }
+
+        /* Handoff */
+        .ls-fr-handoff { display: flex; justify-content: center; padding: clamp(20px, 4svh, 44px) 0 clamp(6px, 2vw, 16px); }
+        .ls-fr-handoff-cta { display: inline-flex; align-items: center; gap: 12px; padding: clamp(15px, 2.4vw, 19px) clamp(26px, 4vw, 38px); border-radius: 999px; border: 1px solid color-mix(in srgb, ${C.violetSoft} 55%, transparent); background: linear-gradient(180deg, rgba(124,92,214,0.24), rgba(124,92,214,0.12)); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); font-weight: 600; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 10px 34px rgba(70,40,140,0.34); transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
+        .ls-fr-handoff-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(70,40,140,0.46); background: linear-gradient(180deg, rgba(124,92,214,0.32), rgba(124,92,214,0.16)); }
+        .ls-fr-handoff-cta svg { animation: lsFrNudge 2.4s ease-in-out infinite; }
+        @keyframes lsFrNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+        @media (min-width: 768px) {
+          .ls-fr { max-width: 820px; }
+          .ls-fr-rv { filter: blur(7px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1), filter 0.9s cubic-bezier(0.16,1,0.3,1); }
+          .ls-fr-rv[data-in] { filter: blur(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-settle i, .ls-fr-handoff-cta svg { animation: none !important; }
+          .ls-fr-term { display: none !important; }
+          .ls-fr-spec { opacity: 0.3 !important; transform: translate(-50%, -50%) !important; }
+          .ls-fr-photo { filter: brightness(0.96) contrast(1.04) saturate(1.02) !important; }
+          .ls-fr-halo { opacity: 0.6 !important; }
+          .ls-fr-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function BirthSkyJourney() {
   const reduce = useReducedMotion() ?? false;
   const infoBtnRef = useRef<HTMLButtonElement>(null);
@@ -2053,50 +2330,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <>
-          <CosmicJourney
-            chart={chart}
-            name={name}
-            bornLabel={bornLabelFor(date)}
-            reduce={reduce}
-            onLead={handleLead}
-            onCheckout={scrollToCheckout}
-          />
-
-          {/* Skim-worthy breakdown for people who do not watch the journey: the
-              three free placements, named and framed. What the full reading opens
-              is its own desire section below (FullReadingOpens), then the reviews,
-              then the pricing. */}
-          <div className="ls-reveal-stack ls-skim" ref={skimRef}>
-            <div className="ls-skim-seam ls-rvrow" aria-hidden="true">
-              <span className="ls-skim-seam-line" />
-              <svg className="ls-skim-seam-mark" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19" /></svg>
-              <span className="ls-skim-seam-line" />
-            </div>
-            <p className="ls-skim-title ls-rvrow">{name ? `${name}'s chart, in their own words` : "Their chart, in their own words"}</p>
-            <div className="ls-chart-table">
-              {FREE_KEYS.map((key, i) => {
-                const b = bodyFor(key);
-                const m = PLANET_META[key];
-                const deg = typeof b?.degree === "number" ? `${Math.round(b.degree)}°` : "";
-                const text = (b?.sign && SIGN_LINES[key]?.[b.sign]) || JOURNEY_LINES[key] || m.line;
-                return (
-                  <article key={key} className="ls-trow ls-rvrow is-free is-open" style={revealDelay(0.08 + i * 0.14)}>
-                    <span className="ls-trow-glyph" aria-hidden="true"><AstroGlyph name={key} /></span>
-                    <div className="ls-trow-main">
-                      <span className="ls-trow-top">
-                        <strong className="ls-trow-name">{m.label}</strong>
-                        {b?.sign && <span className="ls-trow-sign">{b.sign} {deg}</span>}
-                      </span>
-                      <span className="ls-trow-frame">{PLANET_FRAME[key]}</span>
-                      <p className="ls-trow-line">{text}</p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </>
+        <FreeReveal chart={chart} reduce={reduce} />
       ) : (
         <>
           <div className="ls-stage">
