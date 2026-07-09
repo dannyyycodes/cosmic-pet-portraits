@@ -6183,7 +6183,8 @@ function CosmicStyles() {
          Its own journey-moment section directly after the hero. First visit:
          a tall, unmissable chooser (discovery / gold first, memorial / violet
          second). Returning: a dignified, clearly-visible path banner, never a
-         tiny grey line. Bespoke celestial marks (no icon-set glyphs). */
+         tiny grey line. Heart and feather marks stay recognizable; the
+         choice itself reads as two quiet doorways. */
       .ls-path {
         position: relative;
         z-index: 2;
@@ -6261,9 +6262,9 @@ function CosmicStyles() {
         margin-top: clamp(34px, 5.5vw, 56px);
         display: grid;
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 18px;
         width: 100%;
-        max-width: 30rem;
+        max-width: 54rem;
       }
       .ls-path-card {
         appearance: none;
@@ -6272,36 +6273,79 @@ function CosmicStyles() {
         position: relative;
         overflow: hidden;
         display: flex;
-        align-items: center;
-        gap: 18px;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-direction: column;
+        gap: 24px;
         width: 100%;
-        min-height: 112px;
-        padding: 22px 22px;
+        min-height: 248px;
+        padding: clamp(24px, 6vw, 34px);
         text-align: left;
-        border-radius: 20px;
+        border-radius: 8px;
         border: 1px solid rgba(245,239,230,0.12);
         background:
-          linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+          linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012)),
           rgba(9,7,13,0.62);
         color: #efe9dd;
-        transition: transform .4s cubic-bezier(.22,.7,.2,1), border-color .4s ease, box-shadow .4s ease;
+        isolation: isolate;
+        transition: transform .42s cubic-bezier(.22,.7,.2,1), border-color .4s ease, box-shadow .4s ease, background .4s ease;
+      }
+      .ls-path-card::before {
+        content: "";
+        position: absolute;
+        inset: 12px;
+        z-index: -1;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.075);
+        background:
+          linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255,255,255,0.08) calc(50% - 0.5px), rgba(255,255,255,0.08) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+          radial-gradient(120% 72% at 50% 0%, rgba(255,255,255,0.045), transparent 60%);
+        opacity: 0.94;
+        transition: border-color .4s ease, background .4s ease, opacity .4s ease;
+      }
+      .ls-path-card::after {
+        content: "";
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        height: 34%;
+        z-index: -1;
+        border-radius: 0 0 6px 6px;
+        opacity: 0.42;
+        transform: translateY(12%);
+        transition: opacity .4s ease, transform .42s cubic-bezier(.22,.7,.2,1);
+        pointer-events: none;
       }
       .ls-path-card.is-discovery {
         border-color: rgba(212,182,122,0.42);
-        box-shadow: 0 0 0 1px rgba(212,182,122,0.10) inset, 0 16px 40px -26px rgba(212,182,122,0.55);
+        background:
+          linear-gradient(180deg, rgba(240,217,159,0.09), rgba(255,255,255,0.015)),
+          rgba(9,7,13,0.64);
+        box-shadow: 0 0 0 1px rgba(212,182,122,0.10) inset, 0 24px 58px -34px rgba(212,182,122,0.68);
+      }
+      .ls-path-card.is-discovery::after {
+        background: radial-gradient(80% 100% at 50% 100%, rgba(240,217,159,0.32), transparent 72%);
       }
       .ls-path-card.is-memorial {
         border-color: rgba(154,126,230,0.34);
-        box-shadow: 0 16px 40px -28px rgba(124,92,214,0.5);
+        background:
+          linear-gradient(180deg, rgba(154,126,230,0.10), rgba(255,255,255,0.012)),
+          rgba(9,7,13,0.64);
+        box-shadow: 0 24px 58px -36px rgba(124,92,214,0.64);
       }
-      .ls-path-card:hover { transform: translateY(-3px); }
+      .ls-path-card.is-memorial::after {
+        background: radial-gradient(80% 100% at 50% 100%, rgba(185,165,240,0.30), transparent 72%);
+      }
+      .ls-path-card:hover { transform: translateY(-4px); }
+      .ls-path-card:hover::after { opacity: 0.72; transform: translateY(0); }
       .ls-path-card.is-discovery:hover {
         border-color: rgba(240,217,159,0.78);
-        box-shadow: 0 0 0 1px rgba(240,217,159,0.2) inset, 0 22px 46px -22px rgba(212,182,122,0.65);
+        box-shadow: 0 0 0 1px rgba(240,217,159,0.2) inset, 0 28px 64px -26px rgba(212,182,122,0.74);
       }
       .ls-path-card.is-memorial:hover {
         border-color: rgba(185,165,240,0.62);
-        box-shadow: 0 20px 44px -24px rgba(124,92,214,0.62);
+        box-shadow: 0 28px 64px -28px rgba(124,92,214,0.72);
       }
       .ls-path-card:focus-visible { outline: 2px solid rgba(240,217,159,0.85); outline-offset: 3px; }
       .ls-path-card.is-memorial:focus-visible { outline-color: rgba(185,165,240,0.9); }
@@ -6315,8 +6359,8 @@ function CosmicStyles() {
       .ls-path-card-label {
         font-family: "Fraunces", Georgia, serif;
         font-weight: 500;
-        font-size: clamp(1.16rem, 1.04rem + 0.6vw, 1.42rem);
-        line-height: 1.1;
+        font-size: clamp(1.32rem, 1.05rem + 1.2vw, 1.8rem);
+        line-height: 1.05;
         letter-spacing: -0.008em;
         color: #ffffff;
       }
@@ -6331,8 +6375,8 @@ function CosmicStyles() {
         flex: none;
         display: grid;
         place-items: center;
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
         border: 1px solid rgba(245,239,230,0.16);
         color: #8f8798;
@@ -6346,8 +6390,8 @@ function CosmicStyles() {
         flex: none;
         display: grid;
         place-items: center;
-        width: 66px;
-        height: 66px;
+        width: 72px;
+        height: 72px;
       }
       .ls-path-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
       .is-discovery .ls-path-mark { color: #f0d99f; }
@@ -6439,14 +6483,10 @@ function CosmicStyles() {
           max-width: 720px;
         }
         .ls-path-card {
-          flex-direction: column;
-          align-items: flex-start;
-          justify-content: flex-start;
-          gap: 22px;
-          min-height: 306px;
-          padding: 32px 30px;
+          min-height: 356px;
+          padding: 38px 34px 32px;
         }
-        .ls-path-card .ls-path-mark { width: 80px; height: 80px; }
+        .ls-path-card .ls-path-mark { width: 92px; height: 92px; }
         .ls-path-card-go { position: absolute; right: 26px; bottom: 28px; }
         .ls-path-card-text { gap: 7px; }
       }
