@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Little Souls Gift Icon Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d0a14;
+  --panel:#171220;
+  --panel2:#20172a;
+  --gold:#d4b67a;
+  --gold2:#f0d99f;
+  --ivory:#f5efe6;
+  --muted:#a99b8b;
+  --hair:rgba(212,182,122,.24);
+  --hair2:rgba(245,239,230,.11);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--ivory);
+  background:
+    radial-gradient(820px 560px at 80% 0%, rgba(212,182,122,.14), transparent 72%),
+    radial-gradient(1px 1px at 18% 14%, rgba(245,239,230,.7), transparent 65%),
+    radial-gradient(1px 1px at 72% 20%, rgba(212,182,122,.6), transparent 65%),
+    radial-gradient(1px 1px at 38% 58%, rgba(245,239,230,.5), transparent 65%),
+    var(--navy);
+  font-family:"Newsreader", Georgia, serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{width:min(1120px, calc(100% - 36px)); margin:0 auto; padding:48px 0 70px}
+header{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:end; margin-bottom:34px}
+.eyebrow{
+  margin:0 0 12px;
+  font:700 .72rem/1 Lato, system-ui, sans-serif;
+  color:var(--gold);
+  letter-spacing:.22em;
+  text-transform:uppercase;
+}
+h1{
+  margin:0;
+  max-width:780px;
+  font-family:"Playfair Display", Georgia, serif;
+  font-size:clamp(2.1rem, 5vw, 4.4rem);
+  line-height:1.02;
+  font-weight:500;
+  letter-spacing:0;
+}
+.note{
+  margin:12px 0 0;
+  max-width:680px;
+  color:var(--muted);
+  font-size:1.15rem;
+  line-height:1.5;
+}
+.badge{
+  justify-self:end;
+  border:1px solid var(--hair);
+  color:var(--gold2);
+  font:700 .68rem/1 Lato, system-ui, sans-serif;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  padding:12px 14px;
+  border-radius:999px;
+  background:rgba(245,239,230,.05);
+}
+.section{margin-top:28px}
+.section-head{display:flex; justify-content:space-between; gap:18px; align-items:end; margin:0 0 14px}
+h2{
+  margin:0;
+  font-family:"Playfair Display", Georgia, serif;
+  font-size:clamp(1.55rem, 3vw, 2.3rem);
+  font-weight:500;
+}
+.section-head p{
+  margin:0;
+  max-width:430px;
+  color:var(--muted);
+  font:400 .95rem/1.45 Lato, system-ui, sans-serif;
+}
+.grid{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px}
+.grid.books{grid-template-columns:repeat(6, minmax(0,1fr))}
+.card{
+  position:relative;
+  min-height:178px;
+  width:100%;
+  appearance:none;
+  border:1px solid var(--hair);
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(245,239,230,.075), rgba(245,239,230,.035));
+  color:var(--ivory);
+  padding:20px 16px 16px;
+  text-align:left;
+  cursor:pointer;
+  transition:transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.card:hover,.card.is-picked{
+  transform:translateY(-2px);
+  border-color:rgba(240,217,159,.72);
+  background:linear-gradient(180deg, rgba(212,182,122,.14), rgba(245,239,230,.04));
+}
+.icon{
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--hair);
+  border-radius:16px;
+  background:rgba(13,10,20,.5);
+  margin-bottom:17px;
+}
+.icon svg{width:31px;height:31px;stroke:var(--gold2);stroke-width:1.55}
+.name{
+  display:block;
+  font:700 .83rem/1.2 Lato, system-ui, sans-serif;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.desc{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font:400 .92rem/1.35 Lato, system-ui, sans-serif;
+}
+.tag{
+  position:absolute;
+  top:12px;
+  right:12px;
+  border:1px solid rgba(212,182,122,.42);
+  border-radius:999px;
+  padding:5px 8px;
+  color:var(--gold2);
+  font:700 .57rem/1 Lato, system-ui, sans-serif;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.preview{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:14px;
+}
+.sample{
+  border:1px solid var(--hair2);
+  border-radius:18px;
+  background:linear-gradient(180deg, var(--panel), var(--panel2));
+  padding:18px;
+}
+.sample-top{display:flex; align-items:center; gap:12px}
+.sample .icon{width:42px;height:42px;border-radius:13px;margin:0}
+.sample .icon svg{width:24px;height:24px}
+.sample h3{
+  margin:0;
+  font:700 .82rem/1.2 Lato, system-ui, sans-serif;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.sample p{margin:10px 0 0; color:var(--muted); font:400 .95rem/1.45 Lato, system-ui, sans-serif}
+.cluster{display:grid;grid-template-columns:repeat(2,24px);gap:5px;width:54px;height:54px;place-content:center}
+.cluster i svg{width:22px;height:22px}
+footer{margin-top:28px; color:var(--muted); font:400 .88rem/1.45 Lato, system-ui, sans-serif}
+@media (max-width:860px){
+  header{grid-template-columns:1fr}
+  .badge{justify-self:start}
+  .grid,.grid.books,.preview{grid-template-columns:repeat(2, minmax(0,1fr))}
+}
+@media (max-width:520px){
+  .wrap{width:min(100% - 28px, 1120px); padding-top:32px}
+  .grid,.grid.books,.preview{grid-template-columns:1fr}
+  .card{min-height:150px}
+  .section-head{display:block}
+  .section-head p{margin-top:8px}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Little Souls gift funnel</p>
+      <h1>Real library icon picker.</h1>
+      <p class="note">A focused picker for the unfinished icon pass: book options for synthesis, a real memorial flame, and four "here with me" options using actual lucide icons.</p>
+    </div>
+    <span class="badge">No hand-drawn SVGs</span>
+  </header>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Synthesis book icon</h2>
+      <p>Pick one for "The Full Celestial Synthesis". These are the cleanest book-shaped lucide icons in the installed set.</p>
+    </div>
+    <div class="grid books" data-picker="synthesis">
+      <button class="card is-picked" type="button"><span class="tag">Best</span><span class="icon"><i data-lucide="book-open-text"></i></span><span class="name">BookOpenText</span><span class="desc">Most explicit: open book plus readable lines.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="book-open"></i></span><span class="name">BookOpen</span><span class="desc">Quiet and premium, but less "written".</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="book-text"></i></span><span class="name">BookText</span><span class="desc">Feels more report-like than reveal-like.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="notebook-text"></i></span><span class="name">NotebookText</span><span class="desc">More personal, slightly less celestial.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="library"></i></span><span class="name">Library</span><span class="desc">Strong archive feeling, a bit institutional.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="scroll-text"></i></span><span class="name">ScrollText</span><span class="desc">Mystic, but less like a book.</span></button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Memorial icon</h2>
+      <p>The installed React icon library does not export a candle. `Flame` is the clean real-library replacement available in this codebase.</p>
+    </div>
+    <div class="grid" data-picker="memorial">
+      <button class="card is-picked" type="button"><span class="tag">Use</span><span class="icon"><i data-lucide="flame"></i></span><span class="name">Flame</span><span class="desc">Reads as candlelight without custom drawing.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="flame-kindling"></i></span><span class="name">FlameKindling</span><span class="desc">Warmer, but busier at small size.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="sparkles"></i></span><span class="name">Sparkles</span><span class="desc">Too celebratory for grief.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="feather"></i></span><span class="name">Feather</span><span class="desc">Previous placeholder; softer but less direct.</span></button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>"Here with me" icon set</h2>
+      <p>These four map to the living, years-together reading: pet, trace, care, and home.</p>
+    </div>
+    <div class="grid" data-picker="here">
+      <button class="card is-picked" type="button"><span class="tag">Primary</span><span class="icon"><i data-lucide="hand-heart"></i></span><span class="name">HandHeart</span><span class="desc">Best single icon for an existing bond.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="dog"></i></span><span class="name">Dog</span><span class="desc">Immediately pet-coded; dog-specific.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="paw-print"></i></span><span class="name">PawPrint</span><span class="desc">Universal pet mark, a little common.</span></button>
+      <button class="card" type="button"><span class="icon"><i data-lucide="house"></i></span><span class="name">House</span><span class="desc">The "home together" meaning is clear.</span></button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>In-card feel</h2>
+      <p>Small-size preview matching the gift occasion picker scale.</p>
+    </div>
+    <div class="preview">
+      <article class="sample">
+        <div class="sample-top"><span class="icon"><i data-lucide="book-open-text"></i></span><h3>The Full Celestial Synthesis</h3></div>
+        <p>Where all thirteen placements become one clear portrait.</p>
+      </article>
+      <article class="sample">
+        <div class="sample-top"><span class="icon"><i data-lucide="flame"></i></span><h3>Their pet has passed</h3></div>
+        <p>Leads with candlelight energy using a real library icon.</p>
+      </article>
+      <article class="sample">
+        <div class="sample-top"><span class="icon cluster"><i data-lucide="dog"></i><i data-lucide="paw-print"></i><i data-lucide="hand-heart"></i><i data-lucide="house"></i></span><h3>Here with me</h3></div>
+        <p>Four crisp options in the exact family Claude named.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer>Recommended defaults: BookOpenText for synthesis, Flame for memorial, and HandHeart as the primary "here with me" icon, with Dog/PawPrint/House kept as the supporting cluster.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+try { window.lucide && window.lucide.createIcons({ attrs:{ "stroke-width":1.55 } }); } catch(e) {}
+document.querySelectorAll("[data-picker]").forEach(function(group){
+  group.addEventListener("click", function(e){
+    var card = e.target.closest(".card");
+    if (!card) return;
+    group.querySelectorAll(".card").forEach(function(c){ c.classList.remove("is-picked"); });
+    card.classList.add("is-picked");
+  });
+});
+</script>
+</body>
+</html>

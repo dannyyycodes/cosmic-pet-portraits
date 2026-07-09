@@ -5,6 +5,7 @@ import {
   ChevronRight, Users, User, Sparkles, Star, Shield, Clock,
   Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone, Feather,
   Orbit, Lock, CalendarDays, CalendarHeart, ScrollText, BookOpen, PenLine,
+  Sprout, Heart, Cake, Flame, HandHeart, House,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,11 +28,14 @@ interface GiftRecipient {
   occasion?: GiftOccasion;
 }
 
-const GIFT_OCCASION_OPTIONS: Array<{ value: GiftOccasion; emoji: string; label: string; hint: string }> = [
-  { value: 'discover', emoji: '🔮', label: 'Discover', hint: 'For a pet they already have' },
-  { value: 'new', emoji: '🌱', label: 'New Pet', hint: 'They just got a new pet' },
-  { value: 'memorial', emoji: '🕊️', label: 'Memorial', hint: 'They lost a beloved pet' },
-  { value: 'birthday', emoji: '🎂', label: 'Birthday', hint: 'Celebrating their pet' },
+type GiftIcon = typeof Cat;
+type GiftOccasionOption = { value: GiftOccasion; Icon: GiftIcon; Icons?: GiftIcon[]; label: string; hint: string };
+
+const GIFT_OCCASION_OPTIONS: GiftOccasionOption[] = [
+  { value: 'discover', Icon: HandHeart, Icons: [Dog, PawPrint, HandHeart, House], label: 'Discover', hint: 'For a pet they already have' },
+  { value: 'new', Icon: Sprout, label: 'New Pet', hint: 'They just got a new pet' },
+  { value: 'memorial', Icon: Flame, label: 'Memorial', hint: 'They lost a beloved pet' },
+  { value: 'birthday', Icon: Cake, label: 'Birthday', hint: 'Celebrating their pet' },
 ];
 
 const C = {
@@ -407,7 +411,20 @@ type CtaFonts = { fmt: (c: number) => string; prices: { basic: number; wasBasic:
 function Hero({ fmt, prices, onCta }: CtaFonts) {
   return (
     <header className="hero band wrap">
-      <div className="hero-grid">
+      <div className="hero-photo">
+        <div className="hero-frame">
+          <img
+            className="hero-photo-img"
+            src="/gift-hero.webp"
+            alt="A couple giving a Little Souls gift card, their golden retriever beside them"
+            width={1536}
+            height={1024}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+          />
+          <span className="hero-scrim" aria-hidden="true" />
+        </div>
         <div className="hero-copy">
           <p className="eyebrow reveal">A gift for someone who loves their dog or cat</p>
           <h1 className="reveal">Finally, a gift as deep as their <em>devotion</em>.</h1>
@@ -421,7 +438,6 @@ function Hero({ fmt, prices, onCta }: CtaFonts) {
             <span>Loved by people who gift it</span>
           </div>
         </div>
-        <HeroDevice />
       </div>
     </header>
   );
@@ -828,17 +844,29 @@ const GIFT7_CSS = `
   mix-blend-mode:screen;animation:g7moon 9s ease-in-out infinite}
 @keyframes g7moon{0%,100%{opacity:.9}50%{opacity:1}}
 
-.g7 .hero-copy{position:relative}
-.g7 .hero-copy::before{content:"";position:absolute;z-index:-1;pointer-events:none;
-  inset:-34px -12px -20px -12px;border-radius:30px;
-  background:radial-gradient(125% 122% at 50% 20%, rgba(13,10,20,.94) 0%, rgba(13,10,20,.82) 44%, rgba(13,10,20,.36) 74%, rgba(13,10,20,0) 100%)}
+/* Hero photo — the warm couple+dog image is the hero visual.
+   MOBILE: the full, uncropped scene sits on top (3:2 = native ratio, no
+   crop, no distortion) and the copy sits beneath on solid navy, so every
+   line stays well above 4.5:1. A soft scrim melts the photo's base into
+   the navy so there's no hard seam.
+   DESKTOP (>=760): the photo fills the hero and the copy sits over its
+   dark right negative-space (see the min-width block below). */
+.g7 .hero-photo{position:relative;width:100%;border-radius:26px;overflow:hidden;isolation:isolate;
+  display:flex;flex-direction:column;background:#0d0a14;
+  border:1px solid var(--hair2);
+  box-shadow:0 44px 92px -46px rgba(0,0,0,.9),inset 0 1px 0 rgba(244,236,224,.05)}
+.g7 .hero-frame{position:relative;width:100%;aspect-ratio:3 / 2;overflow:hidden}
+.g7 .hero-photo-img{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block;
+  object-fit:cover;object-position:center 38%}
+.g7 .hero-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg, rgba(13,10,20,0) 56%, rgba(13,10,20,.42) 80%, rgba(13,10,20,.94) 96%, #0d0a14 100%)}
+.g7 .hero-copy{position:relative;z-index:2;width:100%;max-width:560px;margin:0 auto;
+  padding:clamp(18px,4.6vw,26px) clamp(18px,4.6vw,26px) clamp(24px,5vw,32px)}
 
 .g7 svg.lucide{stroke:var(--gold);stroke-width:1.6;width:24px;height:24px;display:block;fill:none}
 
-.g7 .hero{padding-top:44px;padding-bottom:40px}
-.g7 .hero-grid{display:flex;flex-direction:column;gap:40px;align-items:center}
-.g7 .hero-copy{width:100%;max-width:560px}
-.g7 .hero h1{font-size:clamp(2.55rem,8.6vw,4.15rem);line-height:1.06}
+.g7 .hero{padding-top:26px;padding-bottom:36px}
+.g7 .hero h1{font-size:clamp(2.4rem,8.2vw,3.15rem);line-height:1.06}
 .g7 .hero h1 em{font-style:normal;color:var(--gold)}
 .g7 .hero .define{font-size:1.28rem;line-height:1.55;color:var(--ivory);font-weight:500;margin:24px 0 0;max-width:40ch}
 .g7 .hero .define b{font-weight:600;color:var(--ivory)}
@@ -998,9 +1026,16 @@ const GIFT7_CSS = `
   .g7 .band{padding-top:110px;padding-bottom:110px}
   .g7 .hero{padding-top:64px}
   .g7 .moon-wrap{width:clamp(232px,25vw,318px);top:4%;right:8%}
-  .g7 .hero-grid{flex-direction:row;justify-content:space-between;align-items:center;gap:48px}
-  .g7 .hero-copy{flex:1 1 52%}
-  .g7 .device-stage{flex:0 0 352px}
+  .g7 .hero-photo{display:block;position:relative;min-height:min(600px,76vh)}
+  .g7 .hero-frame{position:absolute;inset:0;aspect-ratio:auto}
+  .g7 .hero-photo-img{object-position:22% 46%}
+  .g7 .hero-scrim{background:
+    linear-gradient(90deg, rgba(13,10,20,0) 34%, rgba(13,10,20,.16) 46%, rgba(13,10,20,.80) 56%, rgba(13,10,20,.97) 100%),
+    linear-gradient(180deg, rgba(13,10,20,0) 58%, rgba(13,10,20,.34) 100%)}
+  .g7 .hero-copy{position:relative;z-index:2;margin:0 0 0 auto;width:47%;max-width:520px;
+    min-height:min(600px,76vh);display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(26px,3.2vw,42px) clamp(28px,3.2vw,46px)}
+  .g7 .hero h1{font-size:clamp(2.6rem,3.5vw,3.95rem)}
   .g7 .steps{grid-template-columns:repeat(3,1fr);gap:36px}
   .g7 .step{flex-direction:column;align-items:flex-start;text-align:left}
   .g7 .cues{grid-template-columns:repeat(3,1fr)}
@@ -1676,11 +1711,11 @@ export default function GiftPurchase() {
               className="gift-toc-list"
             >
               {([
-                { value: 'new',      emoji: '🌱', label: 'They just got a new pet' },
-                { value: 'discover', emoji: '🔮', label: "They've had their pet for years" },
-                { value: 'memorial', emoji: '🕊️', label: 'Their pet has passed' },
-                { value: 'birthday', emoji: '🎂', label: "It's their pet's birthday" },
-              ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
+                { value: 'new',      Icon: Sprout,    label: 'They just got a new pet' },
+                { value: 'discover', Icon: HandHeart, Icons: [Dog, PawPrint, HandHeart, House], label: "They've had their pet for years" },
+                { value: 'memorial', Icon: Flame,     label: 'Their pet has passed' },
+                { value: 'birthday', Icon: Cake,      label: "It's their pet's birthday" },
+              ] as Array<{ value: GiftOccasion; Icon: GiftIcon; Icons?: GiftIcon[]; label: string }>).map(({ value, Icon, Icons, label }) => {
                 const active = selectedOccasion === value;
                 return (
                   <button
@@ -1691,7 +1726,17 @@ export default function GiftPurchase() {
                     onClick={() => handleOccasionSelect(value)}
                     className={`gift-toc-row ${active ? 'is-active' : ''}`}
                   >
-                    <span className="gift-toc-glyph" aria-hidden="true">{emoji}</span>
+                    <span className="gift-toc-glyph" aria-hidden="true">
+                      {Icons ? (
+                        <span className="gift-toc-glyph-set">
+                          {Icons.map((Glyph, i) => (
+                            <Glyph key={i} style={{ width: 13, height: 13, color: C.gold }} strokeWidth={1.6} />
+                          ))}
+                        </span>
+                      ) : (
+                        <Icon style={{ width: 21, height: 21, color: C.gold }} strokeWidth={1.6} />
+                      )}
+                    </span>
                     <span className="gift-toc-label">{label}</span>
                     <span aria-hidden="true" className="gift-toc-arrow">&rarr;</span>
                   </button>
@@ -1749,12 +1794,23 @@ export default function GiftPurchase() {
               font-size: clamp(1.04rem, 3.4vw, 1.2rem);
             }
             .gift-toc-glyph {
-              font-size: 1.05em;
-              line-height: 1;
-              opacity: 0.78;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              line-height: 0;
+              opacity: 0.82;
               flex-shrink: 0;
-              width: 24px;
-              text-align: center;
+              width: 28px;
+              min-height: 21px;
+              transition: opacity 200ms ease;
+            }
+            .gift-toc-glyph-set {
+              width: 28px;
+              display: grid;
+              grid-template-columns: repeat(2, 13px);
+              gap: 2px;
+              align-items: center;
+              justify-content: center;
             }
             .gift-toc-label { flex: 1; }
             .gift-toc-arrow {
@@ -2019,8 +2075,9 @@ export default function GiftPurchase() {
                                         fontFamily: 'Lato, system-ui, sans-serif',
                                       }}
                                     >
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', fontWeight: 600, color: C.ink }}>
-                                        <span>{opt.emoji}</span>{opt.label}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.85rem', fontWeight: 600, color: C.ink }}>
+                                        <opt.Icon aria-hidden="true" style={{ width: 15, height: 15, flexShrink: 0, color: isMem ? '#8a9490' : C.gold }} strokeWidth={1.8} />
+                                        {opt.label}
                                       </div>
                                       <div style={{ fontSize: '0.7rem', color: C.muted, marginTop: 2 }}>{opt.hint}</div>
                                     </button>
@@ -2069,7 +2126,8 @@ export default function GiftPurchase() {
                                         type="button"
                                         onClick={() => setRecipients(rs => rs.map(x => x.id === r.id ? { ...x, occasion: opt.value } : x))}
                                         style={{
-                                          padding: '6px 10px', borderRadius: 14, cursor: 'pointer',
+                                          padding: '6px 11px', borderRadius: 14, cursor: 'pointer',
+                                          display: 'inline-flex', alignItems: 'center', gap: 7,
                                           border: selected
                                             ? `1.5px solid ${isMem ? '#788280' : C.gold}`
                                             : `1px solid ${C.cream3}`,
@@ -2080,7 +2138,8 @@ export default function GiftPurchase() {
                                           fontSize: '0.78rem', fontWeight: 600, color: C.ink,
                                         }}
                                       >
-                                        {opt.emoji} {opt.label}
+                                        <opt.Icon aria-hidden="true" style={{ width: 14, height: 14, flexShrink: 0, color: isMem ? '#8a9490' : C.gold }} strokeWidth={1.8} />
+                                        <span>{opt.label}</span>
                                       </button>
                                     );
                                   })}

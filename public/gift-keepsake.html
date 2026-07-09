@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Little Souls · The Gift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Cormorant:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cosmos:#0d0a14;
+    --cosmos2:#15101c;
+    --cream:#ffffff;
+    --creamDim:#ececf2;
+    --muted:#c8c8d2;
+    --gold:#d4b67a;
+    --goldSoft:#f0d99f;
+    --violet:#7c5cd6;
+    --hair:rgba(212,182,122,0.22);
+    --hair2:rgba(212,182,122,0.13);
+    --display:"Playfair Display",Georgia,"Times New Roman",serif;
+    --body:"Cormorant",Georgia,"Times New Roman",serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--cosmos);
+    color:var(--creamDim);
+    font-family:var(--body);
+    font-size:20px;
+    font-weight:500;
+    line-height:1.55;
+    letter-spacing:.004em;
+    overflow-x:hidden;
+    position:relative;
+    text-rendering:optimizeLegibility;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* atmosphere: stars + violet glow + grain (violet = atmosphere only) */
+  .sky{position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(1.4px 1.4px at 18% 22%, rgba(255,255,255,.55) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 73% 14%, rgba(255,255,255,.40) 50%, transparent 51%),
+      radial-gradient(1.3px 1.3px at 41% 64%, rgba(255,255,255,.42) 50%, transparent 51%),
+      radial-gradient(1.1px 1.1px at 88% 52%, rgba(255,255,255,.34) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 9% 78%, rgba(255,255,255,.36) 50%, transparent 51%),
+      radial-gradient(1.3px 1.3px at 62% 88%, rgba(255,255,255,.30) 50%, transparent 51%),
+      radial-gradient(1.1px 1.1px at 31% 38%, rgba(255,255,255,.30) 50%, transparent 51%),
+      radial-gradient(1200px 760px at 50% -8%, rgba(124,92,214,.20), transparent 70%),
+      radial-gradient(900px 620px at 84% 116%, rgba(124,92,214,.12), transparent 72%),
+      linear-gradient(180deg,#0b0812 0%, var(--cosmos) 32%, #0b0811 100%);
+  }
+  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  .wrap{width:100%;max-width:1180px;margin-inline:auto;padding-inline:22px}
+
+  /* masthead */
+  .masthead{padding-top:30px;padding-bottom:6px;text-align:center}
+  .masthead .mark{
+    font-family:var(--body);font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.42em;font-size:14px;
+    padding-left:.42em;
+  }
+
+  /* type */
+  h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.08;
+    letter-spacing:-.012em;color:var(--cream)}
+  .h1{font-size:clamp(2.4rem,1.5rem + 4.2vw,4.3rem);font-weight:700;line-height:1.04}
+  .h2{font-size:clamp(1.85rem,1.25rem + 2.6vw,3rem)}
+  .lede{font-size:clamp(1.18rem,1.05rem + .5vw,1.5rem);color:var(--muted);
+    font-weight:500;font-style:italic;line-height:1.42;max-width:30ch}
+  .gold{color:var(--gold)}
+
+  /* plate label (museum exhibit caption): muted, NOT saturated gold */
+  .label{font-family:var(--body);font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.26em;font-size:13px;
+    padding-left:.26em}
+
+  /* museum plate / double-mat gold-hairline frame */
+  .plate{position:relative;background:var(--cosmos2);
+    border:1px solid var(--hair);
+    padding:14px;
+    box-shadow:0 28px 60px -28px rgba(0,0,0,.85),0 2px 0 rgba(255,255,255,.015) inset;
+  }
+  .plate::before{content:"";position:absolute;inset:7px;
+    border:1px solid var(--hair2);pointer-events:none}
+  .plate__img{position:relative;display:block;width:100%;height:auto;
+    overflow:hidden;background:#0a0710}
+  .plate__img img{display:block;width:100%;height:100%;object-fit:cover}
+  .plate__cap{margin-top:14px;text-align:center}
+  .plate__cap .label{display:block}
+  .plate__cap em{font-style:italic;color:var(--muted);font-size:.94rem;display:block;margin-top:5px}
+
+  .ar-23 .plate__img{aspect-ratio:2/3}
+  .ar-32 .plate__img{aspect-ratio:3/2}
+  .ar-43 .plate__img{aspect-ratio:4/3}
+  .ar-34 .plate__img{aspect-ratio:3/4}
+  .ar-11 .plate__img{aspect-ratio:1/1}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;
+    min-height:52px;padding:0 30px;
+    font-family:var(--body);font-weight:600;font-size:1.12rem;letter-spacing:.02em;
+    color:#120d07;background:linear-gradient(180deg,var(--goldSoft),var(--gold));
+    border:1px solid rgba(255,255,255,.18);border-radius:2px;
+    text-decoration:none;cursor:pointer;
+    box-shadow:0 16px 40px -16px rgba(124,92,214,.6),0 1px 0 rgba(255,255,255,.35) inset;
+    transition:transform .25s ease, box-shadow .25s ease, filter .25s ease}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.04);
+    box-shadow:0 22px 50px -16px rgba(124,92,214,.75),0 1px 0 rgba(255,255,255,.4) inset}
+  .btn:focus-visible{outline:2px solid var(--goldSoft);outline-offset:3px}
+  .btn .dot{opacity:.6;margin:0 .5em}
+  .btn .price{color:#120d07}
+
+  /* sections */
+  section{position:relative}
+  .pad{padding-top:clamp(72px,9vw,128px);padding-bottom:clamp(72px,9vw,128px)}
+  .rule{height:1px;background:linear-gradient(90deg,transparent,var(--hair),transparent);
+    border:0;margin:0}
+
+  /* hero */
+  .hero{padding-top:clamp(34px,5vw,58px);padding-bottom:clamp(64px,8vw,112px)}
+  .hero__grid{display:grid;grid-template-columns:1fr;gap:clamp(34px,5vw,64px);
+    align-items:center}
+  .hero__plate{order:-1;max-width:340px;width:100%;margin-inline:auto}
+  .hero__copy{max-width:38ch}
+  .hero__copy .lede{margin-top:20px}
+  .hero__copy .btn{margin-top:30px}
+  .hero__copy .reassure{margin-top:16px;font-size:1.02rem;color:var(--muted);
+    display:flex;align-items:center;gap:9px}
+  .hero__copy .reassure svg{flex:0 0 auto}
+
+  /* problem interstitial */
+  .problem{text-align:center}
+  .problem p{font-family:var(--display);font-style:italic;font-weight:500;
+    color:var(--creamDim);font-size:clamp(1.5rem,1.1rem + 1.9vw,2.5rem);
+    line-height:1.22;max-width:18ch;margin-inline:auto}
+  .problem .strike{color:var(--muted)}
+
+  /* exhibit row (asymmetric editorial split) */
+  .exhibit{display:grid;grid-template-columns:1fr;gap:clamp(30px,5vw,72px);
+    align-items:center}
+  .exhibit .copy{max-width:34ch}
+  .exhibit .copy .label{display:block;margin-bottom:16px}
+  .exhibit .copy .lede{margin-top:18px}
+  .exhibit .plate{min-width:0}
+
+  /* occasions */
+  .occ-head{text-align:center;margin-bottom:clamp(34px,4.5vw,56px)}
+  .occ-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(16px,2.6vw,30px)}
+  .occ{min-width:0}
+  .occ .plate{padding:9px}
+  .occ .plate::before{inset:4px}
+  .occ__hook{margin-top:16px;text-align:center}
+  .occ__txt{display:block;font-family:var(--display);font-weight:600;color:var(--cream);
+    font-size:clamp(1.05rem,.95rem + .55vw,1.42rem);line-height:1.16;min-height:2.32em}
+  .occ__price{display:block;text-align:center;margin-top:7px;
+    font-family:var(--body);font-weight:600;font-size:1.02rem;letter-spacing:.04em;
+    color:var(--muted)}
+  .occ__price .amt{color:var(--gold);font-weight:600}
+
+  /* product choice cards */
+  .offer-head{text-align:center;margin-bottom:clamp(30px,4vw,48px)}
+  .cards{display:grid;grid-template-columns:1fr;gap:clamp(18px,2.4vw,26px);
+    max-width:760px;margin-inline:auto;margin-top:clamp(40px,5vw,64px)}
+  .card{position:relative;background:var(--cosmos2);border:1px solid var(--hair);
+    padding:30px 28px 32px;min-width:0;
+    box-shadow:0 26px 56px -30px rgba(0,0,0,.8)}
+  .card::before{content:"";position:absolute;inset:7px;border:1px solid var(--hair2);
+    pointer-events:none}
+  .card__badge{display:inline-block;font-family:var(--body);font-weight:600;
+    text-transform:uppercase;letter-spacing:.2em;font-size:12px;color:var(--creamDim);
+    border:1px solid var(--hair);padding:5px 12px 4px;border-radius:2px;margin-bottom:18px}
+  .card__name{font-family:var(--display);font-weight:600;color:var(--creamDim);
+    font-size:1.12rem;letter-spacing:.01em}
+  .card__price{display:flex;align-items:baseline;gap:12px;margin-top:6px}
+  .card__price .amt{font-family:var(--display);font-weight:700;color:var(--gold);
+    font-size:clamp(2.5rem,1.8rem + 2.4vw,3.3rem);line-height:1}
+  .card__price .was{font-family:var(--body);font-weight:500;color:var(--muted);
+    font-size:1.18rem;text-decoration:line-through;text-decoration-color:rgba(200,200,210,.6)}
+  .ticks{list-style:none;margin-top:22px;display:grid;gap:13px}
+  .ticks li{display:flex;align-items:flex-start;gap:12px;color:var(--creamDim);
+    font-size:1.06rem;line-height:1.34}
+  .ticks svg{flex:0 0 auto;margin-top:5px}
+
+  /* proof */
+  .proof-grid{display:grid;grid-template-columns:1fr;gap:clamp(26px,3.4vw,44px);
+    max-width:920px;margin-inline:auto}
+  .quote{border-top:1px solid var(--hair);padding-top:24px;min-width:0}
+  .stars{display:flex;gap:5px;margin-bottom:14px;color:var(--goldSoft);font-size:15px;
+    letter-spacing:2px}
+  .quote blockquote{font-family:var(--display);font-style:italic;font-weight:500;
+    color:var(--cream);font-size:clamp(1.32rem,1.05rem + 1vw,1.72rem);line-height:1.26}
+  .quote .who{margin-top:14px;font-family:var(--body);font-weight:600;
+    text-transform:uppercase;letter-spacing:.2em;font-size:13px;color:var(--muted);
+    padding-left:.2em}
+
+  /* close */
+  .close{text-align:center}
+  .close .h2{max-width:18ch;margin-inline:auto}
+  .guarantee{font-family:var(--display);font-style:italic;font-weight:500;
+    color:var(--gold);font-size:clamp(1.32rem,1.1rem + 1vw,1.78rem);line-height:1.3;
+    max-width:26ch;margin:26px auto 0}
+  .close .btn{margin-top:34px}
+  .pricerow{margin-top:26px;font-family:var(--body);font-weight:600;font-size:1.1rem;
+    color:var(--creamDim);letter-spacing:.03em}
+  .pricerow .amt{color:var(--gold)}
+  .pricerow .dot{color:var(--muted);margin:0 .55em}
+  .trust{display:flex;flex-wrap:wrap;justify-content:center;gap:26px 38px;
+    margin-top:40px}
+  .trust .item{display:flex;align-items:center;gap:11px;color:var(--muted);
+    font-size:1.02rem;letter-spacing:.01em}
+  .trust svg{flex:0 0 auto}
+
+  footer{text-align:center;padding:46px 22px 60px}
+  footer .mark{font-family:var(--body);font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.34em;font-size:12px;padding-left:.34em}
+
+  /* reveal motion (transform never used for centering) */
+  .reveal{opacity:0;transform:translateY(18px);
+    transition:opacity .8s ease, transform .8s ease}
+  .reveal.in{opacity:1;transform:none}
+  .reveal.d1{transition-delay:.07s}
+  .reveal.d2{transition-delay:.14s}
+  .reveal.d3{transition-delay:.21s}
+
+  /* desktop editorial layout */
+  @media (min-width:560px){
+    .occ-grid{grid-template-columns:repeat(4,1fr)}
+  }
+  @media (min-width:760px){
+    .cards{grid-template-columns:1fr 1fr}
+    .proof-grid{grid-template-columns:1fr 1fr;gap:clamp(34px,3.4vw,56px)}
+  }
+  @media (min-width:880px){
+    .hero__grid{grid-template-columns:1.05fr .95fr;gap:clamp(48px,5vw,84px)}
+    .hero__plate{order:0;max-width:380px;margin-inline:0;margin-left:auto}
+    .hero__copy{justify-self:start}
+    .exhibit{grid-template-columns:1fr 1fr;gap:clamp(56px,5vw,96px)}
+    .exhibit--flip .plate{order:-1}
+    .exhibit .copy{justify-self:center}
+    .exhibit--wide{grid-template-columns:1.15fr .85fr}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+    .reveal{opacity:1 !important;transform:none !important}
+    .btn:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<noscript><style>.reveal{opacity:1 !important;transform:none !important}</style></noscript>
+
+<header class="wrap masthead">
+  <div class="mark">Little Souls</div>
+</header>
+
+<!-- 1. HERO -->
+<section class="hero wrap" aria-label="The Little Souls keepsake">
+  <div class="hero__grid">
+    <figure class="hero__plate plate ar-23 reveal">
+      <span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/hero-open.webp"
+             width="1006" height="1500" loading="eager" fetchpriority="high" decoding="async"
+             alt="A glowing keepsake book opening to a galaxy, with a gold constellation shaped like a sleeping cat at its heart.">
+      </span>
+      <figcaption class="plate__cap">
+        <span class="label">Plate I</span>
+        <em>The keepsake, opened</em>
+      </figcaption>
+    </figure>
+
+    <div class="hero__copy">
+      <h1 class="h1 reveal">Give the gift that proves you <span class="gold">saw</span> them.</h1>
+      <p class="lede reveal d1">A soul reading for their pet, drawn from the real night sky.</p>
+      <a class="btn reveal d2" href="#choose">Give a Soul Reading <span class="dot">·</span> <span class="price">from £29</span></a>
+      <p class="reassure reveal d2">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.4" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        Opens like a private reveal, never a shelf.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 2. PROBLEM -->
+<section class="problem wrap pad">
+  <p class="reveal">Most pet gifts get a polite thank you. <span class="strike">Then a shelf.</span></p>
+</section>
+
+<hr class="rule">
+
+<!-- 3. THE SHIFT (mechanism) -->
+<section class="wrap pad">
+  <div class="exhibit exhibit--flip">
+    <figure class="plate ar-32 reveal">
+      <span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/give-moment.webp"
+             width="1500" height="1006" loading="lazy" decoding="async"
+             style="object-position:50% 46%"
+             alt="Two hands passing a small cosmic gift box tied with a gold ribbon.">
+      </span>
+      <figcaption class="plate__cap">
+        <span class="label">Plate II</span>
+        <em>The giving</em>
+      </figcaption>
+    </figure>
+    <div class="copy">
+      <span class="label reveal">The shift</span>
+      <h2 class="h2 reveal d1">Their pet's real birth sky, made to keep.</h2>
+      <p class="lede reveal d2">Not a star sign. Every planet, where it truly stood.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 4. PICK THE MOMENT -->
+<section class="wrap pad">
+  <div class="occ-head reveal">
+    <h2 class="h2">Pick the moment it is for.</h2>
+  </div>
+  <div class="occ-grid">
+    <figure class="occ reveal">
+      <span class="plate ar-11"><span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/occ-new.webp"
+             width="1500" height="1500" loading="lazy" decoding="async"
+             alt="A single golden star igniting in deep blue cosmos, a small constellation forming around it.">
+      </span></span>
+      <figcaption class="occ__hook"><span class="occ__txt">For the new arrival.</span>
+        <span class="occ__price">Soul Reading <span class="amt">£29</span></span>
+      </figcaption>
+    </figure>
+    <figure class="occ reveal d1">
+      <span class="plate ar-11"><span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/occ-years.webp"
+             width="1500" height="1500" loading="lazy" decoding="async"
+             alt="Two gold constellations intertwined into the shape of a heart against a starfield.">
+      </span></span>
+      <figcaption class="occ__hook"><span class="occ__txt">For the years already shared.</span>
+        <span class="occ__price">Soul Bond <span class="amt">£49</span></span>
+      </figcaption>
+    </figure>
+    <figure class="occ reveal d2">
+      <span class="plate ar-11"><span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/occ-memorial.webp"
+             width="1500" height="1500" loading="lazy" decoding="async"
+             alt="One soft warm star glowing gently in a quiet cosmos.">
+      </span></span>
+      <figcaption class="occ__hook"><span class="occ__txt">For the one they lost.</span>
+        <span class="occ__price">Memorial <span class="amt">£49</span></span>
+      </figcaption>
+    </figure>
+    <figure class="occ reveal d3">
+      <span class="plate ar-11"><span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/occ-birthday.webp"
+             width="1500" height="1500" loading="lazy" decoding="async"
+             alt="A warm golden burst of starlight blooming in the night sky.">
+      </span></span>
+      <figcaption class="occ__hook"><span class="occ__txt">For another year of them.</span>
+        <span class="occ__price">Soul Reading <span class="amt">£29</span></span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 5. WHAT THEY GET -->
+<section id="choose" class="wrap pad">
+  <div class="exhibit exhibit--wide">
+    <figure class="plate ar-43 reveal">
+      <span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/reading-object.webp"
+             width="1500" height="1120" loading="lazy" decoding="async"
+             alt="An open keepsake book on navy velvet, one page a painted cosmic pet portrait, the other a gold constellation chart.">
+      </span>
+      <figcaption class="plate__cap">
+        <span class="label">Plate III</span>
+        <em>The reading itself</em>
+      </figcaption>
+    </figure>
+    <div class="copy">
+      <span class="label reveal">What sits in their hands</span>
+      <h2 class="h2 reveal d1">A reading they can hold.</h2>
+      <p class="lede reveal d2">Their pet, page after page, true to the night they were born.</p>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card reveal">
+      <span class="card__name">Soul Reading</span>
+      <div class="card__price"><span class="amt">£29</span><span class="was">£49</span></div>
+      <ul class="ticks">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.6" aria-hidden="true"><path d="M5 12.5l4.2 4.3L19 6.5"/></svg>Every planet, read in full.</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.6" aria-hidden="true"><path d="M5 12.5l4.2 4.3L19 6.5"/></svg>Opens like a reveal.</li>
+      </ul>
+    </div>
+    <div class="card reveal d1">
+      <span class="card__badge">Most chosen</span>
+      <span class="card__name">Soul Bond</span>
+      <div class="card__price"><span class="amt">£49</span><span class="was">£79</span></div>
+      <ul class="ticks">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.6" aria-hidden="true"><path d="M5 12.5l4.2 4.3L19 6.5"/></svg>Your bond, read as one chart.</li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.6" aria-hidden="true"><path d="M5 12.5l4.2 4.3L19 6.5"/></svg>The deepest reading we make.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 6. YOUR NOTE -->
+<section class="wrap pad">
+  <div class="exhibit">
+    <div class="copy">
+      <span class="label reveal">Your note</span>
+      <h2 class="h2 reveal d1">Your words sit at the very top.</h2>
+      <p class="lede reveal d2">The first thing they read, before a single star.</p>
+    </div>
+    <figure class="plate ar-11 reveal">
+      <span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/note-card.webp"
+             width="1500" height="1500" loading="lazy" decoding="async"
+             alt="A cream deckle-edged card sealed with a gold wax star, resting on navy velvet.">
+      </span>
+      <figcaption class="plate__cap">
+        <span class="label">Plate IV</span>
+        <em>The note</em>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 7. THE MOMENT THEY OPEN IT -->
+<section class="wrap pad">
+  <div class="exhibit exhibit--flip">
+    <figure class="plate ar-34 reveal">
+      <span class="plate__img">
+        <img src="https://content.littlesouls.app/viral-pet-media/giftart/reveal-moment.webp"
+             width="1120" height="1500" loading="lazy" decoding="async"
+             style="object-position:50% 36%"
+             alt="A face lit warm by a glowing galaxy held in cupped hands, the moment of opening it.">
+      </span>
+      <figcaption class="plate__cap">
+        <span class="label">Plate V</span>
+        <em>The opening</em>
+      </figcaption>
+    </figure>
+    <div class="copy">
+      <span class="label reveal">And then</span>
+      <h2 class="h2 reveal d1">The moment it opens.</h2>
+      <p class="lede reveal d2">Made for the quiet that comes right after.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 8. PROOF -->
+<section class="wrap pad">
+  <div class="occ-head reveal"><h2 class="h2">What the giving felt like.</h2></div>
+  <div class="proof-grid">
+    <figure class="quote reveal">
+      <div class="stars" aria-label="Five out of five stars">★★★★★</div>
+      <blockquote>First time he's been impressed by a gift.</blockquote>
+      <figcaption class="who">Liam, Cork</figcaption>
+    </figure>
+    <figure class="quote reveal d1">
+      <div class="stars" aria-label="Five out of five stars">★★★★★</div>
+      <blockquote>She showed me the phone every time the cat curls up.</blockquote>
+      <figcaption class="who">Ryan, Austin</figcaption>
+    </figure>
+    <figure class="quote reveal">
+      <div class="stars" aria-label="Five out of five stars">★★★★★</div>
+      <blockquote>It felt like someone remembered him too.</blockquote>
+      <figcaption class="who">Anna, Portland</figcaption>
+    </figure>
+    <figure class="quote reveal d1">
+      <div class="stars" aria-label="Five out of five stars">★★★★★</div>
+      <blockquote>She mentioned it the next morning over coffee.</blockquote>
+      <figcaption class="who">Emily, Toronto</figcaption>
+    </figure>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- 9. CLOSE -->
+<section class="close wrap pad">
+  <h2 class="h2 reveal">The gift they will still mention next year.</h2>
+  <p class="guarantee reveal d1">If it does not move them, every penny comes back.</p>
+  <a class="btn reveal d1" href="#choose">Give a Soul Reading <span class="dot">·</span> <span class="price">from £29</span></a>
+  <p class="pricerow reveal d2">
+    Soul Reading <span class="amt">£29</span><span class="dot">·</span>
+    Soul Bond <span class="amt">£49</span><span class="dot">·</span>
+    Memorial <span class="amt">£49</span>
+  </p>
+  <div class="trust reveal d2">
+    <span class="item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.3" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      Opens like a reveal
+    </span>
+    <span class="item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.3" aria-hidden="true"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.4" transform="rotate(28 12 12)"/></svg>
+      Real birth-sky astrology
+    </span>
+    <span class="item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c8c8d2" stroke-width="1.3" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.6"/><path d="M20 6v5h-5"/></svg>
+      Full refund, always
+    </span>
+  </div>
+</section>
+
+<footer>
+  <div class="mark">Little Souls</div>
+</footer>
+
+<script>
+(function(){
+  var els = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce || !('IntersectionObserver' in window)){
+    els.forEach(function(el){el.classList.add('in');});
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {rootMargin:'0px 0px -8% 0px', threshold:0.12});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

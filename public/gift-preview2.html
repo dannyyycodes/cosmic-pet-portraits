@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Gift a Soul Reading · Little Souls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d0a14;
+  --navy2:#100b18;
+  --card:#17121f;
+  --gold:#d4b67a;
+  --ivory:#f4ece0;
+  --muted:#9a938b;
+  --hair:rgba(212,182,122,.20);
+  --hair2:rgba(212,182,122,.34);
+  --line-soft:rgba(244,236,224,.08);
+  --max:1080px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--navy);
+  color:var(--ivory);
+  font-family:"Cormorant",Georgia,serif;
+  font-weight:500;
+  font-size:1.22rem;
+  line-height:1.55;
+  letter-spacing:.002em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+/* atmosphere: faint star grain + soft top glow, static, never busy */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1.4px 1.4px at 18% 14%, rgba(244,236,224,.55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 72% 9%, rgba(212,182,122,.45), transparent 60%),
+    radial-gradient(1px 1px at 41% 22%, rgba(244,236,224,.40), transparent 60%),
+    radial-gradient(1.3px 1.3px at 88% 30%, rgba(244,236,224,.35), transparent 60%),
+    radial-gradient(1px 1px at 9% 44%, rgba(212,182,122,.35), transparent 60%),
+    radial-gradient(1.1px 1.1px at 60% 52%, rgba(244,236,224,.30), transparent 60%),
+    radial-gradient(1px 1px at 30% 70%, rgba(244,236,224,.28), transparent 60%),
+    radial-gradient(1.2px 1.2px at 82% 78%, rgba(212,182,122,.30), transparent 60%),
+    radial-gradient(1px 1px at 50% 92%, rgba(244,236,224,.26), transparent 60%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 50% -8%, rgba(212,182,122,.10), transparent 70%),
+    radial-gradient(700px 600px at 110% 8%, rgba(82,60,110,.14), transparent 70%);
+}
+main,header,footer{position:relative;z-index:1}
+.wrap{max-width:var(--max);margin:0 auto;padding-left:22px;padding-right:22px}
+.band{padding-top:84px;padding-bottom:84px}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--hair),transparent);max-width:var(--max);margin:0 auto}
+
+h1,h2,h3,.disp{font-family:"Playfair Display",Georgia,serif;font-weight:600;letter-spacing:-.01em;line-height:1.08;margin:0}
+.eyebrow{font-family:"Cormorant",serif;font-weight:600;font-size:1rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
+.lede{color:var(--ivory);opacity:.92;font-size:1.28rem;line-height:1.5;max-width:34ch}
+.muted{color:var(--muted)}
+.gold{color:var(--gold)}
+strong{font-weight:600}
+
+/* ---------- HERO ---------- */
+.hero{padding-top:54px;padding-bottom:40px}
+.hero-grid{display:flex;flex-direction:column;gap:40px;align-items:center}
+.hero-copy{width:100%;max-width:560px}
+.hero h1{font-size:clamp(2.45rem,1.5rem+4.4vw,4.1rem);line-height:1.04}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero .define{font-size:1.3rem;line-height:1.5;color:var(--ivory);opacity:.9;margin:22px 0 0;max-width:36ch}
+.hero .define b{font-weight:600;color:var(--ivory);opacity:1}
+
+.cta-row{margin-top:32px;display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55em;
+  min-height:56px;padding:0 30px;border:none;border-radius:999px;cursor:pointer;
+  background:linear-gradient(180deg,#e2c994,#d4b67a);
+  color:#1a130a;
+  font-family:"Playfair Display",serif;font-weight:600;font-size:1.18rem;letter-spacing:.005em;
+  text-decoration:none;white-space:nowrap;
+  box-shadow:0 14px 38px -14px rgba(212,182,122,.65),0 2px 0 rgba(255,255,255,.25) inset;
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 20px 46px -14px rgba(212,182,122,.8)}
+.btn .was{font-family:"Cormorant",serif;font-weight:600;font-size:.92em;color:rgba(26,19,10,.55);text-decoration:line-through;margin-left:.15em}
+.rating{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:1.02rem}
+.stars{display:inline-flex;gap:3px;color:var(--gold)}
+.stars svg{width:17px;height:17px;display:block}
+.rating b{color:var(--ivory);font-weight:600}
+
+/* ---------- DEVICE ARTIFACT ---------- */
+.device-stage{position:relative;display:flex;justify-content:center;width:100%}
+.device-stage::before{
+  content:"";position:absolute;width:78%;height:78%;left:11%;top:8%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(212,182,122,.28),rgba(212,182,122,.07) 55%,transparent 72%);
+  filter:blur(8px);z-index:0;
+}
+.device{
+  position:relative;z-index:1;width:min(300px,82vw);
+  border-radius:40px;padding:11px;
+  background:linear-gradient(160deg,#241c30,#140f1d);
+  border:1px solid var(--hair2);
+  box-shadow:0 40px 90px -40px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.4),inset 0 1px 0 rgba(244,236,224,.06);
+}
+.screen{
+  border-radius:30px;overflow:hidden;background:linear-gradient(180deg,#140f1d,#0e0a16);
+  border:1px solid rgba(244,236,224,.06);
+  padding:22px 20px 20px;
+}
+.notch{width:46%;height:5px;border-radius:99px;background:rgba(244,236,224,.14);margin:0 auto 16px}
+.cover-kicker{font-family:"Cormorant",serif;font-weight:600;font-size:.92rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 8px}
+.cover-name{font-family:"Playfair Display",serif;font-weight:600;font-size:2rem;text-align:center;margin:0;line-height:1}
+.cover-sign{font-family:"Cormorant",serif;font-style:italic;font-weight:500;font-size:1.1rem;color:var(--gold);text-align:center;margin:5px 0 0;letter-spacing:.04em}
+.chartwrap{margin:14px auto 12px;width:100%;max-width:230px}
+.chart{display:block;width:100%;height:auto}
+.screen-foot{border-top:1px solid var(--hair);padding-top:13px;margin-top:4px}
+.sf-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:3px 0}
+.sf-label{font-family:"Cormorant",serif;font-size:.98rem;color:var(--muted);letter-spacing:.04em}
+.sf-val{font-family:"Playfair Display",serif;font-weight:500;font-size:1.02rem;color:var(--ivory)}
+
+/* ---------- TRUST STRIP ---------- */
+.trust{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);background:rgba(244,236,224,.012)}
+.trust-in{padding:26px 0;display:flex;flex-direction:column;gap:22px;align-items:center;text-align:center}
+.trust-rating{display:flex;align-items:center;gap:12px;font-size:1.08rem;color:var(--muted)}
+.badges{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 30px}
+.badge{display:inline-flex;align-items:center;gap:11px;color:var(--ivory);font-size:1.06rem}
+.badge .ic{width:26px;height:26px;color:var(--gold);flex:none}
+.badge .ic svg{width:100%;height:100%;display:block}
+
+/* ---------- SECTION HEADS ---------- */
+.shead{text-align:center;max-width:30ch;margin:0 auto 52px}
+.shead h2{font-size:clamp(1.9rem,1.3rem+2.4vw,2.9rem)}
+.shead p{margin:16px auto 0;color:var(--muted);font-size:1.18rem;max-width:34ch}
+
+/* ---------- HOW IT WORKS ---------- */
+.steps{display:grid;grid-template-columns:1fr;gap:30px}
+.step{display:flex;gap:18px;align-items:flex-start}
+.step .ic{width:50px;height:50px;flex:none;border:1px solid var(--hair2);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--gold);background:rgba(212,182,122,.05)}
+.step .ic svg{width:26px;height:26px;display:block}
+.step .n{font-family:"Cormorant",serif;font-size:.92rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.step h3{font-size:1.42rem;font-weight:600;margin:0 0 4px;line-height:1.18}
+.step p{margin:0;color:var(--muted);font-size:1.1rem;line-height:1.45}
+
+/* ---------- WHAT THEY UNLOCK ---------- */
+.unlock-card{
+  background:linear-gradient(170deg,#191320,#120d1b);
+  border:1px solid var(--hair);border-radius:24px;
+  padding:34px 28px;display:grid;grid-template-columns:1fr;gap:34px;align-items:center;
+  box-shadow:0 40px 90px -50px rgba(0,0,0,.8);
+  max-width:880px;margin:0 auto;
+}
+.unlock-wheel{position:relative;width:min(280px,72vw);margin:0 auto}
+.unlock-wheel::before{content:"";position:absolute;inset:6%;border-radius:50%;background:radial-gradient(closest-side,rgba(212,182,122,.16),transparent 70%)}
+.unlock-wheel .chart{position:relative}
+.usec{padding:16px 0;border-bottom:1px solid var(--line-soft)}
+.usec:first-child{padding-top:0}
+.usec-h{font-family:"Playfair Display",serif;font-weight:500;font-size:1.32rem;margin:0 0 4px;color:var(--ivory)}
+.usec-h .lab{color:var(--muted);font-weight:400}
+.usec-b{margin:0;color:var(--muted);font-size:1.1rem;line-height:1.4}
+.uhint{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:9px 10px}
+.uhint li{display:inline-flex;align-items:center;gap:8px;font-size:1.02rem;color:var(--muted);border:1px solid var(--hair);border-radius:999px;padding:5px 14px}
+.uhint li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:.7}
+.unlock-label{text-align:center;color:var(--muted);font-style:italic;font-size:1.12rem;margin:26px 0 0}
+
+/* ---------- GIFT EXPERIENCE ---------- */
+.cues{display:grid;grid-template-columns:1fr;gap:26px;max-width:760px;margin:0 auto}
+.cue{display:flex;gap:18px;align-items:flex-start;padding:22px 22px;border:1px solid var(--hair);border-radius:18px;background:rgba(244,236,224,.012)}
+.cue .ic{width:30px;height:30px;flex:none;color:var(--gold)}
+.cue .ic svg{width:100%;height:100%;display:block}
+.cue h3{font-size:1.3rem;font-weight:600;margin:0 0 5px}
+.cue p{margin:0;color:var(--muted);font-size:1.1rem;line-height:1.45}
+
+/* ---------- TIERS ---------- */
+.tiers{display:grid;grid-template-columns:1fr;gap:20px;max-width:1000px;margin:0 auto}
+.tier{
+  position:relative;background:linear-gradient(180deg,#181220,#120d1a);
+  border:1px solid var(--hair);border-radius:22px;padding:34px 26px 30px;
+  display:flex;flex-direction:column;
+}
+.tier.feature{border-color:var(--hair2);box-shadow:0 30px 80px -50px rgba(212,182,122,.55),0 0 0 1px rgba(212,182,122,.12)}
+.ribbon{position:absolute;top:-13px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font-family:"Cormorant",serif;font-weight:600;font-size:.92rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);background:#160f1c;border:1px solid var(--hair2);border-radius:999px;padding:6px 16px}
+.tier-name{font-family:"Playfair Display",serif;font-weight:600;font-size:1.4rem;margin:0;color:var(--ivory)}
+.tier-price{font-family:"Playfair Display",serif;font-weight:700;font-size:2.6rem;line-height:1;color:var(--gold);margin:14px 0 2px;display:flex;align-items:baseline;gap:10px}
+.tier-price .was{font-family:"Cormorant",serif;font-weight:600;font-size:1.15rem;color:var(--muted);text-decoration:line-through}
+.tier-desc{margin:16px 0 0;color:var(--muted);font-size:1.12rem;line-height:1.45}
+.tier-rule{height:1px;background:var(--hair);margin:22px 0 0}
+
+/* ---------- PROOF ---------- */
+.proof{display:grid;grid-template-columns:1fr;gap:22px;max-width:980px;margin:0 auto}
+.quote{background:rgba(244,236,224,.018);border:1px solid var(--hair);border-radius:18px;padding:30px 28px}
+.quote .mark{color:var(--gold);font-family:"Playfair Display",serif;font-size:2.4rem;line-height:.6;opacity:.7;display:block;height:.5em}
+.quote blockquote{font-family:"Playfair Display",serif;font-style:italic;font-weight:500;font-size:1.5rem;line-height:1.3;margin:14px 0 18px;color:var(--ivory)}
+.quote .who{font-family:"Cormorant",serif;font-size:1.02rem;letter-spacing:.04em;color:var(--muted)}
+
+/* ---------- REASSURANCE ---------- */
+.reassure{text-align:center;max-width:640px;margin:0 auto}
+.guarantee{font-family:"Playfair Display",serif;font-style:italic;font-weight:500;font-size:1.5rem;line-height:1.4;color:var(--gold);margin:0}
+.faq{margin:34px auto 0;text-align:left;border-top:1px solid var(--hair);padding-top:26px}
+.faq dt{font-family:"Playfair Display",serif;font-weight:600;font-size:1.18rem;margin:0 0 6px}
+.faq dd{margin:0;color:var(--muted);font-size:1.1rem;line-height:1.5}
+
+/* ---------- CLOSING ---------- */
+.closing{text-align:center}
+.closing h2{font-size:clamp(2rem,1.4rem+2.6vw,3.1rem);max-width:18ch;margin:0 auto}
+.closing h2 em{font-style:normal;color:var(--gold)}
+.closing .cta-row{justify-content:center;margin-top:30px}
+.foot{padding:40px 0 64px;text-align:center;color:var(--muted);font-size:1rem;letter-spacing:.04em}
+
+/* ---------- LOAD REVEAL (single orchestrated sequence) ---------- */
+.reveal{opacity:0;transform:translateY(18px);animation:rise .85s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ---------- DESKTOP ---------- */
+@media (min-width:760px){
+  .band{padding-top:104px;padding-bottom:104px}
+  .hero{padding-top:72px}
+  .hero-grid{flex-direction:row;justify-content:space-between;align-items:center;gap:48px}
+  .hero-copy{flex:1 1 54%}
+  .device-stage{flex:0 0 320px}
+  .steps{grid-template-columns:repeat(3,1fr);gap:36px}
+  .step{flex-direction:column}
+  .unlock-card{grid-template-columns:300px 1fr;padding:44px 40px}
+  .cues{grid-template-columns:repeat(3,1fr)}
+  .cue{flex-direction:column}
+  .tiers{grid-template-columns:repeat(3,1fr);gap:22px;align-items:start}
+  .tier.feature{transform:translateY(-12px)}
+  .proof{grid-template-columns:repeat(3,1fr)}
+  .quote blockquote{font-size:1.4rem}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .reveal{opacity:1 !important;transform:none !important}
+  .btn:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<main>
+
+  <!-- HERO -->
+  <header class="hero band wrap">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow reveal" style="animation-delay:.05s">A gift for someone who loves their dog or cat</p>
+        <h1 class="reveal" style="animation-delay:.15s">Give them their pet's <em>soul</em>, read in the stars.</h1>
+        <p class="define reveal" style="animation-delay:.28s">A soul reading from your dog or cat's real birth chart. <b>You gift it. They open it.</b></p>
+        <div class="cta-row reveal" style="animation-delay:.4s">
+          <a class="btn" href="#tiers">Gift a Soul Reading · £29<span class="was">£49</span></a>
+        </div>
+        <div class="rating reveal" style="animation-delay:.5s;margin-top:18px">
+          <span class="stars" aria-hidden="true"></span>
+          <span><b>4.9</b> from 600+ readings gifted</span>
+        </div>
+      </div>
+
+      <div class="device-stage reveal" style="animation-delay:.6s">
+        <div class="device">
+          <div class="screen">
+            <div class="notch"></div>
+            <p class="cover-kicker">A Soul Reading</p>
+            <h3 class="cover-name">Bella</h3>
+            <p class="cover-sign">Sun in Leo</p>
+            <div class="chartwrap"><svg class="chart" data-chart viewBox="0 0 300 300" role="img" aria-label="A pet's natal birth chart wheel"></svg></div>
+            <div class="screen-foot">
+              <div class="sf-row"><span class="sf-label">Dominant element</span><span class="sf-val">Fire</span></div>
+              <div class="sf-row"><span class="sf-label">Soul archetype</span><span class="sf-val">The Companion</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TRUST STRIP -->
+  <section class="trust">
+    <div class="wrap trust-in">
+      <div class="trust-rating">
+        <span class="stars" aria-hidden="true"></span>
+        <span><b style="color:var(--ivory);font-weight:600">4.9</b> from 600+ readings gifted</span>
+      </div>
+      <div class="badges">
+        <span class="badge"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></span>Built on their pet's real chart</span>
+        <span class="badge"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.4 4.2 1.8 5.6 6 6-4.2.4-5.6 1.8-6 6-.4-4.2-1.8-5.6-6-6 4.2-.4 5.6-1.8 6-6Z"/><path d="M18.6 14.2c.2 1.5.7 2 2.2 2.2-1.5.2-2 .7-2.2 2.2-.2-1.5-.7-2-2.2-2.2 1.5-.2 2-.7 2.2-2.2Z"/></svg></span>A private reveal, not an inbox</span>
+        <span class="badge"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/><circle cx="12" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg></span>Lands the day you choose</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="band wrap">
+    <div class="shead">
+      <h2>Three quiet steps</h2>
+      <p>From your sofa to theirs. No parcels, no postage.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="13" height="14" rx="2"/><path d="M7 4h11a2 2 0 0 1 2 2v11"/><path d="M6.5 11.5h6M6.5 15h4"/></svg></span>
+        <div>
+          <p class="n">One</p>
+          <h3>Choose the reading</h3>
+          <p>Pick the soul reading that fits the pet, and the person you are giving it to.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4 10.5-10.5Z"/><path d="M14.3 6.7l3 3"/></svg></span>
+        <div>
+          <p class="n">Two</p>
+          <h3>Add their name, your note, the day it lands</h3>
+          <p>The pet's name, one line on why you chose this, and the morning it should arrive.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.4"/></svg></span>
+        <div>
+          <p class="n">Three</p>
+          <h3>They unlock their pet's reveal</h3>
+          <p>No inbox to dig through. It opens like a reveal, the moment they are ready.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- WHAT THEY UNLOCK -->
+  <section class="band wrap">
+    <div class="shead">
+      <h2>This is the reading you are giving</h2>
+      <p>Their pet's real chart, read in full. Here is what opens.</p>
+    </div>
+    <div class="unlock-card">
+      <div class="unlock-wheel"><svg class="chart" data-chart viewBox="0 0 300 300" role="img" aria-label="A pet's natal birth chart wheel, drawn from their real placements"></svg></div>
+      <div class="unlock-sections">
+        <div class="usec">
+          <p class="usec-h"><span class="lab">Dominant element ·</span> Fire</p>
+          <p class="usec-b">Bold and warm. The first one through the door, every time.</p>
+        </div>
+        <div class="usec">
+          <p class="usec-h"><span class="lab">Soul archetype ·</span> The Companion</p>
+          <p class="usec-b">Born to stay close. They chose their person young, and never looked back.</p>
+        </div>
+        <ul class="uhint">
+          <li>Chart placements</li>
+          <li>Elemental balance</li>
+          <li>Crystal &amp; aura</li>
+          <li>Name vibration</li>
+        </ul>
+      </div>
+    </div>
+    <p class="unlock-label">The exact thing you hand over. No guessing what they will get.</p>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- GIFT EXPERIENCE -->
+  <section class="band wrap">
+    <div class="shead">
+      <h2>A gift that arrives like a moment</h2>
+      <p>The part no card or parcel can do.</p>
+    </div>
+    <div class="cues">
+      <div class="cue">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/><circle cx="12" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg></span>
+        <div>
+          <h3>Pick the day it lands</h3>
+          <p>No parcels, no postage, no cutoff. It arrives the morning you choose.</p>
+        </div>
+      </div>
+      <div class="cue">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 4.5l3 3L9 18l-4 1 1-4 10.5-10.5Z"/><path d="M14.3 6.7l3 3"/></svg></span>
+        <div>
+          <h3>Say why you chose this</h3>
+          <p>One line they keep. The reason this gift came from you, in your words.</p>
+        </div>
+      </div>
+      <div class="cue">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.4 4.2 1.8 5.6 6 6-4.2.4-5.6 1.8-6 6-.4-4.2-1.8-5.6-6-6 4.2-.4 5.6-1.8 6-6Z"/><path d="M18.6 14.2c.2 1.5.7 2 2.2 2.2-1.5.2-2 .7-2.2 2.2-.2-1.5-.7-2-2.2-2.2 1.5-.2 2-.7 2.2-2.2Z"/></svg></span>
+        <div>
+          <h3>It opens like a reveal</h3>
+          <p>No inbox. Their pet's reading unfolds in one private moment, theirs alone.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- TIERS -->
+  <section class="band wrap" id="tiers">
+    <div class="shead">
+      <h2>Choose their reading</h2>
+      <p>One private reveal, read from their pet's real chart.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier">
+        <p class="tier-name">Soul Reading</p>
+        <p class="tier-price">£29 <span class="was">£49</span></p>
+        <div class="tier-rule"></div>
+        <p class="tier-desc">Their full chart, dominant element and soul archetype, read in one private reveal.</p>
+      </div>
+      <div class="tier feature">
+        <span class="ribbon">Most chosen</span>
+        <p class="tier-name">Soul Bond</p>
+        <p class="tier-price">£49 <span class="was">£79</span></p>
+        <div class="tier-rule"></div>
+        <p class="tier-desc">The full reading, plus the bond they share with the person they chose to stay beside.</p>
+      </div>
+      <div class="tier">
+        <p class="tier-name">Memorial</p>
+        <p class="tier-price">£49</p>
+        <div class="tier-rule"></div>
+        <p class="tier-desc">A lasting reading for the soul you carry, read from the day they first arrived.</p>
+      </div>
+    </div>
+    <div class="cta-row" style="justify-content:center;margin-top:42px">
+      <a class="btn" href="#">Gift a Soul Reading · £29<span class="was">£49</span></a>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- PROOF -->
+  <section class="band wrap">
+    <div class="shead">
+      <h2>What people say after they give it</h2>
+    </div>
+    <div class="proof">
+      <figure class="quote">
+        <span class="mark" aria-hidden="true">&#8220;</span>
+        <blockquote>First time he's been impressed by a gift.</blockquote>
+        <figcaption class="who">Liam, Cork</figcaption>
+      </figure>
+      <figure class="quote">
+        <span class="mark" aria-hidden="true">&#8220;</span>
+        <blockquote>She showed me the phone every time the cat curls up.</blockquote>
+        <figcaption class="who">Ryan, Austin</figcaption>
+      </figure>
+      <figure class="quote">
+        <span class="mark" aria-hidden="true">&#8220;</span>
+        <blockquote>It felt like someone remembered him too.</blockquote>
+        <figcaption class="who">Anna, Portland</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- REASSURANCE + FAQ -->
+  <section class="band wrap">
+    <div class="reassure">
+      <p class="guarantee">Read from their real chart, down to the day their soul arrived. If it does not feel like them, we make it right.</p>
+      <dl class="faq">
+        <dt>What if I don't know their exact birth date?</dt>
+        <dd>We read from the day they came home, the way astrologers chart an adoption. The chart still holds true.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- CLOSING -->
+  <section class="band wrap closing">
+    <h2>Give the reading written in their <em>stars</em>.</h2>
+    <div class="cta-row">
+      <a class="btn" href="#tiers">Gift a Soul Reading · £29<span class="was">£49</span></a>
+    </div>
+    <div class="rating" style="justify-content:center;margin-top:20px">
+      <span class="stars" aria-hidden="true"></span>
+      <span><b>4.9</b> from 600+ readings gifted</span>
+    </div>
+  </section>
+
+  <footer class="foot wrap">Little Souls · read from the day their soul arrived</footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(name,attrs){
+    var n=document.createElementNS(SVGNS,name);
+    for(var k in attrs){ n.setAttribute(k,attrs[k]); }
+    return n;
+  }
+  var GOLD="#d4b67a";
+  function P(cx,cy,r,deg){ var a=deg*Math.PI/180; return [cx+r*Math.cos(a), cy-r*Math.sin(a)]; }
+
+  // Build a faithful natal-chart wheel into one <svg>
+  function buildChart(svg){
+    var cx=150, cy=150;
+    var rOut=140, rBand=120, rInner=92, rHub=20;
+
+    // soft inner field
+    svg.appendChild(el("circle",{cx:cx,cy:cy,r:rOut,fill:"#0d0a14"}));
+    // concentric rings
+    [rOut, rBand, rInner].forEach(function(r,i){
+      svg.appendChild(el("circle",{cx:cx,cy:cy,r:r,fill:"none",stroke:GOLD,"stroke-width":i===0?1.2:0.8,"stroke-opacity":i===0?0.55:0.32}));
+    });
+
+    // 12 zodiac divisions: ticks across the band + a small 3-dot constellation per sign
+    for(var s=0;s<12;s++){
+      var deg=s*30;
+      var a=P(cx,cy,rBand,deg), b=P(cx,cy,rOut,deg);
+      svg.appendChild(el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:GOLD,"stroke-width":0.8,"stroke-opacity":0.45}));
+      // constellation: 3 small dots scattered in the sign segment
+      var mid=deg+15;
+      var seeds=[[mid-7,130],[mid+4,134],[mid+9,127]];
+      var path="";
+      seeds.forEach(function(sd,j){
+        var p=P(cx,cy,sd[1],sd[0]);
+        svg.appendChild(el("circle",{cx:p[0].toFixed(1),cy:p[1].toFixed(1),r:0.9,fill:GOLD,"fill-opacity":0.7}));
+        path+=(j===0?"M":"L")+p[0].toFixed(1)+" "+p[1].toFixed(1)+" ";
+      });
+      svg.appendChild(el("path",{d:path,fill:"none",stroke:GOLD,"stroke-width":0.5,"stroke-opacity":0.28}));
+    }
+
+    // 12 light spokes inside to the inner ring
+    for(var t=0;t<12;t++){
+      var d2=t*30+15;
+      var ia=P(cx,cy,rInner,d2), ib=P(cx,cy,rBand,d2);
+      svg.appendChild(el("line",{x1:ia[0],y1:ia[1],x2:ib[0],y2:ib[1],stroke:GOLD,"stroke-width":0.5,"stroke-opacity":0.16}));
+    }
+
+    // planet placements around the inner wheel (longitudes chosen for a balanced look)
+    var planets=[22, 74, 130, 168, 214, 262, 310, 344];
+    var radii=  [70, 84, 62, 88, 66, 80, 58, 86];
+    var pts=[];
+    for(var p=0;p<planets.length;p++){
+      var pp=P(cx,cy,radii[p],planets[p]);
+      pts.push(pp);
+    }
+    // aspect lines (thin connections across the hub)
+    var aspects=[[0,3],[1,5],[2,6],[4,7],[0,5],[3,6]];
+    aspects.forEach(function(pair){
+      var u=pts[pair[0]], v=pts[pair[1]];
+      svg.appendChild(el("line",{x1:u[0].toFixed(1),y1:u[1].toFixed(1),x2:v[0].toFixed(1),y2:v[1].toFixed(1),stroke:GOLD,"stroke-width":0.5,"stroke-opacity":0.22}));
+    });
+    // planet glyph markers: ring + dot
+    pts.forEach(function(pp){
+      svg.appendChild(el("circle",{cx:pp[0].toFixed(1),cy:pp[1].toFixed(1),r:4.6,fill:"#0d0a14",stroke:GOLD,"stroke-width":0.9,"stroke-opacity":0.8}));
+      svg.appendChild(el("circle",{cx:pp[0].toFixed(1),cy:pp[1].toFixed(1),r:1.7,fill:GOLD,"fill-opacity":0.9}));
+    });
+
+    // central hub: a small sun
+    svg.appendChild(el("circle",{cx:cx,cy:cy,r:rHub,fill:"none",stroke:GOLD,"stroke-width":0.7,"stroke-opacity":0.4}));
+    svg.appendChild(el("circle",{cx:cx,cy:cy,r:4.5,fill:GOLD,"fill-opacity":0.92}));
+    for(var ray=0;ray<12;ray++){
+      var rd=ray*30;
+      var ra=P(cx,cy,8,rd), rb=P(cx,cy,14,rd);
+      svg.appendChild(el("line",{x1:ra[0].toFixed(1),y1:ra[1].toFixed(1),x2:rb[0].toFixed(1),y2:rb[1].toFixed(1),stroke:GOLD,"stroke-width":0.7,"stroke-opacity":0.5}));
+    }
+  }
+
+  var charts=document.querySelectorAll("svg[data-chart]");
+  for(var i=0;i<charts.length;i++){ buildChart(charts[i]); }
+
+  // star rating, drawn as SVG (no glyphs)
+  var starPath="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
+  var rows=document.querySelectorAll(".stars");
+  for(var r=0;r<rows.length;r++){
+    for(var k=0;k<5;k++){
+      var sv=el("svg",{viewBox:"0 0 24 24"});
+      sv.appendChild(el("path",{d:starPath,fill:GOLD}));
+      rows[r].appendChild(sv);
+    }
+  }
+})();
+</script>
+</body>
+</html>
