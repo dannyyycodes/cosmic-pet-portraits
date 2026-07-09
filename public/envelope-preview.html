@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Bella's Sealed Reading</title>
+
+<!-- Flip no-js to js the instant this runs, before paint. Sealed state is scoped under html.js only,
+     so if JS never runs the reading simply shows. -->
+<script>document.documentElement.className = document.documentElement.className.replace('no-js','js');</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+
+<link rel="preload" as="image" href="https://content.littlesouls.app/viral-pet-media/giftart/wax-seal-blank.webp">
+<link rel="preload" as="image" href="https://content.littlesouls.app/viral-pet-media/giftart/gold-foil-tile.webp">
+
+<style>
+/* ============================================================
+   BRAND TOKENS
+   ============================================================ */
+:root{
+  --navy:#0d0a14;
+  --gold:#d4b67a;
+  --gold-deep:#b8995f;
+  --gold-bright:#f0d9a0;
+  --ivory:#f0e6d2;
+  --muted:#9a938b;
+
+  /* the cream letter (the warm tonal climax) */
+  --paper:#f6efdf;
+  --paper-hi:#fbf5e8;
+  --paper-lo:#eee4cf;
+  --ink:#241a12;
+  --ink-soft:#3a2c1e;
+  --gold-line:#b8923f;   /* decorative gold strokes (frame, rules, wheel halo) */
+  --gold-text:#7e5f22;   /* text-bearing gold, dark enough to read on cream */
+  --gold-wheel:#9a7a35;  /* the signature wheel ink */
+
+  --foil:url("https://content.littlesouls.app/viral-pet-media/giftart/gold-foil-tile.webp");
+
+  --ease-decel:cubic-bezier(0.05,0.7,0.1,1);   /* arrives soft, lands gentle */
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{background:var(--navy);-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(120% 80% at 50% -10%, #1a1426 0%, rgba(26,20,38,0) 55%),
+    radial-gradient(140% 120% at 50% 120%, #120e1c 0%, rgba(18,14,28,0) 60%),
+    var(--navy);
+  color:var(--ivory);
+  font-family:"Newsreader",Georgia,serif;
+  font-size:17px;
+  line-height:1.6;
+  min-height:100svh;
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* faint vignette for depth, no cheap stars */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(130% 100% at 50% 38%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.45) 100%);
+}
+
+/* ============================================================
+   STAGE (the sealed envelope, centred)
+   ============================================================ */
+.scene{
+  position:relative;z-index:1;
+  min-height:100svh;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:26px;
+  padding:40px 22px calc(40px + env(safe-area-inset-bottom));
+  text-align:center;
+}
+
+.env-wrap{
+  perspective:1200px;            /* perspective lives on a STATIC ancestor, never on the rotating flap */
+  width:min(78vw,320px);
+  filter:drop-shadow(0 30px 50px rgba(0,0,0,0.55));
+}
+.env{
+  position:relative;
+  width:100%;
+  aspect-ratio:1.5 / 1;
+  border-radius:10px;
+  transform-style:preserve-3d;
+}
+
+/* envelope body (navy, foil edge) */
+.env-body{
+  position:absolute;inset:0;z-index:1;
+  border-radius:10px;
+  background:
+    linear-gradient(160deg,#171120 0%,#0e0a16 70%),
+    var(--navy);
+  border:1px solid rgba(212,182,122,0.30);
+  box-shadow:inset 0 1px 0 rgba(212,182,122,0.10), inset 0 0 40px rgba(0,0,0,0.55);
+  overflow:hidden;
+}
+/* folded front seams (the V of the front pocket) */
+.env-body::before,.env-body::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;
+}
+.env-body::before{
+  background:
+    linear-gradient(to top right, transparent calc(50% - 0.7px), rgba(212,182,122,0.22) 50%, transparent calc(50% + 0.7px)) no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 0.7px), rgba(212,182,122,0.22) 50%, transparent calc(50% + 0.7px)) no-repeat;
+  background-size:50% 100%,50% 100%;
+  background-position:left bottom,right bottom;
+}
+.env-body::after{
+  background:linear-gradient(to bottom, rgba(212,182,122,0.10), transparent 60%);
+  mix-blend-mode:screen;opacity:0.5;
+}
+
+/* the cream letter teaser that rises out of the pocket */
+.paper{
+  position:absolute;z-index:2;
+  left:7%;right:7%;top:14%;
+  height:86%;
+  border-radius:6px 6px 3px 3px;
+  background:
+    repeating-linear-gradient(180deg, rgba(122,96,60,0.06) 0 1px, transparent 1px 16px),
+    linear-gradient(180deg,var(--paper-hi),var(--paper-lo));
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  transform-origin:50% 100%;
+}
+
+/* the opening flap (the only 3D beat) */
+.flap{
+  position:absolute;z-index:5;
+  left:0;top:0;width:100%;height:58%;
+  transform-origin:50% 0%;
+  transform-style:preserve-3d;
+  will-change:transform;
+}
+.flap-face{
+  position:absolute;inset:0;
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  backface-visibility:hidden;
+  border-radius:10px 10px 0 0;
+}
+.flap-face.front{
+  background:linear-gradient(165deg,#191320,#0d0a14 78%);
+  box-shadow:inset 0 1px 0 rgba(212,182,122,0.16);
+}
+.flap-face.back{
+  transform:rotateX(180deg) translateZ(0.5px);
+  background:linear-gradient(180deg,#3a2c14,#241a0c);
+  overflow:hidden;
+}
+.flap-face.back .foil{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.92;
+  clip-path:polygon(0 0,100% 0,50% 100%);
+}
+.flap-face.back::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg, rgba(255,240,200,0.18), rgba(0,0,0,0.35));
+  clip-path:polygon(0 0,100% 0,50% 100%);
+}
+
+/* ---- the wax seal as a real <button> ---- */
+.seal-btn{
+  position:absolute;z-index:6;
+  left:50%;top:58%;
+  width:38%;aspect-ratio:1/1;
+  transform:translate(-50%,-50%) translateZ(6px);  /* sit IN FRONT of the flap in 3D space */
+  display:grid;place-items:center;
+  padding:0;margin:0;border:0;background:transparent;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;
+}
+.seal-btn:focus{outline:none}
+.seal-btn:focus-visible{outline:none}
+.seal-btn:focus-visible .seal{box-shadow:0 0 0 3px rgba(240,217,160,0.9),0 0 0 8px rgba(212,182,122,0.35)}
+.seal-glow{
+  position:absolute;inset:-46%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, rgba(212,182,122,0.42) 0%, rgba(212,182,122,0.10) 38%, transparent 66%);
+  opacity:0.55;
+}
+.seal{
+  position:relative;width:100%;height:100%;border-radius:50%;
+  display:grid;place-items:center;
+  will-change:transform;
+}
+.seal-img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  transform:scale(1.12);                          /* fill the wax to the clip edge */
+  clip-path:circle(46% at 50% 50%);               /* drop the webp's baked dark square, leave a clean round seal */
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,0.55));
+  pointer-events:none;
+}
+/* the pet's Sun glyph + paw, debossed (pressed-in) onto the blank boss */
+.stamp{
+  position:relative;z-index:2;width:54%;height:54%;
+  color:var(--gold-deep);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  /* deboss: light catches the lower lip, shadow sits in the upper recess */
+  filter:drop-shadow(0 1.2px 0.4px rgba(247,236,205,0.5)) drop-shadow(0 -1.2px 1.1px rgba(43,27,8,0.62));
+  pointer-events:none;
+}
+.stamp .glyph{width:74%;height:auto}
+.stamp .paw{width:30%;height:auto;opacity:0.85;margin-top:1px}
+
+/* ---- idle hint + visible cue under the envelope ---- */
+.invite{display:flex;flex-direction:column;gap:7px;max-width:30ch}
+.hint{
+  font-family:"Playfair Display",Georgia,serif;
+  font-size:1.15rem;font-style:italic;color:var(--gold);letter-spacing:0.2px;
+  margin:0;
+}
+.cue{
+  font-size:0.82rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);
+  display:inline-flex;align-items:center;gap:7px;justify-content:center;
+}
+
+/* ============================================================
+   THE REVEAL  (a refined navy keepsake card -- the PET is the hero)
+   This is a SAMPLE of the experience the recipient opens for THEIR OWN pet.
+   Almost no text: one held line lands, five titles tease, the photo carries it.
+   ============================================================ */
+.reading{
+  position:relative;z-index:1;
+  width:min(90vw,432px);
+  margin:0 auto;
+  padding:14px 0 60px;
+}
+/* a warm halo seats the card against the navy */
+.reading::before{
+  content:"";position:absolute;z-index:-1;inset:-6% -14%;pointer-events:none;
+  background:radial-gradient(58% 42% at 50% 18%, rgba(212,182,122,0.16), transparent 70%);
+}
+
+.keepsake{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;
+  background:
+    radial-gradient(120% 72% at 50% 0%, #1c1632 0%, rgba(28,22,50,0) 58%),
+    linear-gradient(180deg,#15101f 0%,#0e0a17 100%);
+  border:1px solid rgba(212,182,122,0.32);
+  border-radius:16px;
+  box-shadow:
+    0 36px 72px rgba(0,0,0,0.55),
+    0 4px 14px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(212,182,122,0.12);
+  padding:clamp(30px,7vw,46px) clamp(22px,6vw,40px) clamp(34px,7vw,48px);
+}
+/* a fine inset gold rule, the heavy-stock keepsake tell */
+.keepsake::before{
+  content:"";position:absolute;inset:9px;pointer-events:none;
+  border:1px solid rgba(184,146,63,0.30);border-radius:9px;
+}
+
+/* (1) gift-context kicker */
+.gift-kicker{
+  margin:0 0 clamp(22px,6vw,32px);max-width:24ch;
+  font-family:"Newsreader",Georgia,serif;
+  font-size:0.72rem;font-weight:600;line-height:1.7;
+  letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--muted);outline:none;
+}
+
+/* (2) HERO -- the pet, gold-rimmed, on a restrained starfield glow */
+/* the hero medallion sits in a fixed square field; glow + stars live INSIDE that
+   field around a centred circle -- no negative-inset overflow, so it stays clean */
+.portrait{
+  position:relative;
+  width:min(72vw,270px);height:min(72vw,270px);margin:0 auto;
+  display:grid;place-items:center;
+}
+.glowfield{position:absolute;inset:0;z-index:0;pointer-events:none}
+.glowfield .halo{
+  position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,
+    rgba(212,182,122,0.26) 0%, rgba(212,182,122,0.10) 38%, rgba(212,182,122,0) 66%);
+}
+.glowfield svg{position:absolute;inset:0;width:100%;height:100%}
+.glowfield .star{fill:var(--gold-bright)}
+/* the premium gold rim: a symmetric metallic conic reads evenly the whole way round */
+.ring{
+  position:relative;z-index:1;width:68%;height:68%;border-radius:50%;
+  padding:5px;
+  background:conic-gradient(
+    #9a7a3a, #ecd296, #c4a265, #f3deab,
+    #9a7a3a, #ecd296, #c4a265, #f3deab, #9a7a3a);
+  box-shadow:
+    0 0 0 1px rgba(240,217,160,0.40),
+    0 16px 34px rgba(0,0,0,0.55),
+    0 0 40px rgba(212,182,122,0.20);
+}
+.ring img{
+  display:block;width:100%;height:100%;border-radius:50%;
+  object-fit:cover;object-position:50% 42%;
+  box-shadow:inset 0 0 0 2px rgba(13,10,20,0.85);
+}
+.sample-cap{
+  margin:clamp(16px,4.2vw,21px) 0 0;
+  font-size:0.66rem;letter-spacing:0.26em;text-transform:uppercase;
+  color:var(--gold);opacity:0.94;
+}
+
+/* (3) name + sign */
+.who{margin:clamp(20px,5vw,28px) 0 0}
+.petname{
+  margin:0;
+  font-family:"Playfair Display",Georgia,serif;
+  font-size:clamp(1.72rem,7vw,2.1rem);font-weight:600;line-height:1.1;
+  color:var(--ivory);letter-spacing:0.4px;
+}
+.petsign{
+  display:block;margin:7px 0 0;
+  font-size:0.72rem;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* (4) the one held line (the hook) */
+.held{
+  margin:clamp(30px,8vw,46px) auto;max-width:13ch;
+  font-family:"Playfair Display",Georgia,serif;
+  font-size:clamp(1.82rem,8.6vw,2.6rem);font-weight:500;line-height:1.22;
+  color:var(--ivory);letter-spacing:0.2px;
+}
+
+/* (5) the reading, teased as open-loop TITLES only -- no body copy */
+.loops{
+  width:100%;max-width:336px;margin:0 auto;
+  border-bottom:1px solid rgba(184,146,63,0.30);
+  text-align:left;
+}
+.loop{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:clamp(13px,3.6vw,17px) 2px;
+  border-top:1px solid rgba(184,146,63,0.30);
+}
+.loop .t{
+  font-family:"Playfair Display",Georgia,serif;
+  font-size:clamp(1.05rem,4.4vw,1.2rem);font-weight:500;line-height:1.2;
+  color:var(--ivory);
+}
+.loop .lock{display:inline-flex;flex:0 0 auto}
+.loop .lock svg{width:15px;height:15px;stroke:var(--gold);stroke-width:1.7;opacity:0.5}
+
+/* (6) closing cue */
+.cta-cue{
+  margin:clamp(26px,7vw,38px) 0 0;max-width:26ch;
+  font-family:"Newsreader",Georgia,serif;font-style:italic;
+  font-size:clamp(0.94rem,3.6vw,1.04rem);line-height:1.5;
+  color:var(--gold);
+}
+
+/* ============================================================
+   SEALED STATE  (scoped under html.js ONLY)
+   With JS off, none of this applies and the reading shows.
+   ============================================================ */
+html.js .reading{display:none}
+html.js .flap{transform:rotateX(0deg)}
+html.js .paper{transform:translateY(0) scale(0.96);opacity:0}
+/* once open, the envelope stops reserving a whole viewport so the reading sits close */
+html.is-open .scene{min-height:auto;padding-bottom:14px}
+
+/* ============================================================
+   REDUCED MOTION  /  ALREADY-OPEN FALLBACK
+   Guaranteed in CSS so it holds even if GSAP never loads.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  .seal-glow{opacity:0.4}
+  html.js .reading{display:block !important;opacity:1 !important;transform:none !important}
+  html.js .flap{transform:rotateX(-152deg)}
+  html.js .seal-btn{opacity:0;pointer-events:none}
+  html.js .env-wrap{opacity:0.42;transform:scale(0.9)}
+  html.js .paper{opacity:0}
+}
+
+@media (max-width:380px){
+  .scene{gap:20px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ====================================================================
+     COPY  (easy to find and swap)  -- this reveal is a SAMPLE of the gift
+       idle hint   : "Made for Bella. Press the seal."
+       button label: "Break the seal to open Bella's reading"
+       gift kicker  : "The moment they open it, for their own dog or cat."
+       held line    : "She came to be your witness."
+       open loops   : Why she picked you / How she loves you / What she needs /
+                      When she's scared / The thing no one sees
+       PET sample   : Bella, a Leo  (a cockapoo)
+     ==================================================================== -->
+
+<!-- inline glyph sprite (gold-recolourable, reused in seal stamp, wheel + sign-off). NEVER a Unicode zodiac char. -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <symbol id="gl-leo" viewBox="0 0 64 64">
+    <path d="M26 47 a9.5 9.5 0 1 1 9.5 -9.5 c0 -10.5 -2 -18.5 8 -20.5 c9.5 -2 16.5 6.5 14 16 c-1.6 6 -6.6 9.6 -12.4 8.4"
+          fill="none" stroke="currentColor" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="gl-paw" viewBox="0 0 64 64">
+    <g fill="currentColor">
+      <ellipse cx="32" cy="42" rx="13" ry="10.5"/>
+      <ellipse cx="16" cy="28" rx="5" ry="6.5"/>
+      <ellipse cx="27" cy="20" rx="5" ry="7"/>
+      <ellipse cx="38" cy="20" rx="5" ry="7"/>
+      <ellipse cx="49" cy="28" rx="5" ry="6.5"/>
+    </g>
+  </symbol>
+</svg>
+
+<main class="scene">
+
+  <div class="env-wrap" aria-hidden="false">
+    <div class="env">
+      <div class="env-body" aria-hidden="true"></div>
+      <div class="paper" aria-hidden="true"></div>
+
+      <button type="button" class="seal-btn" id="sealBtn"
+              aria-expanded="false" aria-controls="reading"
+              aria-label="Break the seal to open Bella's reading">
+        <span class="seal-glow" aria-hidden="true"></span>
+        <span class="seal" aria-hidden="true">
+          <img class="seal-img" alt=""
+               src="https://content.littlesouls.app/viral-pet-media/giftart/wax-seal-blank.webp">
+          <span class="stamp">
+            <svg class="glyph" viewBox="0 0 64 64" aria-hidden="true"><use href="#gl-leo"/></svg>
+            <svg class="paw" viewBox="0 0 64 64" aria-hidden="true"><use href="#gl-paw"/></svg>
+          </span>
+        </span>
+      </button>
+
+      <div class="flap" aria-hidden="true">
+        <div class="flap-face front"></div>
+        <div class="flap-face back">
+          <img class="foil" alt="" src="https://content.littlesouls.app/viral-pet-media/giftart/gold-foil-tile.webp">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="invite">
+    <p class="hint" id="hint">Made for Bella. Press the seal.</p>
+    <span class="cue">Break the seal to open Bella&rsquo;s reading</span>
+  </div>
+
+</main>
+
+<!-- ====================================================================
+     THE READING  (always in the DOM; sealed only hides it under html.js)
+     ==================================================================== -->
+<section class="reading" id="reading" role="region" aria-labelledby="kicker" aria-live="polite">
+  <div class="keepsake">
+
+    <p class="gift-kicker rv" id="kicker" tabindex="-1">The moment they open it, for their own dog or cat.</p>
+
+    <div class="portrait rv">
+      <span class="glowfield" aria-hidden="true">
+        <span class="halo"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="star" cx="18" cy="20" r="0.9"  opacity="0.8"/>
+          <circle class="star" cx="40" cy="8"  r="0.6"  opacity="0.5"/>
+          <circle class="star" cx="63" cy="11" r="0.8"  opacity="0.65"/>
+          <circle class="star" cx="85" cy="24" r="0.7"  opacity="0.6"/>
+          <circle class="star" cx="90" cy="48" r="0.85" opacity="0.7"/>
+          <circle class="star" cx="84" cy="73" r="0.6"  opacity="0.5"/>
+          <circle class="star" cx="60" cy="88" r="0.75" opacity="0.6"/>
+          <circle class="star" cx="33" cy="86" r="0.9"  opacity="0.72"/>
+          <circle class="star" cx="12" cy="38" r="0.6"  opacity="0.5"/>
+        </svg>
+      </span>
+      <span class="ring">
+        <img src="https://www.littlesouls.app/breeds/cockapoo.jpg"
+             alt="Bella, a cockapoo, looking up" decoding="async">
+      </span>
+    </div>
+    <p class="sample-cap rv">a sample reading</p>
+
+    <div class="who rv">
+      <h2 class="petname">Bella</h2>
+      <span class="petsign">a Leo</span>
+    </div>
+
+    <p class="held rv">She came to be your witness.</p>
+
+    <div class="loops rv" role="list" aria-label="What the full reading reveals">
+      <div class="loop" role="listitem"><span class="t">Why she picked you</span><span class="lock" aria-hidden="true"><i data-lucide="lock"></i></span></div>
+      <div class="loop" role="listitem"><span class="t">How she loves you</span><span class="lock" aria-hidden="true"><i data-lucide="lock"></i></span></div>
+      <div class="loop" role="listitem"><span class="t">What she needs</span><span class="lock" aria-hidden="true"><i data-lucide="lock"></i></span></div>
+      <div class="loop" role="listitem"><span class="t">When she&rsquo;s scared</span><span class="lock" aria-hidden="true"><i data-lucide="lock"></i></span></div>
+      <div class="loop" role="listitem"><span class="t">The thing no one sees</span><span class="lock" aria-hidden="true"><i data-lucide="lock"></i></span></div>
+    </div>
+
+    <p class="cta-cue rv">Their full reading opens the moment you give it.</p>
+
+  </div>
+</section>
+
+<!-- ============================ SCRIPTS ============================ -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Draggable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- icons first (so a paint always has real Lucide art, never emoji) ---- */
+  try{ if(window.lucide && lucide.createIcons){ lucide.createIcons(); } }catch(e){}
+
+  /* ---- GSAP guard: if the engine failed to load, degrade to the no-js path
+         so the reading is always visible. ---- */
+  if(typeof window.gsap === "undefined"){
+    document.documentElement.classList.remove("js");
+    document.documentElement.classList.add("no-js");
+    return;
+  }
+
+  /* ---- register the plugins that actually loaded; log what is real ---- */
+  var loaded = { core:true, ScrollTrigger:false, Flip:false, Draggable:false };
+  var regs = [];
+  if(typeof window.ScrollTrigger !== "undefined"){ loaded.ScrollTrigger=true; regs.push(ScrollTrigger); }
+  if(typeof window.Flip !== "undefined"){ loaded.Flip=true; regs.push(Flip); }
+  if(typeof window.Draggable !== "undefined"){ loaded.Draggable=true; regs.push(Draggable); }
+  if(regs.length){ gsap.registerPlugin.apply(gsap, regs); }
+  /* DrawSVG is HAND-ROLLED below (stroke-dashoffset), so the build never depends
+     on a bonus plugin that might fail to load. */
+  window.__ENV_DEBUG = { plugins:loaded, drawHandRolled:true, crackRemoved:true };
+
+  var DECEL = "cubic-bezier(0.05,0.7,0.1,1)";
+
+  var btn     = document.getElementById("sealBtn");
+  var seal    = btn.querySelector(".seal");
+  var glow    = btn.querySelector(".seal-glow");
+  var flap    = document.querySelector(".flap");
+  var paper   = document.querySelector(".paper");
+  var envWrap = document.querySelector(".env-wrap");
+  var reading = document.getElementById("reading");
+  var kicker  = document.getElementById("kicker");
+
+  var opened = false;
+  var idleTween = null;
+  var master = null;
+
+  /* ---- gsap.matchMedia handles both the motion build and the reduced fallback,
+         and auto-reverts on a live preference change. ---- */
+  var mm = gsap.matchMedia();
+  mm.add({
+    reduce: "(prefers-reduced-motion: reduce)",
+    full:   "(prefers-reduced-motion: no-preference)"
+  }, function(ctx){
+    var reduce = ctx.conditions.reduce;
+    if(reduce){
+      openInstant();
+    }else{
+      buildSealed();
+      buildMaster();
+      startIdle();
+    }
+  });
+
+  /* the trigger is bound once, outside matchMedia */
+  btn.addEventListener("click", onActivate);
+  btn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+  btn.addEventListener("pointerdown", function(){
+    if(opened) return;
+    gsap.to(seal, {scale:0.97, duration:0.14, ease:DECEL});
+  });
+  btn.addEventListener("pointerup", function(){
+    if(opened) return;
+    gsap.to(seal, {scale:1, duration:0.2, ease:DECEL});
+  });
+
+  function onActivate(){
+    if(opened) return;
+    if(!master){ return; }   /* reduced-motion: already open */
+    opened = true;
+    if(idleTween) idleTween.kill();
+    gsap.set(seal, {scale:1});
+    haptic();
+    paperWhoosh();
+    btn.setAttribute("aria-expanded","true");
+    master.play();
+  }
+
+  /* ================= IDLE (beat 0) : soft slow gold-glow breathe ================= */
+  function startIdle(){
+    idleTween = gsap.timeline({repeat:-1, yoyo:true});
+    idleTween.to(seal, {scale:1.018, duration:1.9, ease:"sine.inOut"}, 0)
+             .to(glow, {opacity:0.85, duration:1.9, ease:"sine.inOut"}, 0);
+  }
+
+  /* ================= SEALED START STATE ================= */
+  function buildSealed(){
+    gsap.set(flap, {rotateX:0, transformOrigin:"50% 0%"});
+    gsap.set(seal, {yPercent:0, scale:1, opacity:1, transformOrigin:"50% 50%"});
+    gsap.set(paper, {yPercent:0, scale:0.96, opacity:0});
+    gsap.set(reading, {opacity:0});
+  }
+
+  /* ================= MASTER TIMELINE (the natural open, no crack) ================= */
+  function buildMaster(){
+    master = gsap.timeline({paused:true});
+
+    /* Beat 1 : the wax SEAL releases softly (lifts + fades, ~0.42s). No break, no particles. */
+    master.to(seal, {scale:1.03, duration:0.16, ease:DECEL}, 0)
+          .to(seal, {yPercent:-10, scale:1.12, opacity:0, duration:0.42, ease:DECEL}, ">-0.02")
+          .to(glow, {opacity:0, duration:0.46, ease:DECEL}, "<");
+
+    /* Beat 2 : the FLAP unfolds open in 3D about the top hinge (~0.74s), z swap at midpoint */
+    master.addLabel("flap", 0.24);
+    master.to(flap, {rotateX:-165, duration:0.74, ease:DECEL}, "flap");
+    master.add(function(){ flap.style.zIndex = 0; }, "flap+=0.34");
+
+    /* Beat 3 : the LETTER slides up and out of the pocket (~0.8s), overlapping the flap by ~0.18s */
+    master.addLabel("letter", "flap+=0.56");
+    master.fromTo(paper,
+      {yPercent:0, scale:0.96, opacity:0},
+      {yPercent:-46, scale:1, opacity:1, duration:0.5, ease:DECEL}, "letter");
+    master.to(paper, {yPercent:-94, opacity:0, duration:0.5, ease:DECEL}, "letter+=0.5");
+
+    /* the envelope recedes and dims, leaving a faint vestige above the letter */
+    master.to(envWrap, {scale:0.9, opacity:0.32, y:-10, duration:0.7, ease:DECEL}, "letter+=0.08");
+    master.to(".invite", {opacity:0, y:-8, duration:0.4, ease:DECEL}, "letter");
+
+    /* Beat 4 : the READING settles in */
+    master.add(revealReading, "letter+=0.42");
+  }
+
+  /* ================= READING REVEAL (slow staggered fade-up, low text) ================= */
+  function revealReading(){
+    reading.style.display = "block";
+    /* eslint-disable no-unused-expressions */
+    reading.offsetHeight; /* reflow so the from-state takes */
+    document.documentElement.classList.add("is-open");
+
+    var tlr = gsap.timeline();
+    tlr.fromTo(reading, {opacity:0, y:24}, {opacity:1, y:0, duration:0.6, ease:DECEL}, 0);
+    /* each block lifts in, top to bottom: kicker, the pet, name, the held line, the titles, the cue */
+    tlr.fromTo(".rv", {opacity:0, y:22}, {opacity:1, y:0, duration:0.62, stagger:0.12, ease:DECEL}, 0.1);
+    /* the five teased titles ladder in as the titles block arrives */
+    tlr.fromTo(".loop", {opacity:0, y:12}, {opacity:1, y:0, duration:0.5, stagger:0.1, ease:DECEL}, 0.72);
+    /* move focus to the reading head (no scroll jump) */
+    tlr.add(function(){ try{ kicker.focus({preventScroll:true}); }catch(e){ kicker.focus(); } }, 0.7);
+  }
+
+  /* ================= REDUCED-MOTION / ALREADY-OPEN ================= */
+  function openInstant(){
+    opened = true;
+    btn.setAttribute("aria-expanded","true");
+    reading.style.display = "block";
+    document.documentElement.classList.add("is-open");
+    gsap.to(reading, {opacity:1, duration:0.25, ease:"power1.out"});
+    /* reading children are visible by default in CSS, so the reveal simply shows */
+  }
+
+  /* ================= helpers ================= */
+  function haptic(){
+    try{ if(navigator.vibrate){ navigator.vibrate([10,40,16]); } }catch(e){}
+  }
+  var _actx = null;
+  /* a soft paper / whoosh swell as the letter slides out. NO crack sound. */
+  function paperWhoosh(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      _actx = _actx || new AC();
+      var ctx = _actx;
+      if(ctx.state === "suspended" && ctx.resume){ ctx.resume(); }
+      var t = ctx.currentTime, dur = 0.6;
+      var n = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+      for(var i=0;i<n;i++){ d[i] = (Math.random()*2-1); }
+      var src = ctx.createBufferSource(); src.buffer = buf;
+      var lp = ctx.createBiquadFilter(); lp.type="lowpass";
+      lp.frequency.setValueAtTime(280, t);
+      lp.frequency.linearRampToValueAtTime(1300, t+0.2);
+      lp.frequency.linearRampToValueAtTime(420, t+dur);
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.055, t+0.18);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+      src.connect(lp); lp.connect(g); g.connect(ctx.destination);
+      src.start(t); src.stop(t+dur+0.05);
+    }catch(e){}
+  }
+
+})();
+</script>
+</body>
+</html>

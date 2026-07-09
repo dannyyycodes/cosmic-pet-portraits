@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Little Souls · The Gift</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600&family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --cosmos:#0d0a14;
+  --cosmos2:#15101c;
+  --cream:#ffffff;
+  --cream-dim:#ececf2;
+  --muted:#c8c8d2;
+  --gold:#d4b67a;
+  --gold-soft:#f0d99f;
+  --gold-deep:#8b6f3a;
+  --violet:#7c5cd6;
+  --violet-soft:#9a7ee6;
+  --hairline:rgba(212,182,122,0.22);
+  --gutter:44px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:"Cormorant",Georgia,serif;
+  font-size:20px;
+  font-weight:500;
+  line-height:1.5;
+  color:var(--cream-dim);
+  background:var(--cosmos);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+/* deep cosmos atmosphere: nebula glow + faint starfield (decorative) */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 42% at 78% 8%, rgba(124,92,214,0.16), transparent 70%),
+    radial-gradient(ellipse 52% 40% at 12% 88%, rgba(124,92,214,0.10), transparent 72%),
+    radial-gradient(circle at 18% 16%, rgba(240,217,159,0.55) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 64% 26%, rgba(240,217,159,0.40) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 86% 52%, rgba(240,217,159,0.45) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 30% 64%, rgba(240,217,159,0.30) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 50% 92%, rgba(240,217,159,0.30) 0.6px, transparent 1.4px),
+    var(--cosmos);
+  background-repeat:no-repeat;
+}
+/* fine film grain for premium texture */
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* layout shell */
+.flow{
+  position:relative;
+  max-width:980px;
+  margin:0 auto;
+  padding:clamp(56px,9vw,104px) clamp(20px,5vw,40px) clamp(72px,10vw,120px);
+  padding-left:calc(var(--gutter) + clamp(8px,3vw,28px));
+}
+@media(min-width:760px){ :root{ --gutter:64px } }
+
+/* the single constellation rail (left gutter, scroll draw-in) */
+.thread{
+  position:absolute;
+  left:clamp(20px,5vw,40px);
+  top:clamp(56px,9vw,104px);
+  bottom:clamp(72px,10vw,120px);
+  width:var(--gutter);
+  z-index:0;
+  pointer-events:none;
+  overflow:visible;
+}
+.thread-line{
+  fill:none;
+  stroke:url(#railgrad);
+  stroke-width:1.4;
+  stroke-linecap:round;
+  stroke-dasharray:1;
+  stroke-dashoffset:0;
+  vector-effect:non-scaling-stroke;
+}
+html.js .thread-line{ stroke-dashoffset:1; transition:stroke-dashoffset 80ms linear; }
+
+/* beats */
+.beat{ position:relative; z-index:1; padding-block:clamp(46px,8vw,78px); }
+.beat:first-child{ padding-top:0 }
+.beat + .beat{ border-top:1px solid var(--hairline); }
+
+/* a star node sits on the rail at each beat */
+.node{
+  position:absolute;
+  top:clamp(50px,8.2vw,82px);
+  left:calc(-1 * (clamp(8px,3vw,28px) + var(--gutter)/2));
+  width:30px; height:30px;
+  transform:translateX(-50%);
+  display:block;
+  filter:drop-shadow(0 0 7px rgba(212,182,122,0.5));
+}
+.beat:first-child .node{ top:6px }
+html.js .node{ opacity:.22; transform:translateX(-50%) scale(.55); transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+html.js .node.lit{ opacity:1; transform:translateX(-50%) scale(1); }
+
+/* reveal */
+html.js .reveal{ opacity:0; transform:translateY(16px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+html.js .reveal.in{ opacity:1; transform:none; }
+html.js .reveal.d1{ transition-delay:.08s }
+html.js .reveal.d2{ transition-delay:.16s }
+html.js .reveal.d3{ transition-delay:.24s }
+
+/* type */
+.eyebrow{
+  font-family:"Playfair Display",Georgia,serif;
+  font-weight:600; font-size:13px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--gold);
+  margin:0 0 22px;
+}
+h1{
+  font-family:"Playfair Display",Georgia,serif;
+  font-weight:600;
+  font-size:clamp(2.5rem,1.35rem+4.7vw,4.5rem);
+  line-height:1.05; letter-spacing:-0.02em;
+  color:var(--cream);
+  margin:0 0 22px; max-width:14ch;
+}
+h1 em{ font-style:normal; color:var(--gold); }
+h2{
+  font-family:"Playfair Display",Georgia,serif;
+  font-weight:600;
+  font-size:clamp(1.85rem,1.25rem+2vw,2.85rem);
+  line-height:1.12; letter-spacing:-0.018em;
+  color:var(--cream);
+  margin:0 0 30px; max-width:18ch;
+}
+.lead{
+  font-style:italic; font-weight:500;
+  font-size:clamp(20px,18px+0.5vw,23px);
+  line-height:1.5; color:var(--cream-dim);
+  margin:0 0 34px; max-width:34ch;
+}
+
+/* primary button (GOLD reservation 1) */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:11px;
+  min-height:54px; padding:0 30px;
+  font-family:"Playfair Display",Georgia,serif; font-weight:600;
+  font-size:18px; letter-spacing:.01em;
+  color:#1a1408; text-decoration:none;
+  background:linear-gradient(135deg,var(--gold-soft),var(--gold) 60%,var(--gold-deep));
+  border-radius:999px;
+  box-shadow:0 0 0 1px rgba(240,217,159,.35), 0 18px 40px -16px rgba(124,92,214,.7), 0 10px 26px -14px rgba(212,182,122,.5);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 0 0 1px rgba(240,217,159,.5), 0 24px 52px -16px rgba(124,92,214,.85), 0 12px 30px -12px rgba(212,182,122,.6); }
+.btn:focus-visible{ outline:2px solid var(--gold-soft); outline-offset:4px; }
+.btn svg{ width:18px; height:18px; stroke:#1a1408; }
+
+/* hero */
+.hero-grid{ display:grid; gap:clamp(28px,5vw,52px); align-items:center; }
+@media(min-width:820px){ .hero-grid{ grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); } }
+.frame{
+  margin:0; position:relative; min-width:0;
+  padding:9px; border:1px solid var(--hairline); border-radius:6px;
+  background:linear-gradient(180deg,rgba(212,182,122,.06),rgba(13,10,20,0));
+}
+.frame::after{ content:""; position:absolute; inset:9px; border:1px solid rgba(212,182,122,.16); border-radius:3px; pointer-events:none; }
+.frame img{ display:block; width:100%; height:auto; border-radius:3px; }
+.hero-eye{ aspect-ratio:4/5; object-fit:cover; object-position:72% center; }
+@media(max-width:560px){ .hero-eye{ aspect-ratio:5/4; object-position:84% 40%; } }
+.frame figcaption{
+  font-style:italic; font-size:15px; font-weight:600; letter-spacing:.02em;
+  color:var(--muted); text-align:right; margin-top:11px;
+}
+
+/* occasion cards */
+.occ-grid{ display:grid; gap:16px; }
+@media(min-width:560px){ .occ-grid{ grid-template-columns:1fr 1fr; } }
+.occ{
+  appearance:none; text-align:left; cursor:pointer; min-width:0;
+  display:flex; flex-direction:column; gap:13px;
+  padding:24px 22px; min-height:44px;
+  background:var(--cosmos2); color:var(--cream-dim);
+  border:1px solid var(--hairline); border-radius:13px;
+  font:inherit;
+  transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease, background .25s ease;
+}
+.occ:hover{ transform:translateY(-3px); border-color:rgba(212,182,122,.5); box-shadow:0 18px 40px -22px rgba(124,92,214,.6); }
+.occ:focus-visible{ outline:2px solid var(--gold-soft); outline-offset:3px; }
+.occ.sel{ border-color:var(--gold); box-shadow:0 0 0 1px var(--gold), 0 18px 40px -22px rgba(212,182,122,.4); background:#1a1322; }
+.occ.memorial{ border-color:rgba(212,182,122,.55); box-shadow:0 0 0 1px rgba(212,182,122,.3) inset; }
+.occ-head{ display:flex; align-items:center; gap:12px; }
+.occ-head svg{ width:30px; height:30px; flex:0 0 auto; }
+.occ-tag{ font-family:"Playfair Display",Georgia,serif; font-weight:600; font-size:12px; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); }
+.occ-hook{ font-family:"Playfair Display",Georgia,serif; font-weight:500; font-size:21px; line-height:1.22; color:var(--cream); margin:0; }
+.occ-price{ font-family:"Playfair Display",Georgia,serif; font-weight:600; font-size:18px; color:var(--gold); letter-spacing:.01em; margin-top:auto; }
+
+/* tier cards */
+.tiers{ display:grid; gap:18px; }
+@media(min-width:720px){ .tiers{ grid-template-columns:1fr 1fr; align-items:stretch; } }
+.tier{
+  position:relative; min-width:0;
+  display:flex; flex-direction:column; gap:18px;
+  padding:30px 26px 28px;
+  background:var(--cosmos2);
+  border:1px solid var(--hairline); border-radius:16px;
+}
+.tier.featured{ box-shadow:0 0 46px -10px rgba(124,92,214,.32); }
+.badge{
+  position:absolute; top:-13px; left:26px;
+  font-family:"Playfair Display",Georgia,serif; font-weight:600;
+  font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--cream-dim); background:#211a2e;
+  border:1px solid var(--hairline); border-radius:999px;
+  padding:6px 14px;
+}
+.tier-name{ font-family:"Playfair Display",Georgia,serif; font-weight:600; font-size:17px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0; }
+.tier-price{ display:flex; align-items:baseline; gap:12px; }
+.tier-price .now{ font-family:"Playfair Display",Georgia,serif; font-weight:700; font-size:clamp(34px,30px+1.6vw,42px); color:var(--gold); line-height:1; font-variant-numeric:tabular-nums; }
+.tier-price .was{ font-family:"Cormorant",Georgia,serif; font-weight:600; font-size:21px; color:var(--muted); text-decoration:line-through; text-decoration-color:rgba(200,200,210,.5); }
+.ticks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.ticks li{ display:flex; gap:12px; align-items:flex-start; font-size:20px; line-height:1.4; color:var(--cream-dim); }
+.ticks svg{ width:21px; height:21px; flex:0 0 auto; margin-top:3px; }
+
+/* note card */
+.note{
+  position:relative; max-width:560px; min-width:0;
+  margin-top:6px; padding:32px 30px 26px;
+  background:linear-gradient(180deg,#181125,#120d1b);
+  border:1px solid var(--hairline); border-radius:14px;
+  box-shadow:0 30px 60px -34px rgba(124,92,214,.5);
+}
+.note .seal{ position:absolute; top:-20px; right:26px; width:40px; height:40px; filter:drop-shadow(0 4px 12px rgba(212,182,122,.45)); }
+.note-body{ font-family:"Cormorant",Georgia,serif; font-style:italic; font-weight:500; font-size:23px; line-height:1.52; color:var(--cream); margin:0; }
+.note-sign{ font-family:"Cormorant",Georgia,serif; font-style:italic; font-weight:600; font-size:21px; color:var(--gold-soft); text-align:right; margin:18px 0 0; }
+.note-label{ font-family:"Playfair Display",Georgia,serif; font-weight:600; font-size:13px; letter-spacing:.05em; color:var(--muted); margin:18px 0 0; }
+
+/* steps */
+.steps{ display:grid; gap:22px; }
+@media(min-width:720px){ .steps{ grid-template-columns:repeat(3,1fr); } }
+.reach-grid{ display:grid; gap:clamp(28px,5vw,48px); align-items:center; }
+@media(min-width:900px){ .reach-grid{ grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); } }
+.step{ min-width:0; display:flex; flex-direction:column; gap:12px; }
+.step-ic{ display:flex; align-items:center; justify-content:center; width:50px; height:50px; border:1px solid var(--hairline); border-radius:50%; background:rgba(212,182,122,.05); }
+.step-ic svg{ width:26px; height:26px; }
+.step h3{ font-family:"Playfair Display",Georgia,serif; font-weight:600; font-size:21px; color:var(--cream); margin:0; line-height:1.2; }
+.step p{ margin:0; font-size:20px; line-height:1.42; color:var(--muted); }
+
+/* proof */
+.quotes{ display:flex; flex-direction:column; gap:clamp(34px,5vw,52px); }
+.quote{ min-width:0; max-width:30ch; }
+.quote.b{ margin-left:auto; text-align:right; }
+blockquote{
+  margin:0; font-family:"Playfair Display",Georgia,serif; font-style:italic; font-weight:500;
+  font-size:clamp(22px,18px+1.2vw,29px); line-height:1.34; color:var(--cream);
+}
+.who{ font-family:"Playfair Display",Georgia,serif; font-weight:600; font-size:14px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-top:18px; }
+
+/* final */
+.final{ text-align:center; }
+.final h2{ margin-inline:auto; max-width:20ch; }
+.guarantee{
+  font-family:"Cormorant",Georgia,serif; font-style:italic; font-weight:600;
+  font-size:clamp(22px,19px+0.8vw,26px); line-height:1.4;
+  color:var(--gold); margin:0 auto 30px; max-width:30ch;
+}
+.final .btn{ margin-bottom:26px; }
+.price-clarity{
+  font-family:"Playfair Display",Georgia,serif; font-weight:500; font-size:19px;
+  color:var(--cream-dim); margin:0 0 36px; font-variant-numeric:tabular-nums;
+}
+.price-clarity b{ font-weight:700; color:var(--gold); }
+.trust{ display:flex; flex-wrap:wrap; justify-content:center; gap:14px 28px; }
+.trust span{ display:inline-flex; align-items:center; gap:9px; font-size:18px; font-weight:600; color:var(--muted); }
+.trust svg{ width:20px; height:20px; flex:0 0 auto; }
+
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto }
+  *{ animation:none !important; transition:none !important }
+  html.js .reveal{ opacity:1 !important; transform:none !important }
+  html.js .node{ opacity:1 !important; transform:translateX(-50%) scale(1) !important }
+  html.js .thread-line{ stroke-dashoffset:0 !important }
+}
+</style>
+</head>
+<body>
+
+<main class="flow">
+
+  <!-- the single constellation rail -->
+  <svg class="thread" viewBox="0 0 10 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="railgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8b6f3a"/>
+        <stop offset="0.5" stop-color="#d4b67a"/>
+        <stop offset="1" stop-color="#8b6f3a"/>
+      </linearGradient>
+    </defs>
+    <path class="thread-line" pathLength="1" d="M5 0 V1000"/>
+  </svg>
+
+  <!-- 1. HERO -->
+  <header class="beat reveal">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">A Little Souls gift</p>
+        <h1>Be the one who finally put the <em>bond</em> into words.</h1>
+        <p class="lead">A private soul reading of their pet, written from the real sky the night they were born.</p>
+        <a class="btn" href="#">Begin their reading
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </a>
+      </div>
+      <figure class="frame">
+        <img class="hero-eye" src="https://www.littlesouls.app/readings/hero/black-cat-galaxy-eye.webp" width="900" height="1125" alt="A spiral galaxy turning inside a black cat's eye." loading="eager" fetchpriority="high" decoding="async">
+        <figcaption>The sky, the night they were born.</figcaption>
+      </figure>
+    </div>
+  </header>
+
+  <!-- 2. WHO IT'S FOR -->
+  <section class="beat reveal" aria-labelledby="occ-h">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <h2 id="occ-h">Pick the moment it is for.</h2>
+    <div class="occ-grid">
+      <button class="occ" type="button" aria-pressed="false">
+        <span class="occ-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22V11"/><path d="M12 13C8.7 13 6 10.3 6 7c3.3 0 6 2.7 6 6Z"/><path d="M12 15c0-2.2 1.8-4 4-4 0 2.2-1.8 4-4 4"/><path d="M18 3c.2 1.6 1.2 2.6 2.8 2.8C19.2 6 18.2 7 18 8.6 17.8 7 16.8 6 15.2 5.8 16.8 5.6 17.8 4.6 18 3Z" fill="#d4b67a" stroke="none"/></svg>
+          <span class="occ-tag">New pet just home</span>
+        </span>
+        <p class="occ-hook">For the week the whole house changed.</p>
+        <span class="occ-price">from £29</span>
+      </button>
+
+      <button class="occ" type="button" aria-pressed="false">
+        <span class="occ-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16.5 3.5a9 9 0 1 0 0 17 7.2 7.2 0 0 1 0-17Z"/><path d="M19.5 4.6c.1 1 .8 1.7 1.8 1.8-1 .1-1.7.8-1.8 1.8-.1-1-.8-1.7-1.8-1.8 1-.1 1.7-.8 1.8-1.8Z" fill="#d4b67a" stroke="none"/><path d="M21 10c.1.8.6 1.3 1.4 1.4-.8.1-1.3.6-1.4 1.4-.1-.8-.6-1.3-1.4-1.4.8-.1 1.3-.6 1.4-1.4Z" fill="#d4b67a" stroke="none"/></svg>
+          <span class="occ-tag">Had their pet for years</span>
+        </span>
+        <p class="occ-hook">For the one they think they already know by heart.</p>
+        <span class="occ-price">from £29</span>
+      </button>
+
+      <button class="occ memorial" type="button" aria-pressed="false">
+        <span class="occ-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.5 21v-9h5v9"/><path d="M8 21h8"/><path d="M12 12v-1.8"/><path d="M12 4.5c1.6 1.9 2.4 3.2 2.4 4.7a2.4 2.4 0 0 1-4.8 0c0-1.5.8-2.8 2.4-4.7Z"/><path d="M12 6.8c.9 1.1 1.3 1.9 1.3 2.6a1.3 1.3 0 0 1-2.6 0c0-.7.4-1.5 1.3-2.6Z" fill="#f0d99f" stroke="none"/></svg>
+          <span class="occ-tag">Their pet has passed</span>
+        </span>
+        <p class="occ-hook">For the quiet after, so the room still remembers them.</p>
+        <span class="occ-price">£49</span>
+      </button>
+
+      <button class="occ" type="button" aria-pressed="false">
+        <span class="occ-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 7c.5 3.2 2.8 5.5 6 6-3.2.5-5.5 2.8-6 6-.5-3.2-2.8-5.5-6-6 3.2-.5 5.5-2.8 6-6Z"/><path d="M18 4c.2 1.6 1 2.4 2.6 2.6-1.6.2-2.4 1-2.6 2.6-.2-1.6-1-2.4-2.6-2.6 1.6-.2 2.4-1 2.6-2.6Z" fill="#d4b67a" stroke="none"/></svg>
+          <span class="occ-tag">Their pet's birthday</span>
+        </span>
+        <p class="occ-hook">For the one day a year that is entirely theirs.</p>
+        <span class="occ-price">from £29</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. CHOOSE THE DEPTH -->
+  <section class="beat reveal" aria-labelledby="depth-h">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <h2 id="depth-h">Choose how deep it goes.</h2>
+    <div class="tiers">
+      <article class="tier">
+        <p class="tier-name">Soul Reading</p>
+        <div class="tier-price"><span class="now">£29</span><span class="was">£49</span></div>
+        <ul class="ticks">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Their full personality, read from where every planet truly stood.</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5 10 17.5 19 6.5"/></svg>The reasons behind the moods they both live with.</li>
+        </ul>
+      </article>
+
+      <article class="tier featured">
+        <span class="badge">Most chosen</span>
+        <p class="tier-name">Soul Bond</p>
+        <div class="tier-price"><span class="now">£49</span><span class="was">£79</span></div>
+        <ul class="ticks">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Everything in the Soul Reading, in far more depth.</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5 10 17.5 19 6.5"/></svg>The bond they share, and why their pet chose them.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- 4. WRITE YOUR LINE -->
+  <section class="beat reveal" aria-labelledby="note-h">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <h2 id="note-h">Your words go first.</h2>
+    <figure class="note">
+      <svg class="seal" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+      <p class="note-body">Bella found you in the worst week you ever had, and never once left your side. This is the rest of who she is. Happy birthday.</p>
+      <p class="note-sign">Megan</p>
+      <figcaption class="note-label">A sample note. Yours waits at the very top of their reading.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 5. HOW IT REACHES THEM -->
+  <section class="beat reveal" aria-labelledby="reach-h">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <h2 id="reach-h">How it reaches them.</h2>
+    <div class="reach-grid">
+      <div class="steps">
+        <div class="step">
+          <span class="step-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.5 4 20 8.5 9.7 18.8 5.5 20l1.2-4.2Z"/><path d="m13.5 6 4.5 4.5"/><path d="M4 21c2.5-1.6 6-1.6 9 0"/></svg></span>
+          <h3>Write your line.</h3>
+          <p>It waits at the top of their reading.</p>
+        </div>
+        <div class="step">
+          <span class="step-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9Z"/></svg></span>
+          <h3>Hand it over, or schedule it.</h3>
+          <p>Give them a private link, or send it straight to them.</p>
+        </div>
+        <div class="step">
+          <span class="step-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 9c.2 1.8 1 2.6 2.8 2.8-1.8.2-2.6 1-2.8 2.8-.2-1.8-1-2.6-2.8-2.8 1.8-.2 2.6-1 2.8-2.8Z" fill="#d4b67a" stroke="none"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.2 5.2 7 7M17 17l1.8 1.8M18.8 5.2 17 7M7 17l-1.8 1.8"/></svg></span>
+          <h3>It opens like a reveal.</h3>
+          <p>A private page of their own. Valid a full year.</p>
+        </div>
+      </div>
+      <figure class="frame">
+        <img src="https://www.littlesouls.app/readings/hero/cockapoo-reading-tablet.webp" width="1672" height="941" alt="A soul reading open on a tablet, a cockapoo resting on its owner's lap by a starlit window." loading="lazy" decoding="async" style="aspect-ratio:16/10;object-fit:cover;object-position:50% 38%;">
+        <figcaption>The moment it opens for them.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 6. PROOF -->
+  <section class="beat reveal" aria-labelledby="proof-h">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <h2 id="proof-h">Then they showed me the phone.</h2>
+    <div class="quotes">
+      <figure class="quote">
+        <blockquote>He read the personality section and said how do they know that. First time he has been impressed by a gift.</blockquote>
+        <figcaption class="who">Liam, Cork</figcaption>
+      </figure>
+      <figure class="quote b">
+        <blockquote>I sent it after her collie passed. It caught how he checked the room one last time before bed. She said it felt like someone remembered him too.</blockquote>
+        <figcaption class="who">Anna, Portland</figcaption>
+      </figure>
+      <figure class="quote">
+        <blockquote>The part about their bond through quiet evening sits has her showing me the phone every time the cat curls up.</blockquote>
+        <figcaption class="who">Ryan, Austin</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 7. FINAL -->
+  <section class="beat reveal final" aria-labelledby="final-h">
+    <svg class="node" viewBox="0 0 24 24" fill="#d4b67a" stroke="none" aria-hidden="true" focusable="false"><path d="M12 1.5c.7 5.9 4.6 9.8 10.5 10.5C16.6 12.7 12.7 16.6 12 22.5 11.3 16.6 7.4 12.7 1.5 12 7.4 11.3 11.3 7.4 12 1.5Z"/></svg>
+    <h2 id="final-h">The gift they will still talk about next year.</h2>
+    <p class="guarantee">If it does not feel like them, every penny comes back.</p>
+    <a class="btn" href="#">Begin their reading
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+    </a>
+    <p class="price-clarity">Soul Reading <b>£29</b> · Soul Bond <b>£49</b> · Memorial <b>£49</b></p>
+    <div class="trust">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><path d="M12 15v2.5"/></svg>Private link</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M17 3.5c.2 1.9 1.1 2.8 3 3-1.9.2-2.8 1.1-3 3-.2-1.9-1.1-2.8-3-3 1.9-.2 2.8-1.1 3-3Z" fill="#d4b67a" stroke="none"/><path d="M13 10 4 19"/><path d="M14.5 13.5 11 17"/><path d="M9 11l-3 3"/></svg>Ready in minutes</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="#d4b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-22 12 12)"/><path d="M12 9.6c.2 1.4.8 2 2.2 2.2-1.4.2-2 .8-2.2 2.2-.2-1.4-.8-2-2.2-2.2 1.4-.2 2-.8 2.2-2.2Z" fill="#d4b67a" stroke="none"/><circle cx="19.5" cy="8.7" r="1.3" fill="#d4b67a" stroke="none"/></svg>Valid a full year</span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  root.className="js";
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reveals=[].slice.call(document.querySelectorAll(".reveal"));
+  var nodes=[].slice.call(document.querySelectorAll(".node"));
+  var line=document.querySelector(".thread-line");
+
+  if(reduce){
+    reveals.forEach(function(n){n.classList.add("in");});
+    nodes.forEach(function(n){n.classList.add("lit");});
+    if(line) line.style.strokeDashoffset="0";
+  }else{
+    if("IntersectionObserver" in window){
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if(e.isIntersecting){
+            e.target.classList.add("in");
+            var nd=e.target.querySelector(".node");
+            if(nd) nd.classList.add("lit");
+            io.unobserve(e.target);
+          }
+        });
+      },{threshold:0.18,rootMargin:"0px 0px -8% 0px"});
+      reveals.forEach(function(n){io.observe(n);});
+    }else{
+      reveals.forEach(function(n){n.classList.add("in");});
+      nodes.forEach(function(n){n.classList.add("lit");});
+    }
+
+    // constellation rail draws in with scroll
+    var flow=document.querySelector(".flow");
+    var ticking=false;
+    function draw(){
+      ticking=false;
+      if(!line||!flow) return;
+      var r=flow.getBoundingClientRect();
+      var vh=window.innerHeight||document.documentElement.clientHeight;
+      var p=(vh*0.58 - r.top)/r.height;
+      if(p<0)p=0; if(p>1)p=1;
+      line.style.strokeDashoffset=String(1-p);
+    }
+    function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(draw); } }
+    window.addEventListener("scroll",onScroll,{passive:true});
+    window.addEventListener("resize",onScroll,{passive:true});
+    draw();
+  }
+
+  // occasion cards: tasteful single-select
+  var occs=[].slice.call(document.querySelectorAll(".occ"));
+  occs.forEach(function(b){
+    b.addEventListener("click",function(){
+      var on=b.classList.contains("sel");
+      occs.forEach(function(o){o.classList.remove("sel");o.setAttribute("aria-pressed","false");});
+      if(!on){ b.classList.add("sel"); b.setAttribute("aria-pressed","true"); }
+    });
+  });
+})();
+</script>
+
+<noscript>
+<style>.reveal{opacity:1!important;transform:none!important}.node{opacity:1!important}.thread-line{stroke-dashoffset:0!important}</style>
+</noscript>
+
+</body>
+</html>
