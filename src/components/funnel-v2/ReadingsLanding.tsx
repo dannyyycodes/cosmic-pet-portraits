@@ -601,9 +601,6 @@ function IntentFork() {
         <h2 id="ls-path-title" className="ls-path-title ls-path-rv" style={revealDelay(0.06)}>
           Who is this reading for?
         </h2>
-        <p className="ls-path-sub ls-path-rv" style={revealDelay(0.1)}>
-          Pick the path that fits your companion. It shapes the whole reading, and never changes the price.
-        </p>
         <div className="ls-path-cards">
           <button
             type="button"
