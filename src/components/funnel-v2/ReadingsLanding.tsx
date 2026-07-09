@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
+import { ArrowRight, ChevronDown, Feather, Heart, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -399,6 +399,7 @@ export function ReadingsLanding() {
       {revealed && (
         <>
           <FullReadingOpens />
+          <AfterTheirReading />
           <ReviewsWall />
           <CheckoutSection
             checkoutRef={checkoutRef}
@@ -504,33 +505,15 @@ function HeroSection() {
    downstream section treats as discovery. A memorial choice hushes the
    passage and the checkout. Neither answer changes price or tier, and either
    choice reopens via "change" — grief state, and discovery, are never fixed. */
-// Bespoke celestial marks for the two paths. Dots of light on a thread, a dawn
-// horizon, a crescent — the brand's own star metaphor, drawn first-party. No
-// sparkles, no icon-set glyphs. currentColor inherits the path's gold/violet.
+// Path icons are intentionally plain Lucide marks. Danny specified Heart for the
+// living companion path and Feather for memorial; keep these as recognizable
+// library icons rather than bespoke celestial drawings.
 function DiscoveryMark() {
-  return (
-    <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
-      <circle className="ls-pm-core" cx="48" cy="44" r="16" />
-      <path className="ls-pm-line" d="M16 68 Q48 58 80 68" strokeWidth="1.4" strokeLinecap="round" />
-      <path className="ls-pm-thread" d="M27 32 L48 44 L69 27" strokeWidth="1" />
-      <circle className="ls-pm-star" cx="48" cy="44" r="3.4" />
-      <circle className="ls-pm-star s2" cx="27" cy="32" r="2" />
-      <circle className="ls-pm-star s3" cx="69" cy="27" r="2" />
-    </svg>
-  );
+  return <Heart strokeWidth={1.45} aria-hidden="true" />;
 }
 
 function MemorialMark() {
-  return (
-    <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
-      <circle className="ls-pm-core" cx="42" cy="46" r="18" />
-      <path className="ls-pm-crescent" d="M55 26 a21 21 0 1 0 0 42 a15.5 15.5 0 1 1 0 -42 Z" />
-      <path className="ls-pm-thread" d="M66 34 L75 52 L61 63" strokeWidth="1" />
-      <circle className="ls-pm-star" cx="75" cy="52" r="3" />
-      <circle className="ls-pm-star s2" cx="66" cy="34" r="1.8" />
-      <circle className="ls-pm-star s3" cx="61" cy="63" r="1.8" />
-    </svg>
-  );
+  return <Feather strokeWidth={1.45} aria-hidden="true" />;
 }
 
 function IntentFork() {
@@ -3472,6 +3455,142 @@ function FullReadingOpens() {
 // memorial path, so it hides the instant memorial intent is chosen and stays
 // hidden. Each card is its own .ls-reveal node, so the scroll paces them in one
 // at a time (staggered inside a row); static end-state under reduced motion.
+const AFTER_READING_BENEFITS = [
+  { roman: "I", text: "You'll understand why they chose you." },
+  { roman: "II", text: "Speak their love language, fluently." },
+  { roman: "III", text: "Finally put into words the bond you've always felt." },
+  { roman: "IV", text: "Hear what they can't say." },
+] as const;
+
+function AfterTheirReading() {
+  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+  if (memorialIntent) return null;
+
+  return (
+    <section className="ls-after ls-parallax-band" aria-labelledby="ls-after-title">
+      <div className="ls-after-hearts" aria-hidden="true" />
+      <div className="ls-after-inner">
+        <header className="ls-after-head ls-reveal">
+          <h2 id="ls-after-title" className="ls-after-title">
+            After <em>Their</em> Reading
+          </h2>
+        </header>
+        <div className="ls-after-grid">
+          {AFTER_READING_BENEFITS.map((item, i) => (
+            <article
+              key={item.roman}
+              className="ls-after-card ls-reveal"
+              style={{ "--ls-delay": `${0.07 + i * 0.08}s` } as CSSProperties}
+            >
+              <span className="ls-after-roman" aria-hidden="true">{item.roman}.</span>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <style>{`
+        .ls-after {
+          position: relative;
+          overflow: hidden;
+          background:
+            radial-gradient(100% 76% at 50% 0%, rgba(212,182,122,0.08), transparent 58%),
+            linear-gradient(180deg, ${C.cosmos} 0%, ${C.cosmos2} 52%, ${C.cosmos} 100%);
+          padding: clamp(34px, 6svh, 74px) 20px clamp(36px, 6svh, 76px);
+        }
+        .ls-after-hearts {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.11;
+          background-image:
+            radial-gradient(circle at 20% 22%, rgba(247,231,182,0.45) 0 1px, transparent 2px),
+            radial-gradient(circle at 76% 18%, rgba(154,126,230,0.45) 0 1px, transparent 2px),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M42 56c-9-7-16-13-16-21 0-5 4-9 9-9 3 0 6 2 7 4 1-2 4-4 7-4 5 0 9 4 9 9 0 8-7 14-16 21z' fill='none' stroke='%23f7e7b6' stroke-opacity='.52' stroke-width='1.15'/%3E%3C/svg%3E");
+          background-size: 180px 180px, 220px 220px, 84px 84px;
+          background-position: 0 0, 40px 60px, center;
+          mask-image: radial-gradient(ellipse at center, #000 0%, #000 58%, transparent 86%);
+        }
+        .ls-after-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+        .ls-after-head { display: flex; justify-content: center; margin: 0 auto clamp(20px, 4vw, 34px); }
+        .ls-after-title {
+          margin: 0;
+          padding: clamp(13px, 2.2vw, 17px) clamp(24px, 4vw, 36px);
+          border-radius: 14px;
+          border: 1px solid rgba(212,182,122,0.2);
+          background: rgba(255,253,245,0.94);
+          color: #141210;
+          font-family: "Fraunces", Georgia, serif;
+          font-weight: 500;
+          font-size: clamp(1.65rem, 5.4vw, 2.38rem);
+          line-height: 1.08;
+          letter-spacing: 0;
+          text-align: center;
+          box-shadow: 0 14px 42px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        .ls-after-title em { color: #141210; font-style: italic; font-weight: 500; }
+        .ls-after-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        .ls-after-card {
+          position: relative;
+          min-height: 94px;
+          display: flex;
+          align-items: center;
+          gap: 17px;
+          padding: clamp(18px, 3vw, 24px);
+          border-radius: 14px;
+          border: 1px solid rgba(212,182,122,0.2);
+          background: rgba(255,253,245,0.91);
+          color: #1f1c18;
+          box-shadow:
+            0 16px 46px rgba(0,0,0,0.20),
+            0 1px 2px rgba(212,182,122,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.7);
+          overflow: hidden;
+        }
+        .ls-after-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(180deg, rgba(212,182,122,0.16), transparent 45%);
+        }
+        .ls-after-roman {
+          position: relative;
+          flex: 0 0 auto;
+          width: 34px;
+          color: ${C.gold};
+          font-family: "Fraunces", Georgia, serif;
+          font-style: italic;
+          font-weight: 500;
+          font-size: clamp(1rem, 3vw, 1.16rem);
+          letter-spacing: 0.06em;
+        }
+        .ls-after-card p {
+          position: relative;
+          margin: 0;
+          color: #1f1c18;
+          font-family: "Fraunces", Georgia, serif;
+          font-weight: 500;
+          font-size: clamp(1.06rem, 3.5vw, 1.3rem);
+          line-height: 1.35;
+          letter-spacing: 0;
+        }
+        @media (min-width: 720px) {
+          .ls-after-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+          .ls-after-card { min-height: 118px; align-items: flex-start; flex-direction: column; gap: 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ls-after-hearts { opacity: 0.08; }
+        }
+      `}</style>
+    </section>
+  );
+}
+
 function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
   useEffect(() => {
