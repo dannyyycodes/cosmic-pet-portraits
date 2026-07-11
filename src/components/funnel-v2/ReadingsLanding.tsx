@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, ChevronDown, Feather, Heart, Volume2 } from "lucide-react";
+import { ArrowRight, AudioLines, BookOpen, Camera, ChevronDown, Feather, Heart, Mail, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -370,7 +370,7 @@ export function ReadingsLanding() {
     return () => cancelAnimationFrame(id);
   }, [revealed]);
   useCosmicParallax(pageRef);
-  useScrollReveal(pageRef);
+  useScrollReveal(pageRef, revealed);
   const reduceMotion = useReducedMotion();
 
   // Lenis smooth scroll for the whole page (native touch momentum kept on mobile).
@@ -399,6 +399,8 @@ export function ReadingsLanding() {
       {revealed && (
         <>
           <FullReadingOpens />
+          <KeepsakeMoment />
+          <ValueMoments />
           <AfterTheirReading />
           <ReviewsWall />
           <CheckoutSection
@@ -452,11 +454,17 @@ function useCosmicParallax(pageRef: RefObject<HTMLElement>) {
 // Scroll-reveal: wording rises + fades in as each band enters the viewport, so
 // the copy "pops" instead of sitting flat. Transform/opacity only (GPU), fires
 // once per node, and falls back to instantly-visible under reduced-motion.
-function useScrollReveal(pageRef: RefObject<HTMLElement>) {
+// Re-runs when `revealed` flips true, because the gated lower funnel mounts a
+// fresh batch of .ls-reveal nodes AFTER the first pass has already observed the
+// page — without the second pass those sections would stay at opacity 0.
+function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
   useEffect(() => {
+    void revealed;
     const page = pageRef.current;
     if (!page || typeof window === "undefined") return;
-    const nodes = Array.from(page.querySelectorAll<HTMLElement>(".ls-reveal"));
+    const nodes = Array.from(page.querySelectorAll<HTMLElement>(".ls-reveal")).filter(
+      (node) => !node.classList.contains("is-in"),
+    );
     if (!nodes.length) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || !("IntersectionObserver" in window)) {
@@ -476,7 +484,7 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>) {
     );
     nodes.forEach((node) => io.observe(node));
     return () => io.disconnect();
-  }, [pageRef]);
+  }, [pageRef, revealed]);
 }
 
 function HeroSection() {
@@ -1953,15 +1961,6 @@ const FREE_PLANETS: FreePlanet[] = [
   },
 ];
 
-// The five sealed parts, named in the desire turn (approved copy, verbatim).
-const FREE_DARK: string[] = [
-  "What they are afraid of, and what steadies them when it comes.",
-  "How they love you back, in the one language only they use.",
-  "What they carry from before you, and what they let go once they were yours.",
-  "Who they trust on sight, and who they never quite forgive.",
-  "What they want that they cannot ask you for.",
-];
-
 // The Rising placement is never fabricated: a date alone cannot draw a rising, it
 // turns on the exact minute and place they arrived. So this slot tells the truth
 // and pulls forward, while Sun and Moon carry their real computed signs.
@@ -2093,19 +2092,13 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         );
       })}
 
-      {/* The desire turn: the gap opens. */}
+      {/* The desire turn: the gap opens. The sealed parts are itemized exactly
+          once, by the real-planet section this hands off to, so the turn stays
+          a single held breath instead of a second list. */}
       <section className="ls-fr-turn">
         <p className="ls-fr-turn-lead ls-fr-rv">You have met three of them. Who they are, how they feel, the face they show first.</p>
-        <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.05)}>There are ten more, still dark on the wheel:</p>
-        <ul className="ls-fr-dark">
-          {FREE_DARK.map((d, i) => (
-            <li key={i} className="ls-fr-dark-row ls-fr-rv" style={revealDelay(0.05 + i * 0.05)}>
-              <span className="ls-fr-dark-dot" aria-hidden="true" />
-              <span>{d}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="ls-fr-turn-own ls-fr-rv">Three of thirteen, yours already.</p>
+        <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.05)}>There are ten more, still dark on the wheel.</p>
+        <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.1)}>Three of thirteen, yours already.</p>
         <p className="ls-fr-turn-one ls-fr-rv" style={revealDelay(0.05)}>And there is one thing no single planet can show you.</p>
         <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together. The reason they pick the exact spot on you they always pick. The reason they watch you the way they watch you.</p>
         <p className="ls-fr-turn-whole ls-fr-rv" style={revealDelay(0.16)}>The whole of them, read in one place.</p>
@@ -2150,11 +2143,11 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); filter: brightness(0.86) contrast(1.05) saturate(1.03); background: #050310; }
         /* STILL day/night shading, light from the upper-left. No sweep. */
         .ls-fr-term { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%; transform: none; pointer-events: none; background: radial-gradient(circle at 66% 40%, rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%); }
-        /* the one moving light per world — distinct per key, low intensity. */
+        /* the one moving light per world - distinct per key, low intensity. */
         .ls-fr-spec { position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; border-radius: 50%; transform: none; mix-blend-mode: screen; pointer-events: none; background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--glow) 32%, white) 0%, color-mix(in srgb, var(--glow) 14%, transparent) 26%, transparent 50%); opacity: 0; will-change: opacity, transform; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
-        /* Moon — a single gentle light-shift */
+        /* Moon - a single gentle light-shift */
         .ls-fr-planet.is-moon .ls-fr-spec { animation-name: lsFrGlow; animation-duration: 9.5s; }
-        /* Rising (the horizon) — a slow cool sheen */
+        /* Rising (the horizon) - a slow cool sheen */
         .ls-fr-planet.is-rising .ls-fr-spec { background: radial-gradient(ellipse 60% 116% at 40% 28%, color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%); animation-name: lsFrSheen; animation-duration: 13s; }
         @keyframes lsFrGlow { 0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); } 50% { opacity: 0.34; transform: translate(6%, 2%); } }
         @keyframes lsFrSheen { 0%, 100% { opacity: 0.10; transform: translate(-9%, -6%); } 50% { opacity: 0.28; transform: translate(7%, 6%); } }
@@ -2189,9 +2182,6 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-turn::before { content: ""; position: absolute; top: 0; left: 50%; width: 1px; height: clamp(34px, 7svh, 78px); transform: translateX(-50%); background: linear-gradient(180deg, transparent, ${C.lineViolet}); }
         .ls-fr-turn-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.12; letter-spacing: -0.015em; }
         .ls-fr-turn-sub { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.6vw, 1.2rem); line-height: 1.5; }
-        .ls-fr-dark { list-style: none; margin: clamp(4px, 1vw, 10px) 0; padding: 0; width: 100%; max-width: 40ch; display: flex; flex-direction: column; gap: clamp(10px, 2vw, 15px); }
-        .ls-fr-dark-row { display: flex; align-items: flex-start; gap: 14px; text-align: left; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.42; }
-        .ls-fr-dark-dot { flex: 0 0 auto; margin-top: 0.52em; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, rgba(154,126,230,0.5), rgba(20,16,30,0.9)); box-shadow: inset 0 0 0 1px rgba(154,126,230,0.4); }
         .ls-fr-turn-own { margin: clamp(10px, 2vw, 18px) 0 0; color: ${C.goldSoft}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.15rem); line-height: 1.08; letter-spacing: -0.015em; }
         .ls-fr-turn-one { margin: clamp(14px, 3vw, 24px) 0 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); line-height: 1.45; }
         .ls-fr-turn-what { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 2.9vw, 1.3rem); line-height: 1.46; }
@@ -2974,9 +2964,6 @@ function CheckoutSection({
           <header className="ls-pricelead">
             <p className="ls-pricelead-eyebrow ls-reveal">The full soul reading</p>
             <h2 className="ls-pricelead-title ls-reveal" style={revealDelay(0.05)}>Open all of who they are.</h2>
-            <p className="ls-pricelead-sub ls-reveal" style={revealDelay(0.1)}>
-              Every placement, every pattern, drawn into one soul reading.
-            </p>
           </header>
         )}
         <div className="ls-checkout-shell mx-auto max-w-6xl p-3 sm:p-5">
@@ -2999,8 +2986,7 @@ function CheckoutSection({
       <style>{`
         .ls-pricelead { max-width: 640px; margin: 0 auto clamp(22px, 4vw, 40px); text-align: center; }
         .ls-pricelead-eyebrow { margin: 0 0 12px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
-        .ls-pricelead-title { margin: 0 0 12px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 5.6vw, 3rem); line-height: 1.05; letter-spacing: -0.018em; }
-        .ls-pricelead-sub { margin: 0 auto; max-width: 40ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.4vw, 1.18rem); line-height: 1.5; }
+        .ls-pricelead-title { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 5.6vw, 3rem); line-height: 1.05; letter-spacing: -0.018em; }
       `}</style>
     </section>
   );
@@ -3188,10 +3174,10 @@ function FullReadingOpens() {
             <>
               <p className="ls-rs-eyebrow ls-rs-rv">The rest of who they are</p>
               <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
-                You have met three parts of them.
+                The sky did not stop at three.
               </h2>
               <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
-                Nine more make up who they are.
+                These worlds stood over them the day they arrived. Each holds a part of them still waiting to be read.
               </p>
             </>
           )}
@@ -3237,7 +3223,7 @@ function FullReadingOpens() {
           <div className="ls-rs-close ls-rs-rv">
             <h2 className="ls-rs-close-title">Break every seal.</h2>
             <p className="ls-rs-close-line">
-              The full reading opens all nine, each one written for this soul alone and no other.
+              The full reading opens them all, written for this soul alone and no other.
             </p>
           </div>
         )}
@@ -3265,11 +3251,11 @@ function FullReadingOpens() {
         .ls-rs-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
         .ls-rs-lead { margin: 0 auto; max-width: 44ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
 
-        /* the sealed sky — a tight alternating column of real worlds */
+        /* the sealed sky - a tight alternating column of real worlds */
         .ls-rs-sky { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(30px, 6vw, 54px); }
         .ls-rs-row { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
 
-        /* the planet (shared ASMR machine — light crosses it, it never spins) */
+        /* the planet (shared ASMR machine - light crosses it, it never spins) */
         .ls-rs-stage {
           position: relative; flex: 0 0 auto; display: grid; place-items: center;
           width: clamp(150px, 44vw, 208px); height: clamp(150px, 44vw, 208px);
@@ -3299,7 +3285,7 @@ function FullReadingOpens() {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
           transform: scale(1.03); filter: brightness(0.82) contrast(1.04) saturate(1.02); background: #050310;
         }
-        /* STILL day/night shading (no sweep) — light reads from the upper-left,
+        /* STILL day/night shading (no sweep) - light reads from the upper-left,
            a soft shadow settles on the lower-right. Static, so it never draws
            the eye; the only motion is the per-world light below, and it differs
            for every planet (no two share the same terminator sweep). */
@@ -3309,7 +3295,7 @@ function FullReadingOpens() {
           background: radial-gradient(circle at 66% 40%,
             rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%);
         }
-        /* the one moving light per world — minimal, low intensity, distinct by
+        /* the one moving light per world - minimal, low intensity, distinct by
            kind. Base carries no animation-name (nothing runs) until a kind rule
            names one; play-state stays paused until the disc is on screen. */
         .ls-rs-spec {
@@ -3322,26 +3308,26 @@ function FullReadingOpens() {
           animation-timing-function: ease-in-out; animation-iteration-count: infinite;
           animation-delay: calc(var(--rsi, 0) * -0.8s); animation-play-state: paused;
         }
-        /* rocky worlds — a single, gentle light-shift */
+        /* rocky worlds - a single, gentle light-shift */
         .ls-rs-disc.is-rocky .ls-rs-spec { animation-name: lsRsGlow; animation-duration: 9.5s; }
-        /* gas giants — a slow band of light drifting across the disc */
+        /* gas giants - a slow band of light drifting across the disc */
         .ls-rs-disc.is-gas .ls-rs-spec {
           background: linear-gradient(96deg, transparent 14%, color-mix(in srgb, var(--glow) 14%, transparent) 34%,
             color-mix(in srgb, var(--glow) 30%, white) 50%, color-mix(in srgb, var(--glow) 14%, transparent) 66%, transparent 86%);
           animation-name: lsRsBands; animation-duration: 16s; animation-timing-function: linear;
         }
-        /* ice giants — a cool diagonal sheen */
+        /* ice giants - a cool diagonal sheen */
         .ls-rs-disc.is-ice .ls-rs-spec {
           background: radial-gradient(ellipse 58% 118% at 38% 28%,
             color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%);
           animation-name: lsRsSheen; animation-duration: 13s;
         }
-        /* Saturn — mostly still; a soft glint crosses the rings now and then */
+        /* Saturn - mostly still; a soft glint crosses the rings now and then */
         .ls-rs-disc.rs-saturn .ls-rs-spec {
           background: linear-gradient(74deg, transparent 42%, color-mix(in srgb, var(--glow) 34%, white) 50%, transparent 58%);
           animation-name: lsRsRing; animation-duration: 12s; animation-delay: -3s;
         }
-        /* Saturn — hold the full rings inside the circular frame (square 512 asset) */
+        /* Saturn - hold the full rings inside the circular frame (square 512 asset) */
         .ls-rs-disc.rs-saturn .ls-rs-photo { transform: scale(0.98); filter: brightness(0.92) contrast(1.03) saturate(1.02); }
         @keyframes lsRsGlow {
           0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); }
@@ -3393,12 +3379,12 @@ function FullReadingOpens() {
         .ls-rs-seal { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
         .ls-rs-seal svg { width: 12px; height: 13px; }
 
-        /* the close — ache only, no price, no button (pricing waits below reviews) */
+        /* the close - ache only, no price, no button (pricing waits below reviews) */
         .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
         .ls-rs-close-title { margin: 0 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.06; letter-spacing: -0.015em; }
         .ls-rs-close-line { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.5vw, 1.18rem); line-height: 1.55; }
 
-        /* reveal — opacity + rise on mobile, blur added on desktop */
+        /* reveal - opacity + rise on mobile, blur added on desktop */
         .ls-rs-rv { opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
         .ls-rs-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
 
@@ -3415,7 +3401,7 @@ function FullReadingOpens() {
           .ls-rs-rv[data-in] { filter: blur(0); }
         }
 
-        /* memorial — the same real worlds, hushed: softer light + lower contrast,
+        /* memorial - the same real worlds, hushed: softer light + lower contrast,
            no seal and no pay-pressure. Still lit, still theirs. */
         .ls-rs.is-memorial .ls-rs-wash {
           background:
@@ -3429,11 +3415,321 @@ function FullReadingOpens() {
         @media (prefers-reduced-motion: reduce) {
           .ls-rs-halo, .ls-rs-disc, .ls-rs-term, .ls-rs-spec, .ls-rs-dust span { animation: none !important; }
           .ls-rs-term { display: none !important; }
-          .ls-rs-spec { opacity: 0.32 !important; transform: translate(-50%, -50%) !important; }
+          .ls-rs-spec { opacity: 0.32 !important; transform: none !important; }
           .ls-rs-photo { filter: brightness(0.94) contrast(1.03) saturate(1.02) !important; }
           .ls-rs-halo { opacity: 0.58 !important; transform: none !important; }
           .ls-rs-stage { transform: none !important; }
           .ls-rs-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+// ── The keepsake moment ───────────────────────────────────────────────────────
+// Ported from the approved keepsake preview: one light keepsake card with a real
+// pet portrait held at its heart, rotating through seven very different souls so
+// every visitor sees a shape like their own. The gold cue names the promise
+// ("their photo goes here") and the turn beneath makes it personal. Discovery
+// path only — the memorial path keeps its hush, no keepsake rung, no upsell.
+// Portraits are served first-party (copied from the approved content set) so the
+// strict img-src CSP never blocks them and the card paints from our own edge.
+const KEEPSAKE_BASE = "/pets/";
+const KEEPSAKE_V = "";
+interface KeepsakePet { name: string; kind: string; img: string; born: string; line: string }
+const KEEPSAKE_PETS: KeepsakePet[] = [
+  { name: "Poppy", kind: "a cockapoo", img: "pet-cockapoo.webp", born: "Born 2 May 2021", line: "Here to remind you that joy is allowed today." },
+  { name: "Bruno", kind: "a French bulldog", img: "pet-frenchie.webp", born: "Born 19 September 2020", line: "A small king who chose you as his own." },
+  { name: "Marmalade", kind: "a tabby cat", img: "pet-tabby.webp", born: "Born 7 June 2019", line: "The quiet keeper of every mood you own." },
+  { name: "Luna", kind: "a black cat", img: "pet-blackcat.webp", born: "Born 31 October 2018", line: "All her secrets, and all her heart, given to you." },
+  { name: "Sunny", kind: "a golden retriever", img: "pet-golden.webp", born: "Born 11 April 2020", line: "Here to love the whole world, starting with you." },
+  { name: "Frankie", kind: "a miniature dachshund", img: "pet-dachshund.webp", born: "Born 25 January 2022", line: "Your self-appointed guardian since day one." },
+  { name: "Clover", kind: "a lop rabbit", img: "pet-rabbit.webp", born: "Born 3 March 2021", line: "A gentle soul who made you her safest place." },
+];
+
+function KeepsakeFlourish({ className }: { className: string }) {
+  return (
+    <svg className={className} viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <path d="M3 22 L3 8 Q3 3 8 3 L22 3" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M9 22 L9 13 Q9 9 13 9 L22 9" stroke="currentColor" strokeWidth="0.9" opacity="0.5" />
+      <rect x="2" y="2" width="4.6" height="4.6" transform="rotate(45 4.3 4.3)" fill="currentColor" />
+    </svg>
+  );
+}
+
+function KeepsakeMoment() {
+  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+
+  const reduce = useReducedMotion() ?? false;
+  const rootRef = useRef<HTMLElement>(null);
+  const [idx, setIdx] = useState(0);
+  const [swap, setSwap] = useState(false);
+  const [live, setLive] = useState(false);
+  const [manualAt, setManualAt] = useState(0);
+  const idxRef = useRef(0);
+  idxRef.current = idx;
+  const swapTimer = useRef<number | null>(null);
+
+  // Preload every portrait once so the rotation never flashes.
+  useEffect(() => {
+    KEEPSAKE_PETS.forEach((p) => {
+      const im = new Image();
+      im.src = KEEPSAKE_BASE + p.img + KEEPSAKE_V;
+    });
+  }, []);
+
+  // Auto-rotate only while the card is actually on screen.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof window === "undefined") return;
+    if (!("IntersectionObserver" in window)) {
+      setLive(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => setLive(entry.isIntersecting)),
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [memorialIntent]);
+
+  const go = useCallback(
+    (next: number) => {
+      const n = ((next % KEEPSAKE_PETS.length) + KEEPSAKE_PETS.length) % KEEPSAKE_PETS.length;
+      if (n === idxRef.current) return;
+      if (reduce) {
+        setIdx(n);
+        return;
+      }
+      setSwap(true);
+      if (swapTimer.current) window.clearTimeout(swapTimer.current);
+      swapTimer.current = window.setTimeout(() => {
+        setIdx(n);
+        requestAnimationFrame(() => setSwap(false));
+      }, 420);
+    },
+    [reduce],
+  );
+  useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
+
+  useEffect(() => {
+    if (reduce || !live || memorialIntent) return;
+    const t = window.setInterval(() => go(idxRef.current + 1), 6200);
+    return () => window.clearInterval(t);
+  }, [reduce, live, memorialIntent, manualAt, go]);
+
+  if (memorialIntent) return null;
+  const pet = KEEPSAKE_PETS[idx];
+
+  return (
+    <section ref={rootRef} className="ls-kp ls-parallax-band" aria-labelledby="ls-kp-title">
+      <div className="ls-kp-inner">
+        <header className="ls-kp-head ls-reveal">
+          <p className="ls-kp-kicker">A Little Souls keepsake</p>
+          <h2 id="ls-kp-title" className="ls-kp-eyebrow">
+            Everything that makes them who they are, <b>kept in one place</b>. For a soul of any shape.
+          </h2>
+        </header>
+
+        <article className="ls-kp-card ls-reveal" style={revealDelay(0.06)} aria-live="polite">
+          <KeepsakeFlourish className="ls-kp-fl is-tl" />
+          <KeepsakeFlourish className="ls-kp-fl is-tr" />
+          <KeepsakeFlourish className="ls-kp-fl is-bl" />
+          <KeepsakeFlourish className="ls-kp-fl is-br" />
+          <div className={`ls-kp-stage${swap ? " is-swap" : ""}`}>
+            <div className="ls-kp-frame">
+              <span className="ls-kp-halo" aria-hidden="true" />
+              <span className="ls-kp-ring" aria-hidden="true" />
+              <img
+                className="ls-kp-photo"
+                src={KEEPSAKE_BASE + pet.img + KEEPSAKE_V}
+                alt={`${pet.name}, ${pet.kind}, in a candid home photo`}
+                width={340}
+                height={425}
+              />
+              <span className="ls-kp-cue" aria-hidden="true">Their photo goes here</span>
+            </div>
+            <p className="ls-kp-name">{pet.name}</p>
+            <p className="ls-kp-born"><i aria-hidden="true" />{pet.born}<i aria-hidden="true" /></p>
+            <div className="ls-kp-divider" aria-hidden="true">
+              <span className="l" />
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 1l2.4 7.2L22 12l-7.6 3.8L12 23l-2.4-7.2L2 12l7.6-3.8z" fill="currentColor" /></svg>
+              <span className="l is-r" />
+            </div>
+            <p className="ls-kp-line">{pet.line}</p>
+          </div>
+        </article>
+
+        <div className="ls-kp-switch ls-reveal" style={revealDelay(0.12)}>
+          <p className="ls-kp-switch-lead">Tap a soul to meet them</p>
+          <div className="ls-kp-thumbs" role="tablist" aria-label="Choose an animal">
+            {KEEPSAKE_PETS.map((p, i) => (
+              <button
+                key={p.name}
+                type="button"
+                role="tab"
+                aria-selected={i === idx}
+                aria-label={`Show ${p.name}, ${p.kind}`}
+                className="ls-kp-thumb"
+                onClick={() => {
+                  go(i);
+                  setManualAt(Date.now());
+                }}
+              >
+                <img src={KEEPSAKE_BASE + p.img + KEEPSAKE_V} alt="" aria-hidden="true" width={48} height={48} loading="lazy" />
+              </button>
+            ))}
+          </div>
+          <p className="ls-kp-switch-note">Cockapoo, house cat, or lop rabbit. It reads whoever they are.</p>
+        </div>
+
+        <div className="ls-kp-turn ls-reveal" style={revealDelay(0.16)}>
+          <span className="ls-kp-turn-cue"><Camera size={15} strokeWidth={1.6} aria-hidden="true" /> Your keepsake</span>
+          <p className="ls-kp-turn-main">Yours will look like this, with their face at the very centre, kept for as long as you want to hold on to them.</p>
+          <p className="ls-kp-turn-sub">Their photo goes to the heart of it.</p>
+        </div>
+      </div>
+      <style>{`
+        .ls-kp { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(38px, 6svh, 88px) 20px clamp(28px, 5svh, 66px); }
+        .ls-kp-inner { position: relative; max-width: 680px; margin: 0 auto; }
+        .ls-kp-head { text-align: center; margin: 0 auto clamp(24px, 4vw, 36px); }
+        .ls-kp-kicker { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; }
+        .ls-kp-eyebrow { margin: 0 auto; max-width: 30ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: clamp(1.06rem, 3.4vw, 1.3rem); line-height: 1.5; }
+        .ls-kp-eyebrow b { color: ${C.goldSoft}; font-style: normal; font-weight: 600; }
+
+        /* the light keepsake card - a physical artifact against the cosmos */
+        .ls-kp-card { position: relative; margin: 0 auto; padding: clamp(28px, 7vw, 52px) clamp(20px, 6vw, 48px) clamp(34px, 7vw, 54px); border-radius: 22px; background: linear-gradient(180deg, #fffdf5 0%, #faf4e8 100%); border: 1px solid rgba(196,162,101,0.55); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 34px 84px -32px rgba(0,0,0,0.9), 0 0 120px -42px rgba(212,182,122,0.42); overflow: hidden; }
+        .ls-kp-card::before { content: ""; position: absolute; inset: 10px; border-radius: 15px; border: 1px solid rgba(169,134,63,0.42); pointer-events: none; }
+        .ls-kp-card::after { content: ""; position: absolute; inset: 15px; border-radius: 12px; border: 1px solid rgba(169,134,63,0.14); pointer-events: none; }
+        .ls-kp-fl { position: absolute; width: 30px; height: 30px; color: #b8955a; opacity: 0.6; pointer-events: none; }
+        .ls-kp-fl.is-tl { top: 17px; left: 17px; }
+        .ls-kp-fl.is-tr { top: 17px; right: 17px; transform: scaleX(-1); }
+        .ls-kp-fl.is-bl { bottom: 17px; left: 17px; transform: scaleY(-1); }
+        .ls-kp-fl.is-br { bottom: 17px; right: 17px; transform: scale(-1, -1); }
+
+        .ls-kp-stage { transition: opacity 0.45s ease; will-change: opacity; }
+        .ls-kp-stage.is-swap { opacity: 0; }
+
+        .ls-kp-frame { position: relative; width: clamp(228px, 72vw, 348px); aspect-ratio: 1 / 1.08; margin: 6px auto 12px; }
+        .ls-kp-halo { position: absolute; inset: -12%; border-radius: 32px; background: radial-gradient(circle at 50% 40%, rgba(212,182,122,0.32), transparent 70%); filter: blur(12px); }
+        .ls-kp-ring { position: absolute; inset: 0; border-radius: 24px; background: linear-gradient(150deg, #a9863f, #e7cd92 30%, #c4a265 55%, #e7cd92 78%, #a9863f); box-shadow: 0 0 0 1px rgba(90,64,20,0.35), 0 22px 50px -22px rgba(20,12,2,0.55); }
+        .ls-kp-photo { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border-radius: 19px; object-fit: cover; object-position: center; display: block; }
+        .ls-kp-cue { position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); font-family: "Newsreader", Georgia, serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; color: #160d05; background: linear-gradient(180deg, #e7cd92, #c4a265); padding: 6px 12px; border-radius: 20px; white-space: nowrap; box-shadow: 0 6px 16px -6px rgba(0,0,0,0.55), 0 0 0 3px rgba(255,253,245,0.92); }
+
+        .ls-kp-name { margin: 26px 0 0; text-align: center; color: #21170c; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(2.6rem, 11vw, 4.3rem); line-height: 0.96; letter-spacing: -0.01em; }
+        .ls-kp-born { margin: 13px 0 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: #8b6f3a; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-kp-born i { display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #b8955a; opacity: 0.7; }
+        .ls-kp-divider { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 22px auto 0; max-width: 300px; color: #b8955a; }
+        .ls-kp-divider .l { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(169,134,63,0.5)); }
+        .ls-kp-divider .l.is-r { background: linear-gradient(90deg, rgba(169,134,63,0.5), transparent); }
+        .ls-kp-divider svg { width: 15px; height: 15px; opacity: 0.85; }
+        .ls-kp-line { margin: 16px auto 0; max-width: 28ch; min-height: 3em; text-align: center; text-wrap: balance; color: #5a4a42; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.1rem, 4.4vw, 1.34rem); line-height: 1.5; }
+
+        .ls-kp-switch { margin: 24px auto 0; text-align: center; }
+        .ls-kp-switch-lead { margin: 0 0 14px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; }
+        .ls-kp-thumbs { display: flex; justify-content: center; align-items: center; gap: 9px; overflow-x: auto; padding: 4px 6px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .ls-kp-thumbs::-webkit-scrollbar { display: none; }
+        .ls-kp-thumb { flex: 0 0 auto; width: 48px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 50%; position: relative; opacity: 0.5; transition: opacity 0.3s ease, transform 0.3s ease; -webkit-tap-highlight-color: transparent; }
+        .ls-kp-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); }
+        .ls-kp-thumb::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid transparent; transition: border-color 0.3s ease; }
+        .ls-kp-thumb[aria-selected="true"] { opacity: 1; transform: translateY(-2px); }
+        .ls-kp-thumb[aria-selected="true"]::after { border-color: ${C.goldSoft}; box-shadow: 0 0 18px -4px rgba(240,217,159,0.6); }
+        .ls-kp-thumb:focus-visible { outline: 2px solid ${C.goldSoft}; outline-offset: 3px; }
+        .ls-kp-switch-note { margin: 6px auto 0; max-width: 34ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.95rem; line-height: 1.5; }
+
+        .ls-kp-turn { max-width: 34ch; margin: clamp(28px, 6vw, 44px) auto 0; text-align: center; }
+        .ls-kp-turn-cue { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-kp-turn-main { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 4.4vw, 1.32rem); line-height: 1.55; }
+        .ls-kp-turn-sub { margin: 12px 0 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.98rem; line-height: 1.5; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .ls-kp-stage, .ls-kp-thumb, .ls-kp-thumb::after { transition: none !important; }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+// ── The three value moments ───────────────────────────────────────────────────
+// What keeps giving after the reading opens: SoulSpeak, the Monthly Horoscope
+// and the Full Synthesis, each carried by its locked library icon (lucide-react,
+// one consistent stroke). Discovery path only.
+const VALUE_MOMENTS = [
+  {
+    key: "soulspeak",
+    label: "SoulSpeak",
+    name: "Hear them in their own voice.",
+    line: "The words they never had a mouth for, spoken at last in a voice that is theirs.",
+    Icon: AudioLines,
+  },
+  {
+    key: "horoscope",
+    label: "Monthly Horoscope",
+    name: "Their year, as it turns.",
+    line: "Each month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
+    Icon: Mail,
+  },
+  {
+    key: "synthesis",
+    label: "The Full Synthesis",
+    name: "All of them, woven into one.",
+    line: "Every planet, every trait, drawn together into the single true portrait of who they are.",
+    Icon: BookOpen,
+  },
+] as const;
+
+function ValueMoments() {
+  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+  if (memorialIntent) return null;
+
+  return (
+    <section className="ls-vm ls-parallax-band" aria-labelledby="ls-vm-title">
+      <div className="ls-vm-inner">
+        <header className="ls-vm-head ls-reveal">
+          <p className="ls-vm-eyebrow">And it keeps giving them back</p>
+          <h2 id="ls-vm-title" className="ls-vm-title">Long after the reading, they are still here.</h2>
+        </header>
+        <div className="ls-vm-grid">
+          {VALUE_MOMENTS.map(({ key, label, name, line, Icon }, i) => (
+            <article key={key} className="ls-vm-card ls-reveal" style={revealDelay(0.06 + i * 0.08)}>
+              <span className="ls-vm-motif" aria-hidden="true"><Icon size={30} strokeWidth={1.5} /></span>
+              <div className="ls-vm-copy">
+                <span className="ls-vm-label">{label}</span>
+                <h3 className="ls-vm-name">{name}</h3>
+                <p className="ls-vm-line">{line}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+      <style>{`
+        .ls-vm { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(28px, 5svh, 66px) 20px clamp(32px, 5svh, 72px); }
+        .ls-vm-inner { max-width: 660px; margin: 0 auto; }
+        .ls-vm-head { text-align: center; margin: 0 auto clamp(26px, 5vw, 44px); }
+        .ls-vm-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-vm-title { margin: 0 auto; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.8rem, 5.6vw, 2.7rem); line-height: 1.08; letter-spacing: -0.016em; }
+        .ls-vm-grid { display: flex; flex-direction: column; gap: clamp(16px, 3vw, 24px); }
+        .ls-vm-card { position: relative; display: flex; align-items: center; gap: clamp(18px, 4vw, 28px); padding: clamp(22px, 4.6vw, 30px) clamp(20px, 4.6vw, 32px); border-radius: 18px; background: radial-gradient(120% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 60%), linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.32); }
+        .ls-vm-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; background: linear-gradient(165deg, rgba(212,182,122,0.32) 0%, rgba(154,126,230,0.14) 46%, rgba(212,182,122,0.26) 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+        .ls-vm-motif { flex: 0 0 auto; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: ${C.goldSoft}; border: 1px solid rgba(212,182,122,0.38); background: radial-gradient(circle at 50% 36%, rgba(212,182,122,0.16), rgba(212,182,122,0.04) 70%); box-shadow: 0 10px 26px -12px rgba(212,182,122,0.4); }
+        .ls-vm-motif svg { display: block; }
+        .ls-vm-copy { flex: 1 1 auto; min-width: 0; }
+        .ls-vm-label { display: block; margin: 0 0 8px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-vm-name { margin: 0 0 8px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.28rem, 4.6vw, 1.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+        .ls-vm-line { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(0.98rem, 2.6vw, 1.12rem); line-height: 1.55; }
+        @media (max-width: 560px) {
+          .ls-vm-card { flex-direction: column; text-align: center; gap: 14px; }
         }
       `}</style>
     </section>
@@ -3588,6 +3884,58 @@ function AfterTheirReading() {
   );
 }
 
+// The ONE reviews wall on the path, curated from the full approved set of
+// seventeen. Nine quotes, verbatim, chosen for spread: a converted sceptic
+// opens, a won-over partner and a quiet retrospective sit mid-wall, two
+// four-star voices keep it believable, and a two-souls-compared line closes.
+// Species run whippet to horse to guinea pig so every reader finds a shape
+// like their own. None of these quotes render inside the dossier checkout
+// (it carries grief / joy / gift / practical / returner), so no quote ever
+// appears twice on one path.
+const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; attr: string }[] = [
+  REVIEWS.skeptic,
+  {
+    img: "/reviews/review-8.webp", alt: "Otis", stars: 5,
+    quote: "otis spent his first three months under our bed in Cardiff, only coming out after midnight for biscuits. The reading described a guarded Moon placement and a creature who watches the room from a border before choosing anyone. I had not written anything about him being formerly feral, so that line stayed with me.",
+    attr: "Grace O. · Otis, rescue shorthair cat",
+  },
+  {
+    img: "/reviews/review-12.webp", alt: "Bracken", stars: 5,
+    quote: "I was not sure a reading would make sense for a horse, especially Bracken, who has opinions about everything at the Devon yard. Then it mentioned a stubborn Saturn edge around thresholds and moving boxes, which is exactly his trailer-loading face on a wet Tuesday. The yard owner laughed because only the people here would know that.",
+    attr: "Emily F. · Bracken, cob-type horse",
+  },
+  {
+    img: "/reviews/review-7.webp", alt: "Marmite", stars: 5,
+    quote: "I ordered Marmite's reading for the anniversary of the day we brought him back to Leeds in a borrowed blanket. It picked up his restless little Mars rhythm by the front door at about 6pm, which is exactly the hour he still starts pacing every October as if the car is coming again. Too specific to brush off, really.",
+    attr: "Freya H. · Marmite, cockapoo",
+  },
+  {
+    img: "/reviews/review-16.webp", alt: "Loki", stars: 5,
+    quote: "Sam was openly dismissive when I ordered Loki's reading, mainly because astrology is not their thing. Then the reading described a fixed, territorial streak around shared spaces, and Loki had spent that same week blocking our other cat from the Manchester flat's hallway rug. Sam went quiet, read that paragraph twice, and has mentioned Loki's Mars placement more than I have.",
+    attr: "Ben H. · Loki, Maine Coon cat",
+  },
+  {
+    img: "/reviews/review-13.webp", alt: "Willow", stars: 5,
+    quote: "weeks after Willow died, I ordered her reading during a rough patch when the house in Nottingham felt very quiet. It gave me a way to talk with my kids about her little routines, the radiator spot, the paw on the newspaper, the way she chose one person at a time. Nothing overblown. Just enough shape around the missing.",
+    attr: "Daniel K. · Willow, senior cat",
+  },
+  {
+    img: "/reviews/review-14.webp", alt: "Nugget", stars: 4,
+    quote: "I did roll my eyes at spending money on a guinea pig of all things, but Nugget's reading had his number. The bit about comfort-seeking Venus and always choosing the covered end of the run was bang on, right down to him ignoring the parsley until he has dragged it under the little red shelter. For less than we paid last month for bedding and hay, it was fair value. I would have liked a cheaper way to add our second guinea pig afterwards.",
+    attr: "Colin B. · Nugget, guinea pig",
+  },
+  {
+    img: "/reviews/review-9.webp", alt: "Meg", stars: 4,
+    quote: "Meg is fourteen now, grey round the muzzle and slower on the lane behind our house near Sheffield. Her reading did not try to make her sound young again, it spoke about Saturn steadiness and the comfort of doing the same small jobs well. I was glad of that. Only niggle is that it took closer to a day to arrive, rather than the couple of hours I had expected.",
+    attr: "Alan R. · Meg, border collie, fourteen",
+  },
+  {
+    img: "/reviews/review-11.webp", alt: "Fig and Norm", stars: 5,
+    quote: "We ordered Fig and Norm's readings together, assuming two dogs in the same Glasgow house would come out much the same. Fig's was all bright Mars, cupboard doors and sudden decisions, while Norm's had this older Beagle patience and a Moon that sounded exactly like him refusing the rain at the back step. Same sofa, same walks, totally different souls.",
+    attr: "Isla M. · Fig and Norm, sprocker spaniel and beagle",
+  },
+];
+
 function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
   useEffect(() => {
@@ -3597,7 +3945,7 @@ function ReviewsWall() {
   }, []);
   if (memorialIntent) return null;
 
-  const reviews = Object.values(REVIEWS);
+  const reviews = WALL_REVIEWS;
 
   return (
     <section
@@ -3837,7 +4185,7 @@ function CosmicStyles() {
         opacity: 1;
         transform: translate3d(0, 0, 0);
       }
-      /* Bridge passage — beat-by-beat scroll reveal. Reuses the .ls-reveal
+      /* Bridge passage - beat-by-beat scroll reveal. Reuses the .ls-reveal
          IntersectionObserver (each beat is its own node, so the scroll paces them);
          adds a soft blur-up so each thought resolves like a memory coming into focus. */
       .ls-bridge-passage {
@@ -4046,7 +4394,7 @@ function CosmicStyles() {
         padding: var(--funnel-gap, clamp(34px, 5svh, 64px)) 20px clamp(28px, 4vw, 56px);
         text-align: center;
       }
-      /* Awaiting the date: the bridge's last line hands straight into the card —
+      /* Awaiting the date: the bridge's last line hands straight into the card -
          one continuous night, no dead scroll. */
       .ls-orrery-section.is-await { padding-top: clamp(8px, 2vw, 20px); }
       .ls-orrery-section.is-await .ls-stage { margin-top: 0; min-height: 0; }
@@ -4126,7 +4474,7 @@ function CosmicStyles() {
       .ls-orrery-body.is-active .ls-orrery-orb img.is-shadowed { filter: brightness(0.4) saturate(0.6) drop-shadow(0 0 12px rgba(124,92,214,0.85)); }
       /* (sun corona now lives on .ls-orrery-sunvid::before single soft aura) */
       /* Option 1 sun: real NASA SDO disc with prominences/corona baked into a
-         transparent PNG. NO clip — the whole sun + flares show; sized larger than
+         transparent PNG. NO clip - the whole sun + flares show; sized larger than
          the orb so the flares bleed past it. Soft drop-shadow aura. */
       .ls-orrery-sunvid { position: absolute; inset: -16%; }
       .ls-orrery-sunvid--card { inset: -4%; }
@@ -5287,7 +5635,7 @@ function CosmicStyles() {
         background: radial-gradient(ellipse at 50% 40%, rgba(13,10,20,0.55), rgba(8,6,11,0.86) 72%);
         backdrop-filter: blur(2px);
       }
-      /* === "Set the chart" card — a violet-lit celestial surface. The passage's
+      /* === "Set the chart" card - a violet-lit celestial surface. The passage's
          destination: same night, same stars, the chart waiting to be set. ==== */
       .ls-seal-card {
         position: relative;
@@ -5851,7 +6199,7 @@ function CosmicStyles() {
         border-radius: inherit; opacity: 0;
       }
       /* Outline-then-fill. The row's shell (its slot in the lattice) is CLEARLY
-         visible before the content arrives — a lit, breathing empty slot — and
+         visible before the content arrives (a lit, breathing empty slot) and
          the reader's own scroll seats the words into it. Glyph lands first, the
          text settles 90ms behind it, then stillness. */
       .ls-trow.ls-rvrow .ls-trow-glyph,
@@ -5905,7 +6253,7 @@ function CosmicStyles() {
         transition: filter 560ms cubic-bezier(0.22,0.61,0.28,1) var(--ls-unseal, 0s), opacity 560ms ease var(--ls-unseal, 0s);
       }
 
-      /* FREE rows — the three that are given. These are the show: a lit
+      /* FREE rows - the three that are given. These are the show: a lit
          medallion, a warmer surface, and a reading set a full tier larger. */
       .ls-trow.is-free {
         border-color: rgba(185,165,240,0.6);
@@ -5925,10 +6273,10 @@ function CosmicStyles() {
         transition: transform 460ms cubic-bezier(0.22,0.61,0.28,1) calc(var(--ls-delay, 0s) + 460ms);
       }
       .ls-trow.is-free[data-in]::before { transform: scaleY(1); }
-      /* A free row's waiting shell holds a slightly brighter outline — the three
+      /* A free row's waiting shell holds a slightly brighter outline - the three
          given slots are marked as special before they even fill. */
       .ls-trow.is-free:not([data-in]) { border-color: rgba(185,165,240,0.52); }
-      /* One soft bloom as the free row lands — the light swells off the seam
+      /* One soft bloom as the free row lands - the light swells off the seam
          edge, then dies. Once, then stillness. */
       .ls-trow.is-free[data-in]::after {
         background: radial-gradient(ellipse at 8% 50%, rgba(185,165,240,0.4), transparent 62%);
@@ -5945,7 +6293,7 @@ function CosmicStyles() {
       .ls-trow.is-free .ls-trow-frame { color: ${C.violetSoft}; opacity: 1; }
       .ls-trow.is-free .ls-trow-line { font-size: 1.08rem; line-height: 1.6; color: ${C.creamDim}; }
 
-      /* TEASE rows — the ten unread placements. Named, never blurred; the same
+      /* TEASE rows - the ten unread placements. Named, never blurred; the same
          quiet register as the dossier's locked rows so the skim table visibly
          feeds the card below. Whole row is a 48px+ tap target to the sale. */
       .ls-trow.is-tease {
@@ -6004,7 +6352,7 @@ function CosmicStyles() {
 
       /* === The narrated journey (cinematic) =============================== */
       /* ONE SKY: the journey's private radial card sky + drifting star layer are
-         gone — the reveal sits directly in the shared graded night (violet lift
+         gone. The reveal sits directly in the shared graded night (violet lift
          arrives from the page backdrop, not a boxed panel). */
       .ls-journey { position: relative; width: 100%; max-width: 880px; margin: clamp(16px,4vw,40px) auto 0; display: grid; justify-items: center; gap: clamp(20px,3.4vw,34px); padding: clamp(26px,5vw,54px) 16px clamp(20px,3vw,34px); border-radius: 28px; isolation: isolate; }
       .ls-journey > * { position: relative; z-index: 2; }
@@ -6068,7 +6416,7 @@ function CosmicStyles() {
         .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
       }
 
-      /* Seamless reveal -> pricing junction: no boxed shell, no private wash —
+      /* Seamless reveal -> pricing junction: no boxed shell, no private wash -
          the dawn behind checkout now rises from the ONE shared sky. */
       .ls-checkout-shell {
         background: transparent;
@@ -6385,7 +6733,7 @@ function CosmicStyles() {
       .ls-path-card:hover .ls-path-card-go { transform: translateX(3px); }
       .is-discovery:hover .ls-path-card-go { color: #0d0a14; background: #f0d99f; border-color: #f0d99f; }
       .is-memorial:hover .ls-path-card-go { color: #0d0a14; background: #b9a5f0; border-color: #b9a5f0; }
-      /* bespoke celestial marks — dots of light, crescent, horizon. No sparkles. */
+      /* bespoke celestial marks - dots of light, crescent, horizon. No sparkles. */
       .ls-path-mark {
         flex: none;
         display: grid;
@@ -6405,7 +6753,7 @@ function CosmicStyles() {
       .ls-pm-star.s3 { animation-duration: 5.4s; animation-delay: 1.5s; }
       @keyframes ls-pm-twinkle { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
       @keyframes ls-pm-core { 0%, 100% { opacity: .12; } 50% { opacity: .26; } }
-      /* returning-visitor path banner — dignified, always visible, easy change */
+      /* returning-visitor path banner - dignified, always visible, easy change */
       .ls-path-held {
         min-height: clamp(210px, 32svh, 280px);
         padding: clamp(30px, 6svh, 56px) 20px;
