@@ -474,7 +474,11 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+          // Latch when the node enters the viewport, AND when it is already
+          // above it: an anchor jump (the free reading's handoff, a sticky
+          // link) can carry the reader straight past a node without a single
+          // intersecting frame, which would leave it at opacity 0 forever.
+          if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
             entry.target.classList.add("is-in");
             io.unobserve(entry.target);
           }
@@ -1990,7 +1994,8 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
             el.classList.toggle("is-live", e.isIntersecting);
             return;
           }
-          if (e.isIntersecting) {
+          // Latch on entry OR when already jumped past (see useScrollReveal).
+          if (e.isIntersecting || e.boundingClientRect.top < 0) {
             el.setAttribute("data-in", "1");
             io.unobserve(el);
           }
@@ -2098,7 +2103,10 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
       <section className="ls-fr-turn">
         <p className="ls-fr-turn-lead ls-fr-rv">You have met three of them. Who they are, how they feel, the face they show first.</p>
         <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.05)}>There are ten more, still dark on the wheel.</p>
-        <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.1)}>Three of thirteen, yours already.</p>
+        {/* Ownership beat. The dossier checkout owns "Three of thirteen, yours
+            already." beside its endowed rung; this line stays distinct so no
+            copy line ever renders twice on the path. */}
+        <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.1)}>The three you have met are yours.</p>
         <p className="ls-fr-turn-one ls-fr-rv" style={revealDelay(0.05)}>And there is one thing no single planet can show you.</p>
         <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together. The reason they pick the exact spot on you they always pick. The reason they watch you the way they watch you.</p>
         <p className="ls-fr-turn-whole ls-fr-rv" style={revealDelay(0.16)}>The whole of them, read in one place.</p>
@@ -3121,6 +3129,9 @@ function FullReadingOpens() {
             el.setAttribute("data-in", "1");
             el.classList.add("is-live");
           } else {
+            // A jump-scroll can pass a row without one intersecting frame;
+            // still latch its reveal so it never sits at opacity 0 above you.
+            if (entry.boundingClientRect.top < 0) el.setAttribute("data-in", "1");
             el.classList.remove("is-live");
           }
         });
