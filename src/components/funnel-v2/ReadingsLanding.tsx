@@ -471,20 +471,22 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
       nodes.forEach((node) => node.classList.add("is-in"));
       return;
     }
+    // The latch root extends far above the viewport: an instant anchor jump
+    // can move a node from below the fold to above it in ONE frame, and an
+    // IntersectionObserver bounded to the viewport never fires for that jump
+    // (its ratio stays 0), stranding the node at opacity 0. With the sky-high
+    // top margin, "already scrolled past" IS an intersection, so the latch
+    // always lands no matter how the reader travels.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // Latch when the node enters the viewport, AND when it is already
-          // above it: an anchor jump (the free reading's handoff, a sticky
-          // link) can carry the reader straight past a node without a single
-          // intersecting frame, which would leave it at opacity 0 forever.
           if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
             entry.target.classList.add("is-in");
             io.unobserve(entry.target);
           }
         });
       },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.12 },
+      { rootMargin: "20000px 0px -12% 0px", threshold: 0.12 },
     );
     nodes.forEach((node) => io.observe(node));
     return () => io.disconnect();
@@ -1986,26 +1988,37 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
       worlds.forEach((el) => el.classList.add("is-live"));
       return;
     }
-    const io = new IntersectionObserver(
+    // Two observers with different roots. The latch root extends far above
+    // the viewport so a one-frame anchor jump past a line still fires it
+    // (a viewport-bound observer's ratio stays 0 across such a jump and it
+    // never calls back). The play-state observer stays viewport-bound so only
+    // on-screen worlds actually animate.
+    const ioLatch = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           const el = e.target as HTMLElement;
-          if (el.classList.contains("ls-fr-planet")) {
-            el.classList.toggle("is-live", e.isIntersecting);
-            return;
-          }
-          // Latch on entry OR when already jumped past (see useScrollReveal).
           if (e.isIntersecting || e.boundingClientRect.top < 0) {
             el.setAttribute("data-in", "1");
-            io.unobserve(el);
+            ioLatch.unobserve(el);
           }
+        });
+      },
+      { rootMargin: "20000px 0px -12% 0px", threshold: 0.18 },
+    );
+    const ioLive = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          (e.target as HTMLElement).classList.toggle("is-live", e.isIntersecting);
         });
       },
       { rootMargin: "0px 0px -12% 0px", threshold: 0.18 },
     );
-    revs.forEach((el) => io.observe(el));
-    worlds.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    revs.forEach((el) => ioLatch.observe(el));
+    worlds.forEach((el) => ioLive.observe(el));
+    return () => {
+      ioLatch.disconnect();
+      ioLive.disconnect();
+    };
   }, [reduce]);
 
   // Reading-revealed gate: the lower funnel (the rest + reviews + pricing) only
@@ -3121,25 +3134,36 @@ function FullReadingOpens() {
       root.querySelectorAll<HTMLElement>(".ls-rs-row").forEach((el) => el.classList.add("is-live"));
       return;
     }
-    const io = new IntersectionObserver(
+    // Latch and play-state need different roots: the latch root reaches far
+    // above the viewport so a one-frame anchor jump past a row still reveals
+    // it (a viewport-bound observer never fires when the ratio stays 0 across
+    // the jump), while the ASMR play-state stays viewport-bound so only the
+    // on-screen discs run.
+    const ioLatch = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const el = entry.target as HTMLElement;
-          if (entry.isIntersecting) {
-            el.setAttribute("data-in", "1");
-            el.classList.add("is-live");
-          } else {
-            // A jump-scroll can pass a row without one intersecting frame;
-            // still latch its reveal so it never sits at opacity 0 above you.
-            if (entry.boundingClientRect.top < 0) el.setAttribute("data-in", "1");
-            el.classList.remove("is-live");
+          if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
+            entry.target.setAttribute("data-in", "1");
+            ioLatch.unobserve(entry.target);
           }
+        });
+      },
+      { rootMargin: "20000px 0px -8% 0px", threshold: 0.22 },
+    );
+    const ioLive = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          (entry.target as HTMLElement).classList.toggle("is-live", entry.isIntersecting);
         });
       },
       { rootMargin: "0px 0px -8% 0px", threshold: 0.22 },
     );
-    root.querySelectorAll<HTMLElement>(".ls-rs-rv, .ls-rs-row").forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    root.querySelectorAll<HTMLElement>(".ls-rs-rv").forEach((el) => ioLatch.observe(el));
+    root.querySelectorAll<HTMLElement>(".ls-rs-row").forEach((el) => ioLive.observe(el));
+    return () => {
+      ioLatch.disconnect();
+      ioLive.disconnect();
+    };
   }, [memorial, pet]);
 
   // Foreground dust: a few drifting motes per disc, injected once so each planet
