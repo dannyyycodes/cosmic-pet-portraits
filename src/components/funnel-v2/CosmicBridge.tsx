@@ -437,7 +437,14 @@ export function CosmicBridge() {
   const [register, setRegister] = useState<"discovery" | "memorial">(() =>
     getIntent() === "memorial" ? "memorial" : "discovery");
   useEffect(() => {
-    const onIntent = () => setRegister(getIntent() === "memorial" ? "memorial" : "discovery");
+    const onIntent = () => {
+      setRegister(getIntent() === "memorial" ? "memorial" : "discovery");
+      // Choosing a path collapses the tall chooser into its slim banner, which
+      // reflows everything below WITHOUT a register change (discovery is the
+      // default). Every scroll timeline's start/end is stale after that shift,
+      // so re-measure once the collapse has painted.
+      requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
+    };
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
@@ -1008,8 +1015,18 @@ export function CosmicBridge() {
     );
 
     requestAnimationFrame(() => ScrollTrigger.refresh());
+    // Webfonts (Fraunces/Newsreader) land after the load event and reflow every
+    // beat's height; without this the word-cascade triggers keep pre-font
+    // positions and the closing words can fire hundreds of pixels late.
+    let fontsAlive = true;
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (fontsAlive) ScrollTrigger.refresh();
+      }).catch(() => { /* ignore */ });
+    }
 
     return () => {
+      fontsAlive = false;
       ScrollTrigger.removeEventListener("refresh", onSTRefresh);
       mm.revert();
     };
