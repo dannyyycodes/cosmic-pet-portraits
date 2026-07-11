@@ -31,9 +31,9 @@ gsap.registerPlugin(ScrollTrigger);
        line 1, line 2 (with a real degree readout that counts up in the
        text baseline and locks beside "exact place."), the star map
        drawing itself, then line 3. The web completes at "read."
-     4 THE SEAL - each promise line sets one gold point on an elliptical
-       seal around the closing words; the arcs draw and the ring CLOSES
-       exactly as "chart" lands. "Set the chart." lights gold inside it.
+     4 THE CLOSE - the promise lines arrive word by word, then the plain
+       closing words "Set the chart." light in luminous white with a
+       violet breath and hand straight into the form. No ring, no seal.
 
    ONE house ease everywhere something settles: expo-out (.16,1,.3,1).
    Palette on warm near-black #0d0a14: desaturated gold #f0d99f, ivory
@@ -157,56 +157,11 @@ function buildConstellation(): string {
   return out;
 }
 
-/* ---- BEAT 4: the seal geometry ----------------------------------------
-   An elliptical seal drawn AROUND "Set the chart.". One gold point per
-   promise line; the arcs connect them and the final arc closes the ring
-   exactly at "chart". Sampled polylines (no arc-flag maths), drawn via
-   stroke-dashoffset. Discovery = 3 points, memorial = 2 (a lower voice,
-   the same seal). */
-const SEAL = { cx: 280, cy: 115, rx: 252, ry: 86 };
-
-function sealArc(a0: number, a1: number): string {
-  const { cx, cy, rx, ry } = SEAL;
-  const n = 44;
-  let d = "";
-  for (let i = 0; i <= n; i++) {
-    const a = ((a0 + (a1 - a0) * (i / n)) * Math.PI) / 180;
-    const x = Math.round((cx + rx * Math.cos(a)) * 10) / 10;
-    const y = Math.round((cy + ry * Math.sin(a)) * 10) / 10;
-    d += (i ? "L" : "M") + x + "," + y;
-  }
-  return d;
-}
-
-function buildSeal(memorial: boolean): string {
-  const { cx, cy, rx, ry } = SEAL;
-  const ptAngles = memorial ? [225, 315] : [215, 270, 325];
-  const arcs = memorial
-    ? [[225, 315], [315, 585]]
-    : [[215, 270], [270, 325], [325, 575]];
-  let out = "";
-  arcs.forEach((a, i) => {
-    out += `<path class="lcb-seal-arc a${i}" d="${sealArc(a[0], a[1])}"/>`;
-  });
-  ptAngles.forEach((deg, i) => {
-    const r = (deg * Math.PI) / 180;
-    const x = Math.round((cx + rx * Math.cos(r)) * 10) / 10;
-    const y = Math.round((cy + ry * Math.sin(r)) * 10) / 10;
-    out += `<g class="lcb-seal-pt sp${i}" style="transform:translate(${x}px,${y}px)">`
-      + '<g class="lcb-seal-ptin">'
-      + '<circle class="lcb-seal-halo" r="16" fill="url(#lcbHaloGold)"/>'
-      + '<circle class="lcb-seal-core" r="2.6" fill="url(#lcbCoreGold)"/>'
-      + '<path class="lcb-seal-gl" d="M0,-11 L0.95,0 L0,11 L-0.95,0 Z"/>'
-      + '<path class="lcb-seal-gl" d="M-11,0 L0,-0.95 L11,0 L0,0.95 Z"/>'
-      + "</g></g>";
-  });
-  return out;
-}
-
 const LCB_CSS = `
 .lcb-root{
   --lcb-bg:#0d0a14; --lcb-deep:#070510; --lcb-lift:#100c1a;
   --lcb-gold:#f0d99f; --lcb-gold-soft:#d9be86;
+  --lcb-violet:#a78bfa; --lcb-violet-soft:#8b7bd8;
   --lcb-ivory:#efe9dd; --lcb-body:#d8d0c1; --lcb-label:#b7af9f;
   --lcb-ease:cubic-bezier(.16,1,.3,1);
   position:relative;
@@ -329,7 +284,7 @@ const LCB_CSS = `
 .lcb-instar.lcb-cool .lcb-in-halo{fill:url(#lcbHaloCool);opacity:.35}
 .lcb-instar.lcb-cool .lcb-in-core{fill:url(#lcbCoreCool);opacity:.7}
 .lcb-instar.lcb-cool .lcb-in-gl{opacity:0}
-.lcb-instar,.lcb-seal-pt,.lcb-seal-arc{mix-blend-mode:screen}
+.lcb-instar{mix-blend-mode:screen}
 
 /* BEAT 1 - the rail of knowing: three lines, three stars, one hairline */
 .lcb-rail{position:relative;display:flex;flex-direction:column;gap:clamp(13px,2.6svh,22px);
@@ -401,31 +356,23 @@ const LCB_CSS = `
 .lcb-deg-n{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:.72em;letter-spacing:.05em;
   color:var(--lcb-gold);font-variant-numeric:tabular-nums}
 
-/* BEAT 4 - the seal around "Set the chart." */
+/* BEAT 4 - the plain close: "Set the chart." in luminous white/violet */
 .lcb-payoff-line{position:relative;z-index:1;margin:0;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
   color:var(--lcb-ivory);font-size:clamp(2.05rem,1.4rem + 3.1vw,3.5rem);line-height:1.16;
   letter-spacing:-0.02em;max-width:17ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
 .lcb-promises{max-width:26ch}
-.lcb-seal-stage{position:relative;width:min(94vw,560px);margin-top:clamp(14px,3svh,30px)}
-.lcb-seal{display:block;width:100%;height:auto;aspect-ratio:560/230;overflow:visible}
-.lcb-seal-arc{fill:none;stroke:var(--lcb-gold-soft);stroke-width:1.1;stroke-linecap:round;
-  vector-effect:non-scaling-stroke;opacity:.8}
-.lcb-seal-pt{transform-box:view-box}
-.lcb-seal-ptin{transform-box:fill-box;transform-origin:center}
-.lcb-seal-gl{fill:rgba(255,248,228,0.9)}
-.lcb-seal-stage .lcb-payoff-line.lcb-close{position:absolute;inset:0;display:flex;align-items:center;
-  justify-content:center;margin:0;max-width:none;font-size:clamp(1.9rem,1.3rem + 2.6vw,3.1rem)}
-.lcb-asc{display:inline-block;font-weight:500;letter-spacing:-0.008em;color:var(--lcb-gold);
-  text-shadow:0 0 0 rgba(240,217,159,0)}
+.lcb-payoff-line.lcb-close{margin-top:clamp(18px,3.4svh,36px);font-size:clamp(1.9rem,1.3rem + 2.6vw,3.1rem)}
+.lcb-asc{display:inline-block;font-weight:500;letter-spacing:-0.008em;color:#f7f4ff;
+  text-shadow:0 0 0 rgba(167,139,250,0)}
 .lcb-asc.lit{animation:lcbAscBreath 7.5s var(--lcb-ease) 1.1s infinite}
 @keyframes lcbAscBreath{
-  0%{text-shadow:0 0 8px rgba(240,217,159,0.30), 0 0 20px rgba(240,217,159,0.16), 0 0 44px rgba(214,190,134,0.09)}
-  38%{text-shadow:0 0 10px rgba(240,217,159,0.36), 0 0 26px rgba(240,217,159,0.19), 0 0 54px rgba(214,190,134,0.11)}
-  63%{text-shadow:0 0 9px rgba(240,217,159,0.32), 0 0 22px rgba(240,217,159,0.17), 0 0 48px rgba(214,190,134,0.10)}
-  100%{text-shadow:0 0 8px rgba(240,217,159,0.30), 0 0 20px rgba(240,217,159,0.16), 0 0 44px rgba(214,190,134,0.09)}
+  0%{text-shadow:0 0 8px rgba(167,139,250,0.30), 0 0 20px rgba(167,139,250,0.16), 0 0 44px rgba(139,123,216,0.10)}
+  38%{text-shadow:0 0 10px rgba(167,139,250,0.38), 0 0 26px rgba(167,139,250,0.20), 0 0 54px rgba(139,123,216,0.12)}
+  63%{text-shadow:0 0 9px rgba(167,139,250,0.33), 0 0 22px rgba(167,139,250,0.17), 0 0 48px rgba(139,123,216,0.11)}
+  100%{text-shadow:0 0 8px rgba(167,139,250,0.30), 0 0 20px rgba(167,139,250,0.16), 0 0 44px rgba(139,123,216,0.10)}
 }
 .lcb-rule{display:block;width:min(46vw,220px);height:1px;margin:clamp(12px,2.2vw,20px) auto 0;
-  background:linear-gradient(90deg,transparent,var(--lcb-gold-soft),transparent);
+  background:linear-gradient(90deg,transparent,var(--lcb-violet),transparent);
   transform:scaleX(1);transform-origin:center;opacity:.9}
 
 @media (max-width:768px){
@@ -433,7 +380,7 @@ const LCB_CSS = `
   .lcb-open .lcb-beat:not(.lcb-support){font-size:clamp(2.05rem,1.35rem + 6vw,2.8rem)}
   .lcb-pivot-lead{font-size:clamp(1.55rem,1.15rem + 3.6vw,2.2rem)}
   .lcb-payoff-line{font-size:clamp(1.85rem,1.3rem + 4.6vw,2.7rem)}
-  .lcb-seal-stage .lcb-payoff-line.lcb-close{font-size:clamp(1.6rem,1.1rem + 4vw,2.2rem)}
+  .lcb-payoff-line.lcb-close{font-size:clamp(1.6rem,1.1rem + 4vw,2.2rem)}
   .lcb-moon{top:-3%;right:-7%;width:min(46vw,214px)}
   .lcb-band{width:min(92vw,400px)}
   .lcb-instar{width:18px;height:18px;flex-basis:18px}
@@ -508,11 +455,9 @@ export function CosmicBridge() {
     const hush = register === "memorial";
     const glow = (v: number) => (hush ? Math.round(v * 0.7 * 1000) / 1000 : v);
 
-    // ---------- build the constellation band + the seal ----------
+    // ---------- build the constellation band ----------
     const starsSvg = q<SVGSVGElement>(".lcb-stars");
     if (starsSvg) starsSvg.innerHTML = buildConstellation();
-    const sealSvg = q<SVGSVGElement>(".lcb-seal");
-    if (sealSvg) sealSvg.innerHTML = buildSeal(hush);
 
     // ---------- prep the mask reveals (wrap once, never per breakpoint) ----------
     qa(".lcb-split .lcb-ln").forEach((ln) => {
@@ -871,78 +816,35 @@ export function CosmicBridge() {
           .to(cstLines, { opacity: glow(0.66), duration: 0.6, ease: HOUSE }, labelTime(ta, "b3read") + 0.45);
       }
 
-      // =============== BEAT 4 - THE SEAL ===============
-      // Each promise line sets one gold point on the seal around the closing
-      // words; the arcs draw and the ring CLOSES exactly as "chart" lands.
-      // "Set the chart." lights gold inside it and hands into the form.
+      // =============== BEAT 4 - THE CLOSE ===============
+      // The promise lines arrive word by word, then the plain closing words
+      // "Set the chart." land, light in white/violet, and hand into the form.
       const payoff = q(".lcb-payoff-scene");
-      if (payoff && sealSvg) {
+      if (payoff) {
         const headLn = q(".lcb-payoff-line:not(.lcb-close) .lcb-ln", payoff);
         const pLns = qa(".lcb-promises .lcb-ln", payoff);
         const closeLn = q(".lcb-close .lcb-ln", payoff);
-        const stage = q(".lcb-seal-stage", payoff);
-        const arcs = qa<SVGPathElement>(".lcb-seal-arc", sealSvg);
-        const pts = qa<SVGGElement>(".lcb-seal-ptin", sealSvg);
         const rule = q(".lcb-rule", payoff);
         const asc = q(".lcb-asc", payoff);
-        const goldBloom = q(".lcb-moon-bloom-gold");
         const crestEl = document.querySelector<HTMLElement>(".ls-seal-crest");
 
-        // prime: the seal is not yet cast
-        primeDraw(arcs);
-        gsap.set(arcs, { opacity: 0 });
-        gsap.set(pts, { opacity: 0, scale: 0.5, transformOrigin: "center" });
-        gsap.set(stage, { opacity: 0, y: 16 });
         if (rule) gsap.set(rule, { scaleX: 0 });
 
         const t4 = gsap.timeline({ scrollTrigger: { trigger: payoff, start: "top 76%", end: "bottom 42%", scrub } });
         const T4 = hush
-          ? { head: 0.3, p: [1.8, 3.2], close: 5.0, pop: 0.7, arcDur: 0.9, closeDur: 1.05 }
-          : { head: 0.3, p: [1.45, 2.35, 3.3], close: 4.7, pop: 0.45, arcDur: 0.55, closeDur: 0.8 };
+          ? { head: 0.3, p: [1.8, 3.2], close: 5.0 }
+          : { head: 0.3, p: [1.45, 2.35, 3.3], close: 4.7 };
 
         revealLine(t4, headLn, T4.head, "b4opens", LEADP);
-        // the empty stage surfaces quietly with the promise of the seal
-        t4.to(stage, { opacity: 1, y: 0, duration: 0.7, ease: HOUSE }, Math.max(0, labelTime(t4, "b4opens") - 0.1));
-
-        // each promise sets one gold point of the seal ON its key word, and
-        // the arc CONNECTS to the previous point as the next promise lands -
-        // the seal assembles with the words, piece by piece.
         pLns.forEach((ln, i) => {
-          const label = `b4p${i}`;
-          revealLine(t4, ln, T4.p[i], label, SUPP);
-          const p = pts[i];
-          if (p) t4.to(p, { opacity: 1, scale: 1, duration: T4.pop, ease: HOUSE }, endAt(label, T4.pop));
-          if (i > 0 && arcs[i - 1]) {
-            const at = labelTime(t4, label) + 0.12;
-            t4.to(arcs[i - 1], { opacity: 0.8, duration: 0.1, ease: "none" }, at);
-            t4.to(arcs[i - 1], { strokeDashoffset: 0, duration: T4.arcDur, ease: HOUSE }, at);
-          }
+          revealLine(t4, ln, T4.p[i], `b4p${i}`, SUPP);
         });
-        // on the last promise ("love"/"loved") the set points share one breath
-        const lastP = `b4p${pLns.length - 1}`;
-        if (!hush && pts.length) {
-          t4.to(pts, { scale: 1.12, duration: 0.3, ease: "sine.inOut" }, labelTime(t4, lastP) + 0.1)
-            .to(pts, { scale: 1, duration: 0.45, ease: HOUSE }, labelTime(t4, lastP) + 0.42);
-        }
 
-        // "Set the chart." rises inside the assembling ring; the final arc
-        // closes the seal EXACTLY as "chart" lands.
+        // "Set the chart." arrives word by word; as "chart" lands the words
+        // light (white with a violet breath) and the rule draws underneath.
         revealLine(t4, closeLn, T4.close, "b4chart", LEADP);
-        const closing = arcs[arcs.length - 1];
-        if (closing) {
-          t4.to(closing, { opacity: 0.8, duration: 0.1, ease: "none" }, endAt("b4chart", T4.closeDur + 0.05));
-          t4.to(closing, { strokeDashoffset: 0, duration: T4.closeDur, ease: HOUSE }, endAt("b4chart", T4.closeDur));
-        }
-        // the seal is cast: the words light gold, the rule draws, the moon
-        // lends one warm breath, the ring settles
         t4.call(() => { if (asc) asc.classList.add("lit"); }, [], "b4chart+=0.1");
         if (rule) t4.fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: HOUSE }, "b4chart+=0.18");
-        if (goldBloom) {
-          t4.to(goldBloom, { opacity: glow(hush ? 0.3 : 0.45), duration: 0.3, ease: "none" }, "b4chart")
-            .to(goldBloom, { opacity: 0, duration: 0.7, ease: "none" }, "b4chart+=0.35");
-        }
-        t4.to(sealSvg, { scale: 1.012, duration: 0.5, ease: "sine.inOut", transformOrigin: "50% 50%" }, "b4chart+=0.2")
-          .to(sealSvg, { scale: 1, duration: 0.6, ease: HOUSE }, "b4chart+=0.75");
         // keep the form crest reaching its docked final state (page-side)
         if (crestEl) {
           t4.call(() => {
@@ -1057,7 +959,7 @@ export function CosmicBridge() {
 
         // ================= REDUCED MOTION: honest final state =================
         // CSS already authors every visual's FINISHED state (lit rail stars,
-        // drawn web + seal, locked readout, risen dawn). Only the few values
+        // drawn web, locked readout, risen dawn). Only the few values
         // whose finals are JS-owned get set here.
         if (noMotion) {
           gsap.set(q(".lcb-moon-img.blur"), { opacity: 0 });
@@ -1122,7 +1024,7 @@ export function CosmicBridge() {
     >
       <style>{LCB_CSS}</style>
 
-      {/* shared paint servers for every star on the page (band, rail, seal) */}
+      {/* shared paint servers for every star on the page (band, rail) */}
       <svg className="lcb-defs" aria-hidden="true" focusable="false">
         <defs>
           <radialGradient id="lcbHaloCool">
@@ -1154,18 +1056,6 @@ export function CosmicBridge() {
             <stop offset="55%" stopColor="rgba(255,206,140,0.10)" />
             <stop offset="82%" stopColor="rgba(214,190,134,0.05)" />
             <stop offset="100%" stopColor="rgba(214,190,134,0)" />
-          </radialGradient>
-          <radialGradient id="lcbHaloGold">
-            <stop offset="0%" stopColor="rgba(255,236,180,0.85)" />
-            <stop offset="24%" stopColor="rgba(240,217,159,0.34)" />
-            <stop offset="55%" stopColor="rgba(214,190,134,0.09)" />
-            <stop offset="100%" stopColor="rgba(214,190,134,0)" />
-          </radialGradient>
-          <radialGradient id="lcbCoreGold">
-            <stop offset="0%" stopColor="rgba(255,252,244,1)" />
-            <stop offset="38%" stopColor="rgba(255,236,184,0.7)" />
-            <stop offset="78%" stopColor="rgba(240,217,159,0.12)" />
-            <stop offset="100%" stopColor="rgba(240,217,159,0)" />
           </radialGradient>
         </defs>
       </svg>
@@ -1255,20 +1145,17 @@ export function CosmicBridge() {
               </p>
             </div>
 
-            {/* MEMORIAL BEAT 4 - THE SEAL: two promises set two gold points;
-                the ring closes gently on "chart". Held, not merged. */}
+            {/* MEMORIAL BEAT 4 - THE CLOSE: two promises, then the plain
+                closing words hand gently into the form. Held, not merged. */}
             <div className="lcb-scene lcb-payoff lcb-payoff-scene">
               <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A soul reading <span className="lcb-key">opens</span> who they were.</span></p>
               <p className="lcb-beat lcb-support lcb-promises lcb-split">
                 <span className="lcb-ln">What made them, <span className="lcb-key">them.</span></span>
                 <span className="lcb-ln lcb-emph">Why they <span className="lcb-key">loved</span> you the way they did.</span>
               </p>
-              <div className="lcb-seal-stage">
-                <svg className="lcb-seal" viewBox="0 0 560 230" preserveAspectRatio="xMidYMid meet" aria-hidden="true" />
-                <p className="lcb-payoff-line lcb-close lcb-split">
-                  <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
-                </p>
-              </div>
+              <p className="lcb-payoff-line lcb-close lcb-split">
+                <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
+              </p>
               <span className="lcb-rule" aria-hidden="true" />
             </div>
           </>
@@ -1334,8 +1221,8 @@ export function CosmicBridge() {
               </p>
             </div>
 
-            {/* BEAT 4 - THE SEAL: three promises set three gold points; the
-                ring closes around "Set the chart." exactly on "chart". */}
+            {/* BEAT 4 - THE CLOSE: three promises arrive word by word, then
+                the plain closing words hand straight into the form. */}
             <div className="lcb-scene lcb-payoff lcb-payoff-scene">
               <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A soul reading <span className="lcb-key">opens</span> it, piece by piece.</span></p>
               <p className="lcb-beat lcb-support lcb-promises lcb-split">
@@ -1343,12 +1230,9 @@ export function CosmicBridge() {
                 <span className="lcb-ln">What they <span className="lcb-key">need.</span></span>
                 <span className="lcb-ln lcb-emph">Why they <span className="lcb-key">love</span> you the way they do.</span>
               </p>
-              <div className="lcb-seal-stage">
-                <svg className="lcb-seal" viewBox="0 0 560 230" preserveAspectRatio="xMidYMid meet" aria-hidden="true" />
-                <p className="lcb-payoff-line lcb-close lcb-split">
-                  <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
-                </p>
-              </div>
+              <p className="lcb-payoff-line lcb-close lcb-split">
+                <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
+              </p>
               <span className="lcb-rule" aria-hidden="true" />
             </div>
           </>

@@ -135,6 +135,10 @@ const ASTRO_PATHS: Record<string, ReactNode> = {
   chiron: (<><circle cx="12" cy="17.4" r="3.6" /><line x1="9.4" y1="3.4" x2="9.4" y2="13.8" /><path d="M9.4 9.2 14.6 4M9.4 9.6 14 13.6" /></>),
   northNode: (<><path d="M7.6 19.6C6.4 11 8.4 5.4 12 5.4s5.6 5.6 4.4 14.2" /><circle cx="6.8" cy="19.8" r="1.7" /><circle cx="17.2" cy="19.8" r="1.7" /></>),
   lilith: (<><path d="M8.6 9.2a4 4 0 1 0 5.4-3.7 5.2 5.2 0 0 1 0 7.4 4 4 0 0 1-5.4-3.7z" fill="currentColor" stroke="none" /><line x1="12" y1="12.6" x2="12" y2="21" /><line x1="8.4" y1="17" x2="15.6" y2="17" /></>),
+  // The Ascendant mark: the eastern horizon with the disc half-risen over it.
+  rising: (<><line x1="3.2" y1="16" x2="20.8" y2="16" /><path d="M6.9 16a5.1 5.1 0 0 1 10.2 0" /><line x1="12" y1="7.2" x2="12" y2="4.6" /></>),
+  // The synthesis mark: thirteen lights held in one ring, read from the centre.
+  synthesis: (<><circle cx="12" cy="12" r="7.6" strokeDasharray="0.1 3.88" /><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" /></>),
 };
 
 function AstroGlyph({ name, className }: { name: string; className?: string }) {
@@ -1921,47 +1925,84 @@ function CosmicJourney({
   );
 }
 
-// The guided one-way free reading. Replaces the old tap-through narrated journey
-// (Next / audio / click-to-advance). After the chart settles the reader is only
-// ever carried forward: an opening beat, then the three placements the date can
-// give freely (Sun, Moon, Rising), each a real world lit with the same living
-// light as the desire section, revealed one at a time on scroll. Then the desire
-// turn (the gap), then the handoff into "the rest of who they are". Scroll is the
-// only control, nothing drifts under the pointer, and the reader cannot get lost.
+// The guided one-way free reading, staged as a ceremony: one planet, one moment.
+// After the chart settles the reader is only ever carried forward. An opening
+// beat, then the three placements the date can give freely (Sun, Moon, Rising),
+// each a full moment: a quiet progress mark (I of III), the astrological glyph
+// beside the placement name, the real world arriving dim and lighting as you
+// reach it, the reading as short single lines that land one at a time (never a
+// paragraph), the sign chip turning over like a card, and the personal per-sign
+// line sitting alone with space around it. A breath of dark between planets.
+// Then the desire turn (ten dim glyphs, countable, still dark on the wheel),
+// then the handoff into "the rest of who they are". Scroll is the only control.
+// COLOUR LAW (Danny): this section is cosmic purple + white ONLY. No gold.
 // CSP safe (IntersectionObserver plus CSS only), reduced motion safe (all shown,
 // no sweeps, one clear order). Note: the compute returns no ascendant (a rising
 // needs the exact minute and place), so the Rising slot never fabricates a sign.
 type FreePlanetKey = "sun" | "moon" | "rising";
-type FreePlanet = { key: FreePlanetKey; eyebrow: string; frame: string; reveal: string; hook: string; glow: string; photo: string; alt: string };
+type FreePlanet = {
+  key: FreePlanetKey;
+  ord: string;
+  eyebrow: string;
+  frame: string;
+  lines: string[];
+  hook: string[];
+  glow: string;
+  photo: string;
+  alt: string;
+};
 
 const FREE_PLANETS: FreePlanet[] = [
   {
     key: "sun",
+    ord: "I of III",
     eyebrow: "The Sun",
     frame: "Who they are, all the way down.",
-    reveal: "This is the part of them that was never taught and never trained. The one that shows up whether the day was good or bad.",
-    hook: "It is the thing they do the second the door opens, every single time, like you had been gone a year.",
-    glow: "#f3b64e",
+    lines: [
+      "This is the part of them that was never taught and never trained.",
+      "The one that shows up whether the day was good or bad.",
+    ],
+    hook: [
+      "It is the thing they do the second the door opens,",
+      "every single time, like you had been gone a year.",
+    ],
+    glow: "#f2ecff",
     photo: "/readings/sun/sun-opt1.png?v=3",
     alt: "The real Sun",
   },
   {
     key: "moon",
+    ord: "II of III",
     eyebrow: "The Moon",
     frame: "How they feel, and what settles them.",
-    reveal: "This is the part that comes out when the house goes quiet. What they need to feel safe. What they reach for when the day has been too much.",
-    hook: "It is why, when it has all been too much, they end up in the one spot that still holds your warmth.",
-    glow: "#cdd6e8",
+    lines: [
+      "This is the part that comes out when the house goes quiet.",
+      "What they need to feel safe.",
+      "What they reach for when the day has been too much.",
+    ],
+    hook: [
+      "It is why, when it has all been too much,",
+      "they end up in the one spot that still holds your warmth.",
+    ],
+    glow: "#d8d3ec",
     photo: NASA_IMG.moon,
     alt: "The real Moon",
   },
   {
     key: "rising",
+    ord: "III of III",
     eyebrow: "The Rising",
     frame: "The first face they show the world.",
-    reveal: "This is what a room meets before it meets the rest of them. The front door, not the whole house. How they meet a stranger, and how long it takes to see the real one.",
-    hook: "It is the version of them everyone else describes, and the version only you get to see underneath.",
-    glow: "#87b0e2",
+    lines: [
+      "This is what a room meets before it meets the rest of them.",
+      "The front door, not the whole house.",
+      "How they meet a stranger, and how long it takes to see the real one.",
+    ],
+    hook: [
+      "It is the version of them everyone else describes,",
+      "and the version only you get to see underneath.",
+    ],
+    glow: "#a78bfa",
     photo: NASA_IMG.earth,
     alt: "The horizon at first light",
   },
@@ -1970,10 +2011,48 @@ const FREE_PLANETS: FreePlanet[] = [
 // The Rising placement is never fabricated: a date alone cannot draw a rising, it
 // turns on the exact minute and place they arrived. So this slot tells the truth
 // and pulls forward, while Sun and Moon carry their real computed signs.
-const RISING_PLACE = "Two of these stand on the day alone. A rising turns on the exact minute they arrived, so this is the one face only the full reading can draw.";
+const RISING_PLACE: string[] = [
+  "Two of these stand on the day alone.",
+  "A rising turns on the exact minute they arrived.",
+  "So this is the one face only the full reading can draw.",
+];
+
+// The ten unread: nine bodies still dark on the wheel, plus the synthesis mark
+// (what all of them do together). Rendered as dim, countable glyphs, never text.
+const DARK_GLYPHS = [
+  "mercury", "venus", "mars", "jupiter", "saturn",
+  "uranus", "neptune", "pluto", "chiron", "synthesis",
+] as const;
+
+// The five named desires, each a single line that lights attention as it
+// arrives and stirs a pair of the dark glyphs above it.
+const FREE_DARK: string[] = [
+  "What they are afraid of, and what steadies them when it comes.",
+  "How they love you back, in the one language only they use.",
+  "What they carry from before you, and what they let go once they were yours.",
+  "Who they trust on sight, and who they never quite forgive.",
+  "What they want that they cannot ask you for.",
+];
+
+// Split a multi-sentence line into single spoken beats so no rendered line is
+// ever a paragraph. Sentence boundaries only; the approved wording is kept.
+function splitBeats(text: string): string[] {
+  if (!text) return [];
+  const parts = text.match(/[^.!?]+[.!?]+(?:["')\]]+)?/g);
+  return parts ? parts.map((s) => s.trim()).filter(Boolean) : [text.trim()];
+}
 
 function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // The memorial register keeps its hush: the ceremony itself is shared, but
+  // the ten-glyph tease and the named-desire lines stay off that path.
+  const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorial(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
 
   // One observer: latches each line in once (data-in, permanent) and toggles the
   // ASMR play-state per world (is-live) so only the on-screen planet animates.
@@ -1999,6 +2078,13 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
           const el = e.target as HTMLElement;
           if (e.isIntersecting || e.boundingClientRect.top < 0) {
             el.setAttribute("data-in", "1");
+            // A named desire line stirs its pair of dark glyphs as it lands.
+            const dline = el.getAttribute("data-dline");
+            if (dline !== null) {
+              root
+                .querySelectorAll<HTMLElement>(`.ls-fr-dk-g[data-grp="${dline}"]`)
+                .forEach((g) => g.setAttribute("data-wake", "1"));
+            }
             ioLatch.unobserve(el);
           }
         });
@@ -2019,7 +2105,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
       ioLatch.disconnect();
       ioLive.disconnect();
     };
-  }, [reduce]);
+  }, [reduce, memorial]);
 
   // Reading-revealed gate: the lower funnel (the rest + reviews + pricing) only
   // enters the page once the reader has been carried through the three free
@@ -2058,71 +2144,124 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
 
   return (
     <div className="ls-fr" ref={rootRef}>
-      {/* Opening: the chart settles, and we name the love they already feel. */}
+      {/* Opening: the chart settles, and we name the love they already feel.
+          Every reveal is one short line. Never a paragraph. */}
       <div className="ls-fr-open">
         <span className="ls-fr-settle" aria-hidden="true"><i /><i /><i /></span>
         <p className="ls-fr-open-hero ls-fr-rv">Here they are.</p>
         <p className="ls-fr-open-sub ls-fr-rv" style={revealDelay(0.06)}>The whole of them, mapped to the sky the day they arrived.</p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.14)}>You already know some of this. You know the exact thing that makes them lose their mind with joy.</p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.2)}>You know the weight of them when they finally fall asleep on you.</p>
-        <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.28)}>You have felt who they are for a long time. This is where it gets its name.</p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.12)}>You already know some of this.</p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.18)}>You know the exact thing that makes them lose their mind with joy.</p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.24)}>You know the weight of them when they finally fall asleep on you.</p>
+        <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.3)}>You have felt who they are for a long time.</p>
+        <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.36)}>This is where it gets its name.</p>
       </div>
 
-      {/* Three real worlds, one at a time, forward only. */}
-      {FREE_PLANETS.map((p) => {
+      {/* Three real worlds. One planet, one moment, forward only. */}
+      {FREE_PLANETS.map((p, pi) => {
         const body = p.key === "rising" ? undefined : bodyFor(p.key);
         const sign = body?.sign;
         const deg = typeof body?.degree === "number" ? `${Math.round(body.degree)}` : "";
-        const line = p.key === "rising" ? "" : ((sign && SIGN_LINES[p.key]?.[sign]) || JOURNEY_LINES[p.key] || PLANET_META[p.key]?.line || "");
+        const signLine = p.key === "rising" ? "" : ((sign && SIGN_LINES[p.key]?.[sign]) || JOURNEY_LINES[p.key] || PLANET_META[p.key]?.line || "");
+        const signBeats = splitBeats(signLine);
         return (
-          <section key={p.key} className={`ls-fr-planet is-${p.key}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
-            <p className="ls-fr-eyebrow ls-fr-rv">{p.eyebrow}</p>
-            <div className="ls-fr-stage ls-fr-rv" style={revealDelay(0.04)}>
-              <span className="ls-fr-halo" aria-hidden="true" />
-              {p.key === "sun" ? (
-                <span className="ls-fr-sun">
-                  <img src={p.photo} alt={p.alt} />
-                  <span className="ls-fr-sun-shine" aria-hidden="true" />
-                </span>
-              ) : (
-                <span className="ls-fr-disc">
-                  <img className="ls-fr-photo" src={p.photo} alt={p.alt} loading="lazy" decoding="async" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
-                  <span className="ls-fr-term" aria-hidden="true" />
-                  <span className="ls-fr-spec" aria-hidden="true" />
-                  <span className="ls-fr-rim" aria-hidden="true" />
-                </span>
-              )}
-            </div>
-            <p className="ls-fr-frame ls-fr-rv" style={revealDelay(0.08)}>{p.frame}</p>
-            <p className="ls-fr-reveal ls-fr-rv" style={revealDelay(0.14)}>{p.reveal}</p>
-            <div className="ls-fr-place ls-fr-rv" style={revealDelay(0.2)}>
+          <div key={p.key} className="ls-fr-world">
+            <section className={`ls-fr-planet is-${p.key}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
+              <p className="ls-fr-ord ls-fr-rv">{p.ord}</p>
+              <div className="ls-fr-mark ls-fr-rv" style={revealDelay(0.05)}>
+                <AstroGlyph name={p.key} className="ls-fr-glyph" />
+                <span className="ls-fr-name">{p.eyebrow}</span>
+              </div>
+              <div className="ls-fr-stage ls-fr-rv" style={revealDelay(0.1)}>
+                <span className="ls-fr-halo" aria-hidden="true" />
+                {p.key === "sun" ? (
+                  <span className="ls-fr-sun">
+                    <img src={p.photo} alt={p.alt} />
+                    <span className="ls-fr-sun-shine" aria-hidden="true" />
+                  </span>
+                ) : (
+                  <span className="ls-fr-disc">
+                    <img className="ls-fr-photo" src={p.photo} alt={p.alt} loading="lazy" decoding="async" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
+                    <span className="ls-fr-term" aria-hidden="true" />
+                    <span className="ls-fr-spec" aria-hidden="true" />
+                    <span className="ls-fr-rim" aria-hidden="true" />
+                  </span>
+                )}
+              </div>
+              <p className="ls-fr-frame ls-fr-rv" style={revealDelay(0.14)}>{p.frame}</p>
+              <div className="ls-fr-lines">
+                {p.lines.map((ln, i) => (
+                  <p key={i} className="ls-fr-ln ls-fr-rv" style={revealDelay(0.16 + i * 0.09)}>{ln}</p>
+                ))}
+              </div>
               {p.key === "rising" ? (
-                <p className="ls-fr-line is-sealed">{RISING_PLACE}</p>
+                <div className="ls-fr-place is-sealed">
+                  {RISING_PLACE.map((ln, i) => (
+                    <p key={i} className="ls-fr-sealed ls-fr-rv" style={revealDelay(0.08 + i * 0.09)}>{ln}</p>
+                  ))}
+                </div>
               ) : (
-                <>
-                  {sign && <span className="ls-fr-chip">{deg ? `${sign} ${deg}°` : sign}</span>}
-                  <p className="ls-fr-line">{line}</p>
-                </>
+                <div className="ls-fr-place">
+                  {/* The payoff: the sign lands like a card turn... */}
+                  {sign && (
+                    <span className="ls-fr-chipturn ls-fr-rv" style={revealDelay(0.1)}>
+                      <span className="ls-fr-chip">{deg ? `${sign} ${deg}°` : sign}</span>
+                    </span>
+                  )}
+                  {/* ...then the personal line sits alone, slightly larger. */}
+                  <div className="ls-fr-lineband">
+                    {signBeats.map((b, i) => (
+                      <p key={i} className="ls-fr-line ls-fr-rv" style={revealDelay(0.42 + i * 0.14)}>{b}</p>
+                    ))}
+                  </div>
+                </div>
               )}
-            </div>
-            <p className="ls-fr-hook ls-fr-rv" style={revealDelay(0.26)}>{p.hook}</p>
-          </section>
+              <div className="ls-fr-hookband">
+                {p.hook.map((h, i) => (
+                  <p key={i} className="ls-fr-hook ls-fr-rv" style={revealDelay(0.1 + i * 0.09)}>{h}</p>
+                ))}
+              </div>
+            </section>
+            {/* A breath of dark between planets: one faint star in the quiet. */}
+            {pi < FREE_PLANETS.length - 1 && (
+              <div className="ls-fr-breath" aria-hidden="true"><i /></div>
+            )}
+          </div>
         );
       })}
 
-      {/* The desire turn: the gap opens. The sealed parts are itemized exactly
-          once, by the real-planet section this hands off to, so the turn stays
-          a single held breath instead of a second list. */}
+      {/* The desire turn: the gap opens. On the discovery path the ten unread
+          placements sit as dim, countable glyphs and the five named desires
+          arrive one line at a time. The memorial path keeps its hush: the same
+          held-breath copy, no tease row. */}
       <section className="ls-fr-turn">
-        <p className="ls-fr-turn-lead ls-fr-rv">You have met three of them. Who they are, how they feel, the face they show first.</p>
-        <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.05)}>There are ten more, still dark on the wheel.</p>
-        {/* Ownership beat. The dossier checkout owns "Three of thirteen, yours
-            already." beside its endowed rung; this line stays distinct so no
-            copy line ever renders twice on the path. */}
-        <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.1)}>The three you have met are yours.</p>
+        <p className="ls-fr-turn-lead ls-fr-rv">You have met three of them.</p>
+        <p className="ls-fr-turn-lead2 ls-fr-rv" style={revealDelay(0.06)}>Who they are, how they feel, the face they show first.</p>
+        <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.1)}>
+          {memorial ? "There are ten more, still dark on the wheel." : "There are ten more, still dark on the wheel:"}
+        </p>
+        {!memorial && (
+          <>
+            <div className="ls-fr-dk ls-fr-rv" style={revealDelay(0.14)} aria-hidden="true">
+              {DARK_GLYPHS.map((g, i) => (
+                <span key={g} className="ls-fr-dk-g" data-grp={Math.floor(i / 2)}>
+                  <AstroGlyph name={g} />
+                </span>
+              ))}
+            </div>
+            <div className="ls-fr-dkl">
+              {FREE_DARK.map((d, i) => (
+                <p key={i} className="ls-fr-dk-line ls-fr-rv" data-dline={i} style={revealDelay(0.08 + i * 0.09)}>{d}</p>
+              ))}
+            </div>
+          </>
+        )}
+        <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.08)}>Three of thirteen, yours already.</p>
         <p className="ls-fr-turn-one ls-fr-rv" style={revealDelay(0.05)}>And there is one thing no single planet can show you.</p>
-        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together. The reason they pick the exact spot on you they always pick. The reason they watch you the way they watch you.</p>
-        <p className="ls-fr-turn-whole ls-fr-rv" style={revealDelay(0.16)}>The whole of them, read in one place.</p>
+        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together.</p>
+        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.15)}>The reason they pick the exact spot on you they always pick.</p>
+        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.2)}>The reason they watch you the way they watch you.</p>
+        <p className="ls-fr-turn-whole ls-fr-rv" style={revealDelay(0.18)}>The whole of them, read in one place.</p>
       </section>
 
       {/* Handoff into the rest of who they are. */}
@@ -2147,14 +2286,19 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-settle i:nth-child(3) { width: 96%; height: 96%; animation-delay: -3.2s; opacity: 0.32; }
         @keyframes lsFrSettle { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.82; } }
         .ls-fr-open-hero { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.1rem, 7.2vw, 3.4rem); line-height: 1.02; letter-spacing: -0.02em; }
-        .ls-fr-open-sub { margin: 0; max-width: 26ch; color: ${C.goldSoft}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.1rem, 3vw, 1.5rem); line-height: 1.32; }
+        .ls-fr-open-sub { margin: 0; max-width: 26ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.1rem, 3vw, 1.5rem); line-height: 1.32; }
         .ls-fr-open-body { margin: 0; max-width: 34ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.5vw, 1.16rem); line-height: 1.5; }
-        .ls-fr-open-turn { margin: clamp(6px, 1.4vw, 12px) 0 0; max-width: 32ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.04rem, 2.7vw, 1.24rem); line-height: 1.45; }
+        .ls-fr-open-turn { margin: 0; max-width: 32ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.04rem, 2.7vw, 1.24rem); line-height: 1.45; }
+        .ls-fr-open-turn + .ls-fr-open-turn { margin-top: -6px; }
 
-        /* One world */
+        /* One world: one planet, one moment */
         .ls-fr-planet { position: relative; display: flex; flex-direction: column; align-items: center; padding: clamp(30px, 7svh, 84px) 0; }
-        .ls-fr-eyebrow { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(16px, 3vw, 26px); color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.36em; text-transform: uppercase; }
-        .ls-fr-eyebrow::before, .ls-fr-eyebrow::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
+        .ls-fr-ord { margin: 0 0 clamp(12px, 2.2vw, 18px); color: rgba(185,165,240,0.72); font-family: "Newsreader", Georgia, serif; font-variant-caps: small-caps; letter-spacing: 0.34em; text-indent: 0.34em; font-size: clamp(0.82rem, 2.1vw, 0.94rem); }
+        .ls-fr-mark { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(18px, 3.2vw, 28px); color: var(--glow); }
+        .ls-fr-mark::before, .ls-fr-mark::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
+        .ls-fr-mark::after { background: linear-gradient(90deg, color-mix(in srgb, var(--glow) 72%, transparent), transparent); }
+        .ls-fr-glyph { display: block; font-size: clamp(22px, 5vw, 27px); filter: drop-shadow(0 0 9px color-mix(in srgb, var(--glow) 55%, transparent)); }
+        .ls-fr-name { font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.36em; text-transform: uppercase; }
         .ls-fr-stage { position: relative; display: grid; place-items: center; width: clamp(200px, 60vw, 292px); height: clamp(200px, 60vw, 292px); margin: 0 0 clamp(22px, 4vw, 34px); }
         .ls-fr-halo { position: absolute; inset: -6%; border-radius: 50%; z-index: 1; pointer-events: none; background: radial-gradient(circle, color-mix(in srgb, var(--glow) 40%, transparent) 0%, color-mix(in srgb, var(--glow) 18%, transparent) 36%, color-mix(in srgb, var(--glow) 6%, transparent) 56%, transparent 72%); filter: blur(10px); opacity: 0.68; animation: lsFrBreathe 6s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrBreathe { 0%, 100% { transform: scale(1); opacity: 0.56; } 50% { transform: scale(1.08); opacity: 0.84; } }
@@ -2176,11 +2320,18 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 60%, transparent), inset 0 0 10px 0 color-mix(in srgb, var(--glow) 32%, transparent); }
         .ls-fr-planet.is-rising .ls-fr-disc::after { box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.42), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 34%, transparent); }
 
-        /* The Sun: a real star, no night side, alive by breath and a slow shine. */
+        /* The Sun: a real star, no night side, alive by breath and a slow shine.
+           Its corona reads as starlight (white/violet), never a gold UI tint. */
         .ls-fr-sun { position: relative; z-index: 2; display: grid; place-items: center; width: clamp(210px, 60vw, 300px); height: clamp(210px, 60vw, 300px); animation: lsFrBreatheDisc 8s ease-in-out infinite; animation-play-state: paused; }
-        .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(243,150,40,0.42)); }
-        .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,246,214,0.5) 0%, rgba(255,196,90,0.16) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
+        .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(216,203,255,0.36)); }
+        .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,255,255,0.46) 0%, rgba(216,203,255,0.15) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrShine { 0%, 100% { transform: translate(-4%, -3%) scale(1); opacity: 0.4; } 50% { transform: translate(5%, 4%) scale(1.08); opacity: 0.68; } }
+
+        /* SUSPENSE: each world arrives dim, then lights as you reach it. */
+        .ls-fr-disc, .ls-fr-sun { filter: brightness(0.52) saturate(0.6); transition: filter 1.5s cubic-bezier(0.16,1,0.3,1); }
+        .ls-fr-halo { filter: opacity(0.24); transition: filter 1.5s cubic-bezier(0.16,1,0.3,1); }
+        .ls-fr-planet.is-live .ls-fr-disc, .ls-fr-planet.is-live .ls-fr-sun { filter: brightness(1) saturate(1); }
+        .ls-fr-planet.is-live .ls-fr-halo { filter: opacity(1); }
 
         .ls-fr-planet.is-live .ls-fr-halo,
         .ls-fr-planet.is-live .ls-fr-disc,
@@ -2189,21 +2340,47 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-planet.is-live .ls-fr-sun,
         .ls-fr-planet.is-live .ls-fr-sun-shine { animation-play-state: running; }
 
-        /* The words for each world */
-        .ls-fr-frame { margin: 0 0 clamp(12px, 2.4vw, 18px); max-width: 18ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.6rem, 5.8vw, 2.4rem); line-height: 1.06; letter-spacing: -0.018em; }
-        .ls-fr-reveal { margin: 0 auto clamp(18px, 3vw, 26px); max-width: 40ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.7vw, 1.22rem); line-height: 1.5; }
-        .ls-fr-place { margin: 0 auto clamp(16px, 3vw, 24px); max-width: 40ch; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow) 46%, transparent); background: color-mix(in srgb, var(--glow) 11%, transparent); color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
-        .ls-fr-line { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.12rem, 3vw, 1.34rem); line-height: 1.42; }
-        .ls-fr-line.is-sealed { color: ${C.creamDim}; font-style: italic; }
-        .ls-fr-hook { margin: 0 auto; max-width: 38ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
+        /* The words for each world: short single lines, one at a time. */
+        .ls-fr-frame { margin: 0 0 clamp(14px, 2.6vw, 20px); max-width: 18ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.6rem, 5.8vw, 2.4rem); line-height: 1.06; letter-spacing: -0.018em; }
+        .ls-fr-lines { display: flex; flex-direction: column; gap: clamp(9px, 1.8vw, 13px); max-width: 40ch; margin: 0 auto; }
+        .ls-fr-ln { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.7vw, 1.22rem); line-height: 1.5; }
+
+        /* The sign lands like a card turn, then the personal line sits alone. */
+        .ls-fr-place { margin: clamp(22px, 4vw, 34px) auto clamp(4px, 1vw, 8px); max-width: 40ch; display: flex; flex-direction: column; align-items: center; gap: clamp(16px, 3vw, 24px); }
+        .ls-fr-place.is-sealed { gap: clamp(8px, 1.6vw, 12px); }
+        .ls-fr-sealed { margin: 0; color: ${C.creamDim}; font-style: italic; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.18rem); line-height: 1.5; }
+        .ls-fr-chipturn { display: inline-block; perspective: 640px; }
+        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow) 48%, transparent); background: color-mix(in srgb, var(--glow) 11%, transparent); color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; backface-visibility: hidden; }
+        .ls-fr-chipturn .ls-fr-chip { transform: rotateX(-94deg); opacity: 0; transform-origin: 50% 120%; transition: transform 1s cubic-bezier(0.3,1.36,0.44,1) 0.15s, opacity 0.4s ease 0.15s, box-shadow 0.8s ease 0.4s; will-change: transform; }
+        .ls-fr-chipturn[data-in] .ls-fr-chip { transform: rotateX(0deg); opacity: 1; box-shadow: 0 8px 30px color-mix(in srgb, var(--glow) 20%, transparent); }
+        .ls-fr-lineband { display: flex; flex-direction: column; gap: clamp(8px, 1.6vw, 12px); max-width: 30ch; margin: clamp(6px, 1.4vw, 10px) auto 0; }
+        .ls-fr-line { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.24rem, 3.4vw, 1.56rem); line-height: 1.4; }
+        .ls-fr-hookband { display: flex; flex-direction: column; gap: 7px; max-width: 38ch; margin: clamp(22px, 4vw, 32px) auto 0; }
+        .ls-fr-hook { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
+
+        /* A breath of dark between planets: one faint star holds the quiet. */
+        .ls-fr-breath { position: relative; height: clamp(90px, 22svh, 220px); }
+        .ls-fr-breath i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: rgba(185,165,240,0.55); box-shadow: 0 0 12px 3px rgba(154,126,230,0.28); animation: lsFrTwinkle 5.5s ease-in-out infinite; }
+        @keyframes lsFrTwinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
 
         /* The desire turn */
         .ls-fr-turn { position: relative; max-width: 44ch; margin: 0 auto; padding: clamp(46px, 10svh, 118px) 0 clamp(28px, 6svh, 68px); display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.6vw, 20px); }
         .ls-fr-turn::before { content: ""; position: absolute; top: 0; left: 50%; width: 1px; height: clamp(34px, 7svh, 78px); transform: translateX(-50%); background: linear-gradient(180deg, transparent, ${C.lineViolet}); }
         .ls-fr-turn-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.12; letter-spacing: -0.015em; }
+        .ls-fr-turn-lead2 { margin: -4px 0 0; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.12rem, 3.2vw, 1.5rem); line-height: 1.2; letter-spacing: -0.01em; }
         .ls-fr-turn-sub { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.6vw, 1.2rem); line-height: 1.5; }
-        .ls-fr-turn-own { margin: clamp(10px, 2vw, 18px) 0 0; color: ${C.goldSoft}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.15rem); line-height: 1.08; letter-spacing: -0.015em; }
+
+        /* Ten dim glyphs, countable. Still dark on the wheel. */
+        .ls-fr-dk { display: flex; justify-content: center; align-items: center; gap: clamp(9px, 2.4vw, 17px); margin: clamp(8px, 1.6vw, 14px) 0 clamp(2px, 0.6vw, 6px); color: ${C.violetBright}; }
+        .ls-fr-dk-g { display: inline-flex; font-size: clamp(19px, 4.6vw, 25px); opacity: 0.26; }
+        .ls-fr-dk-g[data-wake] { animation: lsFrWake 2s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes lsFrWake { 0% { opacity: 0.26; transform: scale(1); } 32% { opacity: 0.9; transform: scale(1.16); } 100% { opacity: 0.5; transform: scale(1); } }
+        .ls-fr-dkl { display: flex; flex-direction: column; gap: clamp(10px, 2vw, 14px); margin: clamp(8px, 1.6vw, 12px) 0 0; max-width: 40ch; }
+        .ls-fr-dk-line { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.6vw, 1.2rem); line-height: 1.5; }
+        .ls-fr-dk-line[data-in] { animation: lsFrAttend 1.9s ease 0.25s; }
+        @keyframes lsFrAttend { 0% { color: ${C.creamDim}; text-shadow: none; } 30% { color: ${C.cream}; text-shadow: 0 0 18px rgba(167,139,250,0.4); } 100% { color: ${C.creamDim}; text-shadow: none; } }
+
+        .ls-fr-turn-own { margin: clamp(10px, 2vw, 18px) 0 0; color: ${C.cream}; text-shadow: 0 0 24px rgba(167,139,250,0.35); font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.15rem); line-height: 1.08; letter-spacing: -0.015em; }
         .ls-fr-turn-one { margin: clamp(14px, 3vw, 24px) 0 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); line-height: 1.45; }
         .ls-fr-turn-what { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 2.9vw, 1.3rem); line-height: 1.46; }
         .ls-fr-turn-whole { margin: clamp(6px, 1.4vw, 12px) 0 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.44rem, 4.8vw, 2rem); line-height: 1.1; letter-spacing: -0.01em; }
@@ -2222,12 +2399,15 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-settle i, .ls-fr-handoff-cta svg { animation: none !important; }
+          .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-settle i, .ls-fr-handoff-cta svg, .ls-fr-breath i, .ls-fr-dk-g, .ls-fr-dk-line { animation: none !important; }
           .ls-fr-term { display: none !important; }
           .ls-fr-spec { opacity: 0.24 !important; transform: none !important; }
           .ls-fr-photo { filter: brightness(0.96) contrast(1.04) saturate(1.02) !important; }
-          .ls-fr-halo { opacity: 0.6 !important; }
+          .ls-fr-halo { opacity: 0.6 !important; filter: none !important; }
+          .ls-fr-disc, .ls-fr-sun { filter: none !important; transition: none !important; }
           .ls-fr-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+          .ls-fr-chipturn .ls-fr-chip { transform: none !important; opacity: 1 !important; transition: none !important; }
+          .ls-fr-dk-g { opacity: 0.5 !important; }
         }
       `}</style>
     </div>
@@ -5758,16 +5938,31 @@ function CosmicStyles() {
         100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18); }
       }
       .ls-seal-help { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
-      /* The form CTA rides the same metal-gold ramp as every buy-moment
-         button (storyboard mockup); only its halo breathes, warm and slow. */
+      /* The form CTA rides a metal-VIOLET ramp: the free-reading section is
+         cosmic purple + white only (no gold), so the buy-moment gold material
+         is re-cut in the section's own light. Only its halo breathes. */
       .ls-seal-card .ls-seal-cta {
         width: 100%; justify-content: center; margin-top: 6px;
         min-height: 54px; border-radius: 14px; font-size: 16.5px;
+        background: linear-gradient(180deg,#ece4fb 0%,#cfc0f4 18%,#ab90e6 40%,#9a7ee6 56%,#7b5fc7 80%,#5d47a0 100%);
+        color: #170f2b;
+        box-shadow: 0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.3) inset,
+          0 6px 18px -6px rgba(124,92,214,.55);
       }
+      .ls-seal-card .ls-seal-cta:hover {
+        filter: brightness(1.07) saturate(1.05);
+        box-shadow: 0 1px 0 rgba(255,255,255,.46) inset, 0 -1px 0 rgba(0,0,0,.3) inset,
+          0 10px 26px -6px rgba(124,92,214,.68);
+      }
+      .ls-seal-card .ls-seal-cta:active {
+        background: linear-gradient(165deg,#ab90e6,#7b5fc7);
+        box-shadow: inset 0 2px 6px rgba(0,0,0,.35);
+      }
+      .ls-seal-card .ls-seal-cta:focus-visible { outline: 2px solid #ece4fb; outline-offset: 3px; }
       .ls-seal-card .ls-seal-cta::after {
         content: ""; position: absolute; inset: -3px; border-radius: 17px; pointer-events: none;
         background: none; mix-blend-mode: normal; transform: none;
-        box-shadow: 0 0 26px 5px rgba(212,178,107,0.34);
+        box-shadow: 0 0 26px 5px rgba(154,126,230,0.4);
         opacity: 0.3; animation: ls-seal-cta-glow 4.2s ease-in-out infinite;
       }
       @keyframes ls-seal-cta-glow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.85; } }
