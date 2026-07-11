@@ -407,6 +407,10 @@ serve(async (req) => {
       const primaryTier = (Object.entries(groupTierCounts) as [GiftTier, number][])
         .sort((a, b) => b[1] - a[1])[0][0];
 
+      // SECURITY FIX 2026-06-28: create the gift row BUT do NOT mark it paid.
+      // `paid` defaults to false in the table — issuance is not entitlement.
+      // Only the Stripe webhook flips paid=true after checkout.session.completed,
+      // so abandoning the Stripe page leaves the code unredeemable.
       const { error: insertError } = await supabaseClient
         .from("gift_certificates")
         .insert({

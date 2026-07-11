@@ -65,9 +65,24 @@ serve(async (req) => {
     // Check if already redeemed
     if (gift.is_redeemed) {
       console.log("[REDEEM-GIFT] Gift already redeemed:", input.giftCode);
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: "This gift has already been redeemed",
-        success: false 
+        success: false
+      }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // SECURITY FIX 2026-06-28: refuse any gift whose payment was never confirmed.
+    // `paid` is only set true by the Stripe webhook after checkout.session.completed.
+    // An unpaid code means the buyer abandoned/never completed Stripe checkout —
+    // redeeming it would hand out free product. Treat it as invalid.
+    if (!gift.paid) {
+      console.log("[REDEEM-GIFT] Gift not paid — refusing redemption:", input.giftCode);
+      return new Response(JSON.stringify({
+        error: "Invalid gift code",
+        success: false
       }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
@@ -100,24 +115,43 @@ serve(async (req) => {
     }
 
     // Mark gift as redeemed IMMEDIATELY (prevent race conditions)
-    const { error: updateError } = await supabase
+    // SECURITY FIX 2026-06-28: make the compare-and-set atomic. Chain .select()
+    // so the update returns the affected rows; the `.eq("is_redeemed", false)`
+    // guard means a concurrent request that already flipped it yields ZERO rows.
+    // Without asserting a row changed, two simultaneous redemptions both passed
+    // the earlier is_redeemed check and both succeeded (double-redeem race).
+    const { data: redeemedRows, error: updateError } = await supabase
       .from("gift_certificates")
-      .update({ 
-        is_redeemed: true, 
+      .update({
+        is_redeemed: true,
         redeemed_at: new Date().toISOString(),
         redeemed_by_report_id: primaryReportId,
       })
       .eq("id", gift.id)
-      .eq("is_redeemed", false); // Double-check it wasn't redeemed in a race
+      .eq("is_redeemed", false) // Double-check it wasn't redeemed in a race
+      .select("id");
 
     if (updateError) {
       console.error("[REDEEM-GIFT] Failed to mark gift as redeemed:", updateError);
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: "Failed to redeem gift. Please try again.",
-        success: false 
+        success: false
       }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 500,
+      });
+    }
+
+    // SECURITY FIX 2026-06-28: zero rows updated = another request won the race
+    // and already redeemed this gift. Abort before granting any product.
+    if (!redeemedRows || redeemedRows.length === 0) {
+      console.log("[REDEEM-GIFT] Lost redemption race — already redeemed:", input.giftCode);
+      return new Response(JSON.stringify({
+        error: "This gift has already been redeemed",
+        success: false
+      }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
       });
     }
 

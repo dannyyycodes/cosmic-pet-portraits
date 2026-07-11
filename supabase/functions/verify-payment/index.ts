@@ -273,7 +273,19 @@ serve(async (req) => {
       }
 
       const piEmail = pi.receipt_email || "";
-      const piReportIds = pi.metadata?.report_ids?.split(",").filter(Boolean) || [reportId];
+      // SECURITY FIX 2026-06-28: Bind the PaymentIntent to the reports it was
+      // created for. Removed the `|| [reportId]` fallback — without it ANY
+      // succeeded PaymentIntent could be replayed with an arbitrary reportId to
+      // unlock a premium reading for free, or re-send a stranger's reading.
+      // Require metadata.report_ids to exist AND include the supplied reportId.
+      const piReportIds = pi.metadata?.report_ids?.split(",").map((s: string) => s.trim()).filter(Boolean) || [];
+      if (piReportIds.length === 0 || !piReportIds.includes(reportId)) {
+        console.warn("[VERIFY-PAYMENT] PaymentIntent not bound to reportId:", sessionId, reportId, "metadata report_ids:", pi.metadata?.report_ids);
+        return new Response(JSON.stringify({ error: "Report not found" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
       const piIncludesPortrait = pi.metadata?.includes_portrait === "true";
 
       const generateShareToken = () => {
@@ -342,9 +354,26 @@ serve(async (req) => {
     const customerEmail = session.customer_details?.email ||
                           session.customer_email || "";
 
-    // Get report IDs from session metadata
-    const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [reportId];
-    
+    // Get report IDs from session metadata.
+    // SECURITY FIX 2026-06-28: Bind the Stripe session to the reports it was
+    // created for. Removed the `|| [reportId]` fallback — without it ANY paid
+    // cs_live session (e.g. a cheap chat-pack purchase) could be replayed with
+    // an arbitrary reportId to unlock a premium reading for free, or re-send a
+    // stranger's reading. create-checkout always writes report_ids into the
+    // session metadata for real reading purchases, so require it to exist AND
+    // include the supplied reportId; a session can then only ever unlock its
+    // own order's reports. (A trusted expected total can't be recomputed here —
+    // it depends on volume/coupon/gift-cert/referral discounts not all carried
+    // in metadata — so this metadata binding is the authoritative guard.)
+    const reportIds = session.metadata?.report_ids?.split(",").map((s) => s.trim()).filter(Boolean) || [];
+    if (reportIds.length === 0 || !reportIds.includes(reportId)) {
+      console.warn("[VERIFY-PAYMENT] Session not bound to reportId:", sessionId, reportId, "metadata report_ids:", session.metadata?.report_ids);
+      return new Response(JSON.stringify({ error: "Report not found" }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 404,
+      });
+    }
+
     // Check if gift was included
     const includeGift = session.metadata?.include_gift === "true";
     let giftCode: string | null = null;
