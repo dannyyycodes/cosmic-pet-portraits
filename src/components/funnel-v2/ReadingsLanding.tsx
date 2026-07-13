@@ -2317,7 +2317,9 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
             </div>
           </>
         )}
-        <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.08)}>Three of thirteen, yours already.</p>
+        {!memorial && (
+          <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.08)}>Three of thirteen, yours already.</p>
+        )}
         <p className="ls-fr-turn-one ls-fr-rv" style={revealDelay(0.05)}>And there is one thing no single planet can show you.</p>
         <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together.</p>
         <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.15)}>The reason they pick the exact spot on you they always pick.</p>
