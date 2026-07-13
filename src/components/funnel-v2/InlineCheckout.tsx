@@ -1579,7 +1579,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
           }
           .cosmic-mem-review-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
-          .cosmic-mem-stars { display: flex; gap: 3px; }
+          /* Beat the generic payment-chip [role="img"] treatment: the stars
+             are quiet marks, not a boxed chip. */
+          .cosmic-checkout .cosmic-mem-stars {
+            display: flex; gap: 3px;
+            min-height: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+          }
           .cosmic-mem-stars svg { width: 13px; height: 13px; fill: #b9a5f0; display: block; }
           .cosmic-mem-review blockquote {
             margin: 0;
