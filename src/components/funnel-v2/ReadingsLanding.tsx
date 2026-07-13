@@ -1890,68 +1890,122 @@ function splitBeats(text: string): string[] {
   return parts ? parts.map((s) => s.trim()).filter(Boolean) : [text.trim()];
 }
 
-// One dignified email moment inside the free reading: after The Moon, before
-// The Rising. Framed as keeping their reading, wired to the existing
-// track-subscriber plumbing, always skippable. Purple and white only.
-function FreeKeepGate({ petName, memorial, onLead }: { petName?: string | null; memorial: boolean; onLead?: (email: string) => void }) {
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "kept" | "skipped">("idle");
-  const name = (petName || "").trim();
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const clean = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(clean)) return;
-    onLead?.(clean);
-    setState("kept");
-  };
-  if (state === "skipped") return null;
+// ---------------------------------------------------------------------------
+// THE DELIVERY STAGE (Danny, 2026-07-13): the free reading is an animated
+// delivery, never stacked text. Each moment is a tall scene with a sticky
+// stage. Its lines take the stage ONE AT A TIME: a line enters large at
+// focus, then settles smaller and dimmer above as the next arrives. At any
+// scroll position at most one line holds full prominence, with one settled
+// echo above it. The sign chip flip is a standalone event with space around
+// it; the per-sign reading is the LARGE beat; the felt hook is an isolated
+// italic beat of its own.
+// CSP-safe: scroll + rAF + CSS transitions only (no pinning library).
+// Reduced motion renders every line visible, static, in reading order.
+// ---------------------------------------------------------------------------
+
+type StageBeat = {
+  key: string;
+  /** style variant: hero | sub | body | turnline | frame | line | chip | read | hook | sealed | lead | lead2 | subq | glyphs | want | own | one | what | whole */
+  kind: string;
+  node: ReactNode;
+  /** once passed, hold it visible above the stage instead of clearing it */
+  hold?: boolean;
+  /** desire turn: which pair of dark glyphs this want-line stirs */
+  dline?: number;
+};
+
+function StagedScene({
+  beats, reduce, visual, className, stageKind = "text",
+}: {
+  beats: StageBeat[];
+  reduce: boolean;
+  visual?: ReactNode;
+  className?: string;
+  stageKind?: "text" | "world";
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (reduce) return;
+    const scene = ref.current;
+    if (!scene || typeof window === "undefined") return;
+    const stage = scene.querySelector<HTMLElement>(".ls-sd-stage");
+    if (!stage) return;
+    const beatEls = Array.from(stage.children) as HTMLElement[];
+    const world = scene.querySelector<HTMLElement>(".ls-fr-planet");
+    const n = beatEls.length;
+    if (!n) return;
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      const vh = window.innerHeight || 1;
+      const rect = scene.getBoundingClientRect();
+      // the world lives (breathes, lights) while its scene crosses the viewport
+      if (world) world.classList.toggle("is-live", rect.top < vh && rect.bottom > 0);
+      const scrollable = Math.max(1, rect.height - vh);
+      const engaged = rect.top <= 0;
+      const p = Math.min(1, Math.max(0, -rect.top / scrollable));
+      const idx = engaged ? Math.min(n - 1, Math.floor(p * n)) : -1;
+      const sub = engaged ? Math.min(1, Math.max(0, p * n - idx)) : 0;
+      beatEls.forEach((el, j) => {
+        const st = j === idx ? "focus" : j === idx - 1 ? "settle" : j < idx ? (el.dataset.hold ? "hold" : "gone") : "wait";
+        if (el.dataset.st !== st) el.dataset.st = st;
+        // sequential lighting inside a beat (the ten dark glyphs, one by one)
+        const seq = el.querySelector<HTMLElement>(".ls-sd-seq");
+        if (seq) {
+          const kids = Array.from(seq.children) as HTMLElement[];
+          const lit = j < idx ? kids.length : j === idx ? Math.round(sub * kids.length) : 0;
+          kids.forEach((k, ki) => {
+            if (ki < lit) k.setAttribute("data-on", "1");
+            else k.removeAttribute("data-on");
+          });
+        }
+      });
+      // a want-line at focus stirs its pair of dark glyphs (latched once)
+      const focusEl = idx >= 0 ? beatEls[idx] : null;
+      if (focusEl && focusEl.dataset.dline !== undefined) {
+        scene
+          .querySelectorAll<HTMLElement>(`.ls-fr-dk-g[data-grp="${focusEl.dataset.dline}"]`)
+          .forEach((g) => g.setAttribute("data-wake", "1"));
+      }
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [reduce, beats.length]);
+
   return (
-    <section className="ls-fr-keep" aria-label="Keep their reading">
-      {state === "kept" ? (
-        <>
-          <p className="ls-fr-keep-eyebrow">{memorial ? "Kept safe" : "Their reading, kept"}</p>
-          <p className="ls-fr-keep-done">Kept. It will be waiting for you.</p>
-        </>
-      ) : (
-        <>
-          <p className="ls-fr-keep-eyebrow ls-fr-rv">{memorial ? "Kept safe" : "Their reading, kept"}</p>
-          <p className="ls-fr-keep-line ls-fr-rv" style={revealDelay(0.06)}>
-            {memorial
-              ? (name ? `We will hold ${name}'s reading for you.` : "We will hold their reading for you.")
-              : "Save the two you have unlocked."}
-          </p>
-          <p className="ls-fr-keep-sub ls-fr-rv" style={revealDelay(0.12)}>
-            {memorial
-              ? "For whenever you are ready to come back to it."
-              : (name
-                  ? `The Rising is next. ${name}'s reading will be waiting, right where you left it.`
-                  : "The Rising is next. Their reading will be waiting, right where you left it.")}
-          </p>
-          <form className="ls-fr-keep-form ls-fr-rv" style={revealDelay(0.18)} onSubmit={submit}>
-            <label htmlFor="ls-keep-email" className="sr-only">Your email</label>
-            <input
-              id="ls-keep-email"
-              className="ls-fr-keep-input"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              placeholder="Your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <button type="submit" className="ls-fr-keep-btn">Keep it</button>
-          </form>
-          <button type="button" className="ls-fr-keep-skip ls-fr-rv" style={revealDelay(0.24)} onClick={() => setState("skipped")}>
-            Continue without
-          </button>
-        </>
-      )}
-    </section>
+    <div
+      ref={ref}
+      className={`ls-sd-scene${reduce ? " is-static" : ""}${className ? ` ${className}` : ""}`}
+      style={{ ["--beats" as string]: beats.length } as CSSProperties}
+    >
+      <div className="ls-sd-pin">
+        {visual}
+        <div className={`ls-sd-stage is-${stageKind}`}>
+          {beats.map((b) => (
+            <div
+              key={b.key}
+              className={`ls-sd-beat ls-sd-k-${b.kind}`}
+              data-hold={b.hold ? "1" : undefined}
+              data-dline={b.dline}
+            >
+              {b.node}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
-function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; reduce: boolean; petName?: string; onLead?: (email: string) => void }) {
+function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register keeps its hush: the ceremony itself is shared, but
@@ -1963,58 +2017,7 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
 
-  // One observer: latches each line in once (data-in, permanent) and toggles the
-  // ASMR play-state per world (is-live) so only the on-screen planet animates.
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root || typeof window === "undefined") return;
-    const revs = Array.from(root.querySelectorAll<HTMLElement>(".ls-fr-rv"));
-    const worlds = Array.from(root.querySelectorAll<HTMLElement>(".ls-fr-planet"));
-    const reduced = reduce || (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    if (reduced || !("IntersectionObserver" in window)) {
-      revs.forEach((el) => el.setAttribute("data-in", "1"));
-      worlds.forEach((el) => el.classList.add("is-live"));
-      return;
-    }
-    // Two observers with different roots. The latch root extends far above
-    // the viewport so a one-frame anchor jump past a line still fires it
-    // (a viewport-bound observer's ratio stays 0 across such a jump and it
-    // never calls back). The play-state observer stays viewport-bound so only
-    // on-screen worlds actually animate.
-    const ioLatch = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          const el = e.target as HTMLElement;
-          if (e.isIntersecting || e.boundingClientRect.top < 0) {
-            el.setAttribute("data-in", "1");
-            // A named desire line stirs its pair of dark glyphs as it lands.
-            const dline = el.getAttribute("data-dline");
-            if (dline !== null) {
-              root
-                .querySelectorAll<HTMLElement>(`.ls-fr-dk-g[data-grp="${dline}"]`)
-                .forEach((g) => g.setAttribute("data-wake", "1"));
-            }
-            ioLatch.unobserve(el);
-          }
-        });
-      },
-      { rootMargin: "20000px 0px -12% 0px", threshold: 0.18 },
-    );
-    const ioLive = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          (e.target as HTMLElement).classList.toggle("is-live", e.isIntersecting);
-        });
-      },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.18 },
-    );
-    revs.forEach((el) => ioLatch.observe(el));
-    worlds.forEach((el) => ioLive.observe(el));
-    return () => {
-      ioLatch.disconnect();
-      ioLive.disconnect();
-    };
-  }, [reduce, memorial]);
+  const reduced = reduce || (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   // Reading-revealed gate: the lower funnel (the rest + reviews + pricing) only
   // enters the page once the reader has been carried through the three free
@@ -2043,7 +2046,7 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
           }
         });
       },
-      { rootMargin: "0px 0px -18% 0px", threshold: 0.1 },
+      { rootMargin: "0px 0px -18% 0px", threshold: 0.05 },
     );
     io.observe(target);
     return () => io.disconnect();
@@ -2051,30 +2054,91 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
 
   const bodyFor = (k: "sun" | "moon") => chart[k] as ChartBody | undefined;
 
-  return (
-    <div className="ls-fr" ref={rootRef}>
-      {/* Opening: the chart settles, and we name the love they already feel.
-          Every reveal is one short line. Never a paragraph. */}
-      <div className="ls-fr-open">
-        <span className="ls-fr-settle" aria-hidden="true"><i /><i /><i /></span>
-        <p className="ls-fr-open-hero ls-fr-rv">Here they are.</p>
-        <p className="ls-fr-open-sub ls-fr-rv" style={revealDelay(0.06)}>The whole of them, mapped to the sky the day they arrived.</p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.12)}>You already know some of this.</p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.18)}>
+  // Opening: the chart settles, and we name the love they already feel.
+  // One beat per line: max two lines share the stage (one at focus, one
+  // settled above), never a stack of seven.
+  const openBeats: StageBeat[] = [
+    { key: "hero", kind: "hero", node: <p className="ls-sd-hero">Here they are.</p> },
+    { key: "sub", kind: "sub", node: <p className="ls-sd-sub">The whole of them, mapped to the sky the day they arrived.</p> },
+    { key: "b1", kind: "body", node: <p className="ls-sd-body">You already know some of this.</p> },
+    {
+      key: "b2", kind: "body",
+      node: (
+        <p className="ls-sd-body">
           {memorial
             ? "You knew the exact thing that made them lose their mind with joy."
             : "You know the exact thing that makes them lose their mind with joy."}
         </p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.24)}>
+      ),
+    },
+    {
+      key: "b3", kind: "body",
+      node: (
+        <p className="ls-sd-body">
           {memorial
             ? "You still know the weight of them when they finally fell asleep on you."
             : "You know the weight of them when they finally fall asleep on you."}
         </p>
-        <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.3)}>You have felt who they are for a long time.</p>
-        <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.36)}>This is where it gets its name.</p>
-      </div>
+      ),
+    },
+    { key: "t1", kind: "turnline", node: <p className="ls-sd-turnline">You have felt who they are for a long time.</p> },
+    { key: "t2", kind: "turnline", node: <p className="ls-sd-turnline">This is where it gets its name.</p> },
+  ];
 
-      {/* Three real worlds. One planet, one moment, forward only. */}
+  // The desire turn, staged: the lead as its own big moment, the ten dark
+  // glyphs lighting one by one as their own beat, each named desire arriving
+  // alone at focus, the ownership line isolated huge, then the close.
+  const turnBeats: StageBeat[] = [
+    { key: "lead", kind: "lead", node: <p className="ls-sd-lead">You have met three of them.</p> },
+    { key: "lead2", kind: "lead2", node: <p className="ls-sd-lead2">Who they are, how they feel, the face they show first.</p> },
+    {
+      key: "subq", kind: "subq",
+      node: (
+        <p className="ls-sd-subq">
+          {memorial ? "There are ten more, still dark on the wheel." : "There are ten more, still dark on the wheel:"}
+        </p>
+      ),
+    },
+    ...(!memorial
+      ? [
+          {
+            key: "glyphs", kind: "glyphs", hold: true,
+            node: (
+              <div className="ls-fr-dk ls-sd-seq" aria-hidden="true">
+                {DARK_GLYPHS.map((g, i) => (
+                  <span key={g} className="ls-fr-dk-g" data-grp={Math.floor(i / 2)}>
+                    <AstroGlyph name={g} />
+                  </span>
+                ))}
+              </div>
+            ),
+          } as StageBeat,
+          ...FREE_DARK.map((d, i): StageBeat => ({
+            key: `want${i}`, kind: "want", dline: i,
+            node: <p className="ls-sd-want">{d}</p>,
+          })),
+          { key: "own", kind: "own", node: <p className="ls-sd-own">Three of thirteen, yours already.</p> } as StageBeat,
+        ]
+      : []),
+    { key: "one", kind: "one", node: <p className="ls-sd-one">And there is one thing no single planet can show you.</p> },
+    { key: "w1", kind: "what", node: <p className="ls-sd-what">What all thirteen do together.</p> },
+    { key: "w2", kind: "what", node: <p className="ls-sd-what">The reason they pick the exact spot on you they always pick.</p> },
+    { key: "w3", kind: "what", node: <p className="ls-sd-what">The reason they watch you the way they watch you.</p> },
+    { key: "whole", kind: "whole", node: <p className="ls-sd-whole">The whole of them, read in one place.</p> },
+  ];
+
+  return (
+    <div className="ls-fr" ref={rootRef}>
+      {/* Opening: one moment per view. */}
+      <StagedScene
+        beats={openBeats}
+        reduce={reduced}
+        stageKind="text"
+        className="ls-fr-openscene"
+        visual={<span className="ls-fr-settle" aria-hidden="true"><i /><i /><i /></span>}
+      />
+
+      {/* Three real worlds. One planet, one moment, one line at a time. */}
       {FREE_PLANETS.map((p, pi) => {
         const body = p.key === "rising" ? undefined : bodyFor(p.key);
         const sign = body?.sign;
@@ -2086,114 +2150,80 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         const frame = memorial && p.memFrame ? p.memFrame : p.frame;
         const lines = memorial && p.memLines ? p.memLines : p.lines;
         const hook = memorial && p.memHook ? p.memHook : p.hook;
+
+        const beats: StageBeat[] = [
+          { key: "frame", kind: "frame", node: <p className="ls-sd-frame">{frame}</p> },
+          ...lines.map((ln, i): StageBeat => ({ key: `ln${i}`, kind: "line", node: <p className="ls-sd-line">{ln}</p> })),
+        ];
+        if (p.key === "rising") {
+          beats.push(...RISING_PLACE.map((ln, i): StageBeat => ({ key: `sealed${i}`, kind: "sealed", node: <p className="ls-sd-sealed">{ln}</p> })));
+        } else {
+          if (sign) {
+            beats.push({
+              key: "chip", kind: "chip",
+              node: (
+                <span className="ls-fr-chipturn">
+                  <span className="ls-fr-chip">{deg ? `${sign} ${deg}°` : sign}</span>
+                </span>
+              ),
+            });
+          }
+          beats.push(...signBeats.map((b, i): StageBeat => ({ key: `read${i}`, kind: "read", node: <p className="ls-sd-read">{b}</p> })));
+        }
+        beats.push({
+          key: "hook", kind: "hook",
+          node: (
+            <div className="ls-sd-hookband">
+              {hook.map((h, i) => <p key={i} className="ls-sd-hook">{h}</p>)}
+            </div>
+          ),
+        });
+
         return (
           <div key={p.key} className="ls-fr-world">
-            <section className={`ls-fr-planet is-${p.key}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
-              <p className="ls-fr-ord ls-fr-rv">{p.ord}</p>
-              <div className="ls-fr-mark ls-fr-rv" style={revealDelay(0.05)}>
-                <AstroGlyph name={p.key} className="ls-fr-glyph" />
-                <span className="ls-fr-name">{p.eyebrow}</span>
-              </div>
-              <div className="ls-fr-stage ls-fr-rv" style={revealDelay(0.1)}>
-                <span className="ls-fr-halo" aria-hidden="true" />
-                {p.key === "sun" ? (
-                  <span className="ls-fr-sun">
-                    <img src={p.photo} alt={p.alt} />
-                    <span className="ls-fr-sun-shine" aria-hidden="true" />
-                  </span>
-                ) : (
-                  <span className="ls-fr-disc">
-                    <img className="ls-fr-photo" src={p.photo} alt={p.alt} loading="lazy" decoding="async" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
-                    <span className="ls-fr-term" aria-hidden="true" />
-                    <span className="ls-fr-spec" aria-hidden="true" />
-                    <span className="ls-fr-rim" aria-hidden="true" />
-                  </span>
-                )}
-              </div>
-              <p className="ls-fr-frame ls-fr-rv" style={revealDelay(0.14)}>{frame}</p>
-              <div className="ls-fr-lines">
-                {lines.map((ln, i) => (
-                  <p key={i} className="ls-fr-ln ls-fr-rv" style={revealDelay(0.16 + i * 0.09)}>{ln}</p>
-                ))}
-              </div>
-              {p.key === "rising" ? (
-                <div className="ls-fr-place is-sealed">
-                  {RISING_PLACE.map((ln, i) => (
-                    <p key={i} className="ls-fr-sealed ls-fr-rv" style={revealDelay(0.08 + i * 0.09)}>{ln}</p>
-                  ))}
-                </div>
-              ) : (
-                <div className="ls-fr-place">
-                  {/* The payoff: the sign lands like a card turn... */}
-                  {sign && (
-                    <span className="ls-fr-chipturn ls-fr-rv" style={revealDelay(0.1)}>
-                      <span className="ls-fr-chip">{deg ? `${sign} ${deg}°` : sign}</span>
-                    </span>
-                  )}
-                  {/* ...then the personal line sits alone, slightly larger. */}
-                  <div className="ls-fr-lineband">
-                    {signBeats.map((b, i) => (
-                      <p key={i} className="ls-fr-line ls-fr-rv" style={revealDelay(0.42 + i * 0.14)}>{b}</p>
-                    ))}
+            <StagedScene
+              beats={beats}
+              reduce={reduced}
+              stageKind="world"
+              visual={
+                <section className={`ls-fr-planet is-${p.key}${reduced ? " is-live" : ""}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
+                  <p className="ls-fr-ord">{p.ord}</p>
+                  <div className="ls-fr-mark">
+                    <AstroGlyph name={p.key} className="ls-fr-glyph" />
+                    <span className="ls-fr-name">{p.eyebrow}</span>
                   </div>
-                </div>
-              )}
-              <div className="ls-fr-hookband">
-                {hook.map((h, i) => (
-                  <p key={i} className="ls-fr-hook ls-fr-rv" style={revealDelay(0.1 + i * 0.09)}>{h}</p>
-                ))}
-              </div>
-            </section>
+                  <div className="ls-fr-stage">
+                    <span className="ls-fr-halo" aria-hidden="true" />
+                    {p.key === "sun" ? (
+                      <span className="ls-fr-sun">
+                        <img src={p.photo} alt={p.alt} />
+                        <span className="ls-fr-sun-shine" aria-hidden="true" />
+                      </span>
+                    ) : (
+                      <span className="ls-fr-disc">
+                        <img className="ls-fr-photo" src={p.photo} alt={p.alt} loading="lazy" decoding="async" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
+                        <span className="ls-fr-term" aria-hidden="true" />
+                        <span className="ls-fr-spec" aria-hidden="true" />
+                        <span className="ls-fr-rim" aria-hidden="true" />
+                      </span>
+                    )}
+                  </div>
+                </section>
+              }
+            />
             {/* A breath of dark between planets: one faint star in the quiet. */}
             {pi < FREE_PLANETS.length - 1 && (
               <div className="ls-fr-breath" aria-hidden="true"><i /></div>
-            )}
-            {/* The keep moment: after The Moon, before The Rising. */}
-            {p.key === "moon" && (
-              <FreeKeepGate petName={petName} memorial={memorial} onLead={onLead} />
             )}
           </div>
         );
       })}
 
-      {/* The desire turn: the gap opens. On the discovery path the ten unread
-          placements sit as dim, countable glyphs and the five named desires
-          arrive one line at a time. The memorial path keeps its hush: the same
-          held-breath copy, no tease row. */}
-      <section className="ls-fr-turn">
-        <p className="ls-fr-turn-lead ls-fr-rv">You have met three of them.</p>
-        <p className="ls-fr-turn-lead2 ls-fr-rv" style={revealDelay(0.06)}>Who they are, how they feel, the face they show first.</p>
-        <p className="ls-fr-turn-sub ls-fr-rv" style={revealDelay(0.1)}>
-          {memorial ? "There are ten more, still dark on the wheel." : "There are ten more, still dark on the wheel:"}
-        </p>
-        {!memorial && (
-          <>
-            <div className="ls-fr-dk ls-fr-rv" style={revealDelay(0.14)} aria-hidden="true">
-              {DARK_GLYPHS.map((g, i) => (
-                <span key={g} className="ls-fr-dk-g" data-grp={Math.floor(i / 2)}>
-                  <AstroGlyph name={g} />
-                </span>
-              ))}
-            </div>
-            <div className="ls-fr-dkl">
-              {FREE_DARK.map((d, i) => (
-                <p key={i} className="ls-fr-dk-line ls-fr-rv" data-dline={i} style={revealDelay(0.08 + i * 0.09)}>{d}</p>
-              ))}
-            </div>
-          </>
-        )}
-        {!memorial && (
-          <p className="ls-fr-turn-own ls-fr-rv" style={revealDelay(0.08)}>Three of thirteen, yours already.</p>
-        )}
-        <p className="ls-fr-turn-one ls-fr-rv" style={revealDelay(0.05)}>And there is one thing no single planet can show you.</p>
-        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.1)}>What all thirteen do together.</p>
-        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.15)}>The reason they pick the exact spot on you they always pick.</p>
-        <p className="ls-fr-turn-what ls-fr-rv" style={revealDelay(0.2)}>The reason they watch you the way they watch you.</p>
-        <p className="ls-fr-turn-whole ls-fr-rv" style={revealDelay(0.18)}>The whole of them, read in one place.</p>
-      </section>
+      {/* The desire turn: the gap opens, one beat at a time. */}
+      <StagedScene beats={turnBeats} reduce={reduced} stageKind="text" className="ls-fr-turn" />
 
       {/* Handoff into the rest of who they are. */}
-      <div className="ls-fr-handoff ls-fr-rv">
+      <div className="ls-fr-handoff">
         <button type="button" className="ls-fr-handoff-cta" onClick={() => descendTo("#the-rest")}>
           Meet the rest of who they are
           <ChevronDown size={20} strokeWidth={1.6} />
@@ -2201,46 +2231,82 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
       </div>
 
       <style>{`
-        .ls-fr { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; padding: clamp(8px, 2.5vw, 22px) 6px 0; text-align: center; }
-        .ls-fr-rv { opacity: 0; transform: translate3d(0, 24px, 0); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
-        .ls-fr-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
+        .ls-fr { position: relative; z-index: 2; margin: 0 auto; padding: clamp(8px, 2.5vw, 22px) 0 0; text-align: center; }
 
-        /* Opening */
-        .ls-fr-open { position: relative; display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 2.4vw, 20px); padding: clamp(12px, 4vw, 40px) 0 clamp(40px, 9svh, 96px); }
-        .ls-fr-settle { position: absolute; top: clamp(-8px, -1vw, 0px); left: 50%; width: min(78vw, 420px); aspect-ratio: 1; transform: translateX(-50%); pointer-events: none; z-index: -1; }
+        /* === The delivery stage: tall scenes, sticky pins, one line at a time === */
+        .ls-sd-scene { position: relative; height: calc(var(--beats) * 44vh + 100vh); height: calc(var(--beats) * 44svh + 100svh); }
+        .ls-sd-pin { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ls-sd-stage { position: relative; width: min(100%, 720px); margin: 0 auto; }
+        .ls-sd-stage.is-text { height: min(56svh, 520px); }
+        .ls-sd-stage.is-world { flex: 0 0 auto; height: clamp(220px, 34svh, 320px); }
+        .ls-sd-beat {
+          position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: clamp(10px, 2vw, 16px); padding: 0 18px; pointer-events: none;
+          opacity: 0; transform: translate3d(0, 22%, 0) scale(0.97); filter: blur(5px);
+          transition: opacity 0.55s ease, transform 0.85s cubic-bezier(0.16,1,0.3,1), filter 0.55s ease;
+          will-change: opacity, transform;
+        }
+        .ls-sd-beat[data-st="focus"] { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0); }
+        .ls-sd-beat[data-st="settle"] { opacity: 0.26; transform: translate3d(0,-34%,0) scale(0.45); filter: blur(0.4px); }
+        .ls-sd-beat[data-st="gone"] { opacity: 0; transform: translate3d(0,-42%,0) scale(0.4); filter: blur(1px); }
+        .ls-sd-beat[data-st="hold"] { opacity: 0.5; transform: translate3d(0,-41%,0) scale(0.78); filter: blur(0); }
+
+        /* Reduced motion / static: every line visible, in reading order. */
+        .ls-sd-scene.is-static { height: auto; padding: clamp(20px, 4svh, 40px) 0; }
+        .ls-sd-scene.is-static .ls-sd-pin { position: static; height: auto; }
+        .ls-sd-scene.is-static .ls-sd-stage { position: static; height: auto; display: flex; flex-direction: column; gap: clamp(14px, 3vw, 22px); padding: clamp(10px, 2svh, 20px) 0; }
+        .ls-sd-scene.is-static .ls-sd-beat { position: static; opacity: 1; transform: none; filter: none; transition: none; }
+
+        /* === Beat type-scale: the stage line always towers over the settled echo === */
+        .ls-sd-hero { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.3rem, 8.4vw, 3.6rem); line-height: 1.04; letter-spacing: -0.02em; }
+        .ls-sd-sub { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.3rem, 4.4vw, 1.8rem); line-height: 1.32; }
+        .ls-sd-body { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.85rem); line-height: 1.38; }
+        .ls-sd-turnline { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.4rem, 5vw, 1.95rem); line-height: 1.36; }
+        .ls-sd-frame { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-variant-caps: all-small-caps; letter-spacing: 0.2em; font-size: clamp(1.15rem, 4vw, 1.5rem); line-height: 1.4; }
+        .ls-sd-line { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.85rem); line-height: 1.4; }
+        .ls-sd-read { margin: 0; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 6.2vw, 2.6rem); line-height: 1.18; letter-spacing: -0.015em; }
+        .ls-sd-hookband { display: flex; flex-direction: column; gap: clamp(8px, 1.8vw, 12px); max-width: 32ch; }
+        .ls-sd-hook { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.2rem, 4.2vw, 1.55rem); line-height: 1.42; }
+        .ls-sd-sealed { margin: 0; max-width: 28ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.24rem, 4.3vw, 1.6rem); line-height: 1.42; }
+
+        .ls-sd-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.95rem, 7vw, 2.9rem); line-height: 1.1; letter-spacing: -0.018em; }
+        .ls-sd-lead2 { margin: 0; max-width: 24ch; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.5vw, 1.9rem); line-height: 1.24; letter-spacing: -0.01em; }
+        .ls-sd-subq { margin: 0; max-width: 26ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.26rem, 4.4vw, 1.65rem); line-height: 1.42; }
+        .ls-sd-want { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.8rem); line-height: 1.42; }
+        .ls-sd-own { margin: 0; color: ${C.cream}; text-shadow: 0 0 28px rgba(167,139,250,0.4); font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.05rem, 7.4vw, 3rem); line-height: 1.06; letter-spacing: -0.018em; }
+        .ls-sd-one { margin: 0; max-width: 26ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.26rem, 4.4vw, 1.65rem); line-height: 1.42; }
+        .ls-sd-what { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.8rem); line-height: 1.42; }
+        .ls-sd-whole { margin: 0; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.9rem, 6.8vw, 2.7rem); line-height: 1.1; letter-spacing: -0.012em; text-shadow: 0 0 26px rgba(167,139,250,0.32); }
+
+        /* The opening's settling rings live behind the stage. */
+        .ls-fr-openscene .ls-fr-settle { position: absolute; top: 50%; left: 50%; width: min(78vw, 420px); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; z-index: -1; }
+        .ls-sd-scene.is-static .ls-fr-settle { display: none; }
         .ls-fr-settle i { position: absolute; inset: 0; margin: auto; border-radius: 50%; border: 1px solid ${C.lineViolet}; animation: lsFrSettle 6.5s ease-in-out infinite; }
         .ls-fr-settle i:nth-child(1) { width: 40%; height: 40%; }
         .ls-fr-settle i:nth-child(2) { width: 66%; height: 66%; animation-delay: -1.6s; opacity: 0.6; }
         .ls-fr-settle i:nth-child(3) { width: 96%; height: 96%; animation-delay: -3.2s; opacity: 0.32; }
         @keyframes lsFrSettle { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.82; } }
-        .ls-fr-open-hero { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.1rem, 7.2vw, 3.4rem); line-height: 1.02; letter-spacing: -0.02em; }
-        .ls-fr-open-sub { margin: 0; max-width: 26ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.1rem, 3vw, 1.5rem); line-height: 1.32; }
-        .ls-fr-open-body { margin: 0; max-width: 34ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.5vw, 1.16rem); line-height: 1.5; }
-        .ls-fr-open-turn { margin: 0; max-width: 32ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.04rem, 2.7vw, 1.24rem); line-height: 1.45; }
-        .ls-fr-open-turn + .ls-fr-open-turn { margin-top: -6px; }
 
-        /* One world: one planet, one moment */
-        .ls-fr-planet { position: relative; display: flex; flex-direction: column; align-items: center; padding: clamp(30px, 7svh, 84px) 0; }
-        .ls-fr-ord { margin: 0 0 clamp(12px, 2.2vw, 18px); color: rgba(185,165,240,0.72); font-family: "Newsreader", Georgia, serif; font-variant-caps: small-caps; letter-spacing: 0.34em; text-indent: 0.34em; font-size: clamp(0.82rem, 2.1vw, 0.94rem); }
-        .ls-fr-mark { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(18px, 3.2vw, 28px); color: var(--glow); }
+        /* === One world: the planet holds the stage while its lines are dealt === */
+        .ls-fr-planet { position: relative; display: flex; flex-direction: column; align-items: center; padding: 0 0 clamp(10px, 2svh, 20px); }
+        .ls-fr-ord { margin: 0 0 clamp(8px, 1.6vw, 14px); color: rgba(185,165,240,0.72); font-family: "Newsreader", Georgia, serif; font-variant-caps: small-caps; letter-spacing: 0.34em; text-indent: 0.34em; font-size: clamp(0.82rem, 2.1vw, 0.94rem); }
+        .ls-fr-mark { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(12px, 2.2vw, 20px); color: var(--glow); }
         .ls-fr-mark::before, .ls-fr-mark::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
         .ls-fr-mark::after { background: linear-gradient(90deg, color-mix(in srgb, var(--glow) 72%, transparent), transparent); }
         .ls-fr-glyph { display: block; font-size: clamp(22px, 5vw, 27px); filter: drop-shadow(0 0 9px color-mix(in srgb, var(--glow) 55%, transparent)); }
         .ls-fr-name { font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.36em; text-transform: uppercase; }
-        .ls-fr-stage { position: relative; display: grid; place-items: center; width: clamp(200px, 60vw, 292px); height: clamp(200px, 60vw, 292px); margin: 0 0 clamp(22px, 4vw, 34px); }
+        .ls-fr-stage { position: relative; display: grid; place-items: center; width: clamp(170px, 44vw, 250px); height: clamp(170px, 44vw, 250px); }
         .ls-fr-halo { position: absolute; inset: -6%; border-radius: 50%; z-index: 1; pointer-events: none; background: radial-gradient(circle, color-mix(in srgb, var(--glow) 40%, transparent) 0%, color-mix(in srgb, var(--glow) 18%, transparent) 36%, color-mix(in srgb, var(--glow) 6%, transparent) 56%, transparent 72%); filter: blur(10px); opacity: 0.68; animation: lsFrBreathe 6s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrBreathe { 0%, 100% { transform: scale(1); opacity: 0.56; } 50% { transform: scale(1.08); opacity: 0.84; } }
 
-        .ls-fr-disc { position: relative; z-index: 2; width: clamp(150px, 46vw, 218px); height: clamp(150px, 46vw, 218px); border-radius: 50%; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 22px 60px rgba(4,2,12,0.66); animation: lsFrBreatheDisc 7.6s ease-in-out infinite; animation-play-state: paused; }
+        .ls-fr-disc { position: relative; z-index: 2; width: clamp(140px, 38vw, 196px); height: clamp(140px, 38vw, 196px); border-radius: 50%; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 22px 60px rgba(4,2,12,0.66); animation: lsFrBreatheDisc 7.6s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.018); } }
         .ls-fr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); filter: brightness(0.86) contrast(1.05) saturate(1.03); background: #050310; }
         /* STILL day/night shading, light from the upper-left. No sweep. */
         .ls-fr-term { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%; transform: none; pointer-events: none; background: radial-gradient(circle at 66% 40%, rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%); }
         /* the one moving light per world - distinct per key, low intensity. */
         .ls-fr-spec { position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; border-radius: 50%; transform: none; mix-blend-mode: screen; pointer-events: none; background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--glow) 32%, white) 0%, color-mix(in srgb, var(--glow) 14%, transparent) 26%, transparent 50%); opacity: 0; will-change: opacity, transform; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
-        /* Moon - a single gentle light-shift */
         .ls-fr-planet.is-moon .ls-fr-spec { animation-name: lsFrGlow; animation-duration: 9.5s; }
-        /* Rising (the horizon) - a slow cool sheen */
         .ls-fr-planet.is-rising .ls-fr-spec { background: radial-gradient(ellipse 60% 116% at 40% 28%, color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%); animation-name: lsFrSheen; animation-duration: 13s; }
         @keyframes lsFrGlow { 0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); } 50% { opacity: 0.34; transform: translate(6%, 2%); } }
         @keyframes lsFrSheen { 0%, 100% { opacity: 0.10; transform: translate(-9%, -6%); } 50% { opacity: 0.28; transform: translate(7%, 6%); } }
@@ -2248,9 +2314,8 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         .ls-fr-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 60%, transparent), inset 0 0 10px 0 color-mix(in srgb, var(--glow) 32%, transparent); }
         .ls-fr-planet.is-rising .ls-fr-disc::after { box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.42), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 34%, transparent); }
 
-        /* The Sun: a real star, no night side, alive by breath and a slow shine.
-           Its corona reads as starlight (white/violet), never a gold UI tint. */
-        .ls-fr-sun { position: relative; z-index: 2; display: grid; place-items: center; width: clamp(210px, 60vw, 300px); height: clamp(210px, 60vw, 300px); animation: lsFrBreatheDisc 8s ease-in-out infinite; animation-play-state: paused; }
+        /* The Sun: a real star, no night side, alive by breath and a slow shine. */
+        .ls-fr-sun { position: relative; z-index: 2; display: grid; place-items: center; width: clamp(180px, 46vw, 260px); height: clamp(180px, 46vw, 260px); animation: lsFrBreatheDisc 8s ease-in-out infinite; animation-play-state: paused; }
         .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(242,194,94,0.32)); }
         .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,255,255,0.46) 0%, rgba(250,220,150,0.16) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrShine { 0%, 100% { transform: translate(-4%, -3%) scale(1); opacity: 0.4; } 50% { transform: translate(5%, 4%) scale(1.08); opacity: 0.68; } }
@@ -2260,7 +2325,6 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         .ls-fr-halo { filter: opacity(0.24); transition: filter 1.5s cubic-bezier(0.16,1,0.3,1); }
         .ls-fr-planet.is-live .ls-fr-disc, .ls-fr-planet.is-live .ls-fr-sun { filter: brightness(1) saturate(1); }
         .ls-fr-planet.is-live .ls-fr-halo { filter: opacity(1); }
-
         .ls-fr-planet.is-live .ls-fr-halo,
         .ls-fr-planet.is-live .ls-fr-disc,
         .ls-fr-planet.is-live .ls-fr-term,
@@ -2268,50 +2332,24 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         .ls-fr-planet.is-live .ls-fr-sun,
         .ls-fr-planet.is-live .ls-fr-sun-shine { animation-play-state: running; }
 
-        /* The words for each world: short single lines, one at a time. */
-        .ls-fr-frame { margin: 0 0 clamp(14px, 2.6vw, 20px); max-width: 18ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.6rem, 5.8vw, 2.4rem); line-height: 1.06; letter-spacing: -0.018em; }
-        .ls-fr-lines { display: flex; flex-direction: column; gap: clamp(9px, 1.8vw, 13px); max-width: 40ch; margin: 0 auto; }
-        .ls-fr-ln { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.7vw, 1.22rem); line-height: 1.5; }
-
-        /* The sign lands like a card turn, then the personal line sits alone. */
-        .ls-fr-place { margin: clamp(22px, 4vw, 34px) auto clamp(4px, 1vw, 8px); max-width: 40ch; display: flex; flex-direction: column; align-items: center; gap: clamp(16px, 3vw, 24px); }
-        .ls-fr-place.is-sealed { gap: clamp(8px, 1.6vw, 12px); }
-        .ls-fr-sealed { margin: 0; color: ${C.creamDim}; font-style: italic; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.18rem); line-height: 1.5; }
+        /* The sign lands like a card turn: a standalone event with air around it. */
         .ls-fr-chipturn { display: inline-block; perspective: 640px; }
-        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow) 48%, transparent); background: color-mix(in srgb, var(--glow) 11%, transparent); color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; backface-visibility: hidden; }
-        .ls-fr-chipturn .ls-fr-chip { transform: rotateX(-94deg); opacity: 0; transform-origin: 50% 120%; transition: transform 1s cubic-bezier(0.3,1.36,0.44,1) 0.15s, opacity 0.4s ease 0.15s, box-shadow 0.8s ease 0.4s; will-change: transform; }
-        .ls-fr-chipturn[data-in] .ls-fr-chip { transform: rotateX(0deg); opacity: 1; box-shadow: 0 8px 30px color-mix(in srgb, var(--glow) 20%, transparent); }
-        .ls-fr-lineband { display: flex; flex-direction: column; gap: clamp(8px, 1.6vw, 12px); max-width: 30ch; margin: clamp(6px, 1.4vw, 10px) auto 0; }
-        .ls-fr-line { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.24rem, 3.4vw, 1.56rem); line-height: 1.4; }
-        .ls-fr-hookband { display: flex; flex-direction: column; gap: 7px; max-width: 38ch; margin: clamp(22px, 4vw, 32px) auto 0; }
-        .ls-fr-hook { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
+        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow, #b9a5f0) 48%, transparent); background: color-mix(in srgb, var(--glow, #b9a5f0) 11%, transparent); color: var(--glow, #b9a5f0); font-family: "Newsreader", Georgia, serif; font-size: clamp(14px, 3.6vw, 16.5px); font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; backface-visibility: hidden; transform: rotateX(-94deg); opacity: 0; transform-origin: 50% 120%; transition: transform 1s cubic-bezier(0.3,1.36,0.44,1) 0.15s, opacity 0.4s ease 0.15s, box-shadow 0.8s ease 0.4s; will-change: transform; }
+        .ls-sd-beat[data-st="focus"] .ls-fr-chip { transform: rotateX(0deg); opacity: 1; box-shadow: 0 8px 30px color-mix(in srgb, var(--glow, #b9a5f0) 20%, transparent); }
+        .ls-sd-beat[data-st="settle"] .ls-fr-chip, .ls-sd-beat[data-st="hold"] .ls-fr-chip, .ls-sd-beat[data-st="gone"] .ls-fr-chip, .ls-sd-scene.is-static .ls-fr-chip { transform: rotateX(0deg); opacity: 1; }
 
         /* A breath of dark between planets: one faint star holds the quiet. */
         .ls-fr-breath { position: relative; height: clamp(56px, 12svh, 120px); }
         .ls-fr-breath i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: rgba(185,165,240,0.55); box-shadow: 0 0 12px 3px rgba(154,126,230,0.28); animation: lsFrTwinkle 5.5s ease-in-out infinite; }
         @keyframes lsFrTwinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
 
-        /* The desire turn */
-        .ls-fr-turn { position: relative; max-width: 44ch; margin: 0 auto; padding: clamp(46px, 10svh, 118px) 0 clamp(28px, 6svh, 68px); display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.6vw, 20px); }
-        .ls-fr-turn::before { content: ""; position: absolute; top: 0; left: 50%; width: 1px; height: clamp(34px, 7svh, 78px); transform: translateX(-50%); background: linear-gradient(180deg, transparent, ${C.lineViolet}); }
-        .ls-fr-turn-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.12; letter-spacing: -0.015em; }
-        .ls-fr-turn-lead2 { margin: -4px 0 0; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.12rem, 3.2vw, 1.5rem); line-height: 1.2; letter-spacing: -0.01em; }
-        .ls-fr-turn-sub { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.6vw, 1.2rem); line-height: 1.5; }
-
-        /* Ten dim glyphs, countable. Still dark on the wheel. */
-        .ls-fr-dk { display: flex; justify-content: center; align-items: center; gap: clamp(9px, 2.4vw, 17px); margin: clamp(8px, 1.6vw, 14px) 0 clamp(2px, 0.6vw, 6px); color: ${C.violetBright}; }
-        .ls-fr-dk-g { display: inline-flex; font-size: clamp(19px, 4.6vw, 25px); opacity: 0.26; }
-        .ls-fr-dk-g[data-wake] { animation: lsFrWake 2s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes lsFrWake { 0% { opacity: 0.26; transform: scale(1); } 32% { opacity: 0.9; transform: scale(1.16); } 100% { opacity: 0.5; transform: scale(1); } }
-        .ls-fr-dkl { display: flex; flex-direction: column; gap: clamp(10px, 2vw, 14px); margin: clamp(8px, 1.6vw, 12px) 0 0; max-width: 40ch; }
-        .ls-fr-dk-line { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.6vw, 1.2rem); line-height: 1.5; }
-        .ls-fr-dk-line[data-in] { animation: lsFrAttend 1.9s ease 0.25s; }
-        @keyframes lsFrAttend { 0% { color: ${C.creamDim}; text-shadow: none; } 30% { color: ${C.cream}; text-shadow: 0 0 18px rgba(167,139,250,0.4); } 100% { color: ${C.creamDim}; text-shadow: none; } }
-
-        .ls-fr-turn-own { margin: clamp(10px, 2vw, 18px) 0 0; color: ${C.cream}; text-shadow: 0 0 24px rgba(167,139,250,0.35); font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5vw, 2.15rem); line-height: 1.08; letter-spacing: -0.015em; }
-        .ls-fr-turn-one { margin: clamp(14px, 3vw, 24px) 0 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); line-height: 1.45; }
-        .ls-fr-turn-what { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 2.9vw, 1.3rem); line-height: 1.46; }
-        .ls-fr-turn-whole { margin: clamp(6px, 1.4vw, 12px) 0 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.44rem, 4.8vw, 2rem); line-height: 1.1; letter-spacing: -0.01em; }
+        /* Ten dim glyphs, countable, lighting one by one. */
+        .ls-fr-dk { display: flex; justify-content: center; align-items: center; gap: clamp(9px, 2.4vw, 17px); color: ${C.violetBright}; }
+        .ls-fr-dk-g { display: inline-flex; font-size: clamp(19px, 4.6vw, 25px); opacity: 0.14; transform: scale(0.88); transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1); }
+        .ls-fr-dk-g[data-on] { opacity: 0.55; transform: scale(1); }
+        .ls-fr-dk-g[data-wake] { animation: lsFrWake 1.8s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes lsFrWake { 0% { opacity: 0.55; transform: scale(1); } 32% { opacity: 1; transform: scale(1.18); } 100% { opacity: 0.62; transform: scale(1); } }
+        .ls-sd-scene.is-static .ls-fr-dk-g { opacity: 0.5; transform: none; }
 
         /* Handoff */
         .ls-fr-handoff { display: flex; justify-content: center; padding: clamp(20px, 4svh, 44px) 0 clamp(6px, 2vw, 16px); }
@@ -2320,40 +2358,25 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         .ls-fr-handoff-cta svg { animation: lsFrNudge 2.4s ease-in-out infinite; }
         @keyframes lsFrNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
-        /* The keep moment: dark violet, quiet, skippable */
-        .ls-fr-keep { margin: clamp(8px, 2vw, 18px) auto clamp(30px, 7vw, 54px); padding: clamp(24px, 5vw, 36px) clamp(20px, 5vw, 34px); max-width: 430px; border-radius: 20px; border: 1px solid rgba(154,126,230,0.32); background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%); box-shadow: 0 24px 60px -28px rgba(0,0,0,0.8), 0 0 90px -40px rgba(124,92,214,0.45), inset 0 1px 0 rgba(185,165,240,0.12); display: flex; flex-direction: column; gap: clamp(12px, 2.6vw, 16px); align-items: center; }
-        .ls-fr-keep-eyebrow { margin: 0; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
-        .ls-fr-keep-line { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.4vw, 1.7rem); line-height: 1.16; letter-spacing: -0.01em; max-width: 20ch; }
-        .ls-fr-keep-sub { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(0.98rem, 2.5vw, 1.08rem); line-height: 1.5; max-width: 30ch; }
-        .ls-fr-keep-form { display: flex; width: 100%; gap: 10px; margin-top: 4px; }
-        .ls-fr-keep-input { flex: 1 1 auto; min-width: 0; min-height: 50px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(154,126,230,0.4); background: rgba(13,10,20,0.85); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: 16px; }
-        .ls-fr-keep-input::placeholder { color: rgba(200,200,210,0.55); }
-        .ls-fr-keep-input:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 2px; }
-        .ls-fr-keep-btn { flex: 0 0 auto; min-height: 50px; padding: 12px 24px; border-radius: 12px; border: 0; background: linear-gradient(180deg, #8f6de0 0%, #7452c8 48%, #5d47a0 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 1.04rem; font-weight: 700; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.32) inset, 0 -1px 0 rgba(0,0,0,0.25) inset, 0 8px 22px -8px rgba(124,92,214,0.6); transition: filter 0.2s ease, transform 0.3s ease, box-shadow 0.3s ease; }
-        .ls-fr-keep-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.36) inset, 0 -1px 0 rgba(0,0,0,0.25) inset, 0 12px 28px -8px rgba(124,92,214,0.72); }
-        .ls-fr-keep-btn:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
-        .ls-fr-keep-skip { margin-top: 2px; min-height: 44px; padding: 8px 14px; border: 0; background: transparent; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.95rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-        .ls-fr-keep-skip:hover { color: ${C.creamDim}; }
-        .ls-fr-keep-done { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.05rem, 2.8vw, 1.2rem); line-height: 1.5; }
-        @media (max-width: 480px) { .ls-fr-keep-form { flex-direction: column; } .ls-fr-keep-btn { width: 100%; } }
-
-        @media (min-width: 768px) {
-          .ls-fr { max-width: 820px; }
-          .ls-fr-rv { filter: blur(7px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1), filter 0.9s cubic-bezier(0.16,1,0.3,1); }
-          .ls-fr-rv[data-in] { filter: blur(0); }
+        @media (max-height: 600px) {
+          .ls-fr-stage { width: clamp(130px, 30vh, 190px); height: clamp(130px, 30vh, 190px); }
+          .ls-sd-stage.is-world { height: clamp(180px, 40svh, 280px); }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-settle i, .ls-fr-handoff-cta svg, .ls-fr-breath i, .ls-fr-dk-g, .ls-fr-dk-line { animation: none !important; }
+          .ls-sd-scene { height: auto !important; }
+          .ls-sd-pin { position: static !important; height: auto !important; }
+          .ls-sd-stage { position: static !important; height: auto !important; display: flex; flex-direction: column; gap: clamp(14px, 3vw, 22px); padding: clamp(10px, 2svh, 20px) 0; }
+          .ls-sd-beat { position: static !important; opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+          .ls-fr-settle { display: none !important; }
+          .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-handoff-cta svg, .ls-fr-breath i, .ls-fr-dk-g { animation: none !important; }
           .ls-fr-term { display: none !important; }
           .ls-fr-spec { opacity: 0.24 !important; transform: none !important; }
           .ls-fr-photo { filter: brightness(0.96) contrast(1.04) saturate(1.02) !important; }
           .ls-fr-halo { opacity: 0.6 !important; filter: none !important; }
           .ls-fr-disc, .ls-fr-sun { filter: none !important; transition: none !important; }
-          .ls-fr-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
-          .ls-fr-keep-btn, .ls-fr-keep-btn:hover { transform: none !important; transition: none !important; }
-          .ls-fr-chipturn .ls-fr-chip { transform: none !important; opacity: 1 !important; transition: none !important; }
-          .ls-fr-dk-g { opacity: 0.5 !important; }
+          .ls-fr-chip { transform: none !important; opacity: 1 !important; transition: none !important; }
+          .ls-fr-dk-g { opacity: 0.5 !important; transform: none !important; }
         }
       `}</style>
     </div>
@@ -2368,11 +2391,25 @@ function BirthSkyJourney() {
 
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
+  // Email lives at the START of the free reading (Danny, 2026-07): the seal
+  // card carries it, so the reading is theirs before the sky opens. A prior
+  // visit's address prefills quietly.
+  const [email, setEmail] = useState<string>(() => {
+    try { return sessionStorage.getItem("ls_chart_email") || ""; } catch { return ""; }
+  });
   const [chart, setChart] = useState<PetBirthChart | null>(null);
   const [status, setStatus] = useState<"idle" | "computing" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [whyOpen, setWhyOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+
+  // The memorial register softens the email ask into the "held for you" voice.
+  const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
+  useEffect(() => {
+    const onIntent = () => setMemorial(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
 
   const name = petName.trim();
   const ready = status === "ready";
@@ -2451,9 +2488,10 @@ function BirthSkyJourney() {
   const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
     chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
 
-  // Gate 1 — name (optional) + date opens the chart. Fetch fires in parallel with
-  // the compute animation; an 8s abort keeps us off a spinner-of-death. Email is
-  // asked AFTER the first three placements (Gate 2).
+  // ONE gate, at the start: name (optional) + date + email open the chart.
+  // The lead fires the moment they start the free reading (source
+  // "free_reading_start"), then the fetch runs in parallel with the compute
+  // animation; an 8s abort keeps us off a spinner-of-death.
   const handleOpen = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!date) {
@@ -2461,6 +2499,13 @@ function BirthSkyJourney() {
       setMessage("Choose their birth or adoption date first.");
       return;
     }
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(cleanEmail)) {
+      setStatus("error");
+      setMessage(memorial ? "Add where their reading should be held." : "Add where their reading should open.");
+      return;
+    }
+    handleLead(cleanEmail, "free_reading_start");
     setStatus("computing");
     setMessage("");
     setChart(null);
@@ -2504,8 +2549,9 @@ function BirthSkyJourney() {
     }
   };
 
-  // Lead capture for the journey's offer (Scene 9): store the email, then the
-  // offer sends them on to the full reading. No on-page unlock, no inbox promise.
+  // Lead capture: fires at the START of the free reading (the seal card) with
+  // source "free_reading_start". Stores the email for the checkout prefill.
+  // No on-page unlock, no inbox promise.
   const handleLead = (rawEmail: string, source = "cosmic_journey") => {
     const cleanEmail = rawEmail.trim().toLowerCase();
     if (!/.+@.+\..+/.test(cleanEmail)) return;
@@ -2527,7 +2573,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeReveal chart={chart} reduce={reduce} petName={petName} onLead={(em) => handleLead(em, "free_reading_keep")} />
+        <FreeReveal chart={chart} reduce={reduce} />
       ) : (
         <>
           <div className="ls-stage">
@@ -2569,6 +2615,21 @@ function BirthSkyJourney() {
                     max="2030-12-31"
                     onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
+                </div>
+                <div className="ls-seal-field">
+                  <label htmlFor="seal-email">{memorial ? "Where should we hold their reading?" : "Where should their reading open?"}</label>
+                  <input
+                    id="seal-email"
+                    className={email ? "is-filled" : undefined}
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    required
+                    onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                  />
+                  <p className="ls-seal-quiet">{memorial ? "No account. Just where it waits." : "No account. Just where it opens."}</p>
                 </div>
                 <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
                   Set the chart <ArrowRight size={17} />
@@ -5696,6 +5757,8 @@ function CosmicStyles() {
         35% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 5px rgba(154,126,230,0.26), 0 0 30px rgba(124,92,214,0.46); }
         100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18); }
       }
+      /* the quiet reassurance under the email ask: no account, no inbox promise */
+      .ls-seal-quiet { margin: 2px 0 0; color: rgba(200,192,226,0.6); font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.82rem; letter-spacing: 0.01em; }
       .ls-seal-help { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
       .ls-seal-help-ln { margin: 0; opacity: 0; animation: lsSealHelpIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
       @keyframes lsSealHelpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

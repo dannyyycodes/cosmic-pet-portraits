@@ -28,9 +28,8 @@ gsap.registerPlugin(ScrollTrigger);
        its key but never ignites. Faint motes drift in the diagonal
        silence between them. The moonlight withholds.
      3 THE ANSWER, CLEAN SKY - two plain lines: line 1 rises, line 2
-       carries the white/violet shimmer sweep with a real degree readout
-       that counts up in the text baseline and locks beside "exact
-       place.", then line 3 settles in restraint. Nothing else.
+       carries the white/violet shimmer sweep, then line 3 settles in
+       restraint. Nothing else.
      4 THE CLOSE - the promise lines arrive word by word, then the plain
        closing words "Set the chart." light in luminous white with a
        violet breath and hand straight into the form. No ring, no seal.
@@ -57,26 +56,6 @@ gsap.registerPlugin(ScrollTrigger);
    authors the honest FINAL state of every visual; motion mode primes to
    hidden and performs. Reduced motion reads the finished passage at rest.
 ===================================================================== */
-
-/* ---- The placeholder natal chart --------------------------------------
-   The inline degree readout derives from ONE source array and counts to
-   the REAL chart Moon degree - never an invented number. */
-const SIGN_LON: Record<string, number> = {
-  Aries: 0, Taurus: 30, Gemini: 60, Cancer: 90, Leo: 120, Virgo: 150,
-  Libra: 180, Scorpio: 210, Sagittarius: 240, Capricorn: 270, Aquarius: 300, Pisces: 330,
-};
-
-type Placement = { key: string; sign: string; deg: number; min: number; lon: number };
-const CHART: Placement[] = ([
-  { key: "sun", sign: "Pisces", deg: 24, min: 37 },
-  { key: "moon", sign: "Virgo", deg: 24, min: 37 },
-  { key: "mercury", sign: "Pisces", deg: 8, min: 14 },
-  { key: "venus", sign: "Taurus", deg: 3, min: 51 },
-] as Omit<Placement, "lon">[]).map((p) => ({ ...p, lon: SIGN_LON[p.sign] + p.deg + p.min / 60 }));
-
-const pad2 = (n: number) => (n < 10 ? "0" : "") + n;
-const MOONP = CHART.find((p) => p.key === "moon")!;
-const MOON_READOUT = MOONP.deg + "° " + pad2(MOONP.min) + "′";
 
 /* bespoke zodiac + planet glyph paths (consumed by ReadingsLanding's wheel) */
 export const GLYPH: Record<string, string> = {
@@ -271,16 +250,6 @@ const LCB_CSS = `
   color:var(--lcb-ivory);font-size:clamp(1.78rem,1.25rem + 2.5vw,2.7rem);line-height:1.14;
   letter-spacing:-0.018em;max-width:21ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
 
-/* the inline degree readout: an instrument annotation in the text baseline.
-   The tick is a small DIAGONAL survey mark pointing into the figure - it
-   must never read as a dash. */
-.lcb-degline{display:inline-block;white-space:nowrap;margin-left:12px;vertical-align:baseline}
-.lcb-deg-tickline{display:inline-block;width:11px;height:1px;vertical-align:middle;margin:0 7px 5px 2px;
-  background:linear-gradient(90deg, rgba(167,139,250,0), var(--lcb-violet-br));
-  transform:rotate(-38deg);transform-origin:100% 50%;opacity:1}
-.lcb-deg-n{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:.72em;letter-spacing:.05em;
-  color:var(--lcb-violet-br);font-variant-numeric:tabular-nums}
-
 /* BEAT 3 shimmer line: a white/violet light band lives off-screen right and
    sweeps across the glyphs as the line lands. Authored final = swept (the
    band rests past the left edge, leaving calm lavender). */
@@ -288,7 +257,6 @@ const LCB_CSS = `
   background-image:linear-gradient(100deg,#cdc6ec 0%,#cdc6ec 34%,var(--lcb-violet-br) 43%,#ffffff 50%,var(--lcb-violet-br) 57%,#cdc6ec 66%,#cdc6ec 100%);
   background-size:280% 100%;background-position:-35% 0;
   -webkit-background-clip:text;background-clip:text;will-change:background-position}
-.lcb-shimmer .lcb-deg-n{-webkit-text-fill-color:var(--lcb-violet-br)}
 /* BEAT 3 restrained line: arrives quiet - its key stays soft, never loud */
 .lcb-quiet .lcb-key{color:var(--lcb-ivory);text-shadow:0 0 12px rgba(167,139,250,0.25)}
 
@@ -592,16 +560,6 @@ export function CosmicBridge() {
       el.style.strokeDasharray = String(len); el.style.strokeDashoffset = String(len);
     });
 
-    // the inline degree readout: counts to the REAL chart Moon figure
-    const degN = q(".lcb-deg-n");
-    const totalMin = MOONP.deg * 60 + MOONP.min;
-    const cnt = { v: totalMin };
-    const applyRead = () => {
-      if (!degN) return;
-      const c = Math.round(cnt.v);
-      degN.textContent = Math.floor(c / 60) + "° " + pad2(c % 60) + "′";
-    };
-
     // canvas rebuilds ride ScrollTrigger's own refresh cycle
     const onSTRefresh = () => { drawStars(); };
     ScrollTrigger.addEventListener("refresh", onSTRefresh);
@@ -851,17 +809,12 @@ export function CosmicBridge() {
 
       // =============== BEAT 3 - THE ANSWER, CLEAN SKY ===============
       // Two plain lines: "born." rises, then the white/violet shimmer sweeps
-      // the "exact place" line as it lands, the degree readout counts up IN
-      // the text baseline (a real figure, never invented), and "read."
-      // settles in restraint. Nothing between the lines but sky.
+      // the "exact place" line as it lands, and "read." settles in restraint.
+      // Nothing between the lines but sky.
       const ans = q(".lcb-answer-scene");
       if (ans) {
         const lns = qa(".lcb-souls-text .lcb-ln", ans);
         const bloom = q(".lcb-moon-bloom");
-        const degTick = q(".lcb-deg-tickline");
-
-        cnt.v = 0; applyRead();
-        if (degTick) gsap.set(degTick, { opacity: 0.3 });
 
         const ta = gsap.timeline({ scrollTrigger: { trigger: ans, start: "top 84%", end: "bottom 30%", scrub } });
         const T3 = hush ? [0.3, 1.8, 3.9] : [0.2, 1.4, 3.2];
@@ -889,10 +842,6 @@ export function CosmicBridge() {
 
         // the sky answers: the moonlight returns
         if (bloom) ta.to(bloom, { opacity: glow(0.85), duration: 0.9, ease: "none" }, labelTime(ta, "b3born"));
-
-        // the readout counts up in the baseline and LOCKS as its line lands
-        ta.to(cnt, { v: totalMin, duration: 0.6, ease: HOUSE, onUpdate: applyRead }, endAt("b3exactEnd", 0.6));
-        if (degTick) ta.to(degTick, { opacity: 1, duration: 0.18, ease: "none" }, endAt("b3exactEnd", 0.18));
       }
 
       // =============== BEAT 4 - THE CLOSE ===============
@@ -1050,7 +999,7 @@ export function CosmicBridge() {
 
         // ================= REDUCED MOTION: honest final state =================
         // CSS already authors every visual's FINISHED state (lit rail stars,
-        // drawn web, locked readout, risen dawn). Only the few values
+        // drawn web, risen dawn). Only the few values
         // whose finals are JS-owned get set here.
         if (noMotion) {
           gsap.set(q(".lcb-moon-img.blur"), { opacity: 0 });
@@ -1233,11 +1182,11 @@ export function CosmicBridge() {
             </div>
 
             {/* MEMORIAL BEAT 3 - THE ANSWER, CLEAN SKY: two plain lines with
-                the shimmer sweep; the degree readout locks beside "exact". */}
+                the shimmer sweep. The line keeps only the shimmer. */}
             <div className="lcb-scene lcb-answer-scene">
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln">It all began the day they were <span className="lcb-key lcb-gather">born.<i className="lcb-gth" aria-hidden="true" /></span></span>
-                <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.<span className="lcb-degline" aria-hidden="true"><span className="lcb-deg-tickline" /><span className="lcb-deg-n">{MOON_READOUT}</span></span></span>
+                <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.</span>
               </p>
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln lcb-emph lcb-quiet lcb-nosplit">Nothing after can touch it. It is still there to be <span className="lcb-key">read.</span></span>
@@ -1306,11 +1255,11 @@ export function CosmicBridge() {
             </div>
 
             {/* BEAT 3 - THE ANSWER, CLEAN SKY: two plain lines with the
-                shimmer sweep; the degree readout locks beside "exact place." */}
+                shimmer sweep. The line keeps only the shimmer. */}
             <div className="lcb-scene lcb-answer-scene">
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln">All of it began the day they were <span className="lcb-key lcb-gather">born.<i className="lcb-gth" aria-hidden="true" /></span></span>
-                <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.<span className="lcb-degline" aria-hidden="true"><span className="lcb-deg-tickline" /><span className="lcb-deg-n">{MOON_READOUT}</span></span></span>
+                <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.</span>
               </p>
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln lcb-emph lcb-quiet lcb-nosplit">A map of who they are, that no one has ever <span className="lcb-key">read.</span></span>
