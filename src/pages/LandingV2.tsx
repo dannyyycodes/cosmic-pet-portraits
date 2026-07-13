@@ -12,7 +12,7 @@ const LandingV2 = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[var(--cream,#FFFDF5)]">
+    <main className="min-h-screen bg-[#0d0a14]">
       <ReadingsNav />
       <ReadingsLanding />
     </main>
