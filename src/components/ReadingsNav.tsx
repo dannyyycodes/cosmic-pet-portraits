@@ -218,7 +218,7 @@ export function ReadingsNav() {
                   height: 40,
                   border: "1px solid rgba(154,126,230,0.32)",
                   borderRadius: 8,
-                  background: "rgba(245,239,230,0.06)",
+                  background: "rgba(237,233,247,0.06)",
                   color: C.cosmosText,
                 }}
                 aria-label="Open menu"
