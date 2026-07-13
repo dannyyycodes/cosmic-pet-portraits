@@ -2248,8 +2248,12 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         }
         .ls-sd-beat[data-st="focus"] { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0); }
         .ls-sd-beat[data-st="settle"] { opacity: 0.26; transform: translate3d(0,-34%,0) scale(0.45); filter: blur(0.4px); }
+        /* A long per-sign read settling under the next long read collides with it
+           (both are 3-4 wrapped lines; the -34% lift cannot clear the focus zone).
+           Those beats clear the stage instead of echoing: the next line stands alone. */
+        .ls-sd-beat[data-st="settle"]:has(.ls-sd-read) { opacity: 0; }
         .ls-sd-beat[data-st="gone"] { opacity: 0; transform: translate3d(0,-42%,0) scale(0.4); filter: blur(1px); }
-        .ls-sd-beat[data-st="hold"] { opacity: 0.5; transform: translate3d(0,-41%,0) scale(0.78); filter: blur(0); }
+        .ls-sd-beat[data-st="hold"] { opacity: 0.5; transform: translate3d(0,-46%,0) scale(0.7); filter: blur(0); }
 
         /* Reduced motion / static: every line visible, in reading order. */
         .ls-sd-scene.is-static { height: auto; padding: clamp(20px, 4svh, 40px) 0; }
