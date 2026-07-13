@@ -289,7 +289,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       if (detail) applyWheelPrize(detail);
     };
     window.addEventListener("ls-wheel-prize", onWheelPrize);
-    return () => window.removeEventListener("ls-wheel-prize", onWheelPrize);
+    // Live: fires when the free-reading keep gate is submitted AFTER this
+    // component has already mounted (the mount-time fallback above misses it).
+    const onChartEmail = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { email?: string } | undefined;
+      const kept = detail?.email;
+      if (kept && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(kept)) {
+        setEmail((current) => current || kept);
+      }
+    };
+    window.addEventListener("ls-chart-email", onChartEmail);
+    return () => {
+      window.removeEventListener("ls-wheel-prize", onWheelPrize);
+      window.removeEventListener("ls-chart-email", onChartEmail);
+    };
   }, [applyWheelPrize]);
 
   // Lock body scroll while any preview modal is open
@@ -1783,7 +1796,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
             {isLocalized && (
               <p style={{ color: "#c8c8d2", textAlign: "center", fontSize: 12, margin: "10px 0 0" }}>
-                Shown in {currencyCode}. Billed in USD at today's rate.
+                Billed in {currencyCode}. Exactly the price shown.
               </p>
             )}
 
@@ -2180,7 +2193,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               color: "var(--muted, #958779)",
             }}
           >
-            Shown in {currencyCode} · billed in USD at today's rate
+            Billed in {currencyCode} · exactly the price shown
           </p>
         )}
 

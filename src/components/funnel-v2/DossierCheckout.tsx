@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SIGN_LINES } from "./signLines";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -153,6 +154,32 @@ function readChartPet(): { name: string; date: string } | null {
   }
 }
 
+/** Computed signs persisted by BirthSkyJourney — feeds the sample excerpt. */
+type ChartSigns = { sun?: string | null; moon?: string | null; venus?: string | null; mercury?: string | null; mars?: string | null };
+function readChartSigns(): ChartSigns | null {
+  try {
+    const raw = sessionStorage.getItem("ls_chart_signs");
+    return raw ? (JSON.parse(raw) as ChartSigns) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** First sentence stays readable; the rest is what the seal holds. */
+function splitExcerpt(line: string): { open: string; sealed: string } {
+  const m = /^(.*?[.!?])\s+(.+)$/.exec(line);
+  return m ? { open: m[1], sealed: m[2] } : { open: line, sealed: "" };
+}
+
+/** The email the visitor already kept at the free-reading gate (or wheel). */
+function readKeptEmail(): string {
+  try {
+    return sessionStorage.getItem("ls_wheel_email") || sessionStorage.getItem("ls_chart_email") || "";
+  } catch {
+    return "";
+  }
+}
+
 function Stars({ count, label }: { count: number; label: string }) {
   return (
     <div className="dsr-stars" role="img" aria-label={label}>
@@ -221,6 +248,42 @@ export function DossierCheckout(props: DossierCheckoutProps) {
   const petName = pet?.name || "";
   const bornLabel = pet?.date ? longBornLabel(pet.date) : "";
   const hasChart = !!pet?.date;
+
+  /* computed signs → one honest sample line from a placement still sealed.
+     Mercury first (top locked row), Mars as the fallback. Nothing renders
+     when no chart has been computed — the excerpt is never generic. */
+  const [signs, setSigns] = useState<ChartSigns | null>(() => readChartSigns());
+  useEffect(() => {
+    const onSigns = () => setSigns(readChartSigns());
+    window.addEventListener("ls-chart-signs", onSigns);
+    return () => window.removeEventListener("ls-chart-signs", onSigns);
+  }, []);
+  const excerpt = useMemo(() => {
+    if (!signs) return null;
+    if (signs.mercury && SIGN_LINES.mercury?.[signs.mercury]) {
+      return { ico: "g-mercury", name: "Mercury", frame: "How they read you.", ...splitExcerpt(SIGN_LINES.mercury[signs.mercury]) };
+    }
+    if (signs.mars && SIGN_LINES.mars?.[signs.mars]) {
+      return { ico: "g-mars", name: "Mars", frame: "What they chase, and why.", ...splitExcerpt(SIGN_LINES.mars[signs.mars]) };
+    }
+    return null;
+  }, [signs]);
+
+  /* email already kept at the free-reading gate → confirmation row with a
+     Change affordance instead of an empty field to re-type. */
+  const [keptEmail, setKeptEmail] = useState<string>(() => readKeptEmail());
+  const [emailEditing, setEmailEditing] = useState(false);
+  useEffect(() => {
+    const onKept = () => setKeptEmail(readKeptEmail());
+    window.addEventListener("ls-chart-email", onKept);
+    return () => window.removeEventListener("ls-chart-email", onKept);
+  }, []);
+  const emailKept =
+    !emailEditing &&
+    !!email.trim() &&
+    !!keptEmail &&
+    email.trim().toLowerCase() === keptEmail.trim().toLowerCase() &&
+    /.+@.+\..+/.test(email.trim());
 
   /* daybreak: light the wheel + rung when the holder enters the viewport */
   const [lit, setLit] = useState(false);
@@ -302,6 +365,9 @@ export function DossierCheckout(props: DossierCheckoutProps) {
      never earlier, so no price bar hovers over the reveal above. */
   const ctaRef = useRef<HTMLButtonElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (emailEditing) emailRef.current?.focus({ preventScroll: true });
+  }, [emailEditing]);
   const [stickyOn, setStickyOn] = useState(false);
   useEffect(() => {
     const el = ctaRef.current;
@@ -381,6 +447,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           <symbol id="g-chiron" viewBox="0 0 24 24"><circle cx="12" cy="17.5" r="3.5" /><path d="M12 14V4M12 8.5l4.5-4.2M12 8.5l4.5 4" /></symbol>
           <symbol id="g-node" viewBox="0 0 24 24"><circle cx="6.8" cy="17.6" r="2.4" /><circle cx="17.2" cy="17.6" r="2.4" /><path d="M5.6 15.6C4.5 8.8 7.6 4.5 12 4.5s7.5 4.3 6.4 11.1" /></symbol>
           <symbol id="g-asc" viewBox="0 0 24 24"><path d="M3.5 19 8 5l4.5 14M5.4 14.2h5.2M21 8.4a6.4 6.4 0 1 0 0 7.2" /></symbol>
+          <symbol id="dsr-check" viewBox="0 0 24 24"><path d="M4.5 12.6l5.2 5.2L19.5 6.6" /></symbol>
           <symbol id="dsr-star" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="url(#dsr-mgold)" stroke="none" /></symbol>
           <symbol id="dsr-star-o" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></symbol>
         </defs>
@@ -490,6 +557,26 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           ))}
         </ul>
 
+        {/* one honest sample from a sealed placement — built from THIS pet's
+            computed chart (Mercury sign via ls_chart_signs), first sentence
+            readable, the rest visibly held back under the seal. */}
+        {hasChart && excerpt && (
+          <figure className="dsr-excerpt">
+            <figcaption className="dsr-eyebrow dsr-excerpt-eb">
+              {petName ? `A line from ${petName}'s full reading` : "A line from their full reading"}
+            </figcaption>
+            <p className="dsr-excerpt-place">
+              <svg className="dsr-gico" aria-hidden="true"><use href={`#${excerpt.ico}`} /></svg>
+              <span><span className="nm">{excerpt.name}.</span> <span className="fr">{excerpt.frame}</span></span>
+            </p>
+            <blockquote className="dsr-excerpt-quote">
+              <span className="open">{excerpt.open}</span>
+              {excerpt.sealed && <span className="sealed" aria-hidden="true"> {excerpt.sealed}</span>}
+            </blockquote>
+            <p className="dsr-excerpt-note">The rest stays sealed until their reading opens.</p>
+          </figure>
+        )}
+
         {/* reviews: grief given room, joy, gift. The full six-voice wall
             already ran earlier on the journey (ReviewsWall, post-reveal),
             so this in-checkout block stays a tight, curated few. */}
@@ -519,6 +606,30 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         {/* the practical one, beside the price */}
         <Review kind="practical" variant="mini" />
 
+        {/* the open value stack — always visible at the price, never folded */}
+        <ul className="dsr-stack" aria-label="What opens with their reading">
+          <li>
+            <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>
+            <span>All <strong>thirteen placements</strong>, opened and read in full</span>
+          </li>
+          <li>
+            <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>
+            <span>The <strong>keepsake</strong>, made with their photo, yours forever</span>
+          </li>
+          <li>
+            <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>
+            <span><strong>SoulSpeak</strong><span className="dsr-tag">New</span></span>
+          </li>
+          <li>
+            <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>
+            <span>A month of <strong>weekly horoscopes</strong><span className="dsr-tag">Free</span></span>
+          </li>
+          <li>
+            <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>
+            <span><strong>Full refund</strong> if it does not feel like them</span>
+          </li>
+        </ul>
+
         {/* price row LAST and small */}
         <div className="dsr-price-row" ref={priceRowRef} aria-live="polite">
           <span className="dsr-was"><span>{fmt(wasShown)}</span><span className="strike" aria-hidden="true" /></span>
@@ -537,19 +648,33 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         <Review kind="returner" variant="compact" />
 
         <div className="dsr-email-block">
-          <label className="dsr-eyebrow" htmlFor="dsr-email">Where their reading opens</label>
-          <div className="dsr-field">
-            <input
-              id="dsr-email"
-              ref={emailRef}
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => onEmailChange(e.target.value)}
-            />
-          </div>
+          {emailKept ? (
+            <>
+              <p className="dsr-eyebrow">Where their reading opens</p>
+              <div className="dsr-email-kept">
+                <span className="addr">{email.trim()}</span>
+                <button type="button" className="dsr-email-change" onClick={() => setEmailEditing(true)}>
+                  Change
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <label className="dsr-eyebrow" htmlFor="dsr-email">Where their reading opens</label>
+              <div className="dsr-field">
+                <input
+                  id="dsr-email"
+                  ref={emailRef}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => onEmailChange(e.target.value)}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <button className="dsr-cta" type="button" ref={ctaRef} onClick={onCheckout} disabled={isLoading}>
@@ -590,21 +715,6 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           {codeError && <p className="dsr-error">{codeError}</p>}
         </div>
 
-        <details className="dsr-details">
-          <summary>What opens<Chevron /></summary>
-          <div className="dsr-disc-body">
-            <ul>
-              <li>Full astrological breakdown, 30+ sections</li>
-              <li>How they love, how they learn, how they heal, what they hope for, what they fear, and what makes them feel most themselves</li>
-              <li>Their photo becomes part of the reveal</li>
-              <li>Yours forever. Revisit anytime, from any device</li>
-              <li>Bonus sections, little surprises written just for them<span className="dsr-tag">Bonus</span></li>
-              <li>SoulSpeak<span className="dsr-tag">New</span></li>
-              <li>1 month of weekly horoscopes<span className="dsr-tag">Free</span></li>
-            </ul>
-          </div>
-        </details>
-
         <details className="dsr-details last">
           <summary>More than one little soul?<Chevron /></summary>
           <div className="dsr-disc-body">
@@ -630,7 +740,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         </div>
 
         {isLocalized && (
-          <p className="dsr-fx-note">Shown in {currencyCode}. Billed in USD at today&rsquo;s rate.</p>
+          <p className="dsr-fx-note">Billed in {currencyCode}. Exactly the price shown.</p>
         )}
 
         <div className="dsr-pay-row" aria-label="Payment methods">
@@ -920,6 +1030,52 @@ function DossierStyles(): ReactNode {
       .dsr-rev-block{margin-bottom:24px}
       .dsr-rev-block .dsr-review{margin-bottom:12px}
       .dsr-rev-block .dsr-review:last-child{margin-bottom:0}
+
+      /* ---------- sample excerpt (sealed line) ---------- */
+      .dsr-excerpt{position:relative;border-radius:14px;padding:18px 18px 16px;margin:0 0 24px;
+        background:linear-gradient(180deg,var(--dsr-surface-3) 0%,var(--dsr-surface-2) 100%);
+        box-shadow:0 1px 2px rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.4),0 1px 0 rgba(185,165,240,.06) inset}
+      .dsr-excerpt::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+        background:linear-gradient(165deg, rgba(154,126,230,.45) 0%, rgba(139,123,216,.12) 45%, rgba(154,126,230,.35) 100%);
+        -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+        -webkit-mask-composite:xor;mask-composite:exclude}
+      .dsr-excerpt-eb{display:block;margin-bottom:12px}
+      .dsr-excerpt-place{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+      .dsr-excerpt-place .dsr-gico{flex:none;width:18px;height:18px;opacity:.85}
+      .dsr-excerpt-place .nm{font-size:15.5px;font-weight:600;letter-spacing:.01em;color:var(--dsr-violet-300)}
+      .dsr-excerpt-place .fr{font-size:14.5px;color:var(--dsr-violet-400);font-style:italic}
+      .dsr-excerpt-quote{margin:0 0 12px;font-family:var(--dsr-display);font-style:italic;
+        font-variation-settings:'opsz' 24;font-weight:500;font-size:18.5px;line-height:1.5;color:var(--dsr-cream)}
+      .dsr-excerpt-quote .sealed{filter:blur(4px);opacity:.5;user-select:none;
+        -webkit-mask-image:linear-gradient(90deg,#000 0%,transparent 96%);
+        mask-image:linear-gradient(90deg,#000 0%,transparent 96%)}
+      .dsr-excerpt-note{margin:0;font-size:13px;color:var(--dsr-violet-300);
+        letter-spacing:.06em}
+
+      /* ---------- the open value stack ---------- */
+      .dsr-stack{list-style:none;margin:0 0 14px;padding:16px 2px 4px;position:relative}
+      .dsr-stack::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+        background:linear-gradient(90deg,transparent,rgba(139,123,216,.22) 20% 80%,transparent)}
+      .dsr-stack li{display:flex;gap:12px;align-items:flex-start;padding:7px 0;
+        font-size:16px;line-height:1.45;color:var(--dsr-cream)}
+      .dsr-stack strong{font-weight:600}
+      .dsr-stack-ck{flex:none;width:17px;height:17px;margin-top:4px;display:block;
+        fill:none;stroke:url(#dsr-mgold);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+        filter:drop-shadow(0 0 6px rgba(154,126,230,.35))}
+
+      /* ---------- kept email row ---------- */
+      .dsr-email-kept{display:flex;align-items:center;gap:10px;min-height:48px;
+        padding:10px 6px 10px 14px;border-radius:10px;background:rgba(11,8,18,.55);position:relative}
+      .dsr-email-kept::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+        background:linear-gradient(165deg, rgba(139,123,216,.45), rgba(139,123,216,.15) 50%, rgba(139,123,216,.35));
+        -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+        -webkit-mask-composite:xor;mask-composite:exclude}
+      .dsr-email-kept .addr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+        font-size:16px;color:var(--dsr-cream)}
+      .dsr-email-change{flex:none;min-height:44px;padding:0 14px;background:none;border:0;cursor:pointer;
+        font-family:var(--dsr-body);font-size:14.5px;font-weight:600;color:var(--dsr-violet-200);
+        text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(139,123,216,.5)}
+      .dsr-email-change:focus-visible{outline:2px solid var(--dsr-violet-300);outline-offset:2px;border-radius:6px}
 
       /* ---------- Soul Bond bump ---------- */
       .dsr-bond{position:relative;display:flex;align-items:flex-start;gap:14px;

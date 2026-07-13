@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
 import { descendTo } from "@/lib/descend";
+import { SIGN_LINES } from "./signLines";
+import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, clearIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
 
 const C = {
@@ -414,6 +416,7 @@ export function ReadingsLanding() {
             selectedPrice={selectedPrice}
             onSelectedPriceChange={setSelectedPrice}
           />
+          <StickyBeginBar />
         </>
       )}
     </main>
@@ -679,196 +682,6 @@ const FREE_FRAME: Record<string, string> = {
   venus: "How they show love",
 };
 
-// Sign-true free-card lines for the three placements owners care about most.
-// True to each sign's real archetype (Sun = core identity, Moon = what settles
-// them, Venus = how they show love), present tense, ungendered and species-neutral
-// for unnamed pets. Each names one thing the owner can actually see or feel, so it
-// reads accurate rather than generic. Falls back to JOURNEY_LINES if a sign is ever
-// missing.
-const SIGN_LINES: Record<string, Record<string, string>> = {
-  sun: {
-    Aries: "No gap between wanting and doing. First through the door, first at the food, already halfway into the thing before they have thought it through.",
-    Taurus: "Slow, certain, and impossible to hurry. Comfort is a need, not a treat, and once they have picked their spot the rest of the world can wait.",
-    Gemini: "Two thoughts running before they finish the first, curious about anything that moves. They take in the whole room at a glance, then need something new to do with it.",
-    Cancer: "Their whole self is built around the ones they love. Soft at the center, watchful of the door, happiest when everyone they belong to is home.",
-    Leo: "Made for the warm middle of the room, and they know when their seat is taken. The affection is real and generous, and it wants one pair of eyes on it. Yours.",
-    Virgo: "Watchful and precise, quietly running a routine nobody assigned them. They notice the thing you moved and the second you changed your mind, and they let you know they saw.",
-    Libra: "Only fully themselves when the room is calm and the bond feels even. They read your mood and hand it back a shade softer.",
-    Scorpio: "All in or not at all, and they are the one who decides which. What they give, they give completely, and they forget nothing that passes between you.",
-    Sagittarius: "Born mid-adventure with their nose already to the wind. The horizon is the whole point, a shut gate is a dare, and the world is theirs to go and read.",
-    Capricorn: "Serious past their years, steady when everything else wobbles. They do not beg for their place, they earn it quietly, then hold it like it was always theirs.",
-    Aquarius: "Their own creature on their own odd clock, and coaxing does not change it. The loyalty is real, it just arrives sideways, on terms only they understand.",
-    Pisces: "Soft to the edges and tuned to whatever the room is feeling. Yours before they were their own, waiting at the door and meaning every minute of it.",
-  },
-  moon: {
-    Aries: "Settles by burning it off, never by being told to sit still. Let the energy out first and the calm follows on its own.",
-    Taurus: "Safe means warm, fed, and in the exact spot they always sleep. Move their bed a foot and you will hear about it for a week.",
-    Gemini: "Calm comes from something to watch and someone to answer. A quiet, empty room is the thing that truly unsettles them, so they invent a game to fill it.",
-    Cancer: "Feels safe only with you close and the day in its usual order. A skipped goodbye or a broken routine tips them into a small, wounded sulk.",
-    Leo: "Feels safest the moment they are seen. A word of praise resets the whole day, and being overlooked stings far more than they let on.",
-    Virgo: "Calms when everything sits in its right place. The same bowl in the same corner, the routine kept, and their anxious edge finally goes quiet.",
-    Libra: "Steadies in company, frays alone. They borrow their calm straight from yours, so a tense room becomes a tense them within minutes.",
-    Scorpio: "Watches from somewhere high and safe before they trust the room. Once they decide you are the one who stays, that trust is total and does not come undone.",
-    Sagittarius: "Needs room and a horizon more than a soft place to lie. Open ground does more for them than any blanket could.",
-    Capricorn: "Steadies on a schedule they can count on. Surprises are no gift to this one, and a day that runs to plan is a day they can finally relax into.",
-    Aquarius: "Comforted by room to breathe, not by being held close. They come to you when they are ready, and letting that be the rule keeps them settled.",
-    Pisces: "Soothed by quiet and the plain fact of you nearby. They soak up the whole mood of the house, so a loud day sends them under the nearest place to hide.",
-  },
-  venus: {
-    Aries: "Loves head-on. Crashes into you, then waits, tail going, for the same back.",
-    Taurus: "Shows love by leaning their whole weight on you and refusing to move.",
-    Gemini: "Brings you things and talks the whole time. Attention is the love language.",
-    Cancer: "Loves by guarding. Follows you room to room and frets when you leave.",
-    Leo: "Loves out loud and expects it back with interest. Generous, and a little theatrical.",
-    Virgo: "Shows love by staying close while you work. Missing nothing, asking for nothing.",
-    Libra: "Loves to be near and in tune. Gives back the softness it wants.",
-    Scorpio: "Picks one person and keeps picking them. That is you, and it is for life.",
-    Sagittarius: "Loves by including you in the fun. The door is open, come on, keep up.",
-    Capricorn: "Undemonstrative and completely dependable. The love is in the showing up.",
-    Aquarius: "Loves on a slant. Sits one cushion away, which from them is devotion.",
-    Pisces: "Loves by melting into you. No edge between their mood and yours.",
-  },
-  mercury: {
-    Aries: "They want it now and they tell you fast. A bark, a paw, a stare, and you are already moving for them.",
-    Taurus: "This one thinks slow and means it. Ask twice and you get the same calm answer, usually a look toward the food bowl.",
-    Gemini: "A chatterbox brain, always two thoughts ahead. They read your tone before your words and answer with their whole body.",
-    Cancer: "They speak in moods. A soft whine, a lean against your leg, and you know exactly how their day went.",
-    Leo: "Everything they want comes with flair. The dramatic sigh, the head turned just so, an audience expected and usually granted.",
-    Virgo: "A noticer. This one clocks the new bag, the rearranged shoes, the half-second you paused, and lets you know they saw.",
-    Libra: "They negotiate. A look at you, a look at the door, a polite pause until you both agree on the plan.",
-    Scorpio: "Quiet and watchful, this one says little and means all of it. When they finally ask, you do not say no.",
-    Sagittarius: "Big loud opinions about everything outside. They tell you the squirrel is back, the mail came, the neighbor exists.",
-    Capricorn: "A serious communicator. One firm look that means business, and they hold your eye until the message lands.",
-    Aquarius: "This one invents their own signals. An odd tap, a specific yowl, a routine only the two of you understand.",
-    Pisces: "They read the room before you do. A change in your voice and they are already at your feet, asking nothing, offering everything.",
-  },
-  mars: {
-    Aries: "First out the door, last to quit. This one plays rough, forgives fast, and treats every squirrel like a personal challenge.",
-    Taurus: "Slow to rile, impossible to budge once they are. They want what they want and will lean their whole weight into getting it.",
-    Gemini: "Energy comes in quick bursts and changes targets mid-pounce. This one would rather outsmart you than out-muscle you.",
-    Cancer: "Defends their people before themselves. Gentle until something they love is threatened, then suddenly very brave.",
-    Leo: "Plays to an audience and fights for the spotlight. Bold, a little dramatic, and genuinely proud of the prize they bring you.",
-    Virgo: "Goes after what they want with quiet precision, not noise. This one studies the problem, then solves it on the third try.",
-    Libra: "Hates a real fight, loves a fair game. They will charm their way to the treat long before they wrestle for it.",
-    Scorpio: "All or nothing, and they remember. This one locks onto a goal with a focus that is a little intense.",
-    Sagittarius: "Runs first, thinks later, and the whole world is the playing field. Restless, fearless, happiest in full sprint.",
-    Capricorn: "Patient and relentless. This one paces themselves, never wastes a move, and quietly wins the long game.",
-    Aquarius: "Picks their own fights for their own reasons. Stubborn in odd moments, unbothered in the ones you expect to spook them.",
-    Pisces: "Goes soft and sideways rather than head-on. Their drive runs on feeling, so a sulk hits harder than any growl.",
-  },
-  jupiter: {
-    Aries: "This one trusts fast and barrels into the new dog at the park like it is a personal invitation. Lucky when bold, sore when reckless.",
-    Taurus: "They open up over food and a warm lap, and they open up a lot. Good fortune smells like a full bowl, twice.",
-    Gemini: "This one expands by sniffing everything and trusting whoever talks to them. Curiosity pays off, until it leads them three gardens over.",
-    Cancer: "They trust the ones who feel like home, then love them past all reason. Their luck lives indoors, near you.",
-    Leo: "This one believes the whole room exists to admire them, and somehow it usually does. They give affection like a standing ovation.",
-    Virgo: "They trust slowly, watch you first, then quietly devote themselves to one good routine. Their luck hides in small, useful habits.",
-    Libra: "This one opens up to make peace and charms everyone into liking them. They overdo the sweetness, hoping nobody ever leaves.",
-    Scorpio: "They trust deep or not at all, and once they pick you it is total. Fortune favors them when they finally let go.",
-    Sagittarius: "This one believes every open door leads somewhere good and bolts through it grinning. Born lucky, terrible at staying in the yard.",
-    Capricorn: "They trust what is earned and expand on their own slow schedule. Their good fortune comes late, then stays for good.",
-    Aquarius: "This one trusts oddly, warming to the one stranger nobody expected. Their luck arrives sideways and never how you planned.",
-    Pisces: "They open up to everyone and feel the whole room at once, sometimes too much. Their luck flows in on a gentle, dreamy tide.",
-  },
-  saturn: {
-    Aries: "Saturn keeps a short leash on this one. Caution comes in late and grudgingly, usually after they have already charged at the thing.",
-    Taurus: "This one holds the line by simply not moving. Routine is their fortress, and they will wait out any change you try to introduce.",
-    Gemini: "Their caution is mental, not physical. They will watch a new object from three angles before deciding it is allowed to exist.",
-    Cancer: "This one guards what feels like home and gets stern about it. Trust is slow, but once given it does not waver.",
-    Leo: "Pride is their discipline. They hold back to keep their dignity intact, and they hate being caught making a mistake.",
-    Virgo: "This one polices the small stuff. A bowl out of place, a strange smell, and they go quietly, watchfully serious about it.",
-    Libra: "Their boundaries are about fairness. They hold back until they have weighed both sides, then commit with surprising steadiness.",
-    Scorpio: "This one trusts almost nothing at first. The walls are thick and deliberate, and earning a way past them takes real time.",
-    Sagittarius: "Discipline sits uneasy on this one. They accept limits only when they understand the reason, and they test every fence twice.",
-    Capricorn: "Saturn is right at home here. This one is self-governed, patient, and oddly responsible, the old soul who waits its turn.",
-    Aquarius: "Their boundaries are on their own terms. They keep a cool distance, then choose exactly when and whom to let close.",
-    Pisces: "Caution dissolves and reforms in this one. They retreat softly when overwhelmed, needing quiet to rebuild their edges.",
-  },
-  uranus: {
-    Aries: "This one bolts off mid-walk for no reason they will share, then acts like it was your idea all along.",
-    Taurus: "Stubbornly the same for years, then one day they decide the sofa is theirs now and that is simply the new law.",
-    Gemini: "Their attention snaps to a new game every few minutes. You never quite predict which sound sets them off next.",
-    Cancer: "Cuddly and steady until a tiny change in the room, a moved chair, a new smell, flips them into a different mood entirely.",
-    Leo: "Right when all eyes are on them, they ditch the trick they know and freestyle something stranger and louder.",
-    Virgo: "They keep a tidy routine, then rearrange one small ritual overnight and expect you to have noticed already.",
-    Libra: "Easygoing about most things, then out of nowhere they refuse a friend they have always liked, and will not be talked round.",
-    Scorpio: "Their surprises run deep and quiet. One day they show a hiding spot or a trust you had no idea was being weighed.",
-    Sagittarius: "Fences are suggestions. This one finds the one gap you missed and treats the whole neighbourhood as fair territory.",
-    Capricorn: "Predictable to a fault, then they break a rule they built themselves, calmly, like they have simply outgrown it.",
-    Aquarius: "The genuine odd one. They invent private rituals, ignore the usual pet script, and seem to run on their own logic.",
-    Pisces: "Their moods arrive like weather, no warning, no clear cause. One minute dreamy, the next darting somewhere only they understand.",
-  },
-  neptune: {
-    Aries: "Dreams in fast-forward, then forgets them. This one zones out mid-zoomie, snaps back like they meant to do that.",
-    Taurus: "Naps with the dedication of a professional. This one drifts off in any patch of sun and takes their sweet time waking.",
-    Gemini: "A short attention span for the real world, endless for whatever they imagine. This one chases shadows that are not there.",
-    Cancer: "Feels your mood before you say a word, then goes quiet and clingy to match it. A little sponge for the room.",
-    Leo: "Stares into the middle distance like they are in a film about themselves. This one daydreams in the spotlight, even an empty one.",
-    Virgo: "Worries and wanders at once. This one fusses over a corner of the rug, then forgets why and stares at the wall.",
-    Libra: "Soft on everyone, hard to read. This one floats between laps, half here, dissolving into whoever is gentlest.",
-    Scorpio: "Senses things you cannot and will not explain. This one fixes on a closed door, ears back, lost in something only they hear.",
-    Sagittarius: "Wanders off mid-thought, nose in the clouds. This one forgets where they buried the toy and looks delighted anyway.",
-    Capricorn: "Quietly tender under the serious face. This one keeps a routine, then melts into a long, faraway stare at nothing.",
-    Aquarius: "Off in their own orbit. This one ignores the obvious, then fixates on a speck of dust like it holds answers.",
-    Pisces: "Made of feelings and fog. This one slips into sleep mid-cuddle, dreams loudly, and wakes unsure which world they are in.",
-  },
-  pluto: {
-    Aries: "Their intensity comes out fast and physical. Push them and they push back, then forget the whole thing by dinner.",
-    Taurus: "They hold on hard and quietly. A favorite spot, a routine, one person. Try to move any of it and you meet the wall.",
-    Gemini: "Their deep stuff hides behind chatter and games. Watch closely and you catch a sharper, watchful mind under the goofing.",
-    Cancer: "They feel everything and bury most of it. A closed door or a packed bag can shake this one for days.",
-    Leo: "Their need for control runs through pride. They want to be seen, and being ignored cuts deeper than they let on.",
-    Virgo: "Their tension lives in the details. One thing out of place and this one fixates, grooming or pacing until it feels right.",
-    Libra: "They keep the peace by hiding what bothers them. The unrest leaks out sideways, in sulks and pointed silences.",
-    Scorpio: "All in, all the time. This one bonds to the bone, reads your moods, and never quite forgets a betrayal.",
-    Sagittarius: "Their intensity needs somewhere to run. Pen them in and the pressure turns to chewing, digging, or a sudden bolt for the door.",
-    Capricorn: "They carry their guard like a job. Slow to trust, steady once they do, and quietly stubborn about who runs the house.",
-    Aquarius: "Their depths stay private and a little odd. They watch the room from the edge and decide, on their own terms, when to come close.",
-    Pisces: "They soak up the mood of the whole house and rarely show where it lands. The quiet ones often feel the most.",
-  },
-  chiron: {
-    Aries: "This one bruises when overlooked or told to wait their turn. They mend by being the first one greeted, the one you reach for.",
-    Taurus: "A quiet fear of going without sits in this one, leftover from leaner days. A full bowl and a warm spot, kept steady, settles it.",
-    Gemini: "This one was hushed once, maybe ignored when they tried to say something. They heal when you answer their little sounds like real talk.",
-    Cancer: "The old ache here is being left. They flinch at closed doors and packed bags, and soften when you come back and mean it.",
-    Leo: "Somewhere this one learned they were too much. They steady when the attention they crave is given freely, not earned by performing.",
-    Virgo: "This one frets over getting it wrong, bracing for a scold that may never come. Gentle routine and praise for small things loosen the worry.",
-    Libra: "A tension between people unsettles this one deeply. Raised voices land as their fault, and they mend in a calm, even-keeled home.",
-    Scorpio: "This one guards an old betrayal and trusts slowly. They heal in increments, each kept promise loosening the grip a little more.",
-    Sagittarius: "A clipped life or a small cage once shrank this one's world. They knit back together with open space and the freedom to wander it.",
-    Capricorn: "This one carries themself like they must earn their keep, never quite resting. Being loved for nothing in particular is the slow cure.",
-    Aquarius: "A sense of not fitting follows this one, the odd one in any group. They settle once they find their one person and stop reaching for the rest.",
-    Pisces: "This one soaks up the mood of the house and aches when it sours. Quiet, a soft blanket, and your steady calm draw the heaviness back out.",
-  },
-  northNode: {
-    Aries: "Life with you is teaching this one to act first and ask later, to want something and just go get it.",
-    Taurus: "This one is settling into steadiness, learning that the same warm spot and the same routine are their own reward.",
-    Gemini: "Your pet is growing curious, learning to take an interest in everything, every sound, every new face at the door.",
-    Cancer: "This one is softening into a home creature, learning to need you back and to let themselves be looked after.",
-    Leo: "Life with you is coaxing out the show-off, the one who learns it is fine to want the spotlight and take it.",
-    Virgo: "Your pet is growing into small daily habits, finding calm in being useful, tidy, and quietly on top of things.",
-    Libra: "This one is learning the give and take of company, how to read your mood and meet you halfway.",
-    Scorpio: "This one is growing toward deep, all-in attachment, the kind that bonds to one person and means it.",
-    Sagittarius: "Life with you is opening this one up, teaching them to trust the next walk, the next car, the next adventure.",
-    Capricorn: "Your pet is steadily learning patience and self-control, growing into the calm, dependable one of the house.",
-    Aquarius: "This one is becoming their own odd self, learning it is fine to like things on their own terms.",
-    Pisces: "This one is growing gentler and more tuned in, learning to feel what you feel and curl close when you need it.",
-  },
-  lilith: {
-    Aries: "The thing in them that bolts the second a leash goes slack. Their wildness has no patience and no off switch.",
-    Taurus: "Will not be moved when they have decided otherwise. The untamed part of them is just a body planted like a boulder.",
-    Gemini: "Their feral streak talks back. It darts, dodges, and pretends not to hear you, always one trick ahead.",
-    Cancer: "Guards something private that nobody gets to touch. Push too close and the soft one shows teeth.",
-    Leo: "Refuses to be a pet on anyone's terms. Their wild side wants the room, the spotlight, and the last word.",
-    Virgo: "Their untamed part hides in the details, the secret stash, the spot they will not let you clean. Quietly ungovernable.",
-    Libra: "Charming until you cross a line they never named. Then the sweet one simply stops cooperating, all grace, zero compliance.",
-    Scorpio: "Keeps a wildness it never shows you. What this one wants, it stalks in total silence until the moment comes.",
-    Sagittarius: "The part that treats a fence as a suggestion. Their freedom is non-negotiable and the door is always a dare.",
-    Capricorn: "Submits to nothing, just waits you out. The untamed thing in them is patient, cold, and absolutely in charge.",
-    Aquarius: "Cannot be trained into anyone's idea of normal. Their wildness is the rule they broke on purpose.",
-    Pisces: "Slips your grip like water and goes somewhere you cannot follow. The wild one here is half here, half elsewhere.",
-  },
-};
 
 // Short "what this placement governs" frame for each body, shown above its line
 // in the full breakdown. Sun/Moon/Venus reuse the free-card frames.
@@ -2070,10 +1883,16 @@ function FreeKeepGate({ petName, memorial, onLead }: { petName?: string | null; 
         <>
           <p className="ls-fr-keep-eyebrow ls-fr-rv">{memorial ? "Kept safe" : "Their reading, kept"}</p>
           <p className="ls-fr-keep-line ls-fr-rv" style={revealDelay(0.06)}>
-            {name ? `We will hold ${name}'s reading for you.` : "We will hold their reading for you."}
+            {memorial
+              ? (name ? `We will hold ${name}'s reading for you.` : "We will hold their reading for you.")
+              : "Save the two you have unlocked."}
           </p>
           <p className="ls-fr-keep-sub ls-fr-rv" style={revealDelay(0.12)}>
-            {memorial ? "For whenever you are ready to come back to it." : "So it is still here when you come back for the rest."}
+            {memorial
+              ? "For whenever you are ready to come back to it."
+              : (name
+                  ? `The Rising is next. ${name}'s reading will be waiting, right where you left it.`
+                  : "The Rising is next. Their reading will be waiting, right where you left it.")}
           </p>
           <form className="ls-fr-keep-form ls-fr-rv" style={revealDelay(0.18)} onSubmit={submit}>
             <label htmlFor="ls-keep-email" className="sr-only">Your email</label>
@@ -2464,8 +2283,8 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         .ls-fr-keep-input { flex: 1 1 auto; min-width: 0; min-height: 50px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(154,126,230,0.4); background: rgba(13,10,20,0.85); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: 16px; }
         .ls-fr-keep-input::placeholder { color: rgba(200,200,210,0.55); }
         .ls-fr-keep-input:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 2px; }
-        .ls-fr-keep-btn { flex: 0 0 auto; min-height: 50px; padding: 12px 22px; border-radius: 12px; border: 1px solid color-mix(in srgb, ${C.violetSoft} 60%, transparent); background: linear-gradient(180deg, rgba(124,92,214,0.32), rgba(124,92,214,0.16)); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: 1.02rem; font-weight: 600; cursor: pointer; transition: background 0.3s ease, transform 0.3s ease; }
-        .ls-fr-keep-btn:hover { background: linear-gradient(180deg, rgba(124,92,214,0.42), rgba(124,92,214,0.24)); transform: translateY(-1px); }
+        .ls-fr-keep-btn { flex: 0 0 auto; min-height: 50px; padding: 12px 24px; border-radius: 12px; border: 0; background: linear-gradient(180deg, #8f6de0 0%, #7452c8 48%, #5d47a0 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 1.04rem; font-weight: 700; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.32) inset, 0 -1px 0 rgba(0,0,0,0.25) inset, 0 8px 22px -8px rgba(124,92,214,0.6); transition: filter 0.2s ease, transform 0.3s ease, box-shadow 0.3s ease; }
+        .ls-fr-keep-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.36) inset, 0 -1px 0 rgba(0,0,0,0.25) inset, 0 12px 28px -8px rgba(124,92,214,0.72); }
         .ls-fr-keep-btn:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
         .ls-fr-keep-skip { margin-top: 2px; min-height: 44px; padding: 8px 14px; border: 0; background: transparent; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.95rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
         .ls-fr-keep-skip:hover { color: ${C.creamDim}; }
@@ -2616,6 +2435,19 @@ function BirthSkyJourney() {
         sessionStorage.setItem("ls_chart_pet", JSON.stringify(petPayload));
         window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: petPayload }));
       } catch { /* ignore */ }
+      // Computed signs travel too, so the checkout's sample excerpt can quote a
+      // line that is genuinely THIS pet's placement (never a generic tease).
+      try {
+        const signsPayload = {
+          sun: data.sun?.sign || null,
+          moon: data.moon?.sign || null,
+          venus: data.venus?.sign || null,
+          mercury: data.mercury?.sign || null,
+          mars: data.mars?.sign || null,
+        };
+        sessionStorage.setItem("ls_chart_signs", JSON.stringify(signsPayload));
+        window.dispatchEvent(new CustomEvent("ls-chart-signs", { detail: signsPayload }));
+      } catch { /* ignore */ }
     } catch (error) {
       console.warn("[Little Souls] birth chart failed", error);
       setChart(null);
@@ -2636,7 +2468,12 @@ function BirthSkyJourney() {
         body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source, utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
-    try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
+    try {
+      sessionStorage.setItem("ls_chart_email", cleanEmail);
+      // Live handoff: the checkout lower on this page prefills its email field
+      // the moment the keep gate is submitted (covers submits after it mounts).
+      window.dispatchEvent(new CustomEvent("ls-chart-email", { detail: { email: cleanEmail } }));
+    } catch { /* ignore */ }
   };
 
   const scrollToCheckout = () => descendTo("#begin");
@@ -3276,6 +3113,69 @@ function CheckoutSection({
   );
 }
 
+// ── Sticky begin bar (mobile) ─────────────────────────────────────────────────
+// A slim fixed CTA that appears once the reader passes the desire peak ("Break
+// every seal.") and rides with them until the checkout section is on screen —
+// no more CTA-less scroll between the peak and the price. Mobile only (CSS),
+// discovery path only, never on memorial. Anchors to #begin via the shared
+// descent so the dawn grade is still seen, not skipped.
+function StickyBeginBar() {
+  const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
+  const [on, setOn] = useState(false);
+  const { fmt, prices } = useLocalizedPrice();
+  useEffect(() => {
+    const onIntent = () => setMemorial(getIntent() === "memorial");
+    window.addEventListener(INTENT_EVENT, onIntent);
+    return () => window.removeEventListener(INTENT_EVENT, onIntent);
+  }, []);
+  useEffect(() => {
+    if (memorial || typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setOn(false);
+      return;
+    }
+    const peak = document.querySelector<HTMLElement>(".ls-rs-close");
+    const checkout = document.getElementById("begin");
+    if (!peak) return;
+    let pastPeak = false;
+    let overCheckout = false;
+    const update = () => setOn(pastPeak && !overCheckout);
+    const ioPeak = new IntersectionObserver(([en]) => {
+      pastPeak = en.isIntersecting || en.boundingClientRect.top < 0;
+      update();
+    }, { threshold: 0.35 });
+    ioPeak.observe(peak);
+    let ioCheckout: IntersectionObserver | null = null;
+    if (checkout) {
+      ioCheckout = new IntersectionObserver(([en]) => {
+        overCheckout = en.isIntersecting;
+        update();
+      }, { threshold: 0 });
+      ioCheckout.observe(checkout);
+    }
+    return () => {
+      ioPeak.disconnect();
+      ioCheckout?.disconnect();
+    };
+  }, [memorial]);
+  if (memorial) return null;
+  return (
+    <div className={`ls-stickybegin${on ? " show" : ""}`} aria-hidden={!on}>
+      <button type="button" tabIndex={on ? 0 : -1} onClick={() => descendTo("#begin")}>
+        Begin Their Reading &middot; {fmt(prices.basic)}
+      </button>
+      <style>{`
+        .ls-stickybegin { position: fixed; left: 0; right: 0; bottom: 0; z-index: 39; padding: 9px 16px calc(9px + env(safe-area-inset-bottom)); background: rgba(11,8,18,0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 -6px 24px rgba(0,0,0,0.45); transform: translateY(110%); transition: transform 0.45s cubic-bezier(0.16,1,0.3,1); pointer-events: none; }
+        .ls-stickybegin::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(139,123,216,0.35) 20% 80%, transparent); }
+        .ls-stickybegin.show { transform: none; pointer-events: auto; }
+        .ls-stickybegin button { display: block; width: 100%; max-width: 560px; margin: 0 auto; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: linear-gradient(180deg, #a78bfa 0%, #8266d9 45%, #6a4cc4 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 16.5px; font-weight: 700; letter-spacing: 0.02em; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 6px 18px -6px rgba(124,92,214,0.45); }
+        .ls-stickybegin button:focus-visible { outline: 2px solid #cfc0f4; outline-offset: 3px; }
+        @media (min-width: 768px) { .ls-stickybegin { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .ls-stickybegin { transition: none; } }
+      `}</style>
+    </div>
+  );
+}
+
 // ── The rest of their sky ─────────────────────────────────────────────────────
 // The desire beat between the free reveal and the reviews. The free reading opened
 // three worlds (Sun, Moon, Rising); here the nine planets that stay sealed are read
@@ -3523,6 +3423,10 @@ function FullReadingOpens() {
             <p className="ls-rs-close-line">
               The full reading opens them all, written for this soul alone and no other.
             </p>
+            <button type="button" className="ls-rs-close-cta" onClick={() => descendTo("#begin")}>
+              Open the full reading
+              <ChevronDown size={20} strokeWidth={1.6} />
+            </button>
             <p className="ls-rs-close-pull">And it arrives as something you keep. Here is what that looks like.</p>
           </div>
         )}
@@ -3680,6 +3584,11 @@ function FullReadingOpens() {
 
         /* the close - ache only, no price, no button (pricing waits below reviews) */
         .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
+        .ls-rs-close-cta { display: inline-flex; align-items: center; gap: 12px; margin-top: clamp(20px, 3.6vw, 30px); padding: clamp(15px, 2.4vw, 19px) clamp(26px, 4vw, 38px); border-radius: 999px; border: 1px solid color-mix(in srgb, ${C.violetSoft} 55%, transparent); background: linear-gradient(180deg, rgba(124,92,214,0.24), rgba(124,92,214,0.12)); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); font-weight: 600; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 10px 34px rgba(70,40,140,0.34); transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
+        .ls-rs-close-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(70,40,140,0.46); background: linear-gradient(180deg, rgba(124,92,214,0.32), rgba(124,92,214,0.16)); }
+        .ls-rs-close-cta:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
+        .ls-rs-close-cta svg { animation: lsRsNudge 2.4s ease-in-out infinite; }
+        @keyframes lsRsNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
         .ls-rs-close-title { margin: 0 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.06; letter-spacing: -0.015em; }
         .ls-rs-close-line { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.5vw, 1.18rem); line-height: 1.55; }
         .ls-rs-close-pull { margin: clamp(18px, 3.4vw, 28px) auto 0; max-width: 36ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.16rem); line-height: 1.5; }
@@ -3720,6 +3629,7 @@ function FullReadingOpens() {
           .ls-rs-halo { opacity: 0.58 !important; transform: none !important; }
           .ls-rs-stage { transform: none !important; }
           .ls-rs-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+          .ls-rs-close-cta, .ls-rs-close-cta svg { animation: none !important; transform: none !important; transition: none !important; }
         }
       `}</style>
     </section>
