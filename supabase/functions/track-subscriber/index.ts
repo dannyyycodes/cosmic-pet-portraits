@@ -19,7 +19,7 @@ const trackSchema = z.object({
   petName: z.string().max(50).nullish(),
   petReportId: z.string().uuid().nullish(),
   tier: z.enum(["basic", "premium"]).nullish(),
-  source: z.enum(["intake", "gift", "referral", "birth_chart_preview"]).nullish(),
+  source: z.enum(["intake", "gift", "referral", "birth_chart_preview", "free_reading_start"]).nullish(),
   referralCode: z.string().max(50).nullish(),
 });
 
