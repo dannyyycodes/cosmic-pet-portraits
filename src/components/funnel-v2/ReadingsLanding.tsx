@@ -21,9 +21,11 @@ const C = {
   cream: "#ffffff",
   creamDim: "#ececf2",
   muted: "#c8c8d2",
-  gold: "#d4b67a",
-  goldSoft: "#f0d99f",
-  goldDeep: "#8b6f3a",
+  // COLOUR LAW (Danny): cosmic purple + white only on the readings path.
+  // The old gold accents now resolve to the violet family.
+  gold: "#b9a5f0",
+  goldSoft: "#cfc0f4",
+  goldDeep: "#5d47a0",
   violet: "#7c5cd6",
   violetSoft: "#9a7ee6",
   violetBright: "#b9a5f0",
@@ -31,8 +33,8 @@ const C = {
   cosmos: "#0d0a14",
   cosmos2: "#15101c",
   cosmos3: "#201722",
-  line: "rgba(212, 182, 122, 0.22)",
-  lineSoft: "rgba(245, 239, 230, 0.10)",
+  line: "rgba(154, 126, 230, 0.22)",
+  lineSoft: "rgba(237, 233, 247, 0.10)",
 };
 
 const PLACEHOLDERS = [
@@ -501,7 +503,7 @@ function HeroSection() {
   return (
     <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
-      <div className="ls-hero-veil absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(212,182,122,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
+      <div className="ls-hero-veil absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(154,126,230,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
@@ -1108,7 +1110,7 @@ function NatalWheel({
             const a = wheelPolar(cx, cy, rTick, deg);
             const b = wheelPolar(cx, cy, rTick - len, deg);
             return (
-              <line key={deg} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="rgba(245,239,230,0.26)" strokeWidth={major ? 1.1 : 0.5} />
+              <line key={deg} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="rgba(237,233,247,0.26)" strokeWidth={major ? 1.1 : 0.5} />
             );
           })}
         </motion.g>
@@ -1135,7 +1137,7 @@ function NatalWheel({
               />
             );
           })}
-          <circle cx={cx} cy={cy} r={rAspect} fill="none" stroke="rgba(245,239,230,0.12)" strokeWidth={0.6} />
+          <circle cx={cx} cy={cy} r={rAspect} fill="none" stroke="rgba(237,233,247,0.12)" strokeWidth={0.6} />
         </g>
 
         {/* Planets */}
@@ -1185,7 +1187,7 @@ function NatalWheel({
           </text>
           <line x1={cx - 19} y1={cy - 4} x2={cx + 19} y2={cy - 4} stroke="#9a7ee6" strokeWidth={1.4} />
           {bornLabel && (
-            <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(245,239,230,0.66)" fontSize={9.5} className="ls-wheel-centerborn">
+            <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(237,233,247,0.66)" fontSize={9.5} className="ls-wheel-centerborn">
               BORN {bornLabel}
             </text>
           )}
@@ -2042,7 +2044,62 @@ function splitBeats(text: string): string[] {
   return parts ? parts.map((s) => s.trim()).filter(Boolean) : [text.trim()];
 }
 
-function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
+// One dignified email moment inside the free reading: after The Moon, before
+// The Rising. Framed as keeping their reading, wired to the existing
+// track-subscriber plumbing, always skippable. Purple and white only.
+function FreeKeepGate({ petName, memorial, onLead }: { petName?: string | null; memorial: boolean; onLead?: (email: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "kept" | "skipped">("idle");
+  const name = (petName || "").trim();
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!/.+@.+\..+/.test(clean)) return;
+    onLead?.(clean);
+    setState("kept");
+  };
+  if (state === "skipped") return null;
+  return (
+    <section className="ls-fr-keep" aria-label="Keep their reading">
+      {state === "kept" ? (
+        <>
+          <p className="ls-fr-keep-eyebrow">{memorial ? "Kept safe" : "Their reading, kept"}</p>
+          <p className="ls-fr-keep-done">Kept. It will be waiting for you.</p>
+        </>
+      ) : (
+        <>
+          <p className="ls-fr-keep-eyebrow ls-fr-rv">{memorial ? "Kept safe" : "Their reading, kept"}</p>
+          <p className="ls-fr-keep-line ls-fr-rv" style={revealDelay(0.06)}>
+            {name ? `We will hold ${name}'s reading for you.` : "We will hold their reading for you."}
+          </p>
+          <p className="ls-fr-keep-sub ls-fr-rv" style={revealDelay(0.12)}>
+            {memorial ? "For whenever you are ready to come back to it." : "So it is still here when you come back for the rest."}
+          </p>
+          <form className="ls-fr-keep-form ls-fr-rv" style={revealDelay(0.18)} onSubmit={submit}>
+            <label htmlFor="ls-keep-email" className="sr-only">Your email</label>
+            <input
+              id="ls-keep-email"
+              className="ls-fr-keep-input"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="Your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <button type="submit" className="ls-fr-keep-btn">Keep it</button>
+          </form>
+          <button type="button" className="ls-fr-keep-skip ls-fr-rv" style={revealDelay(0.24)} onClick={() => setState("skipped")}>
+            Continue without
+          </button>
+        </>
+      )}
+    </section>
+  );
+}
+
+function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; reduce: boolean; petName?: string; onLead?: (email: string) => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register keeps its hush: the ceremony itself is shared, but
@@ -2226,6 +2283,10 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
             {pi < FREE_PLANETS.length - 1 && (
               <div className="ls-fr-breath" aria-hidden="true"><i /></div>
             )}
+            {/* The keep moment: after The Moon, before The Rising. */}
+            {p.key === "moon" && (
+              <FreeKeepGate petName={petName} memorial={memorial} onLead={onLead} />
+            )}
           </div>
         );
       })}
@@ -2392,6 +2453,23 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-handoff-cta svg { animation: lsFrNudge 2.4s ease-in-out infinite; }
         @keyframes lsFrNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
+        /* The keep moment: dark violet, quiet, skippable */
+        .ls-fr-keep { margin: clamp(8px, 2vw, 18px) auto clamp(30px, 7vw, 54px); padding: clamp(24px, 5vw, 36px) clamp(20px, 5vw, 34px); max-width: 430px; border-radius: 20px; border: 1px solid rgba(154,126,230,0.32); background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%); box-shadow: 0 24px 60px -28px rgba(0,0,0,0.8), 0 0 90px -40px rgba(124,92,214,0.45), inset 0 1px 0 rgba(185,165,240,0.12); display: flex; flex-direction: column; gap: clamp(12px, 2.6vw, 16px); align-items: center; }
+        .ls-fr-keep-eyebrow { margin: 0; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-fr-keep-line { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.4vw, 1.7rem); line-height: 1.16; letter-spacing: -0.01em; max-width: 20ch; }
+        .ls-fr-keep-sub { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(0.98rem, 2.5vw, 1.08rem); line-height: 1.5; max-width: 30ch; }
+        .ls-fr-keep-form { display: flex; width: 100%; gap: 10px; margin-top: 4px; }
+        .ls-fr-keep-input { flex: 1 1 auto; min-width: 0; min-height: 50px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(154,126,230,0.4); background: rgba(13,10,20,0.85); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: 16px; }
+        .ls-fr-keep-input::placeholder { color: rgba(200,200,210,0.55); }
+        .ls-fr-keep-input:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 2px; }
+        .ls-fr-keep-btn { flex: 0 0 auto; min-height: 50px; padding: 12px 22px; border-radius: 12px; border: 1px solid color-mix(in srgb, ${C.violetSoft} 60%, transparent); background: linear-gradient(180deg, rgba(124,92,214,0.32), rgba(124,92,214,0.16)); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: 1.02rem; font-weight: 600; cursor: pointer; transition: background 0.3s ease, transform 0.3s ease; }
+        .ls-fr-keep-btn:hover { background: linear-gradient(180deg, rgba(124,92,214,0.42), rgba(124,92,214,0.24)); transform: translateY(-1px); }
+        .ls-fr-keep-btn:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
+        .ls-fr-keep-skip { margin-top: 2px; min-height: 44px; padding: 8px 14px; border: 0; background: transparent; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.95rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+        .ls-fr-keep-skip:hover { color: ${C.creamDim}; }
+        .ls-fr-keep-done { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.05rem, 2.8vw, 1.2rem); line-height: 1.5; }
+        @media (max-width: 480px) { .ls-fr-keep-form { flex-direction: column; } .ls-fr-keep-btn { width: 100%; } }
+
         @media (min-width: 768px) {
           .ls-fr { max-width: 820px; }
           .ls-fr-rv { filter: blur(7px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1), filter 0.9s cubic-bezier(0.16,1,0.3,1); }
@@ -2406,6 +2484,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
           .ls-fr-halo { opacity: 0.6 !important; filter: none !important; }
           .ls-fr-disc, .ls-fr-sun { filter: none !important; transition: none !important; }
           .ls-fr-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+          .ls-fr-keep-btn, .ls-fr-keep-btn:hover { transform: none !important; transition: none !important; }
           .ls-fr-chipturn .ls-fr-chip { transform: none !important; opacity: 1 !important; transition: none !important; }
           .ls-fr-dk-g { opacity: 0.5 !important; }
         }
@@ -2547,12 +2626,12 @@ function BirthSkyJourney() {
 
   // Lead capture for the journey's offer (Scene 9): store the email, then the
   // offer sends them on to the full reading. No on-page unlock, no inbox promise.
-  const handleLead = (rawEmail: string) => {
+  const handleLead = (rawEmail: string, source = "cosmic_journey") => {
     const cleanEmail = rawEmail.trim().toLowerCase();
     if (!/.+@.+\..+/.test(cleanEmail)) return;
     supabase.functions
       .invoke("track-subscriber", {
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source: "cosmic_journey", utm: getUtm() },
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source, utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
     try { sessionStorage.setItem("ls_chart_email", cleanEmail); } catch { /* ignore */ }
@@ -2563,7 +2642,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeReveal chart={chart} reduce={reduce} />
+        <FreeReveal chart={chart} reduce={reduce} petName={petName} onLead={(em) => handleLead(em, "free_reading_keep")} />
       ) : (
         <>
           <div className="ls-stage">
@@ -2614,10 +2693,12 @@ function BirthSkyJourney() {
                   Why no time or place?
                 </button>
                 {whyOpen && (
-                  <p className="ls-seal-help">
-                    Rising sign and houses need the exact minute and town. Planet positions don't, so
-                    everything on this chart stands on the date alone.
-                  </p>
+                  <div className="ls-seal-help">
+                    <p className="ls-seal-help-ln">Rising sign and houses need the exact minute and town.</p>
+                    <p className="ls-seal-help-ln" style={{ animationDelay: "0.16s" }}>
+                      Planet positions don't, so everything on this chart stands on the date alone.
+                    </p>
+                  </div>
                 )}
               </form>
             )}
@@ -3440,6 +3521,7 @@ function FullReadingOpens() {
             <p className="ls-rs-close-line">
               The full reading opens them all, written for this soul alone and no other.
             </p>
+            <p className="ls-rs-close-pull">And it arrives as something you keep. Here is what that looks like.</p>
           </div>
         )}
       </div>
@@ -3456,7 +3538,7 @@ function FullReadingOpens() {
           position: absolute; inset: 0; z-index: 0; pointer-events: none;
           background:
             radial-gradient(120% 84% at 50% -8%, rgba(124,92,214,0.18), transparent 58%),
-            radial-gradient(120% 88% at 50% 116%, rgba(212,182,122,0.09), transparent 55%),
+            radial-gradient(120% 88% at 50% 116%, rgba(154,126,230,0.09), transparent 55%),
             radial-gradient(120% 100% at 50% 44%, transparent 56%, rgba(6,4,12,0.6) 100%);
         }
         .ls-rs-inner { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; }
@@ -3598,6 +3680,7 @@ function FullReadingOpens() {
         .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
         .ls-rs-close-title { margin: 0 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.06; letter-spacing: -0.015em; }
         .ls-rs-close-line { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.5vw, 1.18rem); line-height: 1.55; }
+        .ls-rs-close-pull { margin: clamp(18px, 3.4vw, 28px) auto 0; max-width: 36ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.16rem); line-height: 1.5; }
 
         /* reveal - opacity + rise on mobile, blur added on desktop */
         .ls-rs-rv { opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
@@ -3808,21 +3891,22 @@ function KeepsakeMoment() {
           <span className="ls-kp-turn-cue"><Camera size={15} strokeWidth={1.6} aria-hidden="true" /> Your keepsake</span>
           <p className="ls-kp-turn-main">Yours will look like this, with their face at the very centre, kept for as long as you want to hold on to them.</p>
           <p className="ls-kp-turn-sub">Their photo goes to the heart of it.</p>
+          <p className="ls-kp-pull">And the card is only the outside. What lives inside keeps speaking.</p>
         </div>
       </div>
       <style>{`
         .ls-kp { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(38px, 6svh, 88px) 20px clamp(28px, 5svh, 66px); }
         .ls-kp-inner { position: relative; max-width: 680px; margin: 0 auto; }
         .ls-kp-head { text-align: center; margin: 0 auto clamp(24px, 4vw, 36px); }
-        .ls-kp-kicker { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; }
+        .ls-kp-kicker { margin: 0 0 14px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; }
         .ls-kp-eyebrow { margin: 0 auto; max-width: 30ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: clamp(1.06rem, 3.4vw, 1.3rem); line-height: 1.5; }
-        .ls-kp-eyebrow b { color: ${C.goldSoft}; font-style: normal; font-weight: 600; }
+        .ls-kp-eyebrow b { color: ${C.violetBright}; font-style: normal; font-weight: 600; }
 
-        /* the light keepsake card - a physical artifact against the cosmos */
-        .ls-kp-card { position: relative; margin: 0 auto; padding: clamp(28px, 7vw, 52px) clamp(20px, 6vw, 48px) clamp(34px, 7vw, 54px); border-radius: 22px; background: linear-gradient(180deg, #fffdf5 0%, #faf4e8 100%); border: 1px solid rgba(196,162,101,0.55); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 34px 84px -32px rgba(0,0,0,0.9), 0 0 120px -42px rgba(212,182,122,0.42); overflow: hidden; }
-        .ls-kp-card::before { content: ""; position: absolute; inset: 10px; border-radius: 15px; border: 1px solid rgba(169,134,63,0.42); pointer-events: none; }
-        .ls-kp-card::after { content: ""; position: absolute; inset: 15px; border-radius: 12px; border: 1px solid rgba(169,134,63,0.14); pointer-events: none; }
-        .ls-kp-fl { position: absolute; width: 30px; height: 30px; color: #b8955a; opacity: 0.6; pointer-events: none; }
+        /* the keepsake card - a dark violet artifact lifted off the cosmos */
+        .ls-kp-card { position: relative; margin: 0 auto; padding: clamp(28px, 7vw, 52px) clamp(20px, 6vw, 48px) clamp(34px, 7vw, 54px); border-radius: 22px; background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%); border: 1px solid rgba(154,126,230,0.45); box-shadow: inset 0 1px 0 rgba(185,165,240,0.16), 0 34px 84px -32px rgba(0,0,0,0.9), 0 0 120px -42px rgba(124,92,214,0.5); overflow: hidden; }
+        .ls-kp-card::before { content: ""; position: absolute; inset: 10px; border-radius: 15px; border: 1px solid rgba(154,126,230,0.35); pointer-events: none; }
+        .ls-kp-card::after { content: ""; position: absolute; inset: 15px; border-radius: 12px; border: 1px solid rgba(154,126,230,0.13); pointer-events: none; }
+        .ls-kp-fl { position: absolute; width: 30px; height: 30px; color: ${C.violetSoft}; opacity: 0.6; pointer-events: none; }
         .ls-kp-fl.is-tl { top: 17px; left: 17px; }
         .ls-kp-fl.is-tr { top: 17px; right: 17px; transform: scaleX(-1); }
         .ls-kp-fl.is-bl { bottom: 17px; left: 17px; transform: scaleY(-1); }
@@ -3832,19 +3916,19 @@ function KeepsakeMoment() {
         .ls-kp-stage.is-swap { opacity: 0; }
 
         .ls-kp-frame { position: relative; width: clamp(228px, 72vw, 348px); aspect-ratio: 1 / 1.08; margin: 6px auto 12px; }
-        .ls-kp-halo { position: absolute; inset: -12%; border-radius: 32px; background: radial-gradient(circle at 50% 40%, rgba(212,182,122,0.32), transparent 70%); filter: blur(12px); }
-        .ls-kp-ring { position: absolute; inset: 0; border-radius: 24px; background: linear-gradient(150deg, #a9863f, #e7cd92 30%, #c4a265 55%, #e7cd92 78%, #a9863f); box-shadow: 0 0 0 1px rgba(90,64,20,0.35), 0 22px 50px -22px rgba(20,12,2,0.55); }
+        .ls-kp-halo { position: absolute; inset: -12%; border-radius: 32px; background: radial-gradient(circle at 50% 40%, rgba(124,92,214,0.4), transparent 70%); filter: blur(12px); }
+        .ls-kp-ring { position: absolute; inset: 0; border-radius: 24px; background: linear-gradient(150deg, #5d47a0, #b9a5f0 30%, #7c5cd6 55%, #b9a5f0 78%, #5d47a0); box-shadow: 0 0 0 1px rgba(43,29,78,0.5), 0 22px 50px -22px rgba(6,3,14,0.65); }
         .ls-kp-photo { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border-radius: 19px; object-fit: cover; object-position: center; display: block; }
-        .ls-kp-cue { position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); font-family: "Newsreader", Georgia, serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; color: #160d05; background: linear-gradient(180deg, #e7cd92, #c4a265); padding: 6px 12px; border-radius: 20px; white-space: nowrap; box-shadow: 0 6px 16px -6px rgba(0,0,0,0.55), 0 0 0 3px rgba(255,253,245,0.92); }
+        .ls-kp-cue { position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); font-family: "Newsreader", Georgia, serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; color: #ffffff; background: linear-gradient(180deg, #8f6de0, #6a4cc4); padding: 6px 12px; border-radius: 20px; white-space: nowrap; box-shadow: 0 6px 16px -6px rgba(0,0,0,0.55), 0 0 0 3px rgba(22,17,30,0.95); }
 
-        .ls-kp-name { margin: 26px 0 0; text-align: center; color: #21170c; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(2.6rem, 11vw, 4.3rem); line-height: 0.96; letter-spacing: -0.01em; }
-        .ls-kp-born { margin: 13px 0 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: #8b6f3a; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
-        .ls-kp-born i { display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: #b8955a; opacity: 0.7; }
-        .ls-kp-divider { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 22px auto 0; max-width: 300px; color: #b8955a; }
-        .ls-kp-divider .l { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(169,134,63,0.5)); }
-        .ls-kp-divider .l.is-r { background: linear-gradient(90deg, rgba(169,134,63,0.5), transparent); }
+        .ls-kp-name { margin: 26px 0 0; text-align: center; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(2.6rem, 11vw, 4.3rem); line-height: 0.96; letter-spacing: -0.01em; }
+        .ls-kp-born { margin: 13px 0 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-kp-born i { display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: ${C.violetSoft}; opacity: 0.7; }
+        .ls-kp-divider { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 22px auto 0; max-width: 300px; color: ${C.violetSoft}; }
+        .ls-kp-divider .l { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(154,126,230,0.5)); }
+        .ls-kp-divider .l.is-r { background: linear-gradient(90deg, rgba(154,126,230,0.5), transparent); }
         .ls-kp-divider svg { width: 15px; height: 15px; opacity: 0.85; }
-        .ls-kp-line { margin: 16px auto 0; max-width: 28ch; min-height: 3em; text-align: center; text-wrap: balance; color: #5a4a42; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.1rem, 4.4vw, 1.34rem); line-height: 1.5; }
+        .ls-kp-line { margin: 16px auto 0; max-width: 28ch; min-height: 3em; text-align: center; text-wrap: balance; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.1rem, 4.4vw, 1.34rem); line-height: 1.5; }
 
         .ls-kp-switch { margin: 24px auto 0; text-align: center; }
         .ls-kp-switch-lead { margin: 0 0 14px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; }
@@ -3854,14 +3938,15 @@ function KeepsakeMoment() {
         .ls-kp-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); }
         .ls-kp-thumb::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid transparent; transition: border-color 0.3s ease; }
         .ls-kp-thumb[aria-selected="true"] { opacity: 1; transform: translateY(-2px); }
-        .ls-kp-thumb[aria-selected="true"]::after { border-color: ${C.goldSoft}; box-shadow: 0 0 18px -4px rgba(240,217,159,0.6); }
-        .ls-kp-thumb:focus-visible { outline: 2px solid ${C.goldSoft}; outline-offset: 3px; }
+        .ls-kp-thumb[aria-selected="true"]::after { border-color: ${C.violetSoft}; box-shadow: 0 0 18px -4px rgba(185,165,240,0.6); }
+        .ls-kp-thumb:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
         .ls-kp-switch-note { margin: 6px auto 0; max-width: 34ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.95rem; line-height: 1.5; }
 
         .ls-kp-turn { max-width: 34ch; margin: clamp(28px, 6vw, 44px) auto 0; text-align: center; }
-        .ls-kp-turn-cue { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-kp-turn-cue { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 14px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
         .ls-kp-turn-main { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 4.4vw, 1.32rem); line-height: 1.55; }
         .ls-kp-turn-sub { margin: 12px 0 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.98rem; line-height: 1.5; }
+        .ls-kp-pull { margin: clamp(18px, 3.4vw, 26px) auto 0; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
 
         @media (prefers-reduced-motion: reduce) {
           .ls-kp-stage, .ls-kp-thumb, .ls-kp-thumb::after { transition: none !important; }
@@ -3927,6 +4012,7 @@ function ValueMoments() {
             </article>
           ))}
         </div>
+        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.3)}>That is what stays. Here is what changes from the first read.</p>
       </div>
       <style>{`
         .ls-vm { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(28px, 5svh, 66px) 20px clamp(32px, 5svh, 72px); }
@@ -3936,13 +4022,14 @@ function ValueMoments() {
         .ls-vm-title { margin: 0 auto; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.8rem, 5.6vw, 2.7rem); line-height: 1.08; letter-spacing: -0.016em; }
         .ls-vm-grid { display: flex; flex-direction: column; gap: clamp(16px, 3vw, 24px); }
         .ls-vm-card { position: relative; display: flex; align-items: center; gap: clamp(18px, 4vw, 28px); padding: clamp(22px, 4.6vw, 30px) clamp(20px, 4.6vw, 32px); border-radius: 18px; background: radial-gradient(120% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 60%), linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.32); }
-        .ls-vm-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; background: linear-gradient(165deg, rgba(212,182,122,0.32) 0%, rgba(154,126,230,0.14) 46%, rgba(212,182,122,0.26) 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-        .ls-vm-motif { flex: 0 0 auto; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: ${C.goldSoft}; border: 1px solid rgba(212,182,122,0.38); background: radial-gradient(circle at 50% 36%, rgba(212,182,122,0.16), rgba(212,182,122,0.04) 70%); box-shadow: 0 10px 26px -12px rgba(212,182,122,0.4); }
+        .ls-vm-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; background: linear-gradient(165deg, rgba(154,126,230,0.32) 0%, rgba(154,126,230,0.14) 46%, rgba(154,126,230,0.26) 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+        .ls-vm-motif { flex: 0 0 auto; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: ${C.goldSoft}; border: 1px solid rgba(154,126,230,0.38); background: radial-gradient(circle at 50% 36%, rgba(154,126,230,0.16), rgba(154,126,230,0.04) 70%); box-shadow: 0 10px 26px -12px rgba(154,126,230,0.4); }
         .ls-vm-motif svg { display: block; }
         .ls-vm-copy { flex: 1 1 auto; min-width: 0; }
         .ls-vm-label { display: block; margin: 0 0 8px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; }
         .ls-vm-name { margin: 0 0 8px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.28rem, 4.6vw, 1.6rem); line-height: 1.1; letter-spacing: -0.01em; }
         .ls-vm-line { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(0.98rem, 2.6vw, 1.12rem); line-height: 1.55; }
+        .ls-vm-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
         @media (max-width: 560px) {
           .ls-vm-card { flex-direction: column; text-align: center; gap: 14px; }
         }
@@ -4000,13 +4087,14 @@ function AfterTheirReading() {
             </article>
           ))}
         </div>
+        <p className="ls-after-pull ls-reveal" style={revealDelay(0.4)}>The people below opened one. They say it best.</p>
       </div>
       <style>{`
         .ls-after {
           position: relative;
           overflow: hidden;
           background:
-            radial-gradient(100% 76% at 50% 0%, rgba(212,182,122,0.08), transparent 58%),
+            radial-gradient(100% 76% at 50% 0%, rgba(124,92,214,0.1), transparent 58%),
             linear-gradient(180deg, ${C.cosmos} 0%, ${C.cosmos2} 52%, ${C.cosmos} 100%);
           padding: clamp(34px, 6svh, 74px) 20px clamp(36px, 6svh, 76px);
         }
@@ -4016,9 +4104,9 @@ function AfterTheirReading() {
           pointer-events: none;
           opacity: 0.11;
           background-image:
-            radial-gradient(circle at 20% 22%, rgba(247,231,182,0.45) 0 1px, transparent 2px),
+            radial-gradient(circle at 20% 22%, rgba(185,165,240,0.45) 0 1px, transparent 2px),
             radial-gradient(circle at 76% 18%, rgba(154,126,230,0.45) 0 1px, transparent 2px),
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M42 56c-9-7-16-13-16-21 0-5 4-9 9-9 3 0 6 2 7 4 1-2 4-4 7-4 5 0 9 4 9 9 0 8-7 14-16 21z' fill='none' stroke='%23f7e7b6' stroke-opacity='.52' stroke-width='1.15'/%3E%3C/svg%3E");
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M42 56c-9-7-16-13-16-21 0-5 4-9 9-9 3 0 6 2 7 4 1-2 4-4 7-4 5 0 9 4 9 9 0 8-7 14-16 21z' fill='none' stroke='%23b9a5f0' stroke-opacity='.52' stroke-width='1.15'/%3E%3C/svg%3E");
           background-size: 180px 180px, 220px 220px, 84px 84px;
           background-position: 0 0, 40px 60px, center;
           mask-image: radial-gradient(ellipse at center, #000 0%, #000 58%, transparent 86%);
@@ -4029,18 +4117,18 @@ function AfterTheirReading() {
           margin: 0;
           padding: clamp(13px, 2.2vw, 17px) clamp(24px, 4vw, 36px);
           border-radius: 14px;
-          border: 1px solid rgba(212,182,122,0.2);
-          background: rgba(255,253,245,0.94);
-          color: #141210;
+          border: 1px solid rgba(154,126,230,0.4);
+          background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%);
+          color: #ffffff;
           font-family: "Fraunces", Georgia, serif;
           font-weight: 500;
           font-size: clamp(1.65rem, 5.4vw, 2.38rem);
           line-height: 1.08;
           letter-spacing: 0;
           text-align: center;
-          box-shadow: 0 14px 42px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+          box-shadow: 0 14px 42px rgba(0,0,0,0.4), inset 0 1px 0 rgba(185,165,240,0.16);
         }
-        .ls-after-title em { color: #141210; font-style: italic; font-weight: 500; }
+        .ls-after-title em { color: ${C.violetBright}; font-style: italic; font-weight: 500; }
         .ls-after-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
         .ls-after-card {
           position: relative;
@@ -4050,13 +4138,13 @@ function AfterTheirReading() {
           gap: 17px;
           padding: clamp(18px, 3vw, 24px);
           border-radius: 14px;
-          border: 1px solid rgba(212,182,122,0.2);
-          background: rgba(255,253,245,0.91);
-          color: #1f1c18;
+          border: 1px solid rgba(154,126,230,0.32);
+          background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%);
+          color: #ffffff;
           box-shadow:
-            0 16px 46px rgba(0,0,0,0.20),
-            0 1px 2px rgba(212,182,122,0.12),
-            inset 0 1px 0 rgba(255,255,255,0.7);
+            0 16px 46px rgba(0,0,0,0.35),
+            0 1px 2px rgba(124,92,214,0.12),
+            inset 0 1px 0 rgba(185,165,240,0.12);
           overflow: hidden;
         }
         .ls-after-card::before {
@@ -4064,13 +4152,13 @@ function AfterTheirReading() {
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: linear-gradient(180deg, rgba(212,182,122,0.16), transparent 45%);
+          background: linear-gradient(180deg, rgba(124,92,214,0.14), transparent 45%);
         }
         .ls-after-roman {
           position: relative;
           flex: 0 0 auto;
           width: 34px;
-          color: ${C.gold};
+          color: ${C.violetBright};
           font-family: "Fraunces", Georgia, serif;
           font-style: italic;
           font-weight: 500;
@@ -4080,13 +4168,14 @@ function AfterTheirReading() {
         .ls-after-card p {
           position: relative;
           margin: 0;
-          color: #1f1c18;
+          color: #ffffff;
           font-family: "Fraunces", Georgia, serif;
           font-weight: 500;
           font-size: clamp(1.06rem, 3.5vw, 1.3rem);
           line-height: 1.35;
           letter-spacing: 0;
         }
+        .ls-after-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
         @media (min-width: 720px) {
           .ls-after-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
           .ls-after-card { min-height: 118px; align-items: flex-start; flex-direction: column; gap: 12px; }
@@ -4204,6 +4293,7 @@ function ReviewsWall() {
             </li>
           ))}
         </ul>
+        <p className="ls-reviews-pull ls-reveal">Their chart has been waiting since the day they were born. Open it below.</p>
       </div>
       <style>{`
         .ls-reviews { position: relative; padding: clamp(30px, 5svh, 60px) 20px clamp(18px, 3svh, 32px); }
@@ -4227,11 +4317,11 @@ function ReviewsWall() {
             linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
           box-shadow:
             0 1px 2px rgba(0,0,0,0.45), 0 6px 18px rgba(0,0,0,0.4),
-            0 20px 50px rgba(0,0,0,0.32), 0 1px 0 rgba(247,231,182,0.05) inset;
+            0 20px 50px rgba(0,0,0,0.32), 0 1px 0 rgba(185,165,240,0.05) inset;
         }
         .ls-rev-fig::before {
           content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(165deg, rgba(212,182,122,0.32) 0%, rgba(154,126,230,0.16) 46%, rgba(212,182,122,0.28) 100%);
+          background: linear-gradient(165deg, rgba(154,126,230,0.32) 0%, rgba(154,126,230,0.16) 46%, rgba(154,126,230,0.28) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
         }
@@ -4239,19 +4329,19 @@ function ReviewsWall() {
         .ls-rev-ph {
           position: relative; flex: none; width: 58px; height: 58px; border-radius: 14px; overflow: hidden;
           background: ${C.cosmos3};
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(212,178,107,0.10);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(154,126,230,0.10);
         }
         .ls-rev-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .ls-rev-ph::after {
           content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(165deg, rgba(212,182,122,0.40) 0%, rgba(154,126,230,0.14) 46%, rgba(212,182,122,0.32) 100%);
+          background: linear-gradient(165deg, rgba(154,126,230,0.40) 0%, rgba(154,126,230,0.14) 46%, rgba(154,126,230,0.32) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
         }
         .ls-rev-meta { min-width: 0; }
         .ls-rev-stars { display: flex; gap: 4px; margin-bottom: 7px; }
         .ls-rev-stars svg { width: 15px; height: 15px; display: block; fill: ${C.gold}; }
-        .ls-rev-stars svg.off { fill: rgba(201,192,174,0.26); }
+        .ls-rev-stars svg.off { fill: rgba(200,195,216,0.26); }
         .ls-rev-attr {
           color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
           font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.35;
@@ -4262,6 +4352,7 @@ function ReviewsWall() {
         }
         .ls-rev-quote::before { content: "\\201C"; }
         .ls-rev-quote::after { content: "\\201D"; }
+        .ls-reviews-pull { margin: clamp(26px, 4.6vw, 40px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
         @media (min-width: 640px) {
           .ls-reviews-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
         }
@@ -4509,7 +4600,7 @@ function CosmicStyles() {
         z-index: 1;
         pointer-events: none;
         background:
-          radial-gradient(circle at 22% 18%, rgba(212,182,122,0.14), transparent 28%),
+          radial-gradient(circle at 22% 18%, rgba(154,126,230,0.14), transparent 28%),
           linear-gradient(180deg, rgba(5,4,8,0) 34%, rgba(5,4,8,0.68) 100%);
       }
       .ls-gallery-item img {
@@ -4626,7 +4717,7 @@ function CosmicStyles() {
           radial-gradient(110% 110% at 82% 16%, rgba(22,17,38,0.7), transparent 60%),
           #06050c;
         border: 1px solid rgba(124,92,214,0.18);
-        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 44px 130px rgba(0,0,0,0.55);
+        box-shadow: inset 0 1px 0 rgba(237,233,247,0.05), 0 44px 130px rgba(0,0,0,0.55);
         touch-action: none;
         cursor: grab;
         isolation: isolate;
@@ -4712,7 +4803,7 @@ function CosmicStyles() {
         padding: clamp(14px, 2.6vw, 22px) clamp(16px, 3vw, 26px);
         border: 1px solid rgba(124,92,214,0.3); border-radius: 20px;
         background: linear-gradient(135deg, rgba(40,26,66,0.86), rgba(10,8,16,0.82));
-        box-shadow: 0 28px 84px rgba(0,0,0,0.5), inset 0 1px 0 rgba(245,239,230,0.05);
+        box-shadow: 0 28px 84px rgba(0,0,0,0.5), inset 0 1px 0 rgba(237,233,247,0.05);
         backdrop-filter: blur(8px); text-align: left;
       }
       .ls-orrery-card-frame {
@@ -4968,7 +5059,7 @@ function CosmicStyles() {
         padding: 0;
         border: 0;
         border-radius: 2px;
-        background: rgba(245,239,230,0.2);
+        background: rgba(237,233,247,0.2);
         cursor: pointer;
         transition: background 0.3s ease, width 0.3s ease;
       }
@@ -4999,7 +5090,7 @@ function CosmicStyles() {
         border: 1px solid rgba(124,92,214,0.28);
         border-radius: 18px;
         background: linear-gradient(135deg, rgba(124,92,214,0.12), rgba(5,4,8,0.5));
-        box-shadow: 0 30px 90px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,239,230,0.05);
+        box-shadow: 0 30px 90px rgba(0,0,0,0.45), inset 0 1px 0 rgba(237,233,247,0.05);
         backdrop-filter: blur(6px);
         text-align: left;
       }
@@ -5037,7 +5128,7 @@ function CosmicStyles() {
         width: 3px;
         border-radius: 3px;
         overflow: hidden;
-        background: rgba(245,239,230,0.12);
+        background: rgba(237,233,247,0.12);
         z-index: 3;
       }
       .ls-journey-progress span {
@@ -5303,7 +5394,7 @@ function CosmicStyles() {
       }
       .ls-journey-ring {
         position: absolute;
-        border: 1px solid rgba(245,239,230,0.08);
+        border: 1px solid rgba(237,233,247,0.08);
         border-radius: 50%;
         opacity: 0.16;
         transition: opacity 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
@@ -5382,7 +5473,7 @@ function CosmicStyles() {
         padding: 0;
         border: 0;
         border-radius: 50%;
-        background: rgba(245,239,230,0.22);
+        background: rgba(237,233,247,0.22);
         cursor: pointer;
         transition: transform 0.2s ease, background 0.2s ease;
       }
@@ -5416,7 +5507,7 @@ function CosmicStyles() {
         inset: -18% -10%;
         pointer-events: none;
         background:
-          radial-gradient(circle at 22% 28%, rgba(212,182,122,0.055), transparent 18%),
+          radial-gradient(circle at 22% 28%, rgba(154,126,230,0.055), transparent 18%),
           radial-gradient(circle at 78% 62%, rgba(94,70,122,0.12), transparent 22%);
         opacity: 0.72;
         transform:
@@ -5433,10 +5524,10 @@ function CosmicStyles() {
       .ls-authority-stage,
       .ls-authority-card,
       .ls-checkout-shell {
-        background: linear-gradient(180deg, rgba(245,239,230,0.055), rgba(245,239,230,0.025));
+        background: linear-gradient(180deg, rgba(237,233,247,0.055), rgba(237,233,247,0.025));
         border: 1px solid ${C.line};
         border-radius: 8px;
-        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05);
+        box-shadow: inset 0 1px 0 rgba(237,233,247,0.05);
       }
       .ls-process-card {
         min-height: 360px;
@@ -5456,8 +5547,8 @@ function CosmicStyles() {
       .ls-authority-stage {
         padding: clamp(28px, 5vw, 56px);
         background:
-          radial-gradient(ellipse at 18% 0%, rgba(212,182,122,0.14), transparent 34%),
-          linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.025));
+          radial-gradient(ellipse at 18% 0%, rgba(154,126,230,0.14), transparent 34%),
+          linear-gradient(180deg, rgba(237,233,247,0.06), rgba(237,233,247,0.025));
       }
       .ls-calc-toggle {
         display: flex;
@@ -5466,14 +5557,14 @@ function CosmicStyles() {
         gap: 16px;
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(212,182,122,0.26);
+        border: 1px solid rgba(154,126,230,0.26);
         border-radius: 10px;
         background: rgba(5,4,7,0.4);
         padding: 16px 18px;
         cursor: pointer;
         transition: border-color 0.2s ease;
       }
-      .ls-calc-toggle:hover { border-color: rgba(212,182,122,0.5); }
+      .ls-calc-toggle:hover { border-color: rgba(154,126,230,0.5); }
       .ls-calc-toggle.is-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -5493,12 +5584,12 @@ function CosmicStyles() {
       }
       .ls-calc-toggle.is-open .ls-calc-chevron { transform: rotate(180deg); }
       .ls-calc-body {
-        border: 1px solid rgba(212,182,122,0.26);
+        border: 1px solid rgba(154,126,230,0.26);
         border-top: none;
         border-radius: 0 0 10px 10px;
         padding: clamp(18px, 3vw, 28px);
         background:
-          radial-gradient(ellipse at 0% 0%, rgba(212,182,122,0.10), transparent 46%),
+          radial-gradient(ellipse at 0% 0%, rgba(154,126,230,0.10), transparent 46%),
           linear-gradient(180deg, rgba(5,4,7,0.32), rgba(5,4,7,0.12));
       }
       .ls-calc-lead {
@@ -5512,8 +5603,8 @@ function CosmicStyles() {
         margin-top: 22px;
         display: grid;
         gap: 1px;
-        background: rgba(212,182,122,0.16);
-        border: 1px solid rgba(212,182,122,0.16);
+        background: rgba(154,126,230,0.16);
+        border: 1px solid rgba(154,126,230,0.16);
         border-radius: 10px;
         overflow: hidden;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5565,8 +5656,8 @@ function CosmicStyles() {
         background:
           radial-gradient(ellipse at 50% -12%, rgba(124,92,214,0.16), transparent 42%),
           radial-gradient(ellipse at 18% 82%, rgba(94,70,122,0.28), transparent 34%),
-          linear-gradient(180deg, rgba(245,239,230,0.07), rgba(245,239,230,0.025));
-        box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.28);
+          linear-gradient(180deg, rgba(237,233,247,0.07), rgba(237,233,247,0.025));
+        box-shadow: inset 0 1px 0 rgba(237,233,247,0.06), 0 28px 90px rgba(0,0,0,0.28);
       }
       .ls-solar {
         position: absolute;
@@ -5597,7 +5688,7 @@ function CosmicStyles() {
         inset: 0;
         margin: auto;
         aspect-ratio: 1;
-        border: 1px solid rgba(212,182,122,0.10);
+        border: 1px solid rgba(154,126,230,0.10);
         border-radius: 50%;
         animation: ls-orbit linear infinite;
         will-change: transform;
@@ -5608,7 +5699,7 @@ function CosmicStyles() {
         left: 50%;
         transform: translate(-50%, -50%);
         object-fit: contain;
-        filter: drop-shadow(0 0 6px rgba(212,182,122,0.4));
+        filter: drop-shadow(0 0 6px rgba(154,126,230,0.4));
       }
       @keyframes ls-orbit {
         from { transform: rotate(0deg); }
@@ -5619,7 +5710,7 @@ function CosmicStyles() {
         display: grid;
         gap: 6px;
         min-height: 82px;
-        border: 1px solid rgba(245,239,230,0.10);
+        border: 1px solid rgba(237,233,247,0.10);
         border-radius: 8px;
         background: rgba(5,4,7,0.46);
         padding: 16px;
@@ -5659,7 +5750,7 @@ function CosmicStyles() {
       .ls-lead-form input {
         min-height: 48px;
         width: 100%;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(154,126,230,0.34);
         border-radius: 8px;
         background: rgba(5,4,7,0.62);
         color: ${C.cream};
@@ -5698,7 +5789,7 @@ function CosmicStyles() {
         align-items: center;
         gap: 14px;
         min-height: 86px;
-        border: 1px solid rgba(245,239,230,0.10);
+        border: 1px solid rgba(237,233,247,0.10);
         border-radius: 10px;
         background: rgba(5,4,7,0.46);
         padding: 14px;
@@ -5708,7 +5799,7 @@ function CosmicStyles() {
         height: 54px;
         flex: none;
         object-fit: contain;
-        filter: drop-shadow(0 0 10px rgba(212,182,122,0.26));
+        filter: drop-shadow(0 0 10px rgba(154,126,230,0.26));
       }
       .ls-element-orb,
       .ls-glyph-orb {
@@ -5716,17 +5807,17 @@ function CosmicStyles() {
         place-items: center;
         color: ${C.gold};
         font-size: 1.7rem;
-        border: 1px solid rgba(212,182,122,0.42);
+        border: 1px solid rgba(154,126,230,0.42);
         border-radius: 50%;
         filter: none;
       }
       .ls-glyph-orb {
         font-size: 1.5rem;
-        background: rgba(212,182,122,0.06);
+        background: rgba(154,126,230,0.06);
       }
       .ls-calc-figure {
         margin: 0 0 18px;
-        border: 1px solid rgba(212,182,122,0.2);
+        border: 1px solid rgba(154,126,230,0.2);
         border-radius: 10px;
         overflow: hidden;
         background: #0d0a14;
@@ -5747,7 +5838,7 @@ function CosmicStyles() {
         font-size: 0.72rem;
         line-height: 1.4;
         letter-spacing: 0.03em;
-        border-top: 1px solid rgba(212,182,122,0.14);
+        border-top: 1px solid rgba(154,126,230,0.14);
       }
       .ls-planet-body { display: grid; gap: 3px; min-width: 0; }
       .ls-planet-head {
@@ -5818,7 +5909,7 @@ function CosmicStyles() {
       .ls-sky-gate input {
         min-height: 48px;
         width: 100%;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(154,126,230,0.34);
         border-radius: 8px;
         background: rgba(5,4,7,0.72);
         color: ${C.cream};
@@ -5937,7 +6028,10 @@ function CosmicStyles() {
         35% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 5px rgba(154,126,230,0.26), 0 0 30px rgba(124,92,214,0.46); }
         100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18); }
       }
-      .ls-seal-help { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; }
+      .ls-seal-help { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
+      .ls-seal-help-ln { margin: 0; opacity: 0; animation: lsSealHelpIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+      @keyframes lsSealHelpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      @media (prefers-reduced-motion: reduce) { .ls-seal-help-ln { animation: none; opacity: 1; } }
       /* The form CTA rides a metal-VIOLET ramp: the free-reading section is
          cosmic purple + white only (no gold), so the buy-moment gold material
          is re-cut in the section's own light. Only its halo breathes. */
@@ -5977,16 +6071,16 @@ function CosmicStyles() {
       .ls-seal-core {
         position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
         border-radius: 50%; background: radial-gradient(circle at 40% 35%, ${C.goldSoft}, ${C.gold} 60%, ${C.goldDeep});
-        box-shadow: 0 0 24px rgba(212,182,122,0.7); animation: ls-corepulse 2.2s ease-in-out infinite;
+        box-shadow: 0 0 24px rgba(154,126,230,0.7); animation: ls-corepulse 2.2s ease-in-out infinite;
       }
-      .ls-seal-ring { position: absolute; border: 1px solid rgba(212,182,122,0.22); border-radius: 50%; }
+      .ls-seal-ring { position: absolute; border: 1px solid rgba(154,126,230,0.22); border-radius: 50%; }
       .ls-seal-ring i {
         position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; margin-left: -4px;
         border-radius: 50%; background: ${C.violetSoft}; box-shadow: 0 0 10px rgba(154,126,230,0.9);
       }
       .ls-seal-ring-1 { inset: 8px; animation: ls-spin 2.6s linear infinite; }
       .ls-seal-ring-2 { inset: 34px; animation: ls-spin 3.8s linear infinite reverse; }
-      .ls-seal-ring-2 i { background: ${C.goldSoft}; box-shadow: 0 0 10px rgba(240,217,159,0.9); }
+      .ls-seal-ring-2 i { background: ${C.goldSoft}; box-shadow: 0 0 10px rgba(185,165,240,0.9); }
       .ls-seal-ring-3 { inset: 56px; animation: ls-spin 5.4s linear infinite; }
       .ls-seal-ring-3 i { width: 6px; height: 6px; background: ${C.cream}; }
       @keyframes ls-spin { to { transform: rotate(360deg); } }
@@ -6069,7 +6163,7 @@ function CosmicStyles() {
       .ls-story-section {
         background:
           radial-gradient(ellipse at 78% 18%, rgba(94,70,122,0.22), transparent 34%),
-          radial-gradient(ellipse at 10% 62%, rgba(212,182,122,0.08), transparent 28%);
+          radial-gradient(ellipse at 10% 62%, rgba(154,126,230,0.08), transparent 28%);
       }
       .ls-story-inner,
       .ls-story-hero,
@@ -6172,7 +6266,7 @@ function CosmicStyles() {
         align-items: start;
         margin-top: clamp(62px, 8vw, 106px);
         padding-top: clamp(34px, 5vw, 58px);
-        border-top: 1px solid rgba(212,182,122,0.22);
+        border-top: 1px solid rgba(154,126,230,0.22);
       }
       .ls-receive-grid {
         display: grid;
@@ -6181,9 +6275,9 @@ function CosmicStyles() {
       }
       .ls-receive-item {
         min-height: 168px;
-        border: 1px solid rgba(212,182,122,0.24);
+        border: 1px solid rgba(154,126,230,0.24);
         border-radius: 8px;
-        background: linear-gradient(180deg, rgba(245,239,230,0.055), rgba(245,239,230,0.018));
+        background: linear-gradient(180deg, rgba(237,233,247,0.055), rgba(237,233,247,0.018));
         padding: clamp(18px, 2.5vw, 24px);
       }
 
@@ -6194,14 +6288,14 @@ function CosmicStyles() {
         gap: 18px;
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(212,182,122,0.30);
+        border: 1px solid rgba(154,126,230,0.30);
         border-radius: 12px;
-        background: linear-gradient(180deg, rgba(245,239,230,0.06), rgba(245,239,230,0.02));
+        background: linear-gradient(180deg, rgba(237,233,247,0.06), rgba(237,233,247,0.02));
         padding: 20px 22px;
         cursor: pointer;
         transition: border-color 0.2s ease, background 0.2s ease;
       }
-      .ls-disclosure:hover { border-color: rgba(212,182,122,0.52); }
+      .ls-disclosure:hover { border-color: rgba(154,126,230,0.52); }
       .ls-disclosure.is-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
@@ -6221,13 +6315,13 @@ function CosmicStyles() {
         width: 42px;
         height: 42px;
         border-radius: 50%;
-        border: 1px solid rgba(212,182,122,0.4);
+        border: 1px solid rgba(154,126,230,0.4);
         color: ${C.gold};
         font-size: 1.6rem;
         line-height: 1;
       }
       .ls-disclosure-body {
-        border: 1px solid rgba(212,182,122,0.30);
+        border: 1px solid rgba(154,126,230,0.30);
         border-top: none;
         border-bottom-left-radius: 12px;
         border-bottom-right-radius: 12px;
@@ -6283,11 +6377,11 @@ function CosmicStyles() {
       .ls-compute-dust {
         position: absolute; inset: 0; opacity: 0.5;
         background-image:
-          radial-gradient(1px 1px at 20% 24%, rgba(245,239,230,0.7), transparent),
-          radial-gradient(1px 1px at 70% 30%, rgba(245,239,230,0.5), transparent),
+          radial-gradient(1px 1px at 20% 24%, rgba(237,233,247,0.7), transparent),
+          radial-gradient(1px 1px at 70% 30%, rgba(237,233,247,0.5), transparent),
           radial-gradient(1.4px 1.4px at 44% 66%, #fff, transparent),
-          radial-gradient(1px 1px at 82% 62%, rgba(245,239,230,0.5), transparent),
-          radial-gradient(1px 1px at 16% 78%, rgba(245,239,230,0.6), transparent),
+          radial-gradient(1px 1px at 82% 62%, rgba(237,233,247,0.5), transparent),
+          radial-gradient(1px 1px at 16% 78%, rgba(237,233,247,0.6), transparent),
           radial-gradient(1.2px 1.2px at 58% 18%, #fff, transparent);
         background-size: 260px 260px;
         animation: ls-twinkle 3.6s ease-in-out infinite;
@@ -6299,7 +6393,7 @@ function CosmicStyles() {
       .ls-compute-ring-1 { inset: 0; animation: ls-spin 7s linear infinite; }
       .ls-compute-ring-2 { inset: 28px; border-color: rgba(154,126,230,0.18); animation: ls-spin 11s linear infinite reverse; }
       .ls-compute-ring-2 i { background: ${C.violetBright}; box-shadow: 0 0 10px rgba(185,165,240,0.9); }
-      .ls-compute-ring-3 { inset: 56px; border-style: dashed; border-color: rgba(245,239,230,0.12); }
+      .ls-compute-ring-3 { inset: 56px; border-style: dashed; border-color: rgba(237,233,247,0.12); }
       .ls-compute-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(154,126,230,0.34), rgba(154,126,230,0) 30%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%); mask: radial-gradient(circle, transparent 30%, #000 31%); animation: ls-spin 4.5s linear infinite; }
       .ls-compute-mote {
         position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
@@ -6366,7 +6460,7 @@ function CosmicStyles() {
         display: grid; gap: 14px; padding: clamp(14px, 3vw, 22px);
         border: 1px solid rgba(124,92,214,0.24); border-radius: 20px;
         background: linear-gradient(180deg, rgba(21,16,28,0.96), rgba(10,8,16,0.98));
-        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 24px 70px rgba(0,0,0,0.45);
+        box-shadow: inset 0 1px 0 rgba(237,233,247,0.05), 0 24px 70px rgba(0,0,0,0.45);
       }
       .ls-breakdown-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
       .ls-breakdown-card { justify-items: start; text-align: left; }
@@ -6660,7 +6754,7 @@ function CosmicStyles() {
         --earth: ${C.creamDim};
         --muted: ${C.muted};
         --cream: transparent;
-        --cream2: rgba(245,239,230,0.06);
+        --cream2: rgba(237,233,247,0.06);
         --cream3: rgba(154,126,230,0.26);
         --sand: rgba(154,126,230,0.34);
         --rose: ${C.violetSoft};
@@ -6685,17 +6779,17 @@ function CosmicStyles() {
         transition: filter 180ms ease, box-shadow 180ms ease, border-color 180ms ease,
           background 180ms ease, color 180ms ease, transform 60ms ease;
       }
-      /* Every buy-moment button carries the house metal-gold ramp (mockup
-         material system): graded metal, gold ink, inset bevel, warm throw. */
+      /* Every buy-moment button carries the house metal-violet ramp (colour
+         law: purple + white): graded metal, white ink, inset bevel, violet throw. */
       .ls-gold-button,
       .ls-violet-button {
         position: relative;
         overflow: hidden;
         border: 0;
-        background: linear-gradient(180deg,#f7e7b6 0%,#e9cd8b 18%,#d4b26b 40%,#c4a265 56%,#a9884f 80%,#8a6d3b 100%);
-        color: #2a1f0a;
-        box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-          0 6px 18px -6px rgba(208,169,82,.45);
+        background: linear-gradient(180deg,#a78bfa 0%,#9a7ee6 18%,#8266d9 40%,#7452c8 56%,#6243b0 80%,#47307f 100%);
+        color: #ffffff;
+        box-shadow: 0 1px 0 rgba(255,255,255,.28) inset, 0 -1px 0 rgba(0,0,0,.3) inset,
+          0 6px 18px -6px rgba(124,92,214,.55);
       }
       .ls-gold-button::after,
       .ls-violet-button::after {
@@ -6707,17 +6801,17 @@ function CosmicStyles() {
       .ls-violet-button:hover {
         filter: brightness(1.07) saturate(1.05);
         box-shadow: 0 1px 0 rgba(255,255,255,.45) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-          0 10px 26px -6px rgba(208,169,82,.6);
+          0 10px 26px -6px rgba(124,92,214,.6);
       }
       .ls-gold-button:hover::after,
       .ls-violet-button:hover::after { transform: translateX(120%); }
       .ls-gold-button:active,
       .ls-violet-button:active {
-        background: linear-gradient(165deg,#d4b26b,#a9884f);
+        background: linear-gradient(165deg,#8f6de0,#6a4cc4);
         box-shadow: inset 0 2px 6px rgba(0,0,0,.35); transform: translateY(1px); filter: none;
       }
       .ls-gold-button:focus-visible,
-      .ls-violet-button:focus-visible { outline: 2px solid #f7e7b6; outline-offset: 3px; }
+      .ls-violet-button:focus-visible { outline: 2px solid #cbb8f5; outline-offset: 3px; }
       .ls-gold-button:disabled {
         cursor: default;
         filter: saturate(.7) brightness(.9);
@@ -6755,8 +6849,8 @@ function CosmicStyles() {
         text-underline-offset: 4px;
         transition: color .3s ease, text-decoration-color .3s ease;
       }
-      .ls-hero-memorial:hover { color: #efe9dd; text-decoration-color: rgba(240,217,159,0.55); }
-      .ls-hero-memorial:focus-visible { outline: 1px solid rgba(240,217,159,0.7); outline-offset: 4px; border-radius: 4px; }
+      .ls-hero-memorial:hover { color: #efe9dd; text-decoration-color: rgba(185,165,240,0.55); }
+      .ls-hero-memorial:focus-visible { outline: 1px solid rgba(185,165,240,0.7); outline-offset: 4px; border-radius: 4px; }
       /* ── the reading-path chooser (intent capture) ───────────────────────
          Its own journey-moment section directly after the hero. First visit:
          a tall, unmissable chooser (discovery / gold first, memorial / violet
@@ -6781,7 +6875,7 @@ function CosmicStyles() {
         pointer-events: none;
         background-image:
           radial-gradient(1.5px 1.5px at 12% 22%, rgba(255,255,255,0.7), transparent 60%),
-          radial-gradient(1.3px 1.3px at 82% 16%, rgba(240,217,159,0.6), transparent 60%),
+          radial-gradient(1.3px 1.3px at 82% 16%, rgba(185,165,240,0.6), transparent 60%),
           radial-gradient(1.7px 1.7px at 68% 76%, rgba(185,165,240,0.6), transparent 60%),
           radial-gradient(1.2px 1.2px at 26% 70%, rgba(255,255,255,0.55), transparent 60%),
           radial-gradient(1.3px 1.3px at 46% 32%, rgba(255,255,255,0.5), transparent 60%),
@@ -6860,7 +6954,7 @@ function CosmicStyles() {
         padding: clamp(24px, 6vw, 34px);
         text-align: left;
         border-radius: 8px;
-        border: 1px solid rgba(245,239,230,0.12);
+        border: 1px solid rgba(237,233,247,0.12);
         background:
           linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012)),
           rgba(9,7,13,0.62);
@@ -6896,14 +6990,14 @@ function CosmicStyles() {
         pointer-events: none;
       }
       .ls-path-card.is-discovery {
-        border-color: rgba(212,182,122,0.42);
+        border-color: rgba(154,126,230,0.42);
         background:
-          linear-gradient(180deg, rgba(240,217,159,0.09), rgba(255,255,255,0.015)),
+          linear-gradient(180deg, rgba(185,165,240,0.09), rgba(255,255,255,0.015)),
           rgba(9,7,13,0.64);
-        box-shadow: 0 0 0 1px rgba(212,182,122,0.10) inset, 0 24px 58px -34px rgba(212,182,122,0.68);
+        box-shadow: 0 0 0 1px rgba(154,126,230,0.10) inset, 0 24px 58px -34px rgba(154,126,230,0.68);
       }
       .ls-path-card.is-discovery::after {
-        background: radial-gradient(80% 100% at 50% 100%, rgba(240,217,159,0.32), transparent 72%);
+        background: radial-gradient(80% 100% at 50% 100%, rgba(185,165,240,0.32), transparent 72%);
       }
       .ls-path-card.is-memorial {
         border-color: rgba(154,126,230,0.34);
@@ -6918,14 +7012,14 @@ function CosmicStyles() {
       .ls-path-card:hover { transform: translateY(-4px); }
       .ls-path-card:hover::after { opacity: 0.72; transform: translateY(0); }
       .ls-path-card.is-discovery:hover {
-        border-color: rgba(240,217,159,0.78);
-        box-shadow: 0 0 0 1px rgba(240,217,159,0.2) inset, 0 28px 64px -26px rgba(212,182,122,0.74);
+        border-color: rgba(185,165,240,0.78);
+        box-shadow: 0 0 0 1px rgba(185,165,240,0.2) inset, 0 28px 64px -26px rgba(154,126,230,0.74);
       }
       .ls-path-card.is-memorial:hover {
         border-color: rgba(185,165,240,0.62);
         box-shadow: 0 28px 64px -28px rgba(124,92,214,0.72);
       }
-      .ls-path-card:focus-visible { outline: 2px solid rgba(240,217,159,0.85); outline-offset: 3px; }
+      .ls-path-card:focus-visible { outline: 2px solid rgba(185,165,240,0.85); outline-offset: 3px; }
       .ls-path-card.is-memorial:focus-visible { outline-color: rgba(185,165,240,0.9); }
       .ls-path-card-text {
         flex: 1 1 auto;
@@ -6956,12 +7050,12 @@ function CosmicStyles() {
         width: 42px;
         height: 42px;
         border-radius: 50%;
-        border: 1px solid rgba(245,239,230,0.16);
+        border: 1px solid rgba(237,233,247,0.16);
         color: #8f8798;
         transition: transform .35s cubic-bezier(.22,.7,.2,1), color .3s ease, border-color .3s ease, background .3s ease;
       }
       .ls-path-card:hover .ls-path-card-go { transform: translateX(3px); }
-      .is-discovery:hover .ls-path-card-go { color: #0d0a14; background: #f0d99f; border-color: #f0d99f; }
+      .is-discovery:hover .ls-path-card-go { color: #0d0a14; background: #cfc0f4; border-color: #cfc0f4; }
       .is-memorial:hover .ls-path-card-go { color: #0d0a14; background: #b9a5f0; border-color: #b9a5f0; }
       /* bespoke celestial marks - dots of light, crescent, horizon. No sparkles. */
       .ls-path-mark {
@@ -6972,7 +7066,7 @@ function CosmicStyles() {
         height: 72px;
       }
       .ls-path-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
-      .is-discovery .ls-path-mark { color: #f0d99f; }
+      .is-discovery .ls-path-mark { color: #cfc0f4; }
       .is-memorial .ls-path-mark { color: #b9a5f0; }
       .ls-pm-line { stroke: currentColor; opacity: 0.55; }
       .ls-pm-thread { stroke: currentColor; opacity: 0.4; }
@@ -6999,15 +7093,15 @@ function CosmicStyles() {
         gap: 20px;
         padding: 22px 24px;
         border-radius: 20px;
-        border: 1px solid rgba(245,239,230,0.12);
+        border: 1px solid rgba(237,233,247,0.12);
         background:
           linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012)),
           rgba(9,7,13,0.55);
         text-align: left;
       }
       .ls-path-held.is-discovery .ls-path-held-inner {
-        border-color: rgba(212,182,122,0.42);
-        box-shadow: 0 0 0 1px rgba(212,182,122,0.09) inset, 0 20px 48px -32px rgba(212,182,122,0.55);
+        border-color: rgba(154,126,230,0.42);
+        box-shadow: 0 0 0 1px rgba(154,126,230,0.09) inset, 0 20px 48px -32px rgba(154,126,230,0.55);
       }
       .ls-path-held.is-memorial .ls-path-held-inner {
         border-color: rgba(154,126,230,0.38);
@@ -7040,7 +7134,7 @@ function CosmicStyles() {
         min-height: 44px;
         padding: 10px 16px;
         border-radius: 999px;
-        border: 1px solid rgba(245,239,230,0.24);
+        border: 1px solid rgba(237,233,247,0.24);
         background: rgba(255,255,255,0.03);
         cursor: pointer;
         color: #d8d0c1;
@@ -7050,10 +7144,10 @@ function CosmicStyles() {
         transition: color .3s ease, border-color .3s ease, background .3s ease;
       }
       .ls-path-change svg { transition: transform .3s ease; }
-      .ls-path-change:hover { color: #ffffff; border-color: rgba(240,217,159,0.6); background: rgba(255,255,255,0.06); }
+      .ls-path-change:hover { color: #ffffff; border-color: rgba(185,165,240,0.6); background: rgba(255,255,255,0.06); }
       .ls-path-held.is-memorial .ls-path-change:hover { border-color: rgba(185,165,240,0.66); }
       .ls-path-change:hover svg { transform: translateX(2px); }
-      .ls-path-change:focus-visible { outline: 2px solid rgba(240,217,159,0.85); outline-offset: 3px; }
+      .ls-path-change:focus-visible { outline: 2px solid rgba(185,165,240,0.85); outline-offset: 3px; }
       @media (min-width: 760px) {
         .ls-path-cards {
           grid-template-columns: 1fr 1fr;
@@ -7147,7 +7241,7 @@ function CosmicStyles() {
         top: 0;
         width: 33%;
         min-height: 92px;
-        border-left: 1px solid rgba(212,182,122,0.34);
+        border-left: 1px solid rgba(154,126,230,0.34);
         padding-left: 16px;
         color: ${C.muted};
         font-family: "Newsreader", Georgia, serif;
@@ -7164,10 +7258,10 @@ function CosmicStyles() {
         margin-top: 6px;
       }
       .ls-hero-img {
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(154,126,230,0.34);
         border-radius: 8px;
         background: #050407;
-        box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 20px 60px rgba(0,0,0,0.32);
+        box-shadow: inset 0 1px 0 rgba(237,233,247,0.05), 0 20px 60px rgba(0,0,0,0.32);
       }
       .ls-hero-img img { display: block; }
       .ls-video-slot {
@@ -7175,7 +7269,7 @@ function CosmicStyles() {
         padding-left: 0;
         min-height: 0;
         aspect-ratio: 1 / 1;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(154,126,230,0.34);
         border-radius: 8px;
         overflow: hidden;
         background: #050407;
@@ -7211,20 +7305,20 @@ function CosmicStyles() {
       }
       .ls-placeholder {
         background: #050407;
-        border: 1px solid rgba(212,182,122,0.34);
+        border: 1px solid rgba(154,126,230,0.34);
         border-radius: 8px;
       }
       .ls-placeholder::before {
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(245,239,230,0.045), transparent 38%);
+        background: linear-gradient(135deg, rgba(237,233,247,0.045), transparent 38%);
       }
       .ls-placeholder-core {
         position: absolute;
         inset: 0;
         background:
-          radial-gradient(circle at 50% 42%, rgba(212,182,122,0.20), transparent 22%),
+          radial-gradient(circle at 50% 42%, rgba(154,126,230,0.20), transparent 22%),
           radial-gradient(circle at 50% 42%, rgba(94,70,122,0.14), transparent 34%);
         opacity: 0.72;
         transform: translate3d(
@@ -7255,7 +7349,7 @@ function CosmicStyles() {
         z-index: 0;
         width: 180px;
         height: 1px;
-        background: linear-gradient(90deg, rgba(245,239,230,0), rgba(245,239,230,0.86), rgba(212,182,122,0));
+        background: linear-gradient(90deg, rgba(237,233,247,0), rgba(237,233,247,0.86), rgba(154,126,230,0));
         transform: rotate(-28deg);
         opacity: 0.7;
       }

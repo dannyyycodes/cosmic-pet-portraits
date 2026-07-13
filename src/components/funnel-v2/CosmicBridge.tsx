@@ -27,10 +27,10 @@ gsap.registerPlugin(ScrollTrigger);
        answer from the right, each trailing a COOL star that pulses on
        its key but never ignites. Faint motes drift in the diagonal
        silence between them. The moonlight withholds.
-     3 THE MAP, THREADED - the constellation lives BETWEEN the lines:
-       line 1, line 2 (with a real degree readout that counts up in the
-       text baseline and locks beside "exact place."), the star map
-       drawing itself, then line 3. The web completes at "read."
+     3 THE ANSWER, CLEAN SKY - two plain lines: line 1 rises, line 2
+       carries the white/violet shimmer sweep with a real degree readout
+       that counts up in the text baseline and locks beside "exact
+       place.", then line 3 settles in restraint. Nothing else.
      4 THE CLOSE - the promise lines arrive word by word, then the plain
        closing words "Set the chart." light in luminous white with a
        violet breath and hand straight into the form. No ring, no seal.
@@ -101,72 +101,6 @@ export const GLYPH: Record<string, string> = {
   chiron: '<circle class="gl-s" cx="0" cy="4.2" r="2.2"/><path class="gl-s" d="M-1.6,-6.3 L-1.6,2 M-1.6,-1.7 L2.4,-6.3 M-1.6,-1.7 L2.4,2"/>',
   lilith: '<path class="gl-f" d="M1,-6.4 A3,3 0 1 0 1,-0.4 A4,4 0 0 1 1,-6.4 Z"/><path class="gl-s" d="M0,-0.4 L0,6.6 M-2.4,3.4 L2.4,3.4"/>',
 };
-
-/* ---- BEAT 3: constellation band geometry ------------------------------
-   ONE source for the builder (stars + web) AND the timeline (each event
-   bound to a key-word label). Wide band 460x240, in flow between the
-   lines: the pet star centred, three known stars in a tight cluster,
-   four unknown stars on the outer reach, the web connecting them. */
-const CONSTEL = {
-  pet: { x: 230, y: 122 },
-  known: [
-    { id: "k1", x: 168, y: 86 },
-    { id: "k2", x: 298, y: 102 },
-    { id: "k3", x: 240, y: 170 },
-  ],
-  unknown: [
-    { id: "u1", x: 64, y: 50 },
-    { id: "u2", x: 400, y: 58 },
-    { id: "u3", x: 90, y: 198 },
-    { id: "u4", x: 394, y: 190 },
-  ],
-  lines: [
-    ["pet", "k1"], ["pet", "k2"], ["pet", "k3"],
-    ["k1", "k2"], ["k2", "k3"], ["k1", "k3"],
-    ["k1", "u1"], ["k2", "u2"], ["k3", "u3"], ["k2", "u4"],
-  ] as [string, string][],
-};
-// which web line reaches which unknown star (line index -> star id)
-const UNK_BY_LINE: Record<number, string> = { 6: "u1", 7: "u2", 8: "u3", 9: "u4" };
-
-// luminous layers for one band star (fills reference the shared JSX defs)
-const STAR_LAYERS = (r = 2.6) => `
-  <g class="lcb-glow lcb-glow-cool">
-    <circle class="lcb-halo" r="30" fill="url(#lcbHaloCool)"/>
-    <circle class="lcb-core" r="${r}" fill="url(#lcbCoreCool)"/>
-  </g>
-  <g class="lcb-glow lcb-glow-warm">
-    <circle class="lcb-chroma" r="15" fill="url(#lcbChroma)"/>
-    <circle class="lcb-halo" r="30" fill="url(#lcbHaloWarm)"/>
-    <circle class="lcb-core" r="${r}" fill="url(#lcbCoreWarm)"/>
-  </g>
-  <g class="lcb-glint">
-    <path class="lcb-glint-v" d="M0,-14 L1.15,0 L0,14 L-1.15,0 Z"/>
-    <path class="lcb-glint-h" d="M-14,0 L0,-1.15 L14,0 L0,1.15 Z"/>
-  </g>`;
-
-function starGroup(cls: string, x: number, y: number, seedDelay: number, r = 2.6): string {
-  return `<g class="lcb-star ${cls}" style="transform:translate(${x}px,${y}px);--bd:${seedDelay}s">`
-    + `<g class="lcb-star-breathe">${STAR_LAYERS(r)}</g></g>`;
-}
-
-function buildConstellation(): string {
-  const C = CONSTEL;
-  const pos = (id: string) =>
-    id === "pet" ? C.pet
-    : C.known.find((k) => k.id === id) || C.unknown.find((u) => u.id === id) || C.pet;
-
-  let out = '<g class="lcb-cst">';
-  C.lines.forEach(([a, b], i) => {
-    const p = pos(a), q2 = pos(b);
-    out += `<line class="lcb-cst-line" data-i="${i}" x1="${p.x}" y1="${p.y}" x2="${q2.x}" y2="${q2.y}"/>`;
-  });
-  out += "</g>";
-  C.unknown.forEach((u, i) => { out += starGroup(u.id, u.x, u.y, 1.1 + i * 0.7, 2.4); });
-  C.known.forEach((k, i) => { out += starGroup(k.id, k.x, k.y, 0.4 + i * 0.5, 2.7); });
-  out += starGroup("lcb-pet", C.pet.x, C.pet.y, 0, 3.6);
-  return out;
-}
 
 const LCB_CSS = `
 .lcb-root{
@@ -336,33 +270,6 @@ const LCB_CSS = `
   color:var(--lcb-ivory);font-size:clamp(1.78rem,1.25rem + 2.5vw,2.7rem);line-height:1.14;
   letter-spacing:-0.018em;max-width:21ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
 
-/* BEAT 3 - the map, threaded between the lines */
-.lcb-band{position:relative;width:min(88vw,440px);margin-block:clamp(6px,1.4svh,14px)}
-.lcb-stars{display:block;width:100%;height:auto;aspect-ratio:460/240;overflow:visible;isolation:isolate}
-.lcb-star .lcb-glow,.lcb-cst-line,.lcb-star .lcb-glint{mix-blend-mode:screen}
-.lcb-star{transform-box:view-box}
-.lcb-star-breathe{transform-box:fill-box;transform-origin:center;will-change:transform,opacity}
-/* band state layers: authored FINAL = the completed map. Known cluster warm,
-   unknown reach present but dim (a real map no one has read). */
-.lcb-glow-cool{opacity:.55}
-.lcb-glow-warm{opacity:0}
-.lcb-glint{opacity:0}
-.lcb-glint-v,.lcb-glint-h{fill:rgba(255,255,255,0.92)}
-.lcb-star.lcb-pet .lcb-glow-cool{opacity:.12}
-.lcb-star.lcb-pet .lcb-glow-warm{opacity:1}
-.lcb-star.lcb-pet .lcb-glint{opacity:.55}
-.lcb-star.k1 .lcb-glow-warm,.lcb-star.k2 .lcb-glow-warm,.lcb-star.k3 .lcb-glow-warm{opacity:1}
-.lcb-star.k1 .lcb-glow-cool,.lcb-star.k2 .lcb-glow-cool,.lcb-star.k3 .lcb-glow-cool{opacity:.22}
-.lcb-star.k1 .lcb-glint,.lcb-star.k2 .lcb-glint,.lcb-star.k3 .lcb-glint{opacity:.4}
-@keyframes lcbStarBreath{
-  0%,100%{transform:scale(1);opacity:.94}
-  50%    {transform:scale(1.05);opacity:1}
-}
-.lcb-motion .lcb-star-breathe{animation:lcbStarBreath 6.6s var(--lcb-ease) infinite;animation-delay:var(--bd,0s)}
-.lcb-cst{overflow:visible}
-.lcb-cst-line{fill:none;stroke:var(--lcb-violet);stroke-width:0.9;stroke-linecap:round;
-  vector-effect:non-scaling-stroke;opacity:.72}
-
 /* the inline degree readout: an instrument annotation in the text baseline.
    The tick is a small DIAGONAL survey mark pointing into the figure - it
    must never read as a dash. */
@@ -414,7 +321,6 @@ const LCB_CSS = `
   .lcb-payoff-line{font-size:clamp(1.85rem,1.3rem + 4.6vw,2.7rem)}
   .lcb-payoff-line.lcb-close{font-size:clamp(1.6rem,1.1rem + 4vw,2.2rem)}
   .lcb-moon{top:-3%;right:-7%;width:min(46vw,214px)}
-  .lcb-band{width:min(92vw,400px)}
   .lcb-instar{width:18px;height:18px;flex-basis:18px}
   .lcb-rail-line{left:8.5px}
 }
@@ -495,10 +401,6 @@ export function CosmicBridge() {
     // or never exist. The same four scenes in a lower voice.
     const hush = register === "memorial";
     const glow = (v: number) => (hush ? Math.round(v * 0.7 * 1000) / 1000 : v);
-
-    // ---------- build the constellation band ----------
-    const starsSvg = q<SVGSVGElement>(".lcb-stars");
-    if (starsSvg) starsSvg.innerHTML = buildConstellation();
 
     // ---------- prep the word reveals (wrap once, never per breakpoint).
     // Lines marked lcb-nosplit (the shimmer + restrained lines) stay ONE unit. ----------
@@ -682,22 +584,6 @@ export function CosmicBridge() {
     const moonPt = q(".lcb-moon-pt");
     const travel = q(".lcb-moon-travel");
     const moonEl = q(".lcb-moon");
-
-    // ---------- band star helpers ----------
-    const starLayer = (id: string, layer: string) =>
-      starsSvg ? starsSvg.querySelector<SVGGElement>(`.lcb-star.${id} .${layer}`) : null;
-    const cstLines = starsSvg ? qa<SVGLineElement>(".lcb-cst-line", starsSvg) : [];
-    // KNOWN ignition: cool damps, warm rises, glint appears - completes at the
-    // absolute time `end` (= the key word's label time), so it lands on the word
-    const igniteKnown = (tl: gsap.core.Timeline, id: string, end: number, dur = 0.6) => {
-      const warm = starLayer(id, "lcb-glow-warm");
-      const cool = starLayer(id, "lcb-glow-cool");
-      const glint = starLayer(id, "lcb-glint");
-      const at = Math.max(0, end - dur);
-      if (warm) tl.to(warm, { opacity: glow(1), ease: HOUSE, duration: dur }, at);
-      if (cool) tl.to(cool, { opacity: 0.22, ease: HOUSE, duration: dur }, at);
-      if (glint) tl.to(glint, { opacity: glow(0.4), ease: HOUSE, duration: dur }, at);
-    };
 
     // ---------- helpers ----------
     const primeDraw = (els: SVGGeometryElement[]) => els.forEach((el) => {
@@ -962,35 +848,17 @@ export function CosmicBridge() {
         });
       }
 
-      // =============== BEAT 3 - THE MAP, THREADED ===============
-      // The constellation lives BETWEEN the lines. The band surfaces with
-      // "born.", the known cluster remembers its warmth, the web draws from
-      // "born." and completes at "read.", the unknown stars surfacing as the
-      // web reaches them. The degree readout counts up IN the text baseline
-      // and locks beside "exact place." - a real figure, never invented.
+      // =============== BEAT 3 - THE ANSWER, CLEAN SKY ===============
+      // Two plain lines: "born." rises, then the white/violet shimmer sweeps
+      // the "exact place" line as it lands, the degree readout counts up IN
+      // the text baseline (a real figure, never invented), and "read."
+      // settles in restraint. Nothing between the lines but sky.
       const ans = q(".lcb-answer-scene");
-      const band = q(".lcb-band");
-      if (ans && band && starsSvg && cstLines.length) {
+      if (ans) {
         const lns = qa(".lcb-souls-text .lcb-ln", ans);
         const bloom = q(".lcb-moon-bloom");
         const degTick = q(".lcb-deg-tickline");
 
-        // prime the band to its unread state
-        gsap.set(band, { opacity: 0, y: 18 });
-        qa<SVGGElement>(".lcb-star", starsSvg).forEach((g) => {
-          if (g.classList.contains("lcb-pet")) return;
-          const known = CONSTEL.known.some((k) => g.classList.contains(k.id));
-          gsap.set(g.querySelector(".lcb-glow-cool"), { opacity: 0.55 });
-          gsap.set(g.querySelector(".lcb-glow-warm"), { opacity: 0 });
-          gsap.set(g.querySelector(".lcb-glint"), { opacity: 0 });
-          gsap.set(g, { opacity: known ? 1 : 0 });
-        });
-        cstLines.forEach((ln) => {
-          const len = ln.getTotalLength ? ln.getTotalLength() : 200;
-          ln.style.strokeDasharray = String(len);
-          ln.style.strokeDashoffset = String(len);
-          ln.style.opacity = "0";
-        });
         cnt.v = 0; applyRead();
         if (degTick) gsap.set(degTick, { opacity: 0.3 });
 
@@ -1018,41 +886,12 @@ export function CosmicBridge() {
           ] }, Math.max(0, labelTime(ta, "b3exact") - 0.1));
         }
 
-        // the band surfaces WITH "born."
-        ta.to(band, { opacity: 1, y: 0, duration: 0.7, ease: HOUSE }, endAt("b3born", 0.7));
-        // the known cluster remembers beat 1's warmth
-        CONSTEL.known.forEach((k, i) => {
-          igniteKnown(ta, k.id, labelTime(ta, "b3born") + 0.35 + i * 0.15, 0.5);
-        });
         // the sky answers: the moonlight returns
         if (bloom) ta.to(bloom, { opacity: glow(0.85), duration: 0.9, ease: "none" }, labelTime(ta, "b3born"));
-
-        // the web draws from "born." and completes at "read."; each unknown
-        // star surfaces as the web reaches it
-        const drawStart = labelTime(ta, "b3born") + 0.15;
-        const drawEnd = labelTime(ta, "b3read");
-        const n = cstLines.length;
-        const drawDur = Math.max(0.4, Math.min(hush ? 1.0 : 0.8, (drawEnd - drawStart) * 0.4));
-        const spread = Math.max(0.001, drawEnd - drawDur - drawStart);
-        cstLines.forEach((ln, i) => {
-          const at = drawStart + spread * (i / Math.max(1, n - 1));
-          ta.to(ln, { opacity: glow(0.72), duration: 0.12, ease: "none" }, at);
-          ta.to(ln, { strokeDashoffset: 0, duration: drawDur, ease: HOUSE }, at);
-          const uid = UNK_BY_LINE[i];
-          if (uid) {
-            const g = starsSvg.querySelector<SVGGElement>(`.lcb-star.${uid}`);
-            if (g) ta.to(g, { opacity: glow(1), duration: 0.5, ease: HOUSE }, at + drawDur * 0.55);
-          }
-        });
 
         // the readout counts up in the baseline and LOCKS as its line lands
         ta.to(cnt, { v: totalMin, duration: 0.6, ease: HOUSE, onUpdate: applyRead }, endAt("b3exactEnd", 0.6));
         if (degTick) ta.to(degTick, { opacity: 1, duration: 0.18, ease: "none" }, endAt("b3exactEnd", 0.18));
-
-        // on "read." the finished map gives one soft lift, then rests dim -
-        // real, complete, and still unread
-        ta.to(cstLines, { opacity: glow(0.82), duration: 0.4, ease: "none" }, labelTime(ta, "b3read"))
-          .to(cstLines, { opacity: glow(0.66), duration: 0.6, ease: HOUSE }, labelTime(ta, "b3read") + 0.45);
       }
 
       // =============== BEAT 4 - THE CLOSE ===============
@@ -1392,16 +1231,13 @@ export function CosmicBridge() {
               </div>
             </div>
 
-            {/* MEMORIAL BEAT 3 - THE MAP, THREADED: the constellation draws
-                between the lines; the degree readout locks beside "exact". */}
+            {/* MEMORIAL BEAT 3 - THE ANSWER, CLEAN SKY: two plain lines with
+                the shimmer sweep; the degree readout locks beside "exact". */}
             <div className="lcb-scene lcb-answer-scene">
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln">It all began the day they were <span className="lcb-key lcb-gather">born.<i className="lcb-gth" aria-hidden="true" /></span></span>
                 <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.<span className="lcb-degline" aria-hidden="true"><span className="lcb-deg-tickline" /><span className="lcb-deg-n">{MOON_READOUT}</span></span></span>
               </p>
-              <div className="lcb-band" aria-hidden="true">
-                <svg className="lcb-stars" viewBox="0 0 460 240" preserveAspectRatio="xMidYMid meet" />
-              </div>
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln lcb-emph lcb-quiet lcb-nosplit">Nothing after can touch it. It is still there to be <span className="lcb-key">read.</span></span>
               </p>
@@ -1468,16 +1304,13 @@ export function CosmicBridge() {
               </div>
             </div>
 
-            {/* BEAT 3 - THE MAP, THREADED: the constellation draws between
-                the lines; the degree readout locks beside "exact place." */}
+            {/* BEAT 3 - THE ANSWER, CLEAN SKY: two plain lines with the
+                shimmer sweep; the degree readout locks beside "exact place." */}
             <div className="lcb-scene lcb-answer-scene">
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln">All of it began the day they were <span className="lcb-key lcb-gather">born.<i className="lcb-gth" aria-hidden="true" /></span></span>
                 <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.<span className="lcb-degline" aria-hidden="true"><span className="lcb-deg-tickline" /><span className="lcb-deg-n">{MOON_READOUT}</span></span></span>
               </p>
-              <div className="lcb-band" aria-hidden="true">
-                <svg className="lcb-stars" viewBox="0 0 460 240" preserveAspectRatio="xMidYMid meet" />
-              </div>
               <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
                 <span className="lcb-ln lcb-emph lcb-quiet lcb-nosplit">A map of who they are, that no one has ever <span className="lcb-key">read.</span></span>
               </p>

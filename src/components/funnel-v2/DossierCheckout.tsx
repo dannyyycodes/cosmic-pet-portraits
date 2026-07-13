@@ -366,7 +366,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <defs>
           <linearGradient id="dsr-mgold" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#f0d99f" /><stop offset=".5" stopColor="#d4b26b" /><stop offset="1" stopColor="#a9884f" />
+            <stop offset="0" stopColor="#cfc0f4" /><stop offset=".5" stopColor="#8f6de0" /><stop offset="1" stopColor="#6a4cc4" />
           </linearGradient>
           <symbol id="g-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" /><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" /></symbol>
           <symbol id="g-moon" viewBox="0 0 24 24"><path d="M14.8 3.5A8.5 8.5 0 1 0 14.8 20.5 10.5 10.5 0 0 1 14.8 3.5Z" /></symbol>
@@ -731,15 +731,15 @@ function DossierStyles(): ReactNode {
   return (
     <style>{`
       .dsr-root{
-        --dsr-gold-100:#f7e7b6; --dsr-gold-200:#efd9a0; --dsr-gold-300:#e9cd8b;
-        --dsr-gold-400:#d4b26b; --dsr-gold-500:#c4a265; --dsr-gold-600:#a9884f; --dsr-gold-700:#8a6d3b;
-        --dsr-gold-ink:#2a1f0a;
-        --dsr-gold-metal:linear-gradient(180deg,#f7e7b6 0%,#e9cd8b 18%,#d4b26b 40%,#c4a265 56%,#a9884f 80%,#8a6d3b 100%);
-        --dsr-gold-metal-text:linear-gradient(177deg,#f7e7b6 0%,#e9cd8b 24%,#d4b26b 48%,#a9884f 74%,#d4b26b 100%);
+        --dsr-gold-100:#cbb8f5; --dsr-gold-200:#bfadf0; --dsr-gold-300:#ab90e6;
+        --dsr-gold-400:#9a7ee6; --dsr-gold-500:#8266d9; --dsr-gold-600:#6a4cc4; --dsr-gold-700:#4d3694;
+        --dsr-gold-ink:#ffffff;
+        --dsr-gold-metal:linear-gradient(180deg,#a78bfa 0%,#9a7ee6 18%,#8266d9 40%,#7452c8 56%,#6243b0 80%,#47307f 100%);
+        --dsr-gold-metal-text:linear-gradient(177deg,#cfc0f4 0%,#b9a5f0 24%,#9a7ee6 48%,#8266d9 74%,#b9a5f0 100%);
         --dsr-gold-sheen:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.35) 50%,transparent 58%);
         --dsr-violet-100:#e8e4f6; --dsr-violet-200:#cfc7ec; --dsr-violet-300:#b3a7e0;
         --dsr-violet-400:#9b8fd0; --dsr-violet-500:#8b7bd8; --dsr-violet-600:#6f62a8;
-        --dsr-cream:#f4eee1; --dsr-cream-dim:#c9c0ae;
+        --dsr-cream:#ffffff; --dsr-cream-dim:#c6c0d8;
         --dsr-surface-1:#140f1e; --dsr-surface-2:#181226; --dsr-surface-3:#1f1830;
         --dsr-ease:cubic-bezier(.16,1,.3,1);
         --dsr-display:'Fraunces',Georgia,serif;
@@ -755,11 +755,11 @@ function DossierStyles(): ReactNode {
       @media (min-width:768px){ .dsr-root{max-width:600px} }
 
       .dsr-gold-text{
-        color:#d4b26b;
+        color:#8f6de0;
         background:var(--dsr-gold-metal-text);
         -webkit-background-clip:text;background-clip:text;
         -webkit-text-fill-color:transparent;color:transparent;
-        filter:drop-shadow(0 1px 6px rgba(212,178,107,.18));
+        filter:drop-shadow(0 1px 6px rgba(154,126,230,.18));
       }
 
       /* ---------- natal wheel ---------- */
@@ -778,13 +778,13 @@ function DossierStyles(): ReactNode {
       .is-lit .dsr-chord{stroke-dashoffset:0}
       .dsr-wglyph{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
         opacity:0;transition:opacity 1s var(--dsr-ease)}
-      .dsr-wglyph.lit{stroke:url(#dsr-mgold);color:#d4b26b}
+      .dsr-wglyph.lit{stroke:url(#dsr-mgold);color:#8f6de0}
       .dsr-wglyph.dim{color:var(--dsr-violet-500)}
       .is-lit .dsr-wglyph.lit{opacity:1}
       .is-lit .dsr-wglyph.dim{opacity:.7}
       .dsr-wlabel{font-family:var(--dsr-body);font-weight:500;font-size:12.5px;letter-spacing:.12em;
         text-transform:uppercase;opacity:0;transition:opacity 1.1s var(--dsr-ease) .5s}
-      .dsr-wlabel.lit{fill:#d4b26b}
+      .dsr-wlabel.lit{fill:#8f6de0}
       .dsr-wlabel.dim{fill:var(--dsr-violet-400);font-size:10.5px;display:none}
       @media (min-width:768px){ .dsr-wlabel.dim{display:block} }
       .is-lit .dsr-wlabel{opacity:1}
@@ -810,13 +810,13 @@ function DossierStyles(): ReactNode {
           0 1px 2px rgba(0,0,0,.5),
           0 8px 24px rgba(0,0,0,.45),
           0 32px 80px rgba(0,0,0,.55),
-          0 -14px 50px rgba(212,178,107,.05) inset,
-          0 1px 0 rgba(247,231,182,.10) inset;
+          0 -14px 50px rgba(154,126,230,.05) inset,
+          0 1px 0 rgba(185,165,240,.10) inset;
       }
       @media (min-width:768px){ .dsr-card{padding:38px 36px 32px} }
       .dsr-card::before{
         content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
-        background:linear-gradient(165deg, rgba(247,231,182,.55) 0%, rgba(196,162,101,.18) 30%, rgba(139,123,216,.14) 55%, rgba(212,178,107,.60) 100%);
+        background:linear-gradient(165deg, rgba(185,165,240,.55) 0%, rgba(154,126,230,.18) 30%, rgba(139,123,216,.14) 55%, rgba(154,126,230,.60) 100%);
         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
         -webkit-mask-composite:xor;mask-composite:exclude;
       }
@@ -849,14 +849,14 @@ function DossierStyles(): ReactNode {
       .dsr-bullets strong{font-weight:600}
       .dsr-gico{display:block;fill:none;stroke:currentColor;stroke-width:1.6;
         stroke-linecap:round;stroke-linejoin:round;color:var(--dsr-violet-500)}
-      .dsr-gico.lit{stroke:url(#dsr-mgold);color:#d4b26b}
+      .dsr-gico.lit{stroke:url(#dsr-mgold);color:#8f6de0}
 
       /* ---------- endowed rung ---------- */
       .dsr-rung{display:flex;gap:9px;justify-content:center;align-items:center;margin:16px 0 8px}
       .dsr-rung i{width:7px;height:7px;border-radius:50%;background:var(--dsr-violet-600);display:block;
         transform:scale(.4);opacity:0;
         transition:transform .6s var(--dsr-ease),opacity .6s var(--dsr-ease)}
-      .dsr-rung i.on{background:var(--dsr-gold-metal);box-shadow:0 0 8px rgba(212,178,107,.6)}
+      .dsr-rung i.on{background:var(--dsr-gold-metal);box-shadow:0 0 8px rgba(154,126,230,.6)}
       .is-lit .dsr-rung i{transform:scale(1);opacity:1}
       .dsr-rung-line{text-align:center;font-family:var(--dsr-display);font-style:italic;
         font-variation-settings:'opsz' 20;font-size:15.5px;color:var(--dsr-cream-dim);margin-bottom:22px}
@@ -881,7 +881,7 @@ function DossierStyles(): ReactNode {
       .dsr-review{position:relative;border-radius:14px;padding:20px 18px 18px;margin-bottom:24px;
         background:linear-gradient(180deg,var(--dsr-surface-2) 0%,var(--dsr-surface-1) 100%);
         box-shadow:0 1px 2px rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.4),
-          0 20px 50px rgba(0,0,0,.35),0 1px 0 rgba(247,231,182,.06) inset}
+          0 20px 50px rgba(0,0,0,.35),0 1px 0 rgba(185,165,240,.06) inset}
       .dsr-review::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
         background:linear-gradient(165deg, rgba(139,123,216,.35) 0%, rgba(139,123,216,.10) 45%, rgba(139,123,216,.28) 100%);
         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -895,7 +895,7 @@ function DossierStyles(): ReactNode {
         letter-spacing:.18em;text-transform:uppercase;color:var(--dsr-violet-300)}
       .dsr-rev-ph{position:relative;display:block;flex:none;width:64px;height:64px;border-radius:14px;
         background:var(--dsr-surface-3);
-        box-shadow:0 2px 8px rgba(0,0,0,.4), 0 4px 16px rgba(212,178,107,.10)}
+        box-shadow:0 2px 8px rgba(0,0,0,.4), 0 4px 16px rgba(154,126,230,.10)}
       .dsr-rev-ph img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
       .dsr-rev-ph::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
         background:linear-gradient(165deg, rgba(139,123,216,.40) 0%, rgba(139,123,216,.12) 45%, rgba(139,123,216,.32) 100%);
@@ -927,7 +927,7 @@ function DossierStyles(): ReactNode {
         background:var(--dsr-surface-3);border:0;border-radius:12px;
         cursor:pointer;user-select:none;margin-bottom:26px;
         box-shadow:0 1px 2px rgba(0,0,0,.4),0 5px 14px rgba(0,0,0,.35),
-          0 16px 40px rgba(0,0,0,.3),0 1px 0 rgba(247,231,182,.05) inset}
+          0 16px 40px rgba(0,0,0,.3),0 1px 0 rgba(185,165,240,.05) inset}
       .dsr-bond::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
         background:linear-gradient(165deg, rgba(139,123,216,.45) 0%, rgba(139,123,216,.12) 50%, rgba(139,123,216,.38) 100%);
         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -988,13 +988,13 @@ function DossierStyles(): ReactNode {
         border-radius:12px;padding:16px 12px;white-space:nowrap;
         font:600 clamp(15.5px,4.3vw,17px)/1 'Newsreader',Georgia,serif;letter-spacing:.02em;
         box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-                   0 6px 18px -6px rgba(208,169,82,.45);
+                   0 6px 18px -6px rgba(124,92,214,.45);
         transition:filter .18s ease, box-shadow .18s ease, transform .06s ease}
       .dsr-cta::after{content:"";position:absolute;inset:0;background:var(--dsr-gold-sheen);
         mix-blend-mode:overlay;transform:translateX(-120%);transition:transform .5s ease}
       .dsr-cta:hover{filter:brightness(1.07) saturate(1.05);
         box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-                   0 10px 26px -6px rgba(208,169,82,.6)}
+                   0 10px 26px -6px rgba(124,92,214,.6)}
       .dsr-cta:hover::after{transform:translateX(120%)}
       .dsr-cta:active{background:linear-gradient(165deg,var(--dsr-gold-400),var(--dsr-gold-600));
         box-shadow:inset 0 2px 6px rgba(0,0,0,.35);transform:translateY(1px);filter:none}
@@ -1006,11 +1006,11 @@ function DossierStyles(): ReactNode {
       .dsr-cta.is-thread{animation:dsrThread 7.5s var(--dsr-ease) 1.1s infinite}
       @keyframes dsrThread{
         0%,100%{box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-          0 6px 18px -6px rgba(208,169,82,.45), 0 0 22px rgba(212,178,107,.16)}
+          0 6px 18px -6px rgba(124,92,214,.45), 0 0 22px rgba(154,126,230,.16)}
         38%{box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-          0 9px 26px -6px rgba(208,169,82,.58), 0 0 38px rgba(212,178,107,.30)}
+          0 9px 26px -6px rgba(124,92,214,.58), 0 0 38px rgba(154,126,230,.30)}
         63%{box-shadow:0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-          0 7px 22px -6px rgba(208,169,82,.5), 0 0 28px rgba(212,178,107,.22)}
+          0 7px 22px -6px rgba(124,92,214,.5), 0 0 28px rgba(154,126,230,.22)}
       }
 
       .dsr-error{margin:10px 0 0;text-align:center;font-size:14.5px;color:#e8b4b4}
@@ -1064,7 +1064,7 @@ function DossierStyles(): ReactNode {
       .dsr-stepper button{position:relative;width:44px;height:44px;flex:none;
         background:var(--dsr-surface-3);border:0;border-radius:10px;color:var(--dsr-cream);
         font-size:22px;font-family:var(--dsr-body);line-height:1;cursor:pointer;
-        box-shadow:0 1px 0 rgba(247,231,182,.05) inset, 0 2px 8px rgba(0,0,0,.35)}
+        box-shadow:0 1px 0 rgba(185,165,240,.05) inset, 0 2px 8px rgba(0,0,0,.35)}
       .dsr-stepper button::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
         background:linear-gradient(165deg, rgba(139,123,216,.45), rgba(139,123,216,.15));
         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -1131,7 +1131,7 @@ function DossierStyles(): ReactNode {
       @media (prefers-reduced-motion: reduce){
         .dsr-root *, .dsr-root *::before, .dsr-root *::after{transition-duration:.01ms!important;animation:none!important}
         .dsr-cta.is-thread{box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
-          0 6px 18px -6px rgba(208,169,82,.5), 0 0 26px rgba(212,178,107,.2)}
+          0 6px 18px -6px rgba(124,92,214,.5), 0 0 26px rgba(154,126,230,.2)}
         .dsr-ring,.dsr-chord{stroke-dashoffset:0}
         .dsr-wglyph.lit,.dsr-wlabel,.dsr-glyph-halo{opacity:1}
         .dsr-wglyph.dim{opacity:.7}

@@ -717,13 +717,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
               : "#FFFDF5";
             const frame = isSelected
-              ? "linear-gradient(135deg, #d4b26b 0%, #bf524a 50%, #d4b26b 100%)"
-              : "linear-gradient(135deg, rgba(196,162,101,0.35) 0%, rgba(212,178,107,0.2) 100%)";
+              ? "linear-gradient(135deg, #8f6de0 0%, #9a7ee6 50%, #8f6de0 100%)"
+              : "linear-gradient(135deg, rgba(154,126,230,0.35) 0%, rgba(154,126,230,0.2) 100%)";
             return `${fill} padding-box, ${frame} border-box`;
           })(),
           border: isSelected ? "2px solid transparent" : "1.5px solid transparent",
           boxShadow: isSelected
-            ? "0 0 0 3px rgba(196,162,101,0.14), 0 8px 28px rgba(0,0,0,0.08)"
+            ? "0 0 0 3px rgba(154,126,230,0.14), 0 8px 28px rgba(0,0,0,0.08)"
             : "0 2px 14px rgba(0,0,0,0.04)",
           opacity: visible ? 1 : 0,
           transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
@@ -747,7 +747,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); opts.onClose!(); } }}
             aria-label="Collapse Memorial Reading details"
             className="absolute top-2.5 right-2.5 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
-            style={{ width: 28, height: 28, background: "rgba(196,162,101,0.14)", color: "var(--ink, #1f1c18)", border: "none", cursor: "pointer" }}
+            style={{ width: 28, height: 28, background: "rgba(154,126,230,0.14)", color: "var(--ink, #1f1c18)", border: "none", cursor: "pointer" }}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -810,7 +810,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           className="flex items-center justify-between mb-3 rounded-lg px-2.5 py-2"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
-          style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.18)" }}
+          style={{ background: "rgba(154,126,230,0.08)", border: "1px solid rgba(154,126,230,0.18)" }}
         >
           <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
             How many?
@@ -854,7 +854,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         <div className="flex-1 flex items-start">
         <ul
           className="rounded-lg overflow-hidden w-full"
-          style={{ border: "1px solid rgba(196,162,101,0.14)" }}
+          style={{ border: "1px solid rgba(154,126,230,0.14)" }}
         >
           {displayFeatures.map((feature, fi) => {
             const isDivider = feature.kind === "divider";
@@ -879,13 +879,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 aria-label={isSoulSpeak ? "Preview SoulSpeak" : isHoroscope ? "Preview weekly horoscopes" : undefined}
                 style={{
                   fontSize: "0.8rem",
-                  color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
+                  color: isDivider ? "var(--gold, #7c5cd6)" : "var(--earth, #6e6259)",
                   fontWeight: isDivider ? 600 : 700,
                   fontStyle: isDivider ? "italic" : "normal",
                   lineHeight: 1.4,
                   cursor: isPreviewable ? "pointer" : "default",
                   background: isDivider
-                    ? "rgba(196,162,101,0.08)"
+                    ? "rgba(154,126,230,0.08)"
                     : fi % 2 === 0 ? "rgba(255,255,255,0.6)" : "rgba(246,241,230,0.55)",
                   transition: isPreviewable ? "background 0.2s ease" : undefined,
                 }}
@@ -903,7 +903,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     whiteSpace: "nowrap",
                     display: "inline-block",
                   };
-                  const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #d4b26b, #c4a265)" };
+                  const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #8f6de0, #7c5cd6)" };
                   const greenBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #5aa870, #4a8c5c)" };
                   const badgeInner = isSoulSpeak
                     ? <span style={goldBadge}>New</span>
@@ -1146,9 +1146,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             border-top-color: rgba(154,126,230,0.68);
             border-radius: 8px;
             background:
-              linear-gradient(110deg, rgba(245,239,230,0.074), rgba(245,239,230,0.032)),
+              linear-gradient(110deg, rgba(237,233,247,0.074), rgba(237,233,247,0.032)),
               rgba(13,10,20,0.84);
-            box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 28px 90px rgba(0,0,0,0.30);
+            box-shadow: inset 0 1px 0 rgba(237,233,247,0.06), 0 28px 90px rgba(0,0,0,0.30);
             padding: clamp(18px, 3.5vw, 36px);
           }
           .cosmic-checkout-copy {
@@ -1194,19 +1194,19 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: flex;
             flex-direction: column;
             gap: 16px;
-            border: 1px solid rgba(245,239,230,0.16);
+            border: 1px solid rgba(237,233,247,0.16);
             border-radius: 10px;
             background:
               radial-gradient(ellipse at 50% 0%, rgba(124,92,214,0.12), transparent 44%),
               linear-gradient(180deg, rgba(28,22,38,0.55), rgba(5,4,7,0.32));
-            box-shadow: inset 0 1px 0 rgba(245,239,230,0.05), 0 10px 26px rgba(0,0,0,0.22);
+            box-shadow: inset 0 1px 0 rgba(237,233,247,0.05), 0 10px 26px rgba(0,0,0,0.22);
             padding: 22px;
             cursor: pointer;
             transition: transform 260ms cubic-bezier(0.22,0.7,0.2,1), border-color 220ms ease, box-shadow 260ms ease;
           }
           .cosmic-tier:hover {
             border-color: rgba(154,126,230,0.44);
-            box-shadow: inset 0 1px 0 rgba(245,239,230,0.06), 0 16px 40px rgba(0,0,0,0.3);
+            box-shadow: inset 0 1px 0 rgba(237,233,247,0.06), 0 16px 40px rgba(0,0,0,0.3);
           }
           .cosmic-tier.is-selected {
             border-color: rgba(124,92,214,0.85);
@@ -1401,7 +1401,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             height: 38px;
             border: 1px solid rgba(154,126,230,0.38);
             border-radius: 999px;
-            background: rgba(245,239,230,0.06);
+            background: rgba(237,233,247,0.06);
             color: #ffffff;
             font: 700 18px/1 Lato, system-ui, sans-serif;
           }
@@ -1435,7 +1435,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: flex;
             justify-content: space-between;
             gap: 18px;
-            border-bottom: 1px solid rgba(245,239,230,0.08);
+            border-bottom: 1px solid rgba(237,233,247,0.08);
             padding: 12px 0;
             color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
@@ -1552,7 +1552,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-pay-tray {
             border: 1px solid rgba(154,126,230,0.18);
             border-radius: 12px;
-            background: linear-gradient(180deg, rgba(245,239,230,0.05), rgba(5,4,7,0.28));
+            background: linear-gradient(180deg, rgba(237,233,247,0.05), rgba(5,4,7,0.28));
             padding: 12px 12px 14px;
           }
           .cosmic-checkout .cosmic-pay-tray > div { margin-top: 0; }
@@ -2011,7 +2011,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             <button
               type="button"
               onClick={() => setCodeOpen(true)}
-              style={{ background: "none", border: "none", color: "var(--gold, #c4a265)", fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
+              style={{ background: "none", border: "none", color: "var(--gold, #7c5cd6)", fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
             >
               Have a promo or gift code?
             </button>
@@ -2042,9 +2042,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             <div
               className="flex items-center justify-between gap-2 px-4 py-3 rounded-xl"
               style={{
-                background: "linear-gradient(135deg, rgba(196,162,101,0.14) 0%, rgba(191,82,74,0.12) 100%)",
-                border: "1.5px solid rgba(196,162,101,0.5)",
-                boxShadow: "0 2px 10px rgba(196,162,101,0.15)",
+                background: "linear-gradient(135deg, rgba(154,126,230,0.14) 0%, rgba(191,82,74,0.12) 100%)",
+                border: "1.5px solid rgba(154,126,230,0.5)",
+                boxShadow: "0 2px 10px rgba(154,126,230,0.15)",
                 animation: "lsCouponPop 520ms cubic-bezier(0.34, 1.56, 0.64, 1)",
               }}
             >
@@ -2054,7 +2054,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.98rem", color: "var(--rose, #bf524a)", margin: 0, lineHeight: 1.15, fontWeight: 400 }}>
                     Extra {appliedCoupon.discount_value}% off, stacked
                   </p>
-                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", color: "var(--gold, #c4a265)", margin: "2px 0 0 0", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", color: "var(--gold, #7c5cd6)", margin: "2px 0 0 0", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
                     Code {appliedCoupon.code} · on top of your launch saving
                   </p>
                 </div>
@@ -2104,7 +2104,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               border: error ? "1.5px solid var(--rose, #bf524a)" : "1.5px solid var(--cream3, #f3eadb)",
               minHeight: 48,
             }}
-            onFocus={(e) => { if (!error) e.target.style.borderColor = "var(--gold, #c4a265)"; }}
+            onFocus={(e) => { if (!error) e.target.style.borderColor = "var(--gold, #7c5cd6)"; }}
             onBlur={(e) => { if (!error) e.target.style.borderColor = "var(--cream3, #f3eadb)"; }}
           />
           {error && <p className="mt-1" style={{ fontSize: "0.78rem", color: "var(--rose, #bf524a)" }}>{error}</p>}
@@ -2151,9 +2151,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               gap: 8,
               padding: "10px 18px",
               borderRadius: 999,
-              background: "rgba(196,162,101,0.10)",
-              border: "1px solid rgba(196,162,101,0.35)",
-              color: "var(--gold, #c4a265)",
+              background: "rgba(154,126,230,0.10)",
+              border: "1px solid rgba(154,126,230,0.35)",
+              color: "var(--gold, #7c5cd6)",
               fontFamily: "Cormorant, Georgia, serif",
               fontSize: "0.92rem",
               fontWeight: 600,
@@ -2161,8 +2161,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               textDecoration: "none",
               transition: "all 180ms ease",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(196,162,101,0.18)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(196,162,101,0.10)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(154,126,230,0.18)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(154,126,230,0.10)"; }}
             onClick={() => trackFunnelEvent("v2_gift_link_clicked", { path })}
           >
             <span role="img" aria-hidden="true">🎁</span>
@@ -2322,7 +2322,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               onClick={closeSoulSpeak}
               aria-label="Close"
               className="absolute top-3 right-3 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
-              style={{ width: 34, height: 34, background: "rgba(196,162,101,0.14)", color: "var(--ink, #1f1c18)" }}
+              style={{ width: 34, height: 34, background: "rgba(154,126,230,0.14)", color: "var(--ink, #1f1c18)" }}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -2340,7 +2340,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   textTransform: "uppercase",
                   padding: "3px 10px",
                   borderRadius: 4,
-                  background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                  background: "linear-gradient(135deg, #8f6de0, #7c5cd6)",
                   color: "#fff",
                   marginBottom: 12,
                 }}
@@ -2497,7 +2497,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 height: 62%;
                 pointer-events: none;
                 z-index: 0;
-                background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='180' viewBox='0 0 260 180'><g fill='rgba(196,162,101,0.55)'><circle cx='22' cy='30' r='0.8'/><circle cx='72' cy='14' r='1.2'/><circle cx='110' cy='46' r='0.9'/><circle cx='168' cy='20' r='0.7'/><circle cx='228' cy='38' r='1'/><circle cx='50' cy='78' r='0.9'/><circle cx='196' cy='90' r='0.8'/><circle cx='16' cy='120' r='0.9'/><circle cx='92' cy='142' r='1.1'/><circle cx='148' cy='116' r='0.8'/><circle cx='244' cy='130' r='0.9'/><circle cx='212' cy='158' r='0.7'/></g><g fill='rgba(196,162,101,0.85)'><path transform='translate(134 62)' d='M4 0 L4.5 3.5 L8 4 L4.5 4.5 L4 8 L3.5 4.5 L0 4 L3.5 3.5 Z'/><path transform='translate(56 152)' d='M4 0 L4.5 3.5 L8 4 L4.5 4.5 L4 8 L3.5 4.5 L0 4 L3.5 3.5 Z'/></g></svg>");
+                background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='180' viewBox='0 0 260 180'><g fill='rgba(154,126,230,0.55)'><circle cx='22' cy='30' r='0.8'/><circle cx='72' cy='14' r='1.2'/><circle cx='110' cy='46' r='0.9'/><circle cx='168' cy='20' r='0.7'/><circle cx='228' cy='38' r='1'/><circle cx='50' cy='78' r='0.9'/><circle cx='196' cy='90' r='0.8'/><circle cx='16' cy='120' r='0.9'/><circle cx='92' cy='142' r='1.1'/><circle cx='148' cy='116' r='0.8'/><circle cx='244' cy='130' r='0.9'/><circle cx='212' cy='158' r='0.7'/></g><g fill='rgba(154,126,230,0.85)'><path transform='translate(134 62)' d='M4 0 L4.5 3.5 L8 4 L4.5 4.5 L4 8 L3.5 4.5 L0 4 L3.5 3.5 Z'/><path transform='translate(56 152)' d='M4 0 L4.5 3.5 L8 4 L4.5 4.5 L4 8 L3.5 4.5 L0 4 L3.5 3.5 Z'/></g></svg>");
                 background-repeat: repeat;
                 background-size: 260px 180px;
                 -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.55) 65%, transparent 100%);
@@ -2589,14 +2589,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 display: block;
                 width: clamp(44px, 11vw, 78px);
                 height: 1px;
-                background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,0.65) 100%);
+                background: linear-gradient(90deg, rgba(154,126,230,0) 0%, rgba(154,126,230,0.65) 100%);
               }
               .horo-title-rule span:last-child {
-                background: linear-gradient(90deg, rgba(196,162,101,0.65) 0%, rgba(196,162,101,0) 100%);
+                background: linear-gradient(90deg, rgba(154,126,230,0.65) 0%, rgba(154,126,230,0) 100%);
               }
               .horo-title-rule svg {
                 width: 10px; height: 10px;
-                color: var(--gold, #c4a265);
+                color: var(--gold, #7c5cd6);
                 filter: drop-shadow(0 0 3px rgba(212, 178, 107, 0.55));
               }
 
@@ -2616,7 +2616,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               }
               .horo-footer-glyph {
                 width: 9px; height: 9px;
-                color: var(--gold, #c4a265);
+                color: var(--gold, #7c5cd6);
               }
 
               @media (prefers-reduced-motion: reduce) {
@@ -2798,7 +2798,7 @@ const CharityBrandRow = ({
           letterSpacing: "0.14em",
           textTransform: "uppercase",
           fontVariantNumeric: "lining-nums",
-          color: "var(--gold, #c4a265)",
+          color: "var(--gold, #7c5cd6)",
         }}
       >
         10% of your reading goes to
@@ -2873,8 +2873,8 @@ const CharityBadgeButton = ({
       padding: "0 10px",
       background: "#fff",
       borderRadius: 6,
-      border: selected ? "2px solid var(--gold, #c4a265)" : "1px solid var(--cream3, #f3eadb)",
-      boxShadow: selected ? "0 2px 10px var(--charity-glow, rgba(196,162,101,0.2))" : "none",
+      border: selected ? "2px solid var(--gold, #7c5cd6)" : "1px solid var(--cream3, #f3eadb)",
+      boxShadow: selected ? "0 2px 10px var(--charity-glow, rgba(154,126,230,0.2))" : "none",
     }}
   >
     {children}
@@ -3199,8 +3199,8 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         height: 44px;
         border-radius: 50%;
         overflow: hidden;
-        background: linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(196,162,101,0.06) 100%);
-        border: 2px solid var(--gold, #c4a265);
+        background: linear-gradient(135deg, rgba(154,126,230,0.12) 0%, rgba(154,126,230,0.06) 100%);
+        border: 2px solid var(--gold, #7c5cd6);
         box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.15);
         display: flex;
         align-items: center;
@@ -3216,7 +3216,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
       .ss-chat-avatar .ss-avatar-fallback {
         width: 14px;
         height: 14px;
-        color: var(--gold, #c4a265);
+        color: var(--gold, #7c5cd6);
       }
       .ss-chat-info {
         flex: 1;
@@ -3238,7 +3238,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         font-size: 0.74rem;
         font-weight: 600;
         letter-spacing: 0.02em;
-        color: var(--gold, #c4a265);
+        color: var(--gold, #7c5cd6);
       }
       .ss-chat-dot {
         width: 7px;
@@ -3249,7 +3249,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         animation: ssStatusPulse 2s ease-in-out infinite;
       }
       .ss-chat-status.is-memorial .ss-chat-dot {
-        background: var(--gold, #c4a265);
+        background: var(--gold, #7c5cd6);
         animation: ssStatusGlow 3.4s ease-in-out infinite;
       }
       @keyframes ssStatusPulse {
@@ -3257,8 +3257,8 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         50%      { opacity: 0.45; }
       }
       @keyframes ssStatusGlow {
-        0%, 100% { opacity: 0.9; box-shadow: 0 0 0 rgba(196,162,101,0); }
-        50%      { opacity: 1;   box-shadow: 0 0 7px rgba(196,162,101,0.8); }
+        0%, 100% { opacity: 0.9; box-shadow: 0 0 0 rgba(154,126,230,0); }
+        50%      { opacity: 1;   box-shadow: 0 0 7px rgba(154,126,230,0.8); }
       }
 
       .ss-bubble {
@@ -3316,7 +3316,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: var(--gold, #c4a265);
+        background: var(--gold, #7c5cd6);
         opacity: 0.35;
         animation: ssTypingBounce 1.4s ease-in-out infinite;
       }
@@ -3460,14 +3460,14 @@ const HoroscopePreview = () => (
         display: block;
         width: 46px;
         height: 1px;
-        background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,0.5) 100%);
+        background: linear-gradient(90deg, rgba(154,126,230,0) 0%, rgba(154,126,230,0.5) 100%);
       }
       .horo-divider span:last-child {
-        background: linear-gradient(90deg, rgba(196,162,101,0.5) 0%, rgba(196,162,101,0) 100%);
+        background: linear-gradient(90deg, rgba(154,126,230,0.5) 0%, rgba(154,126,230,0) 100%);
       }
       .horo-divider svg {
         width: 8px; height: 8px;
-        color: var(--gold, #c4a265);
+        color: var(--gold, #7c5cd6);
       }
 
       .horo-body {
@@ -3488,10 +3488,10 @@ const HoroscopePreview = () => (
         padding: clamp(22px, 4.5vw, 30px) clamp(22px, 5vw, 34px);
         border-radius: 16px;
         background:
-          radial-gradient(120% 120% at 50% 0%, rgba(212,178,107,0.12) 0%, rgba(212,178,107,0) 70%),
+          radial-gradient(120% 120% at 50% 0%, rgba(154,126,230,0.12) 0%, rgba(154,126,230,0) 70%),
           rgba(255, 251, 240, 0.78);
         box-shadow:
-          0 0 0 1px rgba(196,162,101,0.32) inset,
+          0 0 0 1px rgba(154,126,230,0.32) inset,
           0 6px 22px rgba(20, 15, 8, 0.06),
           0 1px 2px rgba(20, 15, 8, 0.03);
       }
@@ -3499,7 +3499,7 @@ const HoroscopePreview = () => (
         position: absolute;
         width: 12px;
         height: 12px;
-        border: 1px solid var(--gold, #c4a265);
+        border: 1px solid var(--gold, #7c5cd6);
         opacity: 0.55;
       }
       .horo-quote-corner.tl { top: 8px;    left: 8px;    border-right: none; border-bottom: none; border-top-left-radius: 4px; }
