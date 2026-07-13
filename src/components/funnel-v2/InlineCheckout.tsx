@@ -4,7 +4,7 @@ import { getReferralCode } from "@/lib/referralTracking";
 import { getUtm } from "@/lib/utm";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { HeartsBackdrop } from "./HeartsBackdrop";
-import { DossierCheckout } from "./DossierCheckout";
+import { DossierCheckout, REVIEWS } from "./DossierCheckout";
 
 function useScrollReveal(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -1003,7 +1003,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     return (
       <article
         key={tier.id}
-        className={`cosmic-tier ${isSelected ? "is-selected" : ""} ${intent === "bond" ? "is-featured" : ""}`}
+        className={`cosmic-tier ${isSelected ? "is-selected" : ""} ${intent === "bond" ? "is-featured" : ""} ${intent === "memorial" ? "is-memorial" : ""}`}
         onClick={() => activateCosmicTier(tier.id)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activateCosmicTier(tier.id); } }}
         role="button"
@@ -1043,28 +1043,62 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           ))}
         </ul>
 
-        <div className="cosmic-stepper" onClick={(e) => e.stopPropagation()}>
-          <span>Readings</span>
-          <div>
-            <button
-              type="button"
-              disabled={minusDisabled}
-              aria-label={`Remove one ${tier.name}`}
-              onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, -1); }}
-            >
-              -
-            </button>
-            <b>{qty}</b>
-            <button
-              type="button"
-              disabled={atMax}
-              aria-label={`Add one ${tier.name}`}
-              onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, 1); }}
-            >
-              +
-            </button>
+        {intent === "memorial" ? (
+          /* No "- 1 +" machinery next to grief. A quiet disclosure opens only
+             if it is needed, and speaks in the same voice as the card. */
+          <details
+            className="cosmic-mem-more"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <summary>More than one little soul?</summary>
+            <div className="cosmic-mem-more-body">
+              <p>One reading for each of them, each written alone.</p>
+              <div className="cosmic-mem-more-count">
+                <button
+                  type="button"
+                  disabled={minusDisabled}
+                  aria-label="One fewer reading"
+                  onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, -1); }}
+                >
+                  &#8722;
+                </button>
+                <b>{qty} {qty === 1 ? "reading" : "readings"}</b>
+                <button
+                  type="button"
+                  disabled={atMax}
+                  aria-label="One more reading"
+                  onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, 1); }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </details>
+        ) : (
+          <div className="cosmic-stepper" onClick={(e) => e.stopPropagation()}>
+            <span>Readings</span>
+            <div>
+              <button
+                type="button"
+                disabled={minusDisabled}
+                aria-label={`Remove one ${tier.name}`}
+                onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, -1); }}
+              >
+                -
+              </button>
+              <b>{qty}</b>
+              <button
+                type="button"
+                disabled={atMax}
+                aria-label={`Add one ${tier.name}`}
+                onClick={(e) => { e.stopPropagation(); changeCosmicTierQty(tier.id, 1); }}
+              >
+                +
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </article>
     );
   };
@@ -1428,6 +1462,147 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             font-family: "Playfair Display", Georgia, serif;
             font-size: 1.2rem;
           }
+          /* Memorial header lines speak serif with the rest of the path. */
+          .cosmic-mem-kicker { font-family: "Newsreader", Georgia, serif; font-weight: 600; }
+          .cosmic-mem-lede { font-family: "Newsreader", Georgia, serif; }
+          /* ── Memorial card: the serif brand voice, quiet machinery ────────
+             The one £49 door on the memorial path speaks serif like the rest
+             of the reading, not interface sans; its marks are violet, never
+             traffic-light green; and the stepper is a soft disclosure. */
+          .cosmic-tier.is-memorial { cursor: default; }
+          .cosmic-tier.is-memorial .cosmic-tier-head p {
+            font-family: "Newsreader", Georgia, serif;
+            font-style: italic;
+            font-size: 1.04rem;
+            line-height: 1.5;
+            color: #d9d3e6;
+          }
+          .cosmic-tier.is-memorial .cosmic-feature-list p {
+            font-family: "Newsreader", Georgia, serif;
+            font-weight: 500;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #e7e2f2;
+          }
+          .cosmic-tier.is-memorial .cosmic-feature-list li > span { color: #b9a5f0; }
+          .cosmic-mem-more {
+            margin-top: auto;
+            border-top: 1px solid rgba(154,126,230,0.22);
+            padding-top: 6px;
+          }
+          .cosmic-mem-more summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            color: #cfc0f4;
+            font-family: "Newsreader", Georgia, serif;
+            font-style: italic;
+            font-size: 1.02rem;
+          }
+          .cosmic-mem-more summary::-webkit-details-marker { display: none; }
+          .cosmic-mem-more summary::after {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-right: 1.4px solid #9b8fd0;
+            border-bottom: 1.4px solid #9b8fd0;
+            transform: rotate(45deg) translateY(-2px);
+            transition: transform 200ms ease;
+          }
+          .cosmic-mem-more[open] summary::after { transform: rotate(225deg) translateY(-2px); }
+          .cosmic-mem-more-body { padding: 4px 0 8px; }
+          .cosmic-mem-more-body > p {
+            margin: 0 0 12px;
+            text-align: center;
+            color: #c8c8d2;
+            font-family: "Newsreader", Georgia, serif;
+            font-style: italic;
+            font-size: 0.98rem;
+          }
+          .cosmic-mem-more-count {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+          }
+          .cosmic-mem-more-count button {
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(154,126,230,0.38);
+            border-radius: 999px;
+            background: rgba(237,233,247,0.06);
+            color: #ffffff;
+            font: 500 20px/1 "Newsreader", Georgia, serif;
+          }
+          .cosmic-mem-more-count button:disabled { opacity: 0.35; }
+          .cosmic-mem-more-count b {
+            color: #ffffff;
+            font-family: "Newsreader", Georgia, serif;
+            font-weight: 500;
+            font-size: 1.08rem;
+          }
+          .cosmic-mem-assure {
+            margin: 18px auto 0;
+            max-width: 420px;
+            text-align: center;
+            color: #cfc0f4;
+            font-family: "Newsreader", Georgia, serif;
+            font-style: italic;
+            font-size: 1.04rem;
+            line-height: 1.6;
+          }
+          .cosmic-mem-review {
+            margin: 18px auto 0;
+            max-width: 420px;
+            width: 100%;
+            padding: 20px 22px;
+            border-radius: 12px;
+            border: 1px solid rgba(154,126,230,0.28);
+            background: linear-gradient(180deg, rgba(28,22,38,0.55), rgba(5,4,7,0.32));
+          }
+          .cosmic-mem-review-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+          }
+          .cosmic-mem-review-ph {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          }
+          .cosmic-mem-review-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+          .cosmic-mem-stars { display: flex; gap: 3px; }
+          .cosmic-mem-stars svg { width: 13px; height: 13px; fill: #b9a5f0; display: block; }
+          .cosmic-mem-review blockquote {
+            margin: 0;
+            color: #d9d3e6;
+            font-family: "Newsreader", Georgia, serif;
+            font-style: italic;
+            font-size: 1rem;
+            line-height: 1.62;
+          }
+          .cosmic-mem-review blockquote::before { content: "\\201C"; }
+          .cosmic-mem-review blockquote::after { content: "\\201D"; }
+          .cosmic-mem-review figcaption {
+            margin-top: 10px;
+            color: #9b8fd0;
+            font-family: "Newsreader", Georgia, serif;
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .cosmic-mem-more summary::after { transition: none !important; }
+          }
           .cosmic-order-panel {
             align-self: start;
             position: sticky;
@@ -1676,12 +1851,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               /* Memorial path: the classic header strings, verbatim. One
                  tier, no was-price, no multi-pet strip, no urgency. */
               <>
-                <p className="cosmic-checkout-kicker" style={{ fontStyle: "italic" }}>
+                <p className="cosmic-checkout-kicker cosmic-mem-kicker" style={{ fontStyle: "italic" }}>
                   A Reading for Their Memory
                 </p>
                 <p
-                  className="cosmic-checkout-body"
-                  style={{ fontStyle: "italic", fontSize: "0.95rem", marginTop: 0, opacity: 0.85 }}
+                  className="cosmic-checkout-body cosmic-mem-lede"
+                  style={{ fontStyle: "italic", fontSize: "1.02rem", marginTop: 0, opacity: 0.9 }}
                 >
                   A keepsake for the space they left, written reverently,
                   to be felt, not skimmed.
@@ -1689,6 +1864,26 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 <div className="cosmic-tier-grid" style={{ gridTemplateColumns: "1fr", maxWidth: 420, marginInline: "auto", width: "100%" }}>
                   {renderCosmicTier(TIERS.find((t) => t.id === "memorial")!, "memorial")}
                 </div>
+                <p className="cosmic-mem-assure">
+                  No hurry on this. Their sky was set the day they were born,
+                  and it will be here whenever you are ready.
+                </p>
+                <figure className="cosmic-mem-review">
+                  <div className="cosmic-mem-review-top">
+                    <span className="cosmic-mem-review-ph">
+                      <img src={REVIEWS.grief.img} alt={REVIEWS.grief.alt} width={128} height={128} loading="lazy" decoding="async" />
+                    </span>
+                    <div className="cosmic-mem-stars" role="img" aria-label="Five out of five stars">
+                      {[0, 1, 2, 3, 4].map((s) => (
+                        <svg key={s} viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
+                        </svg>
+                      ))}
+                    </div>
+                  </div>
+                  <blockquote>{REVIEWS.grief.quote}</blockquote>
+                  <figcaption>{REVIEWS.grief.attr}</figcaption>
+                </figure>
               </>
             ) : (
               <>

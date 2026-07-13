@@ -183,14 +183,15 @@ const LCB_CSS = `
 .lcb-beats{position:relative;z-index:2;perspective:1100px;pointer-events:none}
 .lcb-scene{position:relative;display:flex;flex-direction:column;align-items:center;
   padding-inline:clamp(24px,7vw,80px);text-align:center;gap:clamp(13px,2.4vw,20px)}
-.lcb-scene + .lcb-scene{margin-top:clamp(52px,11svh,120px)}
-.lcb-open{min-height:50svh;justify-content:center;overflow:hidden;
+.lcb-scene + .lcb-scene{margin-top:clamp(34px,6.5svh,72px)}
+.lcb-open{min-height:44svh;justify-content:center;overflow:hidden;
   padding-top:clamp(30px,8svh,90px);padding-bottom:clamp(10px,2svh,24px)}
-.lcb-scene.lcb-payoff{padding-bottom:clamp(44px,8svh,76px)}
-/* memorial: the same passage in a lower, slower voice - longer breaths */
+.lcb-scene.lcb-payoff{padding-bottom:clamp(30px,5svh,54px)}
+/* memorial: the same passage in a lower, slower voice - a longer breath, but
+   the next line always ghosts into the bottom of the viewport (no dead dark) */
 .lcb-memorial{margin-top:-2svh}
-.lcb-memorial .lcb-open{min-height:58svh}
-.lcb-memorial .lcb-scene + .lcb-scene{margin-top:clamp(68px,15svh,160px)}
+.lcb-memorial .lcb-open{min-height:48svh}
+.lcb-memorial .lcb-scene + .lcb-scene{margin-top:clamp(44px,9svh,100px)}
 
 /* type: Fraunces display + Newsreader body. Every line rises out of an
    overflow:hidden mask. Body stays solid #d8d0c1 weight 400 - no blur. */
@@ -257,7 +258,7 @@ const LCB_CSS = `
 .lcb-gap-block{position:relative;width:100%;max-width:660px;display:flex;flex-direction:column;text-align:left}
 .lcb-gap-block .lcb-pivot-lead{margin:0;text-align:left;max-width:20ch}
 .lcb-qrows{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;
-  gap:clamp(10px,1.8svh,18px);margin-top:clamp(30px,7svh,64px);text-align:right}
+  gap:clamp(10px,1.8svh,18px);margin-top:clamp(22px,4.5svh,44px);text-align:right}
 .lcb-qrow{display:flex;align-items:center;gap:clamp(10px,1.6vw,14px)}
 .lcb-qrow .lcb-beat{margin:0;max-width:26ch}
 .lcb-voidstar{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;opacity:.5;

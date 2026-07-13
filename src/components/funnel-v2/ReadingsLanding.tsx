@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, AudioLines, BookOpen, Camera, ChevronDown, Feather, Heart, Mail, Volume2 } from "lucide-react";
+import { ArrowRight, AudioLines, ChevronDown, Feather, Heart, Mail, Orbit, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -407,9 +407,7 @@ export function ReadingsLanding() {
       {revealed && (
         <>
           <FullReadingOpens />
-          <KeepsakeMoment />
           <ValueMoments />
-          <AfterTheirReading />
           <ReviewsWall />
           <CheckoutSection
             checkoutRef={checkoutRef}
@@ -1762,6 +1760,12 @@ type FreePlanet = {
   frame: string;
   lines: string[];
   hook: string[];
+  /* Memorial register: the same moments in remembered tense. Habits move to
+     the past they lived in; essence stays present (continuing bonds). The
+     discovery wording above is approved and never changes. */
+  memFrame?: string;
+  memLines?: string[];
+  memHook?: string[];
   glow: string;
   photo: string;
   alt: string;
@@ -1781,8 +1785,17 @@ const FREE_PLANETS: FreePlanet[] = [
       "It is the thing they do the second the door opens,",
       "every single time, like you had been gone a year.",
     ],
-    glow: "#f2ecff",
-    photo: "/readings/sun/sun-opt1.png?v=3",
+    memFrame: "Who they were, all the way down.",
+    memLines: [
+      "This is the part of them that was never taught and never trained.",
+      "The one that showed up whether the day was good or bad.",
+    ],
+    memHook: [
+      "It was the first thing they did, every single time,",
+      "like you had been gone a year.",
+    ],
+    glow: "#f0d9a6",
+    photo: "/readings/sun/sun-amber.png?v=1",
     alt: "The real Sun",
   },
   {
@@ -1798,6 +1811,16 @@ const FREE_PLANETS: FreePlanet[] = [
     hook: [
       "It is why, when it has all been too much,",
       "they end up in the one spot that still holds your warmth.",
+    ],
+    memFrame: "How they felt, and what settled them.",
+    memLines: [
+      "This is the part that came out when the house went quiet.",
+      "What they needed to feel safe.",
+      "What they reached for when the day had been too much.",
+    ],
+    memHook: [
+      "It is why, when it had all been too much,",
+      "they found the one spot that still held your warmth.",
     ],
     glow: "#d8d3ec",
     photo: NASA_IMG.moon,
@@ -1816,6 +1839,16 @@ const FREE_PLANETS: FreePlanet[] = [
     hook: [
       "It is the version of them everyone else describes,",
       "and the version only you get to see underneath.",
+    ],
+    memFrame: "The first face they showed the world.",
+    memLines: [
+      "This is what a room met before it met the rest of them.",
+      "The front door, not the whole house.",
+      "How they met a stranger, and how long it took to see the real one.",
+    ],
+    memHook: [
+      "It was the version of them everyone else described,",
+      "and the one only you ever saw underneath.",
     ],
     glow: "#a78bfa",
     photo: NASA_IMG.earth,
@@ -2027,8 +2060,16 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         <p className="ls-fr-open-hero ls-fr-rv">Here they are.</p>
         <p className="ls-fr-open-sub ls-fr-rv" style={revealDelay(0.06)}>The whole of them, mapped to the sky the day they arrived.</p>
         <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.12)}>You already know some of this.</p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.18)}>You know the exact thing that makes them lose their mind with joy.</p>
-        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.24)}>You know the weight of them when they finally fall asleep on you.</p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.18)}>
+          {memorial
+            ? "You knew the exact thing that made them lose their mind with joy."
+            : "You know the exact thing that makes them lose their mind with joy."}
+        </p>
+        <p className="ls-fr-open-body ls-fr-rv" style={revealDelay(0.24)}>
+          {memorial
+            ? "You still know the weight of them when they finally fell asleep on you."
+            : "You know the weight of them when they finally fall asleep on you."}
+        </p>
         <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.3)}>You have felt who they are for a long time.</p>
         <p className="ls-fr-open-turn ls-fr-rv" style={revealDelay(0.36)}>This is where it gets its name.</p>
       </div>
@@ -2040,6 +2081,11 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         const deg = typeof body?.degree === "number" ? `${Math.round(body.degree)}` : "";
         const signLine = p.key === "rising" ? "" : ((sign && SIGN_LINES[p.key]?.[sign]) || JOURNEY_LINES[p.key] || PLANET_META[p.key]?.line || "");
         const signBeats = splitBeats(signLine);
+        // Memorial register: remembered tense for lived habits, essence stays
+        // present. Discovery keeps the approved wording untouched.
+        const frame = memorial && p.memFrame ? p.memFrame : p.frame;
+        const lines = memorial && p.memLines ? p.memLines : p.lines;
+        const hook = memorial && p.memHook ? p.memHook : p.hook;
         return (
           <div key={p.key} className="ls-fr-world">
             <section className={`ls-fr-planet is-${p.key}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
@@ -2064,9 +2110,9 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
                   </span>
                 )}
               </div>
-              <p className="ls-fr-frame ls-fr-rv" style={revealDelay(0.14)}>{p.frame}</p>
+              <p className="ls-fr-frame ls-fr-rv" style={revealDelay(0.14)}>{frame}</p>
               <div className="ls-fr-lines">
-                {p.lines.map((ln, i) => (
+                {lines.map((ln, i) => (
                   <p key={i} className="ls-fr-ln ls-fr-rv" style={revealDelay(0.16 + i * 0.09)}>{ln}</p>
                 ))}
               </div>
@@ -2093,7 +2139,7 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
                 </div>
               )}
               <div className="ls-fr-hookband">
-                {p.hook.map((h, i) => (
+                {hook.map((h, i) => (
                   <p key={i} className="ls-fr-hook ls-fr-rv" style={revealDelay(0.1 + i * 0.09)}>{h}</p>
                 ))}
               </div>
@@ -2205,8 +2251,8 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         /* The Sun: a real star, no night side, alive by breath and a slow shine.
            Its corona reads as starlight (white/violet), never a gold UI tint. */
         .ls-fr-sun { position: relative; z-index: 2; display: grid; place-items: center; width: clamp(210px, 60vw, 300px); height: clamp(210px, 60vw, 300px); animation: lsFrBreatheDisc 8s ease-in-out infinite; animation-play-state: paused; }
-        .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(216,203,255,0.36)); }
-        .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,255,255,0.46) 0%, rgba(216,203,255,0.15) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
+        .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(242,194,94,0.32)); }
+        .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,255,255,0.46) 0%, rgba(250,220,150,0.16) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrShine { 0%, 100% { transform: translate(-4%, -3%) scale(1); opacity: 0.4; } 50% { transform: translate(5%, 4%) scale(1.08); opacity: 0.68; } }
 
         /* SUSPENSE: each world arrives dim, then lights as you reach it. */
@@ -2241,7 +2287,7 @@ function FreeReveal({ chart, reduce, petName, onLead }: { chart: PetBirthChart; 
         .ls-fr-hook { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
 
         /* A breath of dark between planets: one faint star holds the quiet. */
-        .ls-fr-breath { position: relative; height: clamp(90px, 22svh, 220px); }
+        .ls-fr-breath { position: relative; height: clamp(56px, 12svh, 120px); }
         .ls-fr-breath i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: rgba(185,165,240,0.55); box-shadow: 0 0 12px 3px rgba(154,126,230,0.28); animation: lsFrTwinkle 5.5s ease-in-out infinite; }
         @keyframes lsFrTwinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
 
@@ -3194,42 +3240,51 @@ interface RestBody {
   kind: RestKind;
   place: { pre: string; em: string; post: string };
   hook: string;
+  /* Memorial register: the same trait remembered, not presently performed. */
+  memHook?: string;
 }
 const REST_SKY: RestBody[] = [
   {
     key: "mercury", name: "Mercury", img: NASA_IMG.mercury, glow: "#c3b39a", kind: "rocky",
     place: { pre: "How they read ", em: "you", post: "" },
     hook: "How they take you in. The signals they catch before words, and the way they answer back.",
+    memHook: "How they took you in. The signals they caught before words, and the way they answered back.",
   },
   {
     key: "venus", name: "Venus", img: NASA_IMG.venus, glow: "#e6bd7a", kind: "gas",
     place: { pre: "How they ", em: "love", post: "" },
     hook: "Their language of affection. What they give once they trust you, and how they long for it returned.",
+    memHook: "Their language of affection. What they gave once they trusted you, and how they longed for it returned.",
   },
   {
     key: "mars", name: "Mars", img: NASA_IMG.mars, glow: "#d1785a", kind: "rocky",
     place: { pre: "What they ", em: "chase", post: "" },
     hook: "The drive underneath the stillness. What they pursue, what they defend, what they will not drop.",
+    memHook: "The drive underneath the stillness. What they pursued, what they defended, what they would not drop.",
   },
   {
     key: "jupiter", name: "Jupiter", img: NASA_IMG.jupiter, glow: "#e0a86a", kind: "gas",
     place: { pre: "Where their joy runs ", em: "biggest", post: "" },
     hook: "Where they overflow. The one place their delight has no ceiling and no shame.",
+    memHook: "Where they overflowed. The one place their delight had no ceiling and no shame.",
   },
   {
     key: "saturn", name: "Saturn", img: NASA_IMG.saturn, glow: "#e6cf9a", kind: "gas",
     place: { pre: "What ", em: "steadies", post: " them" },
     hook: "Their quiet backbone. The structure that keeps them sure of themselves when everything else moves.",
+    memHook: "Their quiet backbone. The structure that kept them sure of themselves when everything else moved.",
   },
   {
     key: "uranus", name: "Uranus", img: NASA_IMG.uranus, glow: "#9fd8e0", kind: "ice",
     place: { pre: "The streak nothing ", em: "tames", post: "" },
     hook: "The wild note in them. The part no routine will ever fully settle, and you would not want it to.",
+    memHook: "The wild note in them. The part no routine ever fully settled, and you never wanted it to.",
   },
   {
     key: "neptune", name: "Neptune", img: NASA_IMG.neptune, glow: "#6f8fe8", kind: "ice",
     place: { pre: "What they sense ", em: "first", post: "" },
     hook: "Their sixth sense. What they feel move through a room long before it ever reaches you.",
+    memHook: "Their sixth sense. What they felt move through a room long before it ever reached you.",
   },
   {
     key: "pluto", name: "Pluto", img: NASA_IMG.pluto, glow: "#c09080", kind: "rocky",
@@ -3240,6 +3295,7 @@ const REST_SKY: RestBody[] = [
     key: "chiron", name: "Chiron", img: NASA_IMG.chiron, glow: "#9bb8cc", kind: "ice",
     place: { pre: "The wound that became a ", em: "gift", post: "" },
     hook: "The old ache turned into tenderness. What they quietly heal in you, just by being near.",
+    memHook: "The old ache turned into tenderness. What they quietly healed in you, just by being near.",
   },
 ];
 
@@ -3410,7 +3466,7 @@ function FullReadingOpens() {
                 <h3 className="ls-rs-placement">
                   {body.place.pre}<em>{body.place.em}</em>{body.place.post}
                 </h3>
-                <p className="ls-rs-hook">{body.hook}</p>
+                <p className="ls-rs-hook">{memorial && body.memHook ? body.memHook : body.hook}</p>
                 {!memorial && <div className="ls-rs-seal"><RestLock />Sealed in the full reading</div>}
               </div>
             </article>
@@ -3427,7 +3483,6 @@ function FullReadingOpens() {
               Open the full reading
               <ChevronDown size={20} strokeWidth={1.6} />
             </button>
-            <p className="ls-rs-close-pull">And it arrives as something you keep. Here is what that looks like.</p>
           </div>
         )}
       </div>
@@ -3591,7 +3646,6 @@ function FullReadingOpens() {
         @keyframes lsRsNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
         .ls-rs-close-title { margin: 0 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.06; letter-spacing: -0.015em; }
         .ls-rs-close-line { margin: 0 auto; max-width: 42ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.02rem, 2.5vw, 1.18rem); line-height: 1.55; }
-        .ls-rs-close-pull { margin: clamp(18px, 3.4vw, 28px) auto 0; max-width: 36ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.16rem); line-height: 1.5; }
 
         /* reveal - opacity + rise on mobile, blur added on desktop */
         .ls-rs-rv { opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1); transition-delay: var(--ls-delay, 0s); will-change: opacity, transform; }
@@ -3636,243 +3690,28 @@ function FullReadingOpens() {
   );
 }
 
-// ── The keepsake moment ───────────────────────────────────────────────────────
-// Ported from the approved keepsake preview: one light keepsake card with a real
-// pet portrait held at its heart, rotating through seven very different souls so
-// every visitor sees a shape like their own. The gold cue names the promise
-// ("their photo goes here") and the turn beneath makes it personal. Discovery
-// path only — the memorial path keeps its hush, no keepsake rung, no upsell.
-// Portraits are served first-party (copied from the approved content set) so the
-// strict img-src CSP never blocks them and the card paints from our own edge.
-const KEEPSAKE_BASE = "/pets/";
-const KEEPSAKE_V = "";
-interface KeepsakePet { name: string; kind: string; img: string; born: string; line: string }
-const KEEPSAKE_PETS: KeepsakePet[] = [
-  { name: "Poppy", kind: "a cockapoo", img: "pet-cockapoo.webp", born: "Born 2 May 2021", line: "Here to remind you that joy is allowed today." },
-  { name: "Bruno", kind: "a French bulldog", img: "pet-frenchie.webp", born: "Born 19 September 2020", line: "A small king who chose you as his own." },
-  { name: "Marmalade", kind: "a tabby cat", img: "pet-tabby.webp", born: "Born 7 June 2019", line: "The quiet keeper of every mood you own." },
-  { name: "Luna", kind: "a black cat", img: "pet-blackcat.webp", born: "Born 31 October 2018", line: "All her secrets, and all her heart, given to you." },
-  { name: "Sunny", kind: "a golden retriever", img: "pet-golden.webp", born: "Born 11 April 2020", line: "Here to love the whole world, starting with you." },
-  { name: "Frankie", kind: "a miniature dachshund", img: "pet-dachshund.webp", born: "Born 25 January 2022", line: "Your self-appointed guardian since day one." },
-  { name: "Clover", kind: "a lop rabbit", img: "pet-rabbit.webp", born: "Born 3 March 2021", line: "A gentle soul who made you her safest place." },
-];
-
-function KeepsakeFlourish({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 40 40" fill="none" aria-hidden="true">
-      <path d="M3 22 L3 8 Q3 3 8 3 L22 3" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M9 22 L9 13 Q9 9 13 9 L22 9" stroke="currentColor" strokeWidth="0.9" opacity="0.5" />
-      <rect x="2" y="2" width="4.6" height="4.6" transform="rotate(45 4.3 4.3)" fill="currentColor" />
-    </svg>
-  );
-}
-
-function KeepsakeMoment() {
-  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
-  useEffect(() => {
-    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
-    window.addEventListener(INTENT_EVENT, onIntent);
-    return () => window.removeEventListener(INTENT_EVENT, onIntent);
-  }, []);
-
-  const reduce = useReducedMotion() ?? false;
-  const rootRef = useRef<HTMLElement>(null);
-  const [idx, setIdx] = useState(0);
-  const [swap, setSwap] = useState(false);
-  const [live, setLive] = useState(false);
-  const [manualAt, setManualAt] = useState(0);
-  const idxRef = useRef(0);
-  idxRef.current = idx;
-  const swapTimer = useRef<number | null>(null);
-
-  // Preload every portrait once so the rotation never flashes.
-  useEffect(() => {
-    KEEPSAKE_PETS.forEach((p) => {
-      const im = new Image();
-      im.src = KEEPSAKE_BASE + p.img + KEEPSAKE_V;
-    });
-  }, []);
-
-  // Auto-rotate only while the card is actually on screen.
-  useEffect(() => {
-    const el = rootRef.current;
-    if (!el || typeof window === "undefined") return;
-    if (!("IntersectionObserver" in window)) {
-      setLive(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => setLive(entry.isIntersecting)),
-      { threshold: 0.2 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [memorialIntent]);
-
-  const go = useCallback(
-    (next: number) => {
-      const n = ((next % KEEPSAKE_PETS.length) + KEEPSAKE_PETS.length) % KEEPSAKE_PETS.length;
-      if (n === idxRef.current) return;
-      if (reduce) {
-        setIdx(n);
-        return;
-      }
-      setSwap(true);
-      if (swapTimer.current) window.clearTimeout(swapTimer.current);
-      swapTimer.current = window.setTimeout(() => {
-        setIdx(n);
-        requestAnimationFrame(() => setSwap(false));
-      }, 420);
-    },
-    [reduce],
-  );
-  useEffect(() => () => { if (swapTimer.current) window.clearTimeout(swapTimer.current); }, []);
-
-  useEffect(() => {
-    if (reduce || !live || memorialIntent) return;
-    const t = window.setInterval(() => go(idxRef.current + 1), 6200);
-    return () => window.clearInterval(t);
-  }, [reduce, live, memorialIntent, manualAt, go]);
-
-  if (memorialIntent) return null;
-  const pet = KEEPSAKE_PETS[idx];
-
-  return (
-    <section ref={rootRef} className="ls-kp ls-parallax-band" aria-labelledby="ls-kp-title">
-      <div className="ls-kp-inner">
-        <header className="ls-kp-head ls-reveal">
-          <p className="ls-kp-kicker">A Little Souls keepsake</p>
-          <h2 id="ls-kp-title" className="ls-kp-eyebrow">
-            Everything that makes them who they are, <b>kept in one place</b>. For a soul of any shape.
-          </h2>
-        </header>
-
-        <article className="ls-kp-card ls-reveal" style={revealDelay(0.06)} aria-live="polite">
-          <KeepsakeFlourish className="ls-kp-fl is-tl" />
-          <KeepsakeFlourish className="ls-kp-fl is-tr" />
-          <KeepsakeFlourish className="ls-kp-fl is-bl" />
-          <KeepsakeFlourish className="ls-kp-fl is-br" />
-          <div className={`ls-kp-stage${swap ? " is-swap" : ""}`}>
-            <div className="ls-kp-frame">
-              <span className="ls-kp-halo" aria-hidden="true" />
-              <span className="ls-kp-ring" aria-hidden="true" />
-              <img
-                className="ls-kp-photo"
-                src={KEEPSAKE_BASE + pet.img + KEEPSAKE_V}
-                alt={`${pet.name}, ${pet.kind}, in a candid home photo`}
-                width={340}
-                height={425}
-              />
-              <span className="ls-kp-cue" aria-hidden="true">Their photo goes here</span>
-            </div>
-            <p className="ls-kp-name">{pet.name}</p>
-            <p className="ls-kp-born"><i aria-hidden="true" />{pet.born}<i aria-hidden="true" /></p>
-            <div className="ls-kp-divider" aria-hidden="true">
-              <span className="l" />
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 1l2.4 7.2L22 12l-7.6 3.8L12 23l-2.4-7.2L2 12l7.6-3.8z" fill="currentColor" /></svg>
-              <span className="l is-r" />
-            </div>
-            <p className="ls-kp-line">{pet.line}</p>
-          </div>
-        </article>
-
-        <div className="ls-kp-switch ls-reveal" style={revealDelay(0.12)}>
-          <p className="ls-kp-switch-lead">Tap a soul to meet them</p>
-          <div className="ls-kp-thumbs" role="tablist" aria-label="Choose an animal">
-            {KEEPSAKE_PETS.map((p, i) => (
-              <button
-                key={p.name}
-                type="button"
-                role="tab"
-                aria-selected={i === idx}
-                aria-label={`Show ${p.name}, ${p.kind}`}
-                className="ls-kp-thumb"
-                onClick={() => {
-                  go(i);
-                  setManualAt(Date.now());
-                }}
-              >
-                <img src={KEEPSAKE_BASE + p.img + KEEPSAKE_V} alt="" aria-hidden="true" width={48} height={48} loading="lazy" />
-              </button>
-            ))}
-          </div>
-          <p className="ls-kp-switch-note">Cockapoo, house cat, or lop rabbit. It reads whoever they are.</p>
-        </div>
-
-        <div className="ls-kp-turn ls-reveal" style={revealDelay(0.16)}>
-          <span className="ls-kp-turn-cue"><Camera size={15} strokeWidth={1.6} aria-hidden="true" /> Your keepsake</span>
-          <p className="ls-kp-turn-main">Yours will look like this, with their face at the very centre, kept for as long as you want to hold on to them.</p>
-          <p className="ls-kp-turn-sub">Their photo goes to the heart of it.</p>
-          <p className="ls-kp-pull">And the card is only the outside. What lives inside keeps speaking.</p>
-        </div>
-      </div>
-      <style>{`
-        .ls-kp { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(38px, 6svh, 88px) 20px clamp(28px, 5svh, 66px); }
-        .ls-kp-inner { position: relative; max-width: 680px; margin: 0 auto; }
-        .ls-kp-head { text-align: center; margin: 0 auto clamp(24px, 4vw, 36px); }
-        .ls-kp-kicker { margin: 0 0 14px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; }
-        .ls-kp-eyebrow { margin: 0 auto; max-width: 30ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: clamp(1.06rem, 3.4vw, 1.3rem); line-height: 1.5; }
-        .ls-kp-eyebrow b { color: ${C.violetBright}; font-style: normal; font-weight: 600; }
-
-        /* the keepsake card - a dark violet artifact lifted off the cosmos */
-        .ls-kp-card { position: relative; margin: 0 auto; padding: clamp(28px, 7vw, 52px) clamp(20px, 6vw, 48px) clamp(34px, 7vw, 54px); border-radius: 22px; background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%); border: 1px solid rgba(154,126,230,0.45); box-shadow: inset 0 1px 0 rgba(185,165,240,0.16), 0 34px 84px -32px rgba(0,0,0,0.9), 0 0 120px -42px rgba(124,92,214,0.5); overflow: hidden; }
-        .ls-kp-card::before { content: ""; position: absolute; inset: 10px; border-radius: 15px; border: 1px solid rgba(154,126,230,0.35); pointer-events: none; }
-        .ls-kp-card::after { content: ""; position: absolute; inset: 15px; border-radius: 12px; border: 1px solid rgba(154,126,230,0.13); pointer-events: none; }
-        .ls-kp-fl { position: absolute; width: 30px; height: 30px; color: ${C.violetSoft}; opacity: 0.6; pointer-events: none; }
-        .ls-kp-fl.is-tl { top: 17px; left: 17px; }
-        .ls-kp-fl.is-tr { top: 17px; right: 17px; transform: scaleX(-1); }
-        .ls-kp-fl.is-bl { bottom: 17px; left: 17px; transform: scaleY(-1); }
-        .ls-kp-fl.is-br { bottom: 17px; right: 17px; transform: scale(-1, -1); }
-
-        .ls-kp-stage { transition: opacity 0.45s ease; will-change: opacity; }
-        .ls-kp-stage.is-swap { opacity: 0; }
-
-        .ls-kp-frame { position: relative; width: clamp(228px, 72vw, 348px); aspect-ratio: 1 / 1.08; margin: 6px auto 12px; }
-        .ls-kp-halo { position: absolute; inset: -12%; border-radius: 32px; background: radial-gradient(circle at 50% 40%, rgba(124,92,214,0.4), transparent 70%); filter: blur(12px); }
-        .ls-kp-ring { position: absolute; inset: 0; border-radius: 24px; background: linear-gradient(150deg, #5d47a0, #b9a5f0 30%, #7c5cd6 55%, #b9a5f0 78%, #5d47a0); box-shadow: 0 0 0 1px rgba(43,29,78,0.5), 0 22px 50px -22px rgba(6,3,14,0.65); }
-        .ls-kp-photo { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border-radius: 19px; object-fit: cover; object-position: center; display: block; }
-        .ls-kp-cue { position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); font-family: "Newsreader", Georgia, serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; color: #ffffff; background: linear-gradient(180deg, #8f6de0, #6a4cc4); padding: 6px 12px; border-radius: 20px; white-space: nowrap; box-shadow: 0 6px 16px -6px rgba(0,0,0,0.55), 0 0 0 3px rgba(22,17,30,0.95); }
-
-        .ls-kp-name { margin: 26px 0 0; text-align: center; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: clamp(2.6rem, 11vw, 4.3rem); line-height: 0.96; letter-spacing: -0.01em; }
-        .ls-kp-born { margin: 13px 0 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
-        .ls-kp-born i { display: inline-block; width: 5px; height: 5px; transform: rotate(45deg); background: ${C.violetSoft}; opacity: 0.7; }
-        .ls-kp-divider { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 22px auto 0; max-width: 300px; color: ${C.violetSoft}; }
-        .ls-kp-divider .l { height: 1px; flex: 1; background: linear-gradient(90deg, transparent, rgba(154,126,230,0.5)); }
-        .ls-kp-divider .l.is-r { background: linear-gradient(90deg, rgba(154,126,230,0.5), transparent); }
-        .ls-kp-divider svg { width: 15px; height: 15px; opacity: 0.85; }
-        .ls-kp-line { margin: 16px auto 0; max-width: 28ch; min-height: 3em; text-align: center; text-wrap: balance; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.1rem, 4.4vw, 1.34rem); line-height: 1.5; }
-
-        .ls-kp-switch { margin: 24px auto 0; text-align: center; }
-        .ls-kp-switch-lead { margin: 0 0 14px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; }
-        .ls-kp-thumbs { display: flex; justify-content: center; align-items: center; gap: 9px; overflow-x: auto; padding: 4px 6px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .ls-kp-thumbs::-webkit-scrollbar { display: none; }
-        .ls-kp-thumb { flex: 0 0 auto; width: 48px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 50%; position: relative; opacity: 0.5; transition: opacity 0.3s ease, transform 0.3s ease; -webkit-tap-highlight-color: transparent; }
-        .ls-kp-thumb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); }
-        .ls-kp-thumb::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid transparent; transition: border-color 0.3s ease; }
-        .ls-kp-thumb[aria-selected="true"] { opacity: 1; transform: translateY(-2px); }
-        .ls-kp-thumb[aria-selected="true"]::after { border-color: ${C.violetSoft}; box-shadow: 0 0 18px -4px rgba(185,165,240,0.6); }
-        .ls-kp-thumb:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
-        .ls-kp-switch-note { margin: 6px auto 0; max-width: 34ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.95rem; line-height: 1.5; }
-
-        .ls-kp-turn { max-width: 34ch; margin: clamp(28px, 6vw, 44px) auto 0; text-align: center; }
-        .ls-kp-turn-cue { display: inline-flex; align-items: center; gap: 9px; margin-bottom: 14px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
-        .ls-kp-turn-main { margin: 0; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 4.4vw, 1.32rem); line-height: 1.55; }
-        .ls-kp-turn-sub { margin: 12px 0 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.98rem; line-height: 1.5; }
-        .ls-kp-pull { margin: clamp(18px, 3.4vw, 26px) auto 0; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
-
-        @media (prefers-reduced-motion: reduce) {
-          .ls-kp-stage, .ls-kp-thumb, .ls-kp-thumb::after { transition: none !important; }
-        }
-      `}</style>
-    </section>
-  );
-}
-
-// ── The three value moments ───────────────────────────────────────────────────
-// What keeps giving after the reading opens: SoulSpeak, the Monthly Horoscope
-// and the Full Synthesis, each carried by its locked library icon (lucide-react,
-// one consistent stroke). Discovery path only.
-const VALUE_MOMENTS = [
+// ── The one value screen ──────────────────────────────────────────────────────
+// Everything the full reading holds, said once: the thirteen placements, the
+// keepsake with their photo, SoulSpeak and the monthly horoscope. One concrete
+// tile each, then straight to the reviews. This single screen replaced the old
+// keepsake rung, the three value moments and the After-Their-Reading grid: the
+// post-peak stretch was repeating its promise three screens in a row.
+// Discovery path only — the memorial path keeps its hush.
+const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; Icon?: typeof AudioLines; photo?: string }[] = [
+  {
+    key: "placements",
+    label: "Thirteen placements",
+    name: "All thirteen, read in full.",
+    line: "The ten still dark on the wheel, every one of them opened and read.",
+    Icon: Orbit,
+  },
+  {
+    key: "keepsake",
+    label: "The keepsake",
+    name: "Their face at the very centre.",
+    line: "Made with their photo, kept for as long as you want to hold on to them.",
+    photo: "/pets/pet-cockapoo.webp",
+  },
   {
     key: "soulspeak",
     label: "SoulSpeak",
@@ -3887,14 +3726,7 @@ const VALUE_MOMENTS = [
     line: "Each month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
     Icon: Mail,
   },
-  {
-    key: "synthesis",
-    label: "The Full Synthesis",
-    name: "All of them, woven into one.",
-    line: "Every planet, every trait, drawn together into the single true portrait of who they are.",
-    Icon: BookOpen,
-  },
-] as const;
+];
 
 function ValueMoments() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
@@ -3909,13 +3741,19 @@ function ValueMoments() {
     <section className="ls-vm ls-parallax-band" aria-labelledby="ls-vm-title">
       <div className="ls-vm-inner">
         <header className="ls-vm-head ls-reveal">
-          <p className="ls-vm-eyebrow">And it keeps giving them back</p>
-          <h2 id="ls-vm-title" className="ls-vm-title">Long after the reading, they are still here.</h2>
+          <p className="ls-vm-eyebrow">Inside the full reading</p>
+          <h2 id="ls-vm-title" className="ls-vm-title">Everything that makes them who they are, kept in one place.</h2>
         </header>
         <div className="ls-vm-grid">
-          {VALUE_MOMENTS.map(({ key, label, name, line, Icon }, i) => (
+          {VALUE_MOMENTS.map(({ key, label, name, line, Icon, photo }, i) => (
             <article key={key} className="ls-vm-card ls-reveal" style={revealDelay(0.06 + i * 0.08)}>
-              <span className="ls-vm-motif" aria-hidden="true"><Icon size={30} strokeWidth={1.5} /></span>
+              <span className="ls-vm-motif" aria-hidden="true">
+                {photo ? (
+                  <img className="ls-vm-photo" src={photo} alt="" width={64} height={64} loading="lazy" decoding="async" />
+                ) : Icon ? (
+                  <Icon size={30} strokeWidth={1.5} />
+                ) : null}
+              </span>
               <div className="ls-vm-copy">
                 <span className="ls-vm-label">{label}</span>
                 <h3 className="ls-vm-name">{name}</h3>
@@ -3924,19 +3762,20 @@ function ValueMoments() {
             </article>
           ))}
         </div>
-        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.3)}>That is what stays. Here is what changes from the first read.</p>
+        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.38)}>The people below opened one. They say it best.</p>
       </div>
       <style>{`
         .ls-vm { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(28px, 5svh, 66px) 20px clamp(32px, 5svh, 72px); }
         .ls-vm-inner { max-width: 660px; margin: 0 auto; }
         .ls-vm-head { text-align: center; margin: 0 auto clamp(26px, 5vw, 44px); }
         .ls-vm-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
-        .ls-vm-title { margin: 0 auto; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.8rem, 5.6vw, 2.7rem); line-height: 1.08; letter-spacing: -0.016em; }
+        .ls-vm-title { margin: 0 auto; max-width: 24ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5.4vw, 2.5rem); line-height: 1.1; letter-spacing: -0.016em; }
         .ls-vm-grid { display: flex; flex-direction: column; gap: clamp(16px, 3vw, 24px); }
         .ls-vm-card { position: relative; display: flex; align-items: center; gap: clamp(18px, 4vw, 28px); padding: clamp(22px, 4.6vw, 30px) clamp(20px, 4.6vw, 32px); border-radius: 18px; background: radial-gradient(120% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 60%), linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.32); }
         .ls-vm-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; background: linear-gradient(165deg, rgba(154,126,230,0.32) 0%, rgba(154,126,230,0.14) 46%, rgba(154,126,230,0.26) 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-        .ls-vm-motif { flex: 0 0 auto; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: ${C.goldSoft}; border: 1px solid rgba(154,126,230,0.38); background: radial-gradient(circle at 50% 36%, rgba(154,126,230,0.16), rgba(154,126,230,0.04) 70%); box-shadow: 0 10px 26px -12px rgba(154,126,230,0.4); }
+        .ls-vm-motif { flex: 0 0 auto; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; color: ${C.goldSoft}; border: 1px solid rgba(154,126,230,0.38); background: radial-gradient(circle at 50% 36%, rgba(154,126,230,0.16), rgba(154,126,230,0.04) 70%); box-shadow: 0 10px 26px -12px rgba(154,126,230,0.4); }
         .ls-vm-motif svg { display: block; }
+        .ls-vm-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
         .ls-vm-copy { flex: 1 1 auto; min-width: 0; }
         .ls-vm-label { display: block; margin: 0 0 8px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; }
         .ls-vm-name { margin: 0 0 8px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.28rem, 4.6vw, 1.6rem); line-height: 1.1; letter-spacing: -0.01em; }
@@ -3944,156 +3783,6 @@ function ValueMoments() {
         .ls-vm-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
         @media (max-width: 560px) {
           .ls-vm-card { flex-direction: column; text-align: center; gap: 14px; }
-        }
-      `}</style>
-    </section>
-  );
-}
-
-// The reviews wall — the post-reveal social-proof beat. It sits between the free
-// chart reveal and the checkout, where a reader who liked the free reading is
-// deciding whether the paid soul reading is worth it. The full approved set of
-// six verbatim voices, each a different angle (a doubter won over, a grief that
-// landed, everyday joy, a gift that opened someone up, a level-headed four-star,
-// a returning home), reads from the SAME REVIEWS object the dossier renders, so
-// the two never drift and the visitor meets real people before the threshold.
-//
-// Discovery path only: this cheerful, mixed-tone wall has no place on the hushed
-// memorial path, so it hides the instant memorial intent is chosen and stays
-// hidden. Each card is its own .ls-reveal node, so the scroll paces them in one
-// at a time (staggered inside a row); static end-state under reduced motion.
-const AFTER_READING_BENEFITS = [
-  { roman: "I", text: "You'll understand why they chose you." },
-  { roman: "II", text: "Speak their love language, fluently." },
-  { roman: "III", text: "Finally put into words the bond you've always felt." },
-  { roman: "IV", text: "Hear what they can't say." },
-] as const;
-
-function AfterTheirReading() {
-  const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
-  useEffect(() => {
-    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
-    window.addEventListener(INTENT_EVENT, onIntent);
-    return () => window.removeEventListener(INTENT_EVENT, onIntent);
-  }, []);
-  if (memorialIntent) return null;
-
-  return (
-    <section className="ls-after ls-parallax-band" aria-labelledby="ls-after-title">
-      <div className="ls-after-hearts" aria-hidden="true" />
-      <div className="ls-after-inner">
-        <header className="ls-after-head ls-reveal">
-          <h2 id="ls-after-title" className="ls-after-title">
-            After <em>Their</em> Reading
-          </h2>
-        </header>
-        <div className="ls-after-grid">
-          {AFTER_READING_BENEFITS.map((item, i) => (
-            <article
-              key={item.roman}
-              className="ls-after-card ls-reveal"
-              style={{ "--ls-delay": `${0.07 + i * 0.08}s` } as CSSProperties}
-            >
-              <span className="ls-after-roman" aria-hidden="true">{item.roman}.</span>
-              <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-        <p className="ls-after-pull ls-reveal" style={revealDelay(0.4)}>The people below opened one. They say it best.</p>
-      </div>
-      <style>{`
-        .ls-after {
-          position: relative;
-          overflow: hidden;
-          background:
-            radial-gradient(100% 76% at 50% 0%, rgba(124,92,214,0.1), transparent 58%),
-            linear-gradient(180deg, ${C.cosmos} 0%, ${C.cosmos2} 52%, ${C.cosmos} 100%);
-          padding: clamp(34px, 6svh, 74px) 20px clamp(36px, 6svh, 76px);
-        }
-        .ls-after-hearts {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: 0.11;
-          background-image:
-            radial-gradient(circle at 20% 22%, rgba(185,165,240,0.45) 0 1px, transparent 2px),
-            radial-gradient(circle at 76% 18%, rgba(154,126,230,0.45) 0 1px, transparent 2px),
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cpath d='M42 56c-9-7-16-13-16-21 0-5 4-9 9-9 3 0 6 2 7 4 1-2 4-4 7-4 5 0 9 4 9 9 0 8-7 14-16 21z' fill='none' stroke='%23b9a5f0' stroke-opacity='.52' stroke-width='1.15'/%3E%3C/svg%3E");
-          background-size: 180px 180px, 220px 220px, 84px 84px;
-          background-position: 0 0, 40px 60px, center;
-          mask-image: radial-gradient(ellipse at center, #000 0%, #000 58%, transparent 86%);
-        }
-        .ls-after-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
-        .ls-after-head { display: flex; justify-content: center; margin: 0 auto clamp(20px, 4vw, 34px); }
-        .ls-after-title {
-          margin: 0;
-          padding: clamp(13px, 2.2vw, 17px) clamp(24px, 4vw, 36px);
-          border-radius: 14px;
-          border: 1px solid rgba(154,126,230,0.4);
-          background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%);
-          color: #ffffff;
-          font-family: "Fraunces", Georgia, serif;
-          font-weight: 500;
-          font-size: clamp(1.65rem, 5.4vw, 2.38rem);
-          line-height: 1.08;
-          letter-spacing: 0;
-          text-align: center;
-          box-shadow: 0 14px 42px rgba(0,0,0,0.4), inset 0 1px 0 rgba(185,165,240,0.16);
-        }
-        .ls-after-title em { color: ${C.violetBright}; font-style: italic; font-weight: 500; }
-        .ls-after-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-        .ls-after-card {
-          position: relative;
-          min-height: 94px;
-          display: flex;
-          align-items: center;
-          gap: 17px;
-          padding: clamp(18px, 3vw, 24px);
-          border-radius: 14px;
-          border: 1px solid rgba(154,126,230,0.32);
-          background: linear-gradient(180deg, #16111e 0%, #0d0a14 100%);
-          color: #ffffff;
-          box-shadow:
-            0 16px 46px rgba(0,0,0,0.35),
-            0 1px 2px rgba(124,92,214,0.12),
-            inset 0 1px 0 rgba(185,165,240,0.12);
-          overflow: hidden;
-        }
-        .ls-after-card::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background: linear-gradient(180deg, rgba(124,92,214,0.14), transparent 45%);
-        }
-        .ls-after-roman {
-          position: relative;
-          flex: 0 0 auto;
-          width: 34px;
-          color: ${C.violetBright};
-          font-family: "Fraunces", Georgia, serif;
-          font-style: italic;
-          font-weight: 500;
-          font-size: clamp(1rem, 3vw, 1.16rem);
-          letter-spacing: 0.06em;
-        }
-        .ls-after-card p {
-          position: relative;
-          margin: 0;
-          color: #ffffff;
-          font-family: "Fraunces", Georgia, serif;
-          font-weight: 500;
-          font-size: clamp(1.06rem, 3.5vw, 1.3rem);
-          line-height: 1.35;
-          letter-spacing: 0;
-        }
-        .ls-after-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
-        @media (min-width: 720px) {
-          .ls-after-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-          .ls-after-card { min-height: 118px; align-items: flex-start; flex-direction: column; gap: 12px; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .ls-after-hearts { opacity: 0.08; }
         }
       `}</style>
     </section>
@@ -4108,8 +3797,13 @@ function AfterTheirReading() {
 // like their own. None of these quotes render inside the dossier checkout
 // (it carries grief / joy / gift / practical / returner), so no quote ever
 // appears twice on one path.
-const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; attr: string }[] = [
-  REVIEWS.skeptic,
+// Mobile dose: a phone reads THREE reviews first (a sceptic won over, the horse
+// for range, one for grief), each under a short bold label with the quote
+// clamped to a few lines behind a "Read on". The other six wait behind one tap.
+// Desktop keeps the full nine-card grid exactly as approved; labels, clamps and
+// the tap live only inside the small-screen media query. Wording verbatim.
+const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; attr: string; mobLabel?: string; mobOrder?: number }[] = [
+  { ...REVIEWS.skeptic, mobLabel: "For sceptics", mobOrder: 1 },
   {
     img: "/reviews/review-8.webp", alt: "Otis", stars: 5,
     quote: "otis spent his first three months under our bed in Cardiff, only coming out after midnight for biscuits. The reading described a guarded Moon placement and a creature who watches the room from a border before choosing anyone. I had not written anything about him being formerly feral, so that line stayed with me.",
@@ -4119,6 +3813,7 @@ const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; at
     img: "/reviews/review-12.webp", alt: "Bracken", stars: 5,
     quote: "I was not sure a reading would make sense for a horse, especially Bracken, who has opinions about everything at the Devon yard. Then it mentioned a stubborn Saturn edge around thresholds and moving boxes, which is exactly his trailer-loading face on a wet Tuesday. The yard owner laughed because only the people here would know that.",
     attr: "Emily F. · Bracken, cob-type horse",
+    mobLabel: "Felt exactly like them", mobOrder: 2,
   },
   {
     img: "/reviews/review-7.webp", alt: "Marmite", stars: 5,
@@ -4134,6 +3829,7 @@ const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; at
     img: "/reviews/review-13.webp", alt: "Willow", stars: 5,
     quote: "weeks after Willow died, I ordered her reading during a rough patch when the house in Nottingham felt very quiet. It gave me a way to talk with my kids about her little routines, the radiator spot, the paw on the newspaper, the way she chose one person at a time. Nothing overblown. Just enough shape around the missing.",
     attr: "Daniel K. · Willow, senior cat",
+    mobLabel: "For grief", mobOrder: 3,
   },
   {
     img: "/reviews/review-14.webp", alt: "Nugget", stars: 4,
@@ -4154,6 +3850,10 @@ const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; at
 
 function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  // Mobile dose state: which quotes are unclamped, and whether the six
+  // behind-the-tap cards are open. Desktop ignores both (CSS-scoped).
+  const [showAll, setShowAll] = useState(false);
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
   useEffect(() => {
     const onIntent = () => setMemorialIntent(getIntent() === "memorial");
     window.addEventListener(INTENT_EVENT, onIntent);
@@ -4173,38 +3873,58 @@ function ReviewsWall() {
           <p className="ls-reviews-eyebrow">From people who did this</p>
           <h2 id="ls-reviews-title" className="ls-reviews-title">What their people say</h2>
         </header>
-        <ul className="ls-reviews-grid" role="list">
-          {reviews.map((r, i) => (
-            <li
-              key={r.img}
-              className="ls-rev ls-reveal"
-              style={{ "--ls-delay": `${(i % 3) * 0.09}s` } as CSSProperties}
-            >
-              <figure className="ls-rev-fig">
-                <div className="ls-rev-top">
-                  <span className="ls-rev-ph">
-                    <img src={r.img} alt={r.alt} width={128} height={128} loading="lazy" decoding="async" />
-                  </span>
-                  <div className="ls-rev-meta">
-                    <div
-                      className="ls-rev-stars"
-                      role="img"
-                      aria-label={r.stars === 5 ? "Five out of five stars" : `${r.stars} out of five stars`}
-                    >
-                      {[0, 1, 2, 3, 4].map((s) => (
-                        <svg key={s} viewBox="0 0 24 24" aria-hidden="true" className={s < r.stars ? "" : "off"}>
-                          <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
-                        </svg>
-                      ))}
+        <ul className={`ls-reviews-grid is-dosed${showAll ? " show-all" : ""}`} role="list">
+          {reviews.map((r, i) => {
+            const front = typeof r.mobOrder === "number";
+            const open = !!opened[r.img];
+            return (
+              <li
+                key={r.img}
+                className={`ls-rev ls-reveal${front ? " is-front" : " is-extra"}`}
+                style={{ "--ls-delay": `${(i % 3) * 0.09}s`, ...(front ? { "--mord": r.mobOrder } : {}) } as CSSProperties}
+              >
+                <figure className="ls-rev-fig">
+                  {r.mobLabel && <p className="ls-rev-label" aria-hidden="true">{r.mobLabel}</p>}
+                  <div className="ls-rev-top">
+                    <span className="ls-rev-ph">
+                      <img src={r.img} alt={r.alt} width={128} height={128} loading="lazy" decoding="async" />
+                    </span>
+                    <div className="ls-rev-meta">
+                      <div
+                        className="ls-rev-stars"
+                        role="img"
+                        aria-label={r.stars === 5 ? "Five out of five stars" : `${r.stars} out of five stars`}
+                      >
+                        {[0, 1, 2, 3, 4].map((s) => (
+                          <svg key={s} viewBox="0 0 24 24" aria-hidden="true" className={s < r.stars ? "" : "off"}>
+                            <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <figcaption className="ls-rev-attr">{r.attr}</figcaption>
                     </div>
-                    <figcaption className="ls-rev-attr">{r.attr}</figcaption>
                   </div>
-                </div>
-                <blockquote className="ls-rev-quote">{r.quote}</blockquote>
-              </figure>
-            </li>
-          ))}
+                  <blockquote className={`ls-rev-quote${open ? "" : " is-clamp"}`}>{r.quote}</blockquote>
+                  {!open && (
+                    <button
+                      type="button"
+                      className="ls-rev-more"
+                      aria-expanded="false"
+                      onClick={() => setOpened((o) => ({ ...o, [r.img]: true }))}
+                    >
+                      Read on
+                    </button>
+                  )}
+                </figure>
+              </li>
+            );
+          })}
         </ul>
+        {!showAll && (
+          <button type="button" className="ls-reviews-more" onClick={() => setShowAll(true)}>
+            Read the other six
+          </button>
+        )}
         <p className="ls-reviews-pull ls-reveal">Their chart has been waiting since the day they were born. Open it below.</p>
       </div>
       <style>{`
@@ -4265,6 +3985,42 @@ function ReviewsWall() {
         .ls-rev-quote::before { content: "\\201C"; }
         .ls-rev-quote::after { content: "\\201D"; }
         .ls-reviews-pull { margin: clamp(26px, 4.6vw, 40px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
+
+        /* ── mobile dose: three labelled, clamped cards; six behind one tap ── */
+        .ls-rev-label { display: none; }
+        .ls-rev-more { display: none; }
+        .ls-reviews-more { display: none; }
+        @media (max-width: 639px) {
+          .ls-reviews-grid.is-dosed .ls-rev { order: 10; }
+          .ls-reviews-grid.is-dosed .ls-rev.is-front { order: var(--mord, 1); }
+          .ls-reviews-grid.is-dosed .ls-rev.is-extra { display: none; }
+          .ls-reviews-grid.is-dosed.show-all .ls-rev.is-extra { display: block; order: 20; }
+          .ls-rev-label {
+            display: block; margin: 0 0 12px; color: ${C.cream};
+            font-family: "Fraunces", Georgia, serif; font-weight: 600;
+            font-size: 1.05rem; line-height: 1.2; letter-spacing: 0.005em;
+          }
+          .ls-rev-quote.is-clamp {
+            display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
+            overflow: hidden;
+          }
+          .ls-rev-more {
+            display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px;
+            padding: 0; border: 0; background: none; cursor: pointer;
+            color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
+            font-style: italic; font-size: 0.98rem;
+            text-decoration: underline; text-decoration-color: rgba(185,165,240,0.45);
+            text-underline-offset: 4px;
+          }
+          .ls-reviews-more {
+            display: flex; align-items: center; justify-content: center;
+            margin: 20px auto 0; min-height: 48px; padding: 0 26px;
+            border-radius: 999px; border: 1px solid rgba(154,126,230,0.44);
+            background: linear-gradient(180deg, rgba(124,92,214,0.2), rgba(124,92,214,0.08));
+            color: ${C.cream}; font-family: "Newsreader", Georgia, serif;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+          }
+        }
         @media (min-width: 640px) {
           .ls-reviews-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
         }
