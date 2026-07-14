@@ -32,6 +32,12 @@ const affiliateSchema = z.object({
     .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, underscores, and hyphens allowed")
     .transform(s => s.toLowerCase())
     .optional(),
+  // Recruiter attribution — carried from the outreach partner link
+  // (utm_content = prospect id, utm_source = channel, utm_campaign = source tag).
+  // Optional + best-effort: never block a signup on a bad attribution value.
+  recruitedProspectId: z.string().uuid().optional(),
+  recruitedViaChannel: z.string().max(40).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+  signupSource: z.string().max(40).regex(/^[a-zA-Z0-9_-]+$/).optional(),
 });
 
 serve(async (req) => {
@@ -104,7 +110,9 @@ serve(async (req) => {
       referralCode = `${sanitizedName}_${Math.random().toString(36).slice(2, 8)}`;
     }
 
-    // Store affiliate in database - PENDING until admin approval
+    // Store affiliate in database — ACTIVE on signup (the programme promises
+    // instant approval; the referral link must work the moment they share it).
+    // Admins can still deactivate a bad actor from the affiliates dashboard.
     const { data: affiliate, error: dbError } = await supabaseClient
       .from('affiliates')
       .insert({
@@ -113,7 +121,10 @@ serve(async (req) => {
         stripe_account_id: account.id,
         referral_code: referralCode,
         commission_rate: 0.50,
-        status: 'pending',
+        status: 'active',
+        recruited_prospect_id: input.recruitedProspectId ?? null,
+        recruited_via_channel: input.recruitedViaChannel ?? null,
+        signup_source: input.signupSource ?? null,
       })
       .select()
       .single();
@@ -121,6 +132,20 @@ serve(async (req) => {
     if (dbError) {
       logStep("Database error", dbError);
       throw new Error("Failed to save affiliate");
+    }
+
+    // Best-effort: mark the recruited prospect as converted so the recruiter
+    // funnel can report signed affiliates. Never fatal to the signup.
+    if (input.recruitedProspectId) {
+      try {
+        await supabaseClient
+          .from('influencer_prospects')
+          .update({ status: 'converted' })
+          .eq('id', input.recruitedProspectId);
+        logStep("Prospect marked converted", { prospectId: input.recruitedProspectId });
+      } catch (convErr) {
+        logStep("Failed to mark prospect converted (non-fatal)", convErr);
+      }
     }
 
     // Create onboarding link
@@ -139,45 +164,46 @@ serve(async (req) => {
     if (resendApiKey) {
       try {
         const resend = new Resend(resendApiKey);
-        const referralLink = `${origin}/?ref=${referralCode}`;
-        
+        const referralLink = `${origin}/ref/${referralCode}`;
+
         await resend.emails.send({
           from: "Little Souls <hello@littlesouls.app>",
           to: [input.email],
-          subject: "🎉 Welcome to the Little Souls Affiliate Program!",
+          subject: "You're in — your Little Souls partner link is live ✨",
           html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #1a1a2e; margin-bottom: 20px;">Welcome aboard, ${input.name}! 🌟</h1>
-              
-              <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                Thank you for applying to the Little Souls affiliate programme! Your application is <strong>under review</strong> and we'll notify you once approved.
+            <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #5a4a42;">
+              <h1 style="color: #3d2f2a; margin-bottom: 20px; font-weight: 700;">You're in, ${input.name}! 🌟</h1>
+
+              <p style="font-size: 16px; line-height: 1.6;">
+                Your Little Souls partner account is <strong>live</strong> — your link works right now. Share it and you start earning the moment someone you send discovers their pet's soul reading.
               </p>
 
               <div style="background: #faf6ef; border: 2px solid #c4a265; padding: 24px; border-radius: 12px; margin: 24px 0;">
-                <p style="color: #3d2f2a; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Your referral link (active after approval):</p>
-                <p style="background: white; color: #c4a265; padding: 14px 20px; border-radius: 8px; font-weight: 600; font-size: 16px; text-align: center; margin: 0; word-break: break-all;">
+                <p style="color: #3d2f2a; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Your referral link (live now):</p>
+                <p style="background: white; color: #bf524a; padding: 14px 20px; border-radius: 8px; font-weight: 700; font-size: 16px; text-align: center; margin: 0; word-break: break-all; font-family: Arial, sans-serif;">
                   ${referralLink}
                 </p>
               </div>
 
-              <h2 style="color: #1a1a2e; margin-top: 32px;">What happens next:</h2>
-              <ul style="color: #333; font-size: 16px; line-height: 1.8;">
-                <li>We'll review your application (usually within 24 hours)</li>
-                <li>Once approved, earn <strong>50% commission</strong> on every sale</li>
-                <li>Track referrals in your dashboard &amp; get paid weekly (min $10)</li>
+              <h2 style="color: #3d2f2a; margin-top: 32px;">What you earn:</h2>
+              <ul style="font-size: 16px; line-height: 1.8;">
+                <li>Up to <strong>50%</strong> on every soul reading</li>
+                <li><strong>20% for life</strong> on horoscope memberships</li>
+                <li><strong>15%</strong> on custom pawtraits, plus a £15 bonus on your first sale</li>
+                <li>A 60-day cookie, and payouts every month (min $10) straight to your bank</li>
               </ul>
-              
+
               <div style="margin-top: 32px;">
-                <p style="color: #666; font-size: 14px;">
-                  <strong>Next step:</strong> Complete your Stripe onboarding to receive payouts:
+                <p style="color: #7a6a60; font-size: 14px;">
+                  <strong>One last step:</strong> connect Stripe so we can send your payouts:
                 </p>
-                <a href="${accountLink.url}" style="display: inline-block; background: #22c55e; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 8px;">
-                  Complete Payout Setup →
+                <a href="${accountLink.url}" style="display: inline-block; background: #bf524a; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; margin-top: 8px; font-family: Arial, sans-serif;">
+                  Set up payouts →
                 </a>
               </div>
-              
-              <p style="color: #999; font-size: 12px; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
-                Questions? Just reply to this email. Happy promoting! 🚀
+
+              <p style="color: #958779; font-size: 12px; margin-top: 40px; border-top: 1px solid #e8ddd0; padding-top: 20px;">
+                Questions? Just reply to this email. Thank you for sharing the bond. 🐾
               </p>
             </div>
           `,

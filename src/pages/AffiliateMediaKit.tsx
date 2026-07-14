@@ -64,7 +64,7 @@ Have you ever wondered what your pet's birth chart reveals about their personali
 
 I was skeptical at first too, but then I read my [pet type]'s reading and was genuinely shocked at how accurate it was.
 
-The report covers:
+The reading covers:
 ✨ Your pet's zodiac personality traits
 ✨ Their emotional needs
 ✨ Best ways to bond with them

@@ -33,11 +33,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Check if this is an affiliate code first
+    // Check if this is an affiliate code first. Affiliate codes are stored
+    // lowercase (create-affiliate normalises them), so compare lowercase —
+    // the old .toUpperCase() never matched and let affiliate codes fall through.
     const { data: affiliate } = await supabaseClient
       .from("affiliates")
       .select("id")
-      .eq("referral_code", referralCode.toUpperCase())
+      .eq("referral_code", referralCode.toLowerCase())
       .single();
 
     if (affiliate) {

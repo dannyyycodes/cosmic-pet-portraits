@@ -194,6 +194,23 @@ export default function BecomeAffiliate() {
   const [name, setName] = useState(() => (searchParams.get('name') || '').slice(0, 100));
   const [email, setEmail] = useState(() => (searchParams.get('email') || '').slice(0, 254));
 
+  // Recruiter attribution — the outreach partner link carries
+  // utm_content=<prospect id>, utm_medium=<channel>, utm_source=<source tag>.
+  // Captured at first render (before the URL is cleaned) and sanitised so a
+  // malformed value is simply dropped and can never fail the signup.
+  const [recruitAttribution] = useState(() => {
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const slugRe = /^[a-zA-Z0-9_-]{1,40}$/;
+    const pid = searchParams.get('utm_content') || '';
+    const chan = searchParams.get('utm_medium') || '';
+    const src = searchParams.get('utm_source') || '';
+    return {
+      recruitedProspectId: uuidRe.test(pid) ? pid : undefined,
+      recruitedViaChannel: slugRe.test(chan) ? chan : undefined,
+      signupSource: slugRe.test(src) ? src : undefined,
+    };
+  });
+
   // Strip prefilled email/name from the URL so they don't linger in browser history
   // / referrer headers (the form keeps the values in state). Runs once.
   useEffect(() => {
@@ -225,7 +242,7 @@ export default function BecomeAffiliate() {
 
     try {
       const { data, error } = await supabase.functions.invoke('create-affiliate', {
-        body: { name, email, country, referralCode: referralCode.trim() || undefined },
+        body: { name, email, country, referralCode: referralCode.trim() || undefined, ...recruitAttribution },
       });
 
       if (error || data?.error) {
