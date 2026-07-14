@@ -67,21 +67,25 @@ export interface DossierCheckoutProps {
 }
 
 /* ── one data source drives the wheel AND the locked rows ──
- * angle: degrees clockwise from the top of the wheel */
+ * angle: degrees clockwise from the top of the wheel.
+ * The ledger is the free deck's (freeDeck.ts TEASE): five placements given
+ * (Sun, Moon, Venus, Mercury, Mars), eight still dark in the deck's exact
+ * order and words. The rising is NOT one of the thirteen — it renders as the
+ * honest italic line below the rows, same as FullReadingOpens. */
 const PLACEMENTS = [
   { ico: "g-sun", name: "Sun", frame: "Who they are at the centre.", lit: true, a: 25 },
   { ico: "g-moon", name: "Moon", frame: "How they feel, and what soothes them.", lit: true, a: 232 },
   { ico: "g-venus", name: "Venus", frame: "How they love.", lit: true, a: 68 },
-  { ico: "g-mercury", name: "Mercury", frame: "How they read you.", lit: false, a: 47 },
-  { ico: "g-mars", name: "Mars", frame: "What they chase, and why.", lit: false, a: 301 },
-  { ico: "g-jupiter", name: "Jupiter", frame: "Where their joy runs biggest.", lit: false, a: 198 },
-  { ico: "g-saturn", name: "Saturn", frame: "What steadies them.", lit: false, a: 160 },
-  { ico: "g-uranus", name: "Uranus", frame: "The streak nothing tames.", lit: false, a: 95 },
-  { ico: "g-neptune", name: "Neptune", frame: "What they sense before you do.", lit: false, a: 116 },
-  { ico: "g-pluto", name: "Pluto", frame: "The deep pull beneath it all.", lit: false, a: 137 },
-  { ico: "g-chiron", name: "Chiron", frame: "The old tender place.", lit: false, a: 251 },
-  { ico: "g-node", name: "North Node", frame: "What they came here to learn.", lit: false, a: 330 },
-  { ico: "g-asc", name: "Rising", frame: "The first face they show the world.", lit: false, a: 270 },
+  { ico: "g-mercury", name: "Mercury", frame: "How they read you.", lit: true, a: 47 },
+  { ico: "g-mars", name: "Mars", frame: "What they chase, and why.", lit: true, a: 301 },
+  { ico: "g-saturn", name: "Saturn", frame: "What they fear, and what steadies them.", lit: false, a: 160 },
+  { ico: "g-chiron", name: "Chiron", frame: "What they carry from before you.", lit: false, a: 251 },
+  { ico: "g-jupiter", name: "Jupiter", frame: "Where their joy lives.", lit: false, a: 198 },
+  { ico: "g-pluto", name: "Pluto", frame: "Who they never quite forgive.", lit: false, a: 137 },
+  { ico: "g-node", name: "North Node", frame: "The job they came to do.", lit: false, a: 330 },
+  { ico: "g-uranus", name: "Uranus", frame: "The strange streak.", lit: false, a: 95 },
+  { ico: "g-neptune", name: "Neptune", frame: "The dreaming.", lit: false, a: 116 },
+  { ico: "g-lilith", name: "Lilith", frame: "The wild streak.", lit: false, a: 270 },
 ] as const;
 
 const CX = 170;
@@ -154,8 +158,12 @@ function readChartPet(): { name: string; date: string } | null {
   }
 }
 
-/** Computed signs persisted by BirthSkyJourney — feeds the sample excerpt. */
-type ChartSigns = { sun?: string | null; moon?: string | null; venus?: string | null; mercury?: string | null; mars?: string | null };
+/** Computed signs persisted by BirthSkyJourney — feeds the lit five + the sample excerpt. */
+type ChartSigns = {
+  sun?: string | null; moon?: string | null; venus?: string | null;
+  mercury?: string | null; mars?: string | null;
+  saturn?: string | null; chiron?: string | null;
+};
 function readChartSigns(): ChartSigns | null {
   try {
     const raw = sessionStorage.getItem("ls_chart_signs");
@@ -249,9 +257,10 @@ export function DossierCheckout(props: DossierCheckoutProps) {
   const bornLabel = pet?.date ? longBornLabel(pet.date) : "";
   const hasChart = !!pet?.date;
 
-  /* computed signs → one honest sample line from a placement still sealed.
-     Mercury first (top locked row), Mars as the fallback. Nothing renders
-     when no chart has been computed — the excerpt is never generic. */
+  /* computed signs → sign leads on the lit five, plus one honest sample line
+     from a placement still sealed. Saturn first (top locked row), Chiron as
+     the fallback — never a placement the free deck already gave. Nothing
+     renders when no chart has been computed — the excerpt is never generic. */
   const [signs, setSigns] = useState<ChartSigns | null>(() => readChartSigns());
   useEffect(() => {
     const onSigns = () => setSigns(readChartSigns());
@@ -260,11 +269,11 @@ export function DossierCheckout(props: DossierCheckoutProps) {
   }, []);
   const excerpt = useMemo(() => {
     if (!signs) return null;
-    if (signs.mercury && SIGN_LINES.mercury?.[signs.mercury]) {
-      return { ico: "g-mercury", name: "Mercury", frame: "How they read you.", ...splitExcerpt(SIGN_LINES.mercury[signs.mercury]) };
+    if (signs.saturn && SIGN_LINES.saturn?.[signs.saturn]) {
+      return { ico: "g-saturn", name: "Saturn", frame: "What they fear, and what steadies them.", ...splitExcerpt(SIGN_LINES.saturn[signs.saturn]) };
     }
-    if (signs.mars && SIGN_LINES.mars?.[signs.mars]) {
-      return { ico: "g-mars", name: "Mars", frame: "What they chase, and why.", ...splitExcerpt(SIGN_LINES.mars[signs.mars]) };
+    if (signs.chiron && SIGN_LINES.chiron?.[signs.chiron]) {
+      return { ico: "g-chiron", name: "Chiron", frame: "What they carry from before you.", ...splitExcerpt(SIGN_LINES.chiron[signs.chiron]) };
     }
     return null;
   }, [signs]);
@@ -421,8 +430,8 @@ export function DossierCheckout(props: DossierCheckoutProps) {
   const ctaText = `${ctaLabel} · ${totalLabel}`;
   const savingPct = Math.round(discountRate * 100);
   const wheelAria = petName
-    ? `${petName}'s natal wheel. Sun, Moon and Venus are lit. Ten placements are still unread.`
-    : "A natal wheel. Sun, Moon and Venus are lit. Ten placements are still unread.";
+    ? `${petName}'s natal wheel. Sun, Moon, Venus, Mercury and Mars are lit. Eight placements are still unread.`
+    : "A natal wheel. Sun, Moon, Venus, Mercury and Mars are lit. Eight placements are still unread.";
 
   return (
     <div className={`dsr-root${lit ? " is-lit" : ""}${bond ? " is-bond" : ""}`}>
@@ -446,7 +455,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           <symbol id="g-pluto" viewBox="0 0 24 24"><circle cx="12" cy="7.2" r="2.4" /><path d="M6.5 5v2.2a5.5 5.5 0 0 0 11 0V5M12 12.7V20.5M9 17h6" /></symbol>
           <symbol id="g-chiron" viewBox="0 0 24 24"><circle cx="12" cy="17.5" r="3.5" /><path d="M12 14V4M12 8.5l4.5-4.2M12 8.5l4.5 4" /></symbol>
           <symbol id="g-node" viewBox="0 0 24 24"><circle cx="6.8" cy="17.6" r="2.4" /><circle cx="17.2" cy="17.6" r="2.4" /><path d="M5.6 15.6C4.5 8.8 7.6 4.5 12 4.5s7.5 4.3 6.4 11.1" /></symbol>
-          <symbol id="g-asc" viewBox="0 0 24 24"><path d="M3.5 19 8 5l4.5 14M5.4 14.2h5.2M21 8.4a6.4 6.4 0 1 0 0 7.2" /></symbol>
+          <symbol id="g-lilith" viewBox="0 0 24 24"><path d="M14.4 3.6A5.4 5.4 0 1 0 14.4 13.4 6.6 6.6 0 0 1 14.4 3.6Z" /><path d="M12 13.5V21M9 17.5h6" /></symbol>
           <symbol id="dsr-check" viewBox="0 0 24 24"><path d="M4.5 12.6l5.2 5.2L19.5 6.6" /></symbol>
           <symbol id="dsr-star" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="url(#dsr-mgold)" stroke="none" /></symbol>
           <symbol id="dsr-star-o" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></symbol>
@@ -488,7 +497,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
 
       {/* ── handoff (free-reading cohort only) ── */}
       {hasChart && (
-        <p className="dsr-handoff">You have met three placements. Ten are still unread. Then what all thirteen mean between you.</p>
+        <p className="dsr-handoff">You have met five placements. Eight are still unread. Then what all thirteen mean between you.</p>
       )}
 
       {/* ── the dossier ── */}
@@ -503,7 +512,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
 
         {hasChart && (
           <p className="dsr-headline">
-            {petName ? `${petName}. ` : ""}Born under <strong>thirteen</strong> placements. You have met <strong>three</strong>.
+            {petName ? `${petName}. ` : ""}Born under <strong>thirteen</strong> placements. You have met <strong>five</strong>.
           </p>
         )}
 
@@ -513,15 +522,38 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         <ul className="dsr-bullets">
           <li>
             <svg className="dsr-gico lit" aria-hidden="true"><use href="#g-sun" /></svg>
-            <span><strong>What lights them up</strong>, and why it looks nothing like what lights you up.</span>
+            <span>
+              {signs?.sun && <span className="dsr-bsign">Sun in {signs.sun}. </span>}
+              <strong>What lights them up</strong>, and why it looks nothing like what lights you up.
+            </span>
           </li>
           <li>
             <svg className="dsr-gico lit" aria-hidden="true"><use href="#g-moon" /></svg>
-            <span><strong>What they need when the world gets loud</strong>, and how to give it without asking.</span>
+            <span>
+              {signs?.moon && <span className="dsr-bsign">Moon in {signs.moon}. </span>}
+              <strong>What they need when the world gets loud</strong>, and how to give it without asking.
+            </span>
           </li>
           <li>
             <svg className="dsr-gico lit" aria-hidden="true"><use href="#g-venus" /></svg>
-            <span><strong>How they&rsquo;ve already chosen you back</strong>, in a way you&rsquo;d never think to look for.</span>
+            <span>
+              {signs?.venus && <span className="dsr-bsign">Venus in {signs.venus}. </span>}
+              <strong>How they&rsquo;ve already chosen you back</strong>, in a way you&rsquo;d never think to look for.
+            </span>
+          </li>
+          <li>
+            <svg className="dsr-gico lit" aria-hidden="true"><use href="#g-mercury" /></svg>
+            <span>
+              {signs?.mercury && <span className="dsr-bsign">Mercury in {signs.mercury}. </span>}
+              <strong>How they read you.</strong>
+            </span>
+          </li>
+          <li>
+            <svg className="dsr-gico lit" aria-hidden="true"><use href="#g-mars" /></svg>
+            <span>
+              {signs?.mars && <span className="dsr-bsign">Mars in {signs.mars}. </span>}
+              <strong>What they chase, and why.</strong>
+            </span>
           </li>
         </ul>
 
@@ -530,14 +562,14 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           <>
             <div className="dsr-rung" aria-hidden="true">
               {PLACEMENTS.map((p, i) => (
-                <i key={p.name} className={i < 3 ? "on" : undefined} style={{ transitionDelay: `${0.5 + i * 0.05}s` }} />
+                <i key={p.name} className={i < 5 ? "on" : undefined} style={{ transitionDelay: `${0.5 + i * 0.05}s` }} />
               ))}
             </div>
-            <p className="dsr-rung-line">Three of thirteen, yours already.</p>
+            <p className="dsr-rung-line">Five of thirteen, yours already.</p>
           </>
         )}
 
-        {/* ten locked rows — named, never blurred */}
+        {/* eight locked rows — the deck's tease ledger, named, never blurred */}
         <ul className="dsr-rows">
           {PLACEMENTS.filter((p) => !p.lit).map((p) => (
             <li key={p.name}>
@@ -557,8 +589,13 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           ))}
         </ul>
 
+        {/* the rising, honest — not one of the thirteen. Same line as
+            FullReadingOpens: it turns on the exact minute, which a date-only
+            chart cannot fix. */}
+        <p className="dsr-rising">And the rising, the first face they show. It turns on the exact minute they arrived.</p>
+
         {/* one honest sample from a sealed placement — built from THIS pet's
-            computed chart (Mercury sign via ls_chart_signs), first sentence
+            computed chart (Saturn sign via ls_chart_signs), first sentence
             readable, the rest visibly held back under the seal. */}
         {hasChart && excerpt && (
           <figure className="dsr-excerpt">
@@ -957,6 +994,7 @@ function DossierStyles(): ReactNode {
         font-size:16.5px;color:var(--dsr-cream)}
       .dsr-bullets .dsr-gico{flex:none;width:20px;height:20px;margin-top:3px}
       .dsr-bullets strong{font-weight:600}
+      .dsr-bullets .dsr-bsign{font-weight:600;letter-spacing:.01em;color:var(--dsr-violet-300)}
       .dsr-gico{display:block;fill:none;stroke:currentColor;stroke-width:1.6;
         stroke-linecap:round;stroke-linejoin:round;color:var(--dsr-violet-500)}
       .dsr-gico.lit{stroke:url(#dsr-mgold);color:#8f6de0}
@@ -972,7 +1010,7 @@ function DossierStyles(): ReactNode {
         font-variation-settings:'opsz' 20;font-size:16px;color:var(--dsr-cream-dim);margin-bottom:22px}
 
       /* ---------- locked tease rows ---------- */
-      .dsr-rows{list-style:none;margin:0 0 26px;padding:0}
+      .dsr-rows{list-style:none;margin:0 0 10px;padding:0}
       .dsr-rows li{position:relative;content-visibility:auto;contain-intrinsic-size:auto 64px}
       .dsr-rows li::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;border:0;
         background:linear-gradient(90deg,transparent,rgba(139,123,216,.22) 20% 80%,transparent)}
@@ -986,6 +1024,8 @@ function DossierStyles(): ReactNode {
       .dsr-lrow .fr{font-size:16px;color:var(--dsr-violet-400);font-style:italic}
       .dsr-chev{margin-left:auto;flex:none;width:18px;height:18px;opacity:.55}
       .dsr-lrow:active{background:var(--dsr-surface-3)}
+      .dsr-rising{margin:0 0 26px;padding:0 4px;text-align:center;
+        font-style:italic;font-size:16px;color:var(--dsr-violet-300)}
 
       /* ---------- reviews ---------- */
       .dsr-review{position:relative;border-radius:14px;padding:20px 18px 18px;margin-bottom:24px;
@@ -1306,6 +1346,7 @@ function DossierStyles(): ReactNode {
       .dsr-rung-line{font-size:17px}
       .dsr-lrow .nm{font-size:18px}
       .dsr-lrow .fr{font-size:17px}
+      .dsr-rising{font-size:17px}
       .dsr-review q{font-size:18px}
       .dsr-review--mini q{font-size:18px}
       .dsr-excerpt-place .nm{font-size:18px}
@@ -1340,7 +1381,7 @@ function DossierStyles(): ReactNode {
         .dsr-root{font-size:18.5px}
         .dsr-eyebrow{font-size:14.5px}
         .dsr-bullets li,.dsr-review q,.dsr-review--mini q,.dsr-stack li{font-size:18.5px}
-        .dsr-rung-line,.dsr-disc-body,.dsr-trust-line{font-size:17.5px}
+        .dsr-rung-line,.dsr-disc-body,.dsr-trust-line,.dsr-rising{font-size:17.5px}
       }
       @media (min-width:1280px){
         .dsr-root{font-size:19px}
@@ -1351,6 +1392,7 @@ function DossierStyles(): ReactNode {
         .dsr-rung-line{font-size:18px}
         .dsr-lrow .nm{font-size:18.5px}
         .dsr-lrow .fr{font-size:17.5px}
+        .dsr-rising{font-size:18px}
         .dsr-review q,.dsr-review--mini q{font-size:19px}
         .dsr-excerpt-place .nm{font-size:18.5px}
         .dsr-excerpt-place .fr,.dsr-excerpt-note{font-size:17.5px}

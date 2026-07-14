@@ -2070,6 +2070,11 @@ function BirthSkyJourney() {
           venus: data.venus?.sign || null,
           mercury: data.mercury?.sign || null,
           mars: data.mars?.sign || null,
+          // Sealed placements: the dossier's sample excerpt quotes Saturn
+          // (Chiron as fallback) so the tease never quotes a placement the
+          // free deck already gave.
+          saturn: data.saturn?.sign || null,
+          chiron: data.chiron?.sign || null,
         };
         sessionStorage.setItem("ls_chart_signs", JSON.stringify(signsPayload));
         window.dispatchEvent(new CustomEvent("ls-chart-signs", { detail: signsPayload }));
@@ -3327,7 +3332,7 @@ const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; I
     key: "placements",
     label: "Thirteen placements",
     name: "All thirteen, read in full.",
-    line: "The ten still dark on the wheel, every one of them opened and read.",
+    line: "The eight still dark on the wheel, every one of them opened and read.",
     Icon: Orbit,
   },
   {
