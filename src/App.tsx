@@ -22,6 +22,7 @@ import Intake from "./pages/Intake";
 // QuickCheckout React component exists but /checkout routes to checkout.html (the original design)
 import PaymentSuccess from "./pages/PaymentSuccess";
 const ViewReport = lazy(() => import("./pages/ViewReport"));
+const RevealPreview = lazy(() => import("./pages/RevealPreview"));
 import GiftPurchase from "./pages/GiftPurchase";
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
@@ -180,6 +181,7 @@ const App = () => (
                   <Route path="/keep-horoscopes/:subscriptionId" element={<KeepHoroscopes />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/report" element={<ViewReport />} />
+                  <Route path="/reveal-preview" element={<RevealPreview />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/my-reports" element={<MyReports />} />

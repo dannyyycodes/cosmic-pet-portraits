@@ -1,0 +1,638 @@
+/* ============================================================================
+   The Reveal — "Starlight Scroll"  ·  scoped design system
+   Everything lives under .reveal-root so it never inherits the site's
+   cream/gold report styling. Purple/violet keepsake world only.
+   Palette + type locked by the council brief (reveal-soulspeak-redesign-brief).
+   ============================================================================ */
+
+.reveal-root {
+  /* --- locked palette --- */
+  --rv-void: #0b0616;        /* near-black violet base */
+  --rv-indigo: #15112B;      /* indigo */
+  --rv-indigo-2: #1c1638;    /* raised indigo (cards) */
+  --rv-violet: #6E45D8;      /* signature violet */
+  --rv-violet-deep: #4a2fa0;
+  --rv-lavender: #BBA7FF;    /* starlight / lavender */
+  --rv-pearl: #F4EEFF;       /* pearl body text */
+  --rv-mist: #B8AECF;        /* muted secondary text */
+  --rv-gold: #D4AF37;        /* antique gold — ACCENTS ONLY, never body copy */
+
+  /* chapter colour-wash (set live per active chapter) */
+  --rv-wash-a: #15112B;
+  --rv-wash-b: #0b0616;
+  --rv-accent: #6E45D8;      /* active chapter accent */
+
+  /* type */
+  --rv-serif: "Fraunces", "Cormorant", Georgia, serif;
+  --rv-quote: "Cormorant", Georgia, serif;
+  --rv-sans: "Assistant", "Lato", system-ui, sans-serif;
+
+  /* rhythm */
+  --rv-maxw: 40rem;          /* reading column */
+  --rv-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: clip;
+  background: var(--rv-void);
+  color: var(--rv-pearl);
+  font-family: var(--rv-sans);
+  font-size: 18px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  letter-spacing: 0.002em;
+}
+
+.reveal-root *,
+.reveal-root *::before,
+.reveal-root *::after { box-sizing: border-box; }
+
+.reveal-root ::selection { background: rgba(110, 69, 216, 0.4); color: #fff; }
+
+/* --- ambient layers (fixed, behind everything) --- */
+.rv-starfield {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+.rv-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--rv-wash-a) 62%, transparent), transparent 60%),
+    radial-gradient(140% 90% at 50% 115%, color-mix(in oklab, var(--rv-wash-b) 70%, transparent), transparent 62%);
+  transition: background 900ms var(--rv-ease);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+.rv-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(130% 100% at 50% 42%, transparent 55%, rgba(4, 2, 10, 0.55) 100%);
+}
+
+/* content sits above the ambient layers */
+.rv-stage { position: relative; z-index: 3; }
+
+/* --- top progress + chapter marker --- */
+.rv-progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--rv-violet), var(--rv-lavender) 60%, var(--rv-gold));
+  z-index: 40;
+  will-change: transform;
+}
+.rv-chapmark {
+  position: fixed;
+  top: 14px; right: 16px;
+  z-index: 40;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--rv-sans);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rv-mist);
+  background: rgba(11, 6, 22, 0.5);
+  border: 1px solid rgba(187, 167, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.rv-chapmark b { color: var(--rv-lavender); font-weight: 600; }
+
+/* ============================================================================
+   INVOCATION / opening
+   ============================================================================ */
+.rv-invocation {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12vh 24px 8vh;
+  gap: 20px;
+}
+.rv-summon {
+  font-family: var(--rv-sans);
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--rv-lavender);
+  min-height: 1.2em;
+}
+.rv-summon .rv-caret {
+  display: inline-block;
+  width: 1px; height: 1em;
+  margin-left: 2px;
+  background: var(--rv-lavender);
+  vertical-align: -0.12em;
+  animation: rv-blink 1s steps(1) infinite;
+}
+@keyframes rv-blink { 50% { opacity: 0; } }
+
+.rv-petname {
+  font-family: var(--rv-serif);
+  font-weight: 300;
+  font-optical-sizing: auto;
+  font-size: clamp(2.9rem, 12vw, 6rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--rv-pearl);
+  margin: 0;
+  text-wrap: balance;
+}
+.rv-birthline {
+  font-family: var(--rv-quote);
+  font-style: italic;
+  font-size: clamp(1.05rem, 4.5vw, 1.5rem);
+  color: var(--rv-mist);
+  letter-spacing: 0.01em;
+}
+.rv-birthchips {
+  display: flex; flex-wrap: wrap; gap: 8px 10px;
+  justify-content: center;
+  margin-top: 6px;
+}
+.rv-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--rv-lavender);
+  background: rgba(110, 69, 216, 0.12);
+  border: 1px solid rgba(187, 167, 255, 0.2);
+}
+.rv-chip .rv-glyph { font-family: var(--rv-serif); color: var(--rv-gold); }
+
+.rv-scrollcue {
+  margin-top: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--rv-mist);
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+}
+.rv-scrollcue .rv-mouse {
+  width: 22px; height: 34px;
+  border: 1px solid rgba(187, 167, 255, 0.4);
+  border-radius: 12px;
+  position: relative;
+}
+.rv-scrollcue .rv-mouse::after {
+  content: "";
+  position: absolute; top: 6px; left: 50%;
+  width: 3px; height: 6px; margin-left: -1.5px;
+  border-radius: 2px; background: var(--rv-lavender);
+  animation: rv-scrolldot 1.8s var(--rv-ease) infinite;
+}
+@keyframes rv-scrolldot { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(11px); } }
+
+/* ============================================================================
+   NATAL WHEEL scene
+   ============================================================================ */
+.rv-wheel-scene { position: relative; }
+.rv-wheel-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 6vh 18px;
+}
+.rv-wheel-eyebrow {
+  font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase;
+  color: var(--rv-lavender);
+}
+.rv-wheel-holder {
+  width: min(78vw, 62svh, 460px);
+  aspect-ratio: 1;
+  position: relative;
+}
+.rv-wheel-holder svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.rv-wheel-caption {
+  max-width: 30rem;
+  text-align: center;
+  color: var(--rv-mist);
+  font-family: var(--rv-quote);
+  font-style: italic;
+  font-size: clamp(1rem, 4vw, 1.25rem);
+  line-height: 1.5;
+}
+
+/* wheel primitives */
+.rv-w-ring { fill: none; stroke: rgba(187,167,255,0.28); }
+.rv-w-ring--outer { stroke: rgba(187,167,255,0.16); }
+.rv-w-ring--zodiac { stroke: rgba(187,167,255,0.34); }
+.rv-w-tick { stroke: rgba(187,167,255,0.22); }
+.rv-w-spoke { stroke: rgba(187,167,255,0.12); }
+.rv-w-signglyph { fill: var(--rv-lavender); font-family: var(--rv-serif); opacity: 0.82; }
+.rv-w-aspect { fill: none; stroke-linecap: round; }
+.rv-w-aspect--harmony { stroke: rgba(187,167,255,0.5); }
+.rv-w-aspect--tense { stroke: rgba(216, 120, 200, 0.42); }
+.rv-w-planet-dot { fill: var(--rv-void); stroke: var(--rv-lavender); }
+.rv-w-planet-glyph { fill: var(--rv-pearl); font-family: var(--rv-serif); }
+.rv-w-planet--lit .rv-w-planet-dot { stroke: var(--rv-gold); fill: rgba(212,175,55,0.14); }
+.rv-w-planet--lit .rv-w-planet-glyph { fill: var(--rv-gold); }
+.rv-w-planet { cursor: pointer; }
+.rv-w-planet:focus { outline: none; }
+.rv-w-planet:focus-visible .rv-w-planet-dot { stroke: #fff; }
+
+.rv-w-tooltip {
+  position: absolute;
+  z-index: 6;
+  transform: translate(-50%, -120%);
+  padding: 8px 12px;
+  min-width: 116px;
+  border-radius: 12px;
+  background: rgba(18, 12, 34, 0.94);
+  border: 1px solid rgba(187,167,255,0.28);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-align: center;
+  pointer-events: none;
+}
+.rv-w-tooltip .tt-planet { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rv-lavender); }
+.rv-w-tooltip .tt-sign { font-family: var(--rv-serif); font-size: 18px; color: var(--rv-pearl); line-height: 1.1; }
+.rv-w-tooltip .tt-deg { font-size: 11px; color: var(--rv-mist); }
+
+/* mini sticky wheel */
+.rv-mini-wheel {
+  position: fixed;
+  right: 12px; bottom: 12px;
+  z-index: 38;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  padding: 0;
+  border: 1px solid rgba(187,167,255,0.3);
+  background: rgba(11, 6, 22, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.5);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: transform 220ms var(--rv-ease), opacity 300ms var(--rv-ease);
+}
+.rv-mini-wheel:hover { transform: scale(1.06); }
+.rv-mini-wheel svg { width: 82%; height: 82%; }
+.rv-mini-label {
+  position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rv-mist);
+  white-space: nowrap;
+}
+
+/* wheel overlay modal */
+.rv-wheel-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; padding: 24px;
+  background: rgba(6, 3, 14, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.rv-wheel-overlay .rv-wheel-holder { width: min(88vw, 70svh, 520px); }
+.rv-overlay-close {
+  position: absolute; top: 18px; right: 18px;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid rgba(187,167,255,0.3);
+  background: rgba(28,22,56,0.6); color: var(--rv-pearl);
+  font-size: 20px; cursor: pointer; line-height: 1;
+}
+.rv-legend {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px 20px;
+  max-width: 420px; width: 100%;
+  font-size: 13px; color: var(--rv-mist);
+}
+.rv-legend div { display: flex; align-items: center; gap: 8px; }
+.rv-legend .lg-glyph { font-family: var(--rv-serif); color: var(--rv-lavender); width: 1.2em; text-align: center; }
+.rv-legend .lg-lit .lg-glyph { color: var(--rv-gold); }
+
+/* ============================================================================
+   CHAPTERS
+   ============================================================================ */
+.rv-chapter { position: relative; padding: 14vh 20px; }
+.rv-chapter-inner { max-width: var(--rv-maxw); margin: 0 auto; }
+
+.rv-chapter-head {
+  text-align: center;
+  margin-bottom: 9vh;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.rv-chapter-num {
+  font-family: var(--rv-sans);
+  font-size: 11px; letter-spacing: 0.42em; text-transform: uppercase;
+  color: var(--rv-lavender);
+  display: inline-flex; align-items: center; gap: 12px;
+}
+.rv-chapter-num::before, .rv-chapter-num::after {
+  content: ""; width: 26px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rv-lavender));
+}
+.rv-chapter-num::after { background: linear-gradient(90deg, var(--rv-lavender), transparent); }
+.rv-chapter-title {
+  font-family: var(--rv-serif);
+  font-weight: 300;
+  font-optical-sizing: auto;
+  font-size: clamp(2.3rem, 9vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  margin: 0;
+  color: var(--rv-pearl);
+  text-wrap: balance;
+}
+.rv-chapter-sub {
+  max-width: 26rem;
+  font-family: var(--rv-quote);
+  font-style: italic;
+  font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+  line-height: 1.5;
+  color: var(--rv-mist);
+}
+
+.rv-cards { display: flex; flex-direction: column; gap: 7vh; }
+
+/* ============================================================================
+   READING CARD (progressive disclosure)
+   ============================================================================ */
+.rv-card {
+  position: relative;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(28,22,56,0.6), rgba(21,17,43,0.5));
+  border: 1px solid rgba(187,167,255,0.14);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 20px 50px -30px rgba(0,0,0,0.9);
+  overflow: clip;
+}
+.rv-card-btn {
+  all: unset;
+  display: block; width: 100%;
+  cursor: pointer;
+  padding: 26px 22px;
+  -webkit-tap-highlight-color: transparent;
+}
+.rv-card-head { display: flex; align-items: flex-start; gap: 15px; }
+.rv-card-glyph {
+  flex: none;
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--rv-accent) 55%, rgba(187,167,255,0.3));
+  background: radial-gradient(circle at 30% 25%, color-mix(in oklab, var(--rv-accent) 26%, transparent), transparent 70%);
+  color: var(--rv-lavender);
+  font-family: var(--rv-serif);
+  font-size: 22px; line-height: 1;
+}
+.rv-card-glyph svg { width: 22px; height: 22px; }
+.rv-card-heads { flex: 1 1 auto; min-width: 0; }
+.rv-card-kicker {
+  font-size: 10.5px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--rv-lavender);
+  margin-bottom: 5px;
+}
+.rv-card-title {
+  font-family: var(--rv-serif);
+  font-weight: 400;
+  font-size: clamp(1.35rem, 5.5vw, 1.75rem);
+  line-height: 1.16;
+  letter-spacing: -0.006em;
+  color: var(--rv-pearl);
+  margin: 0;
+  text-wrap: balance;
+}
+.rv-card-essence {
+  margin-top: 10px;
+  color: var(--rv-mist);
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+.rv-card-toggle {
+  margin-top: 16px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--rv-lavender);
+}
+.rv-card-toggle .rv-chev {
+  width: 14px; height: 14px;
+  transition: transform 320ms var(--rv-ease);
+}
+.rv-card[data-open="true"] .rv-chev { transform: rotate(180deg); }
+
+.rv-card-body { padding: 0 22px 28px; }
+.rv-card-bodyinner { padding-top: 4px; }
+
+/* content blocks */
+.rv-blk + .rv-blk { margin-top: 18px; }
+.rv-para {
+  color: var(--rv-pearl);
+  font-size: 17px; line-height: 1.72;
+  opacity: 0.94;
+}
+.rv-para--lead { font-size: 18px; }
+.rv-quote {
+  margin: 0;
+  padding: 4px 0 4px 18px;
+  border-left: 2px solid var(--rv-gold);
+  font-family: var(--rv-quote);
+  font-style: italic;
+  font-size: clamp(1.2rem, 5vw, 1.5rem);
+  line-height: 1.4;
+  color: var(--rv-lavender);
+}
+.rv-quote cite { display: block; margin-top: 8px; font-style: normal; font-family: var(--rv-sans); font-size: 12px; letter-spacing: 0.06em; color: var(--rv-mist); }
+.rv-labeled { }
+.rv-labeled-l {
+  font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--rv-gold);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rv-labeled-l::after { content:""; flex:1; height:1px; background: linear-gradient(90deg, rgba(212,175,55,0.4), transparent); }
+.rv-labeled-t { color: var(--rv-pearl); font-size: 16px; line-height: 1.65; opacity: 0.92; }
+.rv-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.rv-list li { position: relative; padding-left: 24px; color: var(--rv-pearl); font-size: 16px; line-height: 1.6; opacity: 0.92; }
+.rv-list li::before {
+  content: "";
+  position: absolute; left: 4px; top: 0.62em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rv-accent);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--rv-accent) 80%, transparent);
+}
+.rv-list--ord { counter-reset: rvli; }
+.rv-list--ord li { padding-left: 30px; }
+.rv-list--ord li::before { display: none; }
+.rv-list--ord li::after {
+  counter-increment: rvli; content: counter(rvli);
+  position: absolute; left: 0; top: 0.05em;
+  font-family: var(--rv-serif); font-size: 14px; color: var(--rv-gold);
+  width: 20px; text-align: center;
+}
+.rv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.rv-chips .rv-chipx {
+  display: inline-flex; flex-direction: column; gap: 2px;
+  padding: 9px 14px; border-radius: 12px;
+  background: rgba(110,69,216,0.12);
+  border: 1px solid rgba(187,167,255,0.18);
+  min-width: 84px;
+}
+.rv-chipx .cx-l { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rv-mist); }
+.rv-chipx .cx-v { font-family: var(--rv-serif); font-size: 18px; color: var(--rv-pearl); }
+.rv-chipx .cx-sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); }
+
+/* element balance bars */
+.rv-bars { display: flex; flex-direction: column; gap: 12px; }
+.rv-bar-row { display: grid; grid-template-columns: 58px 1fr 40px; align-items: center; gap: 12px; }
+.rv-bar-l { font-size: 12px; letter-spacing: 0.08em; color: var(--rv-mist); text-transform: uppercase; }
+.rv-bar-track { height: 8px; border-radius: 999px; background: rgba(187,167,255,0.12); overflow: hidden; }
+.rv-bar-fill { height: 100%; border-radius: 999px; }
+.rv-bar-v { font-family: var(--rv-serif); font-size: 15px; color: var(--rv-pearl); text-align: right; }
+
+/* text-message exchange */
+.rv-exchange { display: flex; flex-direction: column; gap: 9px; }
+.rv-ex-time { font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--rv-lavender); margin: 6px 0 2px; }
+.rv-bubble { max-width: 84%; padding: 11px 15px; border-radius: 16px; font-size: 15px; line-height: 1.5; }
+.rv-bubble--pet { align-self: flex-start; background: rgba(28,22,56,0.9); border: 1px solid rgba(187,167,255,0.18); border-bottom-left-radius: 5px; color: var(--rv-pearl); }
+.rv-bubble--human { align-self: flex-end; background: linear-gradient(180deg, var(--rv-violet), var(--rv-violet-deep)); border-bottom-right-radius: 5px; color: #fff; }
+
+/* ============================================================================
+   HERO CARD (Sun / Moon / Rising + emotional spine)
+   ============================================================================ */
+.rv-hero {
+  min-height: 84svh;
+  display: flex; flex-direction: column; justify-content: center;
+  text-align: center;
+  padding: 8vh 4px;
+  gap: 20px;
+}
+.rv-hero-glyph {
+  align-self: center;
+  width: 76px; height: 76px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  font-family: var(--rv-serif);
+  font-size: 38px; line-height: 1;
+  color: var(--rv-gold);
+  border: 1px solid rgba(212,175,55,0.4);
+  background: radial-gradient(circle at 30% 25%, rgba(212,175,55,0.16), transparent 68%);
+  box-shadow: 0 0 40px -6px rgba(212,175,55,0.28);
+}
+.rv-hero-glyph svg { width: 34px; height: 34px; }
+.rv-hero-kicker { font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase; color: var(--rv-lavender); }
+.rv-hero-sign {
+  font-family: var(--rv-serif);
+  font-weight: 300;
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 1.06;
+  color: var(--rv-pearl);
+  margin: 0;
+  text-wrap: balance;
+}
+.rv-hero-body {
+  max-width: 34rem; margin: 0 auto;
+  color: var(--rv-pearl);
+  font-size: 18px; line-height: 1.78;
+  opacity: 0.95;
+  text-align: left;
+}
+.rv-hero-body.rv-center { text-align: center; }
+.rv-hero-quote {
+  max-width: 30rem; margin: 4px auto 0;
+  font-family: var(--rv-quote); font-style: italic;
+  font-size: clamp(1.3rem, 5.4vw, 1.7rem); line-height: 1.4;
+  color: var(--rv-lavender);
+}
+.rv-hero-more {
+  align-self: center; margin-top: 8px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rv-mist);
+  background: none; border: none; cursor: pointer;
+}
+.rv-hero-extra { max-width: 34rem; margin: 6px auto 0; text-align: left; }
+
+/* ============================================================================
+   LEGACY / KEEPSAKE
+   ============================================================================ */
+.rv-legacy { --rv-accent: var(--rv-gold); }
+.rv-keepsake {
+  margin-top: 6vh;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  padding: 8vh 20px 4vh;
+}
+.rv-seal {
+  width: 150px; height: 150px; position: relative;
+  display: grid; place-items: center;
+}
+.rv-seal svg { width: 100%; height: 100%; }
+.rv-seal-nick {
+  position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+  font-family: var(--rv-serif); color: var(--rv-gold); font-size: 15px; padding: 30px;
+  line-height: 1.15; letter-spacing: 0.02em;
+}
+.rv-keepsake-traits { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 30rem; }
+.rv-keepsake-line {
+  max-width: 32rem; font-family: var(--rv-quote); font-style: italic;
+  font-size: clamp(1.15rem, 5vw, 1.5rem); line-height: 1.45; color: var(--rv-lavender);
+}
+.rv-cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 8px; }
+.rv-cta {
+  all: unset; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 15px 26px; border-radius: 999px;
+  font-family: var(--rv-sans); font-weight: 600; font-size: 15px; letter-spacing: 0.02em;
+  -webkit-tap-highlight-color: transparent;
+}
+.rv-cta--primary {
+  color: #1a0f2e;
+  background: linear-gradient(180deg, #efd98a, var(--rv-gold));
+  box-shadow: 0 12px 34px -12px rgba(212,175,55,0.6);
+}
+.rv-cta--ghost {
+  color: var(--rv-lavender);
+  border: 1px solid rgba(187,167,255,0.35);
+  background: rgba(110,69,216,0.1);
+}
+.rv-legacy-foot { margin-top: 5vh; color: var(--rv-mist); font-size: 12px; letter-spacing: 0.06em; }
+
+/* ============================================================================
+   MOTION — entrance defaults (framer handles most; these are CSS fallbacks)
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-root .rv-wash { transition: none; }
+  .reveal-root .rv-summon .rv-caret,
+  .reveal-root .rv-scrollcue .rv-mouse::after { animation: none; }
+  .reveal-root * { scroll-behavior: auto; }
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (min-width: 768px) {
+  .reveal-root { font-size: 19px; }
+  .rv-chapter { padding: 16vh 24px; }
+  .rv-cards { gap: 8vh; }
+  .rv-card-btn { padding: 30px 30px; }
+  .rv-card-body { padding: 0 30px 32px; }
+  .rv-card-glyph { width: 52px; height: 52px; font-size: 25px; }
+}
+@media (min-width: 1024px) {
+  .rv-wheel-holder { width: min(46vw, 74svh, 540px); }
+}
+
+/* focus visibility everywhere */
+.reveal-root :focus-visible { outline: 2px solid var(--rv-lavender); outline-offset: 3px; border-radius: 6px; }
+
+/* preview loader */
+@keyframes rvspin { to { transform: rotate(360deg); } }
