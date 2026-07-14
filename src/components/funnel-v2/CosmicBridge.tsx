@@ -6,55 +6,35 @@ import { getIntent, INTENT_EVENT } from "@/lib/intent";
 gsap.registerPlugin(ScrollTrigger);
 
 /* =====================================================================
-   The bridge passage (littlesouls.app) V6 - the emotional hero moment
-   between <HeroSection/> and the "Set the chart" form. One story, four
-   beats, ONE continuing actor (the MOON), and ONE BINDING LAW: every
-   line's KEY word is a split unit whose reveal position stamps a
-   timeline label, and the line's bound visual COMPLETES exactly at that
-   label. Labels are the authority; no decimal is hand-typed twice.
+   THE MAP EXISTS — the opening passage (littlesouls.app), C v2 momentum.
+   Danny-approved design contract: opening-variants/variant-c-momentum.html
+   (V2.1). Five beats between the intent toggle and the "Set the chart"
+   form, carried by ONE violet thread that draws itself down the page:
 
-   V6 PRESENTATION LAW (Danny, 2026-07-11): the visuals live WITH the
-   words, in flow, not on a backdrop. Four crafted scenes, each with its
-   own composition and motion signature; tight vertical rhythm (auto
-   height scenes + ONE consistent breath between beats).
+     B1  the map          — whisper, then two huge peaks around the sealed
+                            constellation frame
+     B2  recognition      — "Except you. Almost." + three lived fragments
+                            riding the thread as small nodes
+     PIVOT                — personality / position
+     B3  the birth sky    — a real natal wheel DRAWN on scroll, the real
+                            moon arriving blur-to-sharp as a corner spine
+                            presence beside it
+     B4  the invitation   — "So the map waits." → "Set the chart."
 
-     1 THE RAIL OF KNOWING - headline centred under the arriving moon
-       (blur crossfade completes at "knows"); the three support lines
-       form a left rail, each carrying its own INLINE star that ignites
-       violet-white exactly on its key word; a violet hairline grows down
-       the rail to each star as it lights.
-     2 THE OPEN QUESTIONS - the lead sits flush left; the body lines
-       answer from the right, each trailing a COOL star that pulses on
-       its key but never ignites. Faint motes drift in the diagonal
-       silence between them. The moonlight withholds.
-     3 THE ANSWER, CLEAN SKY - two plain lines: line 1 rises, line 2
-       carries the white/violet shimmer sweep, then line 3 settles in
-       restraint. Nothing else.
-     4 THE CLOSE - the promise lines arrive word by word, then the plain
-       closing words "Set the chart." light in luminous white with a
-       violet breath and hand straight into the form. No ring, no seal.
+   The thread is born under the chooser toggle, swings onto a left spine,
+   ignites a station node at every claim, then leaves the passage, finds
+   the form card and traces its border shut — the button ignites only
+   when the border seals. Star dust drifts; a RARE violet-white shooting
+   star crosses. Whisper-to-huge type scale. Purple/white only.
 
-   ONE house ease everywhere something settles: expo-out (.16,1,.3,1).
+   The MEMORIAL register (ls_intent = memorial) speaks the same beats in
+   remembered tense with hushed motion: softer node glow, dimmer dust,
+   rarer meteors, slower reveals. Register change remounts the section.
 
-   V7 ELEVATION (Danny-approved preview, 2026-07): cosmic purple + white
-   ONLY. Violet #8b7bd8 / #a78bfa / #b3a7e0, luminous white #f4eee1 / #fff
-   on deep cosmos; the real moon stays neutral grey. Beat-varied reveals:
-   rise-and-settle out of soft blur (1), heavy dreamlike blur-to-focus with
-   the withheld line cooling to dim violet (2), a white/violet shimmer
-   sweep across the birth-sky line plus a restrained letter-spacing settle
-   (3), and violet-to-white ignition into a clean "Set the chart." (4).
-   Ambient life, restrained: sparse violet twinkle, a RARE violet-white
-   shooting star with a soft trail, ONE faint star falling per beat, and a
-   violet light-gather behind one key word per beat.
-   ~80% stillness - one focal thing at a time.
-
-   STRICT-CSP SAFE: GSAP core + ScrollTrigger bundled by Vite (script-src
-   'self'), never a CDN tag. Inline SVG + stroke-dashoffset (no paid
-   DrawSVG). One sanctioned canvas (the ambient starfield). Moon photos
-   self-hosted. Line-level blur reveals are sanctioned (the approved
-   elevation); star, moon and sky layers still never animate filters. CSS
-   authors the honest FINAL state of every visual; motion mode primes to
-   hidden and performs. Reduced motion reads the finished passage at rest.
+   STRICT-CSP SAFE: GSAP core bundled by Vite (script-src 'self'), inline
+   SVG + stroke-dashoffset, sanctioned canvas starfield, self-hosted moon
+   photo. Reduced motion reads the finished passage at rest: thread fully
+   drawn, nodes lit, wheel complete, moon sharp, form sealed, no drift.
 ===================================================================== */
 
 /* bespoke zodiac + planet glyph paths (consumed by ReadingsLanding's wheel) */
@@ -81,225 +61,6 @@ export const GLYPH: Record<string, string> = {
   lilith: '<path class="gl-f" d="M1,-6.4 A3,3 0 1 0 1,-0.4 A4,4 0 0 1 1,-6.4 Z"/><path class="gl-s" d="M0,-0.4 L0,6.6 M-2.4,3.4 L2.4,3.4"/>',
 };
 
-const LCB_CSS = `
-.lcb-root{
-  --lcb-bg:#0d0a14; --lcb-deep:#070510; --lcb-lift:#100c1a;
-  --lcb-violet:#8b7bd8; --lcb-violet-br:#a78bfa; --lcb-violet-soft:#b3a7e0;
-  --lcb-ivory:#f4eee1; --lcb-body:#cdc6ec; --lcb-label:#b3a7e0;
-  --lcb-ease:cubic-bezier(.16,1,.3,1);
-  position:relative;
-  overflow-x:clip;
-  /* pull the passage up under the hero: the hero's dead band after the CTAs
-     becomes the shared handoff window (hero copy scrubs out, beat 1 rises in) */
-  margin-top:-18svh;
-  /* the whole passage is narrative - nothing interactive lives in it. It
-     overlaps the hero's tail, so it must NEVER intercept a tap. */
-  pointer-events:none;
-  font-family:"Newsreader",Georgia,serif;font-weight:400;
-  -webkit-font-smoothing:antialiased;
-}
-.lcb-defs{position:absolute;width:0;height:0;overflow:hidden}
-
-/* ---- fixed graded night stage (behind the beats) ---- */
-.lcb-back{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none;opacity:0;will-change:opacity}
-.lcb-front{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;will-change:opacity}
-
-.lcb-sky{position:absolute;inset:0;background:linear-gradient(180deg,var(--lcb-deep) 0%,var(--lcb-bg) 48%,var(--lcb-lift) 100%)}
-/* ONE SKY, DAWN GRADE - the same night, graded by scroll. Violet lifts at the
-   reveal; a bottom-anchored violet horizon (never above 25% alpha) rises behind
-   checkout. Both are composited opacity layers, never repainted gradients. */
-.lcb-sky-violet{position:absolute;inset:0;opacity:0;will-change:opacity;
-  background:linear-gradient(180deg,#0b0813 0%,#16111e 56%,#1b1526 100%)}
-.lcb-dawn-horizon{position:absolute;inset:0;opacity:0;will-change:opacity;mix-blend-mode:screen;
-  background:radial-gradient(ellipse 130% 48% at 50% 108%, rgba(139,123,216,0.20) 0%, rgba(139,123,216,0.10) 36%, rgba(139,123,216,0.035) 58%, rgba(139,123,216,0) 76%)}
-.lcb-canvas-wrap{position:absolute;inset:-8% -6%;will-change:transform}
-.lcb-canvas{position:absolute;inset:0;width:100%;height:100%;will-change:transform}
-
-/* the moon: real photo, feathered, one cool bloom. Three transform wrappers so
-   travel / pointer / settle never fight. */
-.lcb-moon-travel{position:absolute;inset:0;will-change:transform}
-.lcb-moon-pt{position:absolute;inset:0;will-change:transform}
-.lcb-moon{position:absolute;top:-6%;right:-8%;width:min(32vw,258px);aspect-ratio:1;will-change:transform}
-.lcb-moon-bloom{position:absolute;inset:-62%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
-  background:radial-gradient(circle, rgba(158,150,222,0.20) 0%, rgba(158,150,222,0.09) 20%, rgba(158,150,222,0.03) 45%, rgba(158,150,222,0) 72%)}
-.lcb-moon-disc{position:absolute;inset:0;border-radius:50%;
-  -webkit-mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
-  mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%)}
-.lcb-moon-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.06);
-  filter:saturate(0.82) contrast(0.94) brightness(0.98)}
-.lcb-moon-img.blur{filter:saturate(0.8) contrast(0.92) brightness(0.98)}
-/* the SAME real moon photo, gently lifted for the memorial register: a
-   neutral brightness lift only - the moon stays true grey, never warmed. */
-.lcb-moon-img.lift{opacity:0;filter:brightness(1.07) contrast(0.97)}
-/* BEAT 1 earthshine: pre-baked radial gradient on the dark limb - the part
-   you cannot see is still facing you. Opacity-only, no live filters.
-   Authored FINAL (lit); motion primes it dark and raises it on arrival. */
-.lcb-earthshine{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;opacity:.35;
-  background:radial-gradient(circle at 70% 76%, rgba(172,182,218,0.22) 0%, rgba(152,162,205,0.11) 36%, rgba(152,162,205,0) 64%)}
-.lcb-moon-grade{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:multiply;
-  background:radial-gradient(circle at 50% 54%, rgba(13,10,20,0) 56%, rgba(13,10,20,0.55) 100%),
-    linear-gradient(180deg, rgba(120,132,180,0.05), rgba(13,10,20,0.12))}
-.lcb-moon-term{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:soft-light;
-  background:radial-gradient(circle at 33% 28%, rgba(214,222,255,0.12) 0%, rgba(0,0,0,0) 44%),
-    radial-gradient(circle at 72% 78%, rgba(6,6,16,0.44) 0%, rgba(0,0,0,0) 64%)}
-.lcb-moon-rim{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
-  background:radial-gradient(circle, rgba(0,0,0,0) 84%, rgba(168,180,224,0.22) 91%, rgba(0,0,0,0) 99%)}
-
-.lcb-grade{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;
-  background:linear-gradient(158deg, rgba(20,18,46,0.5) 0%, rgba(120,126,180,0.08) 55%, rgba(201,199,252,0.10) 100%)}
-
-/* framing overlays (above the beats) - kept LIGHT so the in-flow visuals read */
-.lcb-veil{position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg, rgba(7,5,14,0.5) 0%, rgba(7,5,14,0) 22%, rgba(7,5,14,0) 76%, rgba(7,5,14,0.5) 100%)}
-.lcb-vignette{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 44%, transparent 46%, rgba(5,4,12,0.48) 100%)}
-.lcb-grain{position:absolute;inset:0;pointer-events:none;opacity:.034;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-
-/* ---- beats layer: TIGHT RHYTHM ----
-   Scenes size to their content. ONE consistent breath separates beats.
-   perspective feeds the camera-tilt handoffs. pointer-events stays off. */
-.lcb-beats{position:relative;z-index:2;perspective:1100px;pointer-events:none}
-.lcb-scene{position:relative;display:flex;flex-direction:column;align-items:center;
-  padding-inline:clamp(24px,7vw,80px);text-align:center;gap:clamp(13px,2.4vw,20px)}
-.lcb-scene + .lcb-scene{margin-top:clamp(34px,6.5svh,72px)}
-.lcb-open{min-height:44svh;justify-content:center;overflow:hidden;
-  padding-top:clamp(30px,8svh,90px);padding-bottom:clamp(10px,2svh,24px)}
-.lcb-scene.lcb-payoff{padding-bottom:clamp(30px,5svh,54px)}
-/* memorial: the same passage in a lower, slower voice - a longer breath, but
-   the next line always ghosts into the bottom of the viewport (no dead dark) */
-.lcb-memorial{margin-top:-2svh}
-.lcb-memorial .lcb-open{min-height:48svh}
-.lcb-memorial .lcb-scene + .lcb-scene{margin-top:clamp(44px,9svh,100px)}
-
-/* type: Fraunces display + Newsreader body. Every line rises out of an
-   overflow:hidden mask. Body stays solid #d8d0c1 weight 400 - no blur. */
-.lcb-beat{position:relative;margin:0;max-width:19ch;
-  font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
-  font-size:clamp(2.05rem,1.5rem + 2.5vw,3.5rem);line-height:1.1;
-  letter-spacing:-0.021em;color:var(--lcb-ivory);text-wrap:balance;
-  text-shadow:0 1px 26px rgba(4,3,10,0.5)}
-.lcb-beat.lcb-support{font-family:"Newsreader",Georgia,serif;font-weight:400;font-optical-sizing:auto;
-  font-size:clamp(1.24rem,1.02rem + 1.7vw,1.7rem);line-height:1.55;max-width:30ch;
-  color:var(--lcb-body);letter-spacing:.004em;text-wrap:pretty;text-shadow:0 1px 18px rgba(4,3,10,0.42)}
-.lcb-open .lcb-beat:not(.lcb-support){font-weight:400;font-size:clamp(2.35rem,1.6rem + 3.4vw,4rem);
-  max-width:15ch;letter-spacing:-0.026em;line-height:1.05;text-shadow:0 2px 34px rgba(4,3,10,0.55)}
-.lcb-emph{color:var(--lcb-ivory)}
-.lcb-it{font-style:italic;font-weight:400}
-
-/* the line: word units rise WITH a soft blur resolve (the approved elevated
-   treatment) - no clip mask, so glows and blurs breathe past the line box. */
-.lcb-ln{display:block}
-.lcb-ln + .lcb-ln{margin-top:.34em}
-.lcb-support .lcb-ln + .lcb-ln{margin-top:.2em}
-.lcb-wd{display:inline-block;will-change:transform}
-
-/* THE BINDING LAW: the key word of each line is its own split unit. It
-   ignites LUMINOUS WHITE with a violet glow - authored final on the span. */
-.lcb-key{color:#fff;text-shadow:0 0 18px rgba(167,139,250,0.5),0 0 42px rgba(139,123,216,0.3)}
-/* the withheld line (beat 2): flashes white in motion, then cools to a
-   dimmer violet. Authored here at its cooled final. */
-.lcb-withhold{opacity:.78}
-.lcb-withhold .lcb-key{color:var(--lcb-violet);text-shadow:0 0 14px rgba(139,123,216,0.4)}
-/* violet light-gather behind ONE key word per beat (authored final: lit) */
-.lcb-gather{position:relative;isolation:isolate}
-.lcb-gth{position:absolute;left:50%;top:52%;width:clamp(120px,24vw,180px);aspect-ratio:1;border-radius:50%;
-  transform:translate(-50%,-50%);pointer-events:none;z-index:-1;mix-blend-mode:screen;opacity:.85;
-  background:radial-gradient(circle, rgba(167,139,250,0.32) 0%, rgba(139,123,216,0.14) 42%, rgba(139,123,216,0) 70%)}
-
-/* ---- the INLINE star: a real crafted glyph living beside its line.
-   Authored LIT (the honest final state); motion primes it dark. ---- */
-.lcb-instar{width:24px;height:24px;flex:0 0 24px;overflow:visible;display:block}
-.lcb-in-halo{fill:url(#lcbHaloWarm);opacity:.9}
-.lcb-in-core{fill:url(#lcbCoreWarm);opacity:1}
-.lcb-in-gl{fill:rgba(255,255,255,0.92);opacity:.6}
-.lcb-instar.lcb-cool .lcb-in-halo{fill:url(#lcbHaloCool);opacity:.35}
-.lcb-instar.lcb-cool .lcb-in-core{fill:url(#lcbCoreCool);opacity:.7}
-.lcb-instar.lcb-cool .lcb-in-gl{opacity:0}
-.lcb-instar{mix-blend-mode:screen}
-
-/* BEAT 1 - the rail of knowing: three lines, three stars, one hairline */
-.lcb-rail{position:relative;display:flex;flex-direction:column;gap:clamp(13px,2.6svh,22px);
-  text-align:left;margin-top:clamp(8px,1.6svh,16px)}
-.lcb-rail-line{position:absolute;left:11.5px;top:14px;bottom:14px;width:1px;transform:scaleY(1);transform-origin:top;
-  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 14%, rgba(167,139,250,0.5) 86%, rgba(167,139,250,0) 100%)}
-.lcb-row{position:relative;display:flex;align-items:flex-start;gap:clamp(12px,2vw,18px)}
-.lcb-row .lcb-beat{margin:0;max-width:24ch}
-.lcb-row .lcb-instar{margin-top:.24em}
-
-/* BEAT 1 dawn pool: authored final (risen); motion primes it low */
-.lcb-dawn{position:absolute;left:50%;bottom:12%;width:min(120vw,940px);height:56vh;z-index:0;
-  transform:translate(-50%,4%);opacity:.85;pointer-events:none;
-  background:radial-gradient(ellipse 52% 40% at 50% 66%, rgba(126,116,158,0.17) 0%, rgba(72,66,112,0.07) 38%, rgba(72,66,112,0) 76%)}
-
-/* BEAT 2 - the open questions: lead flush left, answers offset right,
-   cool stars trailing the lines, motes in the diagonal silence */
-.lcb-gap-block{position:relative;width:100%;max-width:660px;display:flex;flex-direction:column;text-align:left}
-.lcb-gap-block .lcb-pivot-lead{margin:0;text-align:left;max-width:20ch}
-.lcb-qrows{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;
-  gap:clamp(10px,1.8svh,18px);margin-top:clamp(22px,4.5svh,44px);text-align:right}
-.lcb-qrow{display:flex;align-items:center;gap:clamp(10px,1.6vw,14px)}
-.lcb-qrow .lcb-beat{margin:0;max-width:26ch}
-.lcb-voidstar{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;opacity:.5;
-  background:radial-gradient(circle, rgba(199,188,244,0.9) 0%, rgba(178,160,244,0.35) 40%, rgba(178,160,244,0) 70%)}
-.lcb-voidstar.v1{left:16%;top:54%}
-.lcb-voidstar.v2{left:36%;top:70%}
-.lcb-voidstar.v3{left:7%;top:82%}
-
-.lcb-pivot-lead{margin:0 auto;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
-  color:var(--lcb-ivory);font-size:clamp(1.78rem,1.25rem + 2.5vw,2.7rem);line-height:1.14;
-  letter-spacing:-0.018em;max-width:21ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
-
-/* BEAT 3 shimmer line: a white/violet light band lives off-screen right and
-   sweeps across the glyphs as the line lands. Authored final = swept (the
-   band rests past the left edge, leaving calm lavender). */
-.lcb-shimmer{color:transparent;-webkit-text-fill-color:transparent;
-  background-image:linear-gradient(100deg,#cdc6ec 0%,#cdc6ec 34%,var(--lcb-violet-br) 43%,#ffffff 50%,var(--lcb-violet-br) 57%,#cdc6ec 66%,#cdc6ec 100%);
-  background-size:280% 100%;background-position:-35% 0;
-  -webkit-background-clip:text;background-clip:text;will-change:background-position}
-/* BEAT 3 restrained line: arrives quiet - its key stays soft, never loud */
-.lcb-quiet .lcb-key{color:var(--lcb-ivory);text-shadow:0 0 12px rgba(167,139,250,0.25)}
-
-/* BEAT 4 - the plain close: "Set the chart." in luminous white/violet */
-.lcb-payoff-line{position:relative;z-index:1;margin:0;font-family:"Fraunces",Georgia,serif;font-weight:400;font-optical-sizing:auto;
-  color:var(--lcb-ivory);font-size:clamp(2.05rem,1.4rem + 3.1vw,3.5rem);line-height:1.16;
-  letter-spacing:-0.02em;max-width:17ch;text-wrap:balance;text-shadow:0 1px 26px rgba(4,3,10,0.5)}
-.lcb-promises{max-width:26ch}
-/* the promise lines' authored final: brightened to luminous white. Motion
-   primes them violet and lights them one by one. */
-.lcb-promises .lcb-ln{color:#fff;text-shadow:0 0 18px rgba(167,139,250,0.42),0 0 40px rgba(139,123,216,0.24)}
-.lcb-promises .lcb-key{color:inherit;text-shadow:none}
-.lcb-payoff-line.lcb-close{margin-top:clamp(18px,3.4svh,36px);font-size:clamp(1.9rem,1.3rem + 2.6vw,3.1rem)}
-.lcb-asc{display:inline-block;font-weight:500;letter-spacing:-0.008em;color:#f7f4ff;
-  text-shadow:0 0 0 rgba(167,139,250,0)}
-.lcb-asc.lit{animation:lcbAscBreath 7.5s var(--lcb-ease) 1.1s infinite}
-@keyframes lcbAscBreath{
-  0%{text-shadow:0 0 8px rgba(167,139,250,0.30), 0 0 20px rgba(167,139,250,0.16), 0 0 44px rgba(139,123,216,0.10)}
-  38%{text-shadow:0 0 10px rgba(167,139,250,0.38), 0 0 26px rgba(167,139,250,0.20), 0 0 54px rgba(139,123,216,0.12)}
-  63%{text-shadow:0 0 9px rgba(167,139,250,0.33), 0 0 22px rgba(167,139,250,0.17), 0 0 48px rgba(139,123,216,0.11)}
-  100%{text-shadow:0 0 8px rgba(167,139,250,0.30), 0 0 20px rgba(167,139,250,0.16), 0 0 44px rgba(139,123,216,0.10)}
-}
-.lcb-rule{display:block;width:min(46vw,220px);height:1px;margin:clamp(12px,2.2vw,20px) auto 0;
-  background:linear-gradient(90deg,transparent,var(--lcb-violet),transparent);
-  transform:scaleX(1);transform-origin:center;opacity:.9}
-
-@media (max-width:768px){
-  .lcb-beat:not(.lcb-support){font-size:clamp(1.72rem,1.2rem + 4.4vw,2.4rem)}
-  .lcb-open .lcb-beat:not(.lcb-support){font-size:clamp(2.05rem,1.35rem + 6vw,2.8rem)}
-  .lcb-pivot-lead{font-size:clamp(1.55rem,1.15rem + 3.6vw,2.2rem)}
-  .lcb-payoff-line{font-size:clamp(1.85rem,1.3rem + 4.6vw,2.7rem)}
-  .lcb-payoff-line.lcb-close{font-size:clamp(1.6rem,1.1rem + 4vw,2.2rem)}
-  .lcb-moon{top:-3%;right:-7%;width:min(46vw,214px)}
-  .lcb-instar{width:18px;height:18px;flex-basis:18px}
-  .lcb-rail-line{left:8.5px}
-}
-@media (prefers-reduced-motion:reduce){
-  .lcb-asc.lit{animation:none}
-  .lcb-shimmer{background:none;-webkit-text-fill-color:#fff;color:#fff;
-    text-shadow:0 0 20px rgba(167,139,250,0.45)}
-}
-`;
-
 // exponential-falloff cubic-bezier(.16,1,.3,1) - the ONE house ease, solved
 // the same way a browser does (Newton then bisection). Used on every settle.
 function makeCubicBezier(x1: number, y1: number, x2: number, y2: number): (t: number) => number {
@@ -319,45 +80,326 @@ function makeCubicBezier(x1: number, y1: number, x2: number, y2: number): (t: nu
 }
 export const HOUSE = makeCubicBezier(0.16, 1, 0.3, 1);
 
-/* word-cascade parameter sets: keyLabel = lineStart + keyIdx*each + dur */
-const HEADP = { dur: 0.9, each: 0.12 };   // short display heads
-const LEADP = { dur: 0.55, each: 0.05 };  // long display lines
-const SUPP = { dur: 0.45, each: 0.038 };  // support / body lines
+/* ---- the natal wheel geometry (module scope, deterministic) ----
+   A real chart wheel: zodiac ring, degree ticks, 12 house spokes, seven
+   planet glyphs on the inner band, three aspect chords. Drawn on scroll
+   via stroke-dashoffset + staggered opacity, exactly per the contract. */
+const W_C = 160;
+const wpt = (deg: number, r: number) => ({
+  x: +(W_C + r * Math.cos((deg * Math.PI) / 180)).toFixed(1),
+  y: +(W_C + r * Math.sin((deg * Math.PI) / 180)).toFixed(1),
+});
+const WHEEL_CUSPS = Array.from({ length: 12 }, (_, k) => {
+  const a = -90 + k * 30;
+  return { p1: wpt(a, 128), p2: wpt(a, 152) };
+});
+const WHEEL_TICKS = (() => {
+  const out: { p1: { x: number; y: number }; p2: { x: number; y: number } }[] = [];
+  let i = 0;
+  for (let deg = 0; deg < 360; deg += 6) {
+    if (deg % 30 === 0) continue;
+    const a = -90 + deg;
+    const rIn = i % 2 === 0 ? 124 : 121.5;
+    out.push({ p1: wpt(a, rIn), p2: wpt(a, 128) });
+    i++;
+  }
+  return out;
+})();
+const WHEEL_SIGNS = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"]
+  .map((g, k) => ({ g: g + "︎", p: wpt(-75 + k * 30, 140), d: 1.15 + k * 0.04 }));
+const WHEEL_SPOKES = Array.from({ length: 12 }, (_, k) => {
+  const a = -82 + k * 30;
+  return { p1: wpt(a, 44), p2: wpt(a, 128), d: 0.8 + k * 0.05 };
+});
+const WHEEL_PLANETS = [
+  { g: "☉︎", a: -75 },  // Sun
+  { g: "☿︎", a: -38 },  // Mercury
+  { g: "♂︎", a: 28 },   // Mars
+  { g: "♄︎", a: 58 },   // Saturn
+  { g: "♃︎", a: 113 },  // Jupiter
+  { g: "☽︎", a: 195 },  // Moon
+  { g: "♀︎", a: 238 },  // Venus
+].map((p, k) => ({ g: p.g, glyph: wpt(p.a, 101), t1: wpt(p.a, 118), t2: wpt(p.a, 126), d: 1.55 + k * 0.08 }));
+const WHEEL_ASPECTS = [
+  { a: -75, b: 113 },
+  { a: 195, b: -75 },
+  { a: 238, b: 58 },
+].map((c, k) => ({ p1: wpt(c.a, 112), p2: wpt(c.b, 112), d: 2.0 + k * 0.14 }));
 
-/* the inline star glyph - bespoke SVG, authored LIT (fills come from the
-   shared defs). cool variant = the unanswered question star. */
-function InStar({ cool = false }: { cool?: boolean }) {
-  return (
-    <svg className={cool ? "lcb-instar lcb-cool" : "lcb-instar"} viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-      <circle className="lcb-in-halo" cx="18" cy="18" r="17" />
-      <circle className="lcb-in-core" cx="18" cy="18" r="2.7" />
-      <path className="lcb-in-gl" d="M18,5 L19.05,18 L18,31 L16.95,18 Z" />
-      <path className="lcb-in-gl" d="M5,18 L18,16.95 L31,18 L18,19.05 Z" />
-    </svg>
-  );
+const LCB_CSS = `
+.lcb-root{
+  --lcb-bg:#0d0a14; --lcb-deep:#070510; --lcb-lift:#100c1a;
+  --lcb-violet:#8b7bd8; --lcb-violet-br:#a78bfa; --lcb-violet-soft:#b3a7e0;
+  --lcb-white:#f5f2ff;
+  --lcb-body:rgba(245,242,255,.78);
+  --lcb-dim:rgba(245,242,255,.55);
+  --c2-spine:24px; --c2-padl:60px; --c2-padr:22px;
+  position:relative;
+  overflow-x:clip;
+  pointer-events:none;
+  font-family:"Newsreader",Georgia,serif;font-weight:400;
+  -webkit-font-smoothing:antialiased;
 }
+@media (min-width:900px){
+  .lcb-root{ --c2-spine:44px; --c2-padl:104px; --c2-padr:40px; }
+}
+
+/* ---- fixed graded night stage (the ONE sky for the whole page) ---- */
+.lcb-back{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none;opacity:0;will-change:opacity}
+.lcb-front{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;will-change:opacity}
+.lcb-sky{position:absolute;inset:0;background:linear-gradient(180deg,var(--lcb-deep) 0%,var(--lcb-bg) 48%,var(--lcb-lift) 100%)}
+.lcb-sky-violet{position:absolute;inset:0;opacity:0;will-change:opacity;
+  background:linear-gradient(180deg,#0b0813 0%,#16111e 56%,#1b1526 100%)}
+.lcb-dawn-horizon{position:absolute;inset:0;opacity:0;will-change:opacity;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 130% 48% at 50% 108%, rgba(139,123,216,0.20) 0%, rgba(139,123,216,0.10) 36%, rgba(139,123,216,0.035) 58%, rgba(139,123,216,0) 76%)}
+.lcb-canvas-wrap{position:absolute;inset:-8% -6%;will-change:transform}
+.lcb-canvas{position:absolute;inset:0;width:100%;height:100%;will-change:transform}
+.lcb-grade{position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;
+  background:linear-gradient(158deg, rgba(20,18,46,0.5) 0%, rgba(120,126,180,0.08) 55%, rgba(201,199,252,0.10) 100%)}
+.lcb-veil{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg, rgba(7,5,14,0.5) 0%, rgba(7,5,14,0) 22%, rgba(7,5,14,0) 76%, rgba(7,5,14,0.5) 100%)}
+.lcb-vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 44%, transparent 46%, rgba(5,4,12,0.48) 100%)}
+.lcb-grain{position:absolute;inset:0;pointer-events:none;opacity:.034;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ---- the column: one narrative rail, left-spined like the contract ---- */
+.c2-col{
+  position:relative; z-index:2;
+  max-width:760px; margin:0 auto;
+  padding-left:var(--c2-padl); padding-right:var(--c2-padr);
+}
+.c2-threadwrap{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.c2-threadwrap svg{position:absolute;top:0;left:0;overflow:visible;display:block}
+.c2-thread-glow{fill:none;stroke:rgba(167,139,250,.14);stroke-width:6;stroke-linecap:round}
+.c2-thread{fill:none;stroke:var(--lcb-violet-br);stroke-width:1.6;stroke-linecap:round}
+.c2-beat{position:relative;z-index:1;display:block}
+
+/* ---- reveal motion ---- */
+.c2-rv{ opacity:0; transform:translate3d(0,34px,0); }
+.c2-rv.is-in{
+  opacity:1; transform:translate3d(0,0,0);
+  transition:transform .62s cubic-bezier(.2,.9,.25,1.06), opacity .48s ease-out;
+  transition-delay:var(--d,0s);
+}
+.c2-rv-x{ transform:translate3d(-18px,22px,0); }
+.lcb-memorial .c2-rv.is-in{
+  transition-duration:.95s,.78s;
+}
+
+/* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
+.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:17px;color:var(--lcb-dim);max-width:34ch;line-height:1.6;margin:0}
+.c2-lm{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.3rem,2.4vw + .6rem,1.8rem);line-height:1.3;color:var(--lcb-body);margin:0;letter-spacing:-0.008em}
+.c2-ll{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.7rem,3.4vw + .7rem,2.5rem);line-height:1.2;color:var(--lcb-white);letter-spacing:-0.014em;margin:0;text-wrap:balance}
+.c2-lxl{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.05rem,4.6vw + .8rem,3.15rem);line-height:1.14;color:var(--lcb-white);letter-spacing:-0.016em;margin:0;text-wrap:balance}
+.c2-peak{
+  font-family:"Fraunces",Georgia,serif;font-weight:400;
+  font-size:clamp(2.35rem,6.4vw + 1rem,4.4rem);line-height:1.07;
+  color:var(--lcb-white);letter-spacing:-0.02em;max-width:14ch;margin:0;
+  text-shadow:0 1px 30px rgba(4,3,10,.5);text-wrap:balance;
+}
+.c2-peak-v{color:var(--lcb-violet-br)}
+.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:17.5px;line-height:1.5;color:var(--lcb-dim);position:relative;max-width:34ch;margin:0}
+.c2-peak em,.c2-ll em{font-style:italic}
+
+/* ---- station nodes riding the thread ---- */
+.c2-node{
+  position:absolute; left:calc(var(--c2-spine) - var(--c2-padl) - 5.5px); width:11px; height:11px;
+  border-radius:50%; background:var(--lcb-bg); border:1.5px solid rgba(167,139,250,.45);
+  z-index:2; transition:background .45s ease, box-shadow .45s ease, border-color .45s ease;
+}
+.c2-node::before{
+  content:""; position:absolute; left:100%; top:50%; height:1px; width:0;
+  background:linear-gradient(90deg, var(--lcb-violet-br), transparent);
+  transition:width .5s ease .12s;
+}
+.c2-node::after{
+  content:""; position:absolute; inset:-5px; border-radius:50%;
+  border:1px solid rgba(167,139,250,.55); opacity:0;
+}
+.c2-node.lit{background:var(--lcb-violet-br);border-color:var(--lcb-violet-br);box-shadow:0 0 14px rgba(167,139,250,.65)}
+.c2-node.lit::before{width:20px}
+.c2-node.lit::after{animation:c2npulse 2.4s ease-out infinite}
+.lcb-memorial .c2-node.lit{box-shadow:0 0 9px rgba(167,139,250,.45)}
+.lcb-memorial .c2-node.lit::after{animation-duration:3.6s}
+@keyframes c2npulse{0%{transform:scale(.55);opacity:.85}70%{transform:scale(2);opacity:0}100%{transform:scale(2);opacity:0}}
+.c2-node-sm{width:7px;height:7px;left:calc(var(--c2-spine) - var(--c2-padl) - 3.5px);border-width:1px}
+.c2-node-sm::before{display:none}
+.c2-node-sm::after{inset:-4px}
+.c2-node-sm.lit{box-shadow:0 0 10px rgba(167,139,250,.55)}
+
+/* ---- beats: compressed, always an event in view ---- */
+.c2-b1{padding:7svh 0 7svh}
+.c2-b1 .c2-whisper{margin-bottom:3.2svh}
+.c2-b2{padding:9svh 0 8svh}
+.c2-b2 .c2-whisper{margin-top:2.8svh}
+.c2-frags{margin-top:4.6svh;display:flex;flex-direction:column;gap:2.8svh}
+.c2-pivot{padding:12svh 0 11svh}
+.c2-pivot .c2-ll{max-width:16ch}
+.c2-pivot .c2-ll + .c2-ll{margin-top:3.2svh}
+.c2-b3{padding:10svh 0 7svh}
+.c2-b3 .c2-lxl{max-width:16ch;margin-top:4.6svh}
+.c2-b4{padding:11svh 0 10svh}
+.c2-b4 .c2-lm{margin-top:3svh}
+.c2-b4 .c2-peak{margin-top:3.6svh}
+.lcb-memorial .c2-b2{padding-top:11svh}
+.lcb-memorial .c2-pivot{padding:13svh 0 12svh}
+
+/* beat 1: the sealed map, in flow between the two peaks */
+.c2-constellation{
+  display:block;width:clamp(112px,30vw,170px);opacity:.6;
+  margin:7svh clamp(4px,6vw,80px) 7svh auto;pointer-events:none;
+}
+.c2-constellation .cframe{stroke:rgba(167,139,250,.3);fill:none;stroke-width:1}
+.c2-constellation .cline{
+  stroke:rgba(167,139,250,.55);stroke-width:1;fill:none;
+  stroke-dasharray:400;stroke-dashoffset:400;
+  transition:stroke-dashoffset 1.6s ease-out .3s;
+}
+.c2-b1.is-inview .c2-constellation .cline{stroke-dashoffset:0}
+.c2-constellation .cstar{fill:var(--lcb-violet-soft)}
+
+/* beat 3: the natal wheel, drawn as its own object */
+.c2-wheel{
+  position:relative;width:clamp(250px,70vw,390px);aspect-ratio:1;
+  margin:4.5svh auto 0;
+}
+.c2-wheel::before{
+  content:"";position:absolute;inset:-18%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, rgba(167,139,250,.13) 0%, transparent 62%);
+}
+.c2-wheel svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.c2-wheel .wring-a{stroke:rgba(167,139,250,.6);fill:none;stroke-width:1.2}
+.c2-wheel .wring-b{stroke:rgba(167,139,250,.42);fill:none;stroke-width:1}
+.c2-wheel .wring-c{stroke:rgba(139,123,216,.5);fill:none;stroke-width:1}
+.c2-wheel .wcusp{stroke:rgba(167,139,250,.38);stroke-width:1}
+.c2-wheel .wtick{stroke:rgba(139,123,216,.42);stroke-width:1}
+.c2-wheel .wspoke{stroke:rgba(139,123,216,.34);stroke-width:1}
+.c2-wheel .waspect{stroke:rgba(167,139,250,.38);stroke-width:.9}
+.c2-wheel .wptick{stroke:rgba(167,139,250,.7);stroke-width:1.2}
+.c2-wheel text{
+  font-family:Georgia,'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols 2',serif;
+  fill:rgba(179,167,224,.78);font-size:13px;
+}
+.c2-wheel .wplanets text{
+  font-size:15px;fill:var(--lcb-violet-br);
+  filter:drop-shadow(0 0 5px rgba(167,139,250,.55));
+}
+/* drawn on scroll */
+.c2-wheel .wring-a{stroke-dasharray:956;stroke-dashoffset:956;transition:stroke-dashoffset 1.5s ease-out .1s}
+.c2-wheel .wring-b{stroke-dasharray:805;stroke-dashoffset:805;transition:stroke-dashoffset 1.4s ease-out .35s}
+.c2-wheel .wring-c{stroke-dasharray:277;stroke-dashoffset:277;transition:stroke-dashoffset 1s ease-out .6s}
+.c2-wheel .wcusps{opacity:0;transition:opacity .9s ease .9s}
+.c2-wheel .wticks{opacity:0;transition:opacity 1s ease 1.1s}
+.c2-wheel .wspoke{stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .8s ease-out}
+.c2-wheel .waspect{stroke-dasharray:240;stroke-dashoffset:240;transition:stroke-dashoffset .9s ease-out}
+.c2-wheel .wglyphs text{opacity:0;transition:opacity .7s ease}
+.c2-wheel .wplanets text{
+  opacity:0;transform:scale(.4);transform-box:fill-box;transform-origin:center;
+  transition:opacity .5s ease, transform .55s cubic-bezier(.34,1.56,.64,1);
+}
+.c2-wheel .wptick{opacity:0;transition:opacity .5s ease}
+.c2-b3.is-inview .c2-wheel .wring-a,
+.c2-b3.is-inview .c2-wheel .wring-b,
+.c2-b3.is-inview .c2-wheel .wring-c{stroke-dashoffset:0}
+.c2-b3.is-inview .c2-wheel .wcusps,
+.c2-b3.is-inview .c2-wheel .wticks{opacity:1}
+.c2-b3.is-inview .c2-wheel .wspoke{stroke-dashoffset:0}
+.c2-b3.is-inview .c2-wheel .waspect{stroke-dashoffset:0}
+.c2-b3.is-inview .c2-wheel .wglyphs text{opacity:1}
+.c2-b3.is-inview .c2-wheel .wplanets text{opacity:1;transform:scale(1)}
+.c2-b3.is-inview .c2-wheel .wptick{opacity:1}
+
+/* the real moon: corner spine presence, blur-to-sharp arrival. It lives
+   with the birth-sky beat and retires with it - never below the opening. */
+.c2-moonspine{
+  position:absolute;z-index:-1;pointer-events:none;
+  top:calc(-1 * clamp(44px, 9svh, 96px));
+  right:calc(-1 * clamp(14px, 6vw, 84px));
+  width:clamp(116px, 28vw, 208px);height:auto;border-radius:50%;
+  -webkit-mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
+  mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
+  opacity:0;filter:blur(16px);
+  transition:opacity 1.2s ease .15s, filter 1.6s ease .15s;
+  will-change:transform;
+}
+.c2-b3.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
+.c2-moonglow{
+  position:absolute;z-index:-2;pointer-events:none;border-radius:50%;
+  top:calc(-1 * clamp(60px, 11svh, 120px));
+  right:calc(-1 * clamp(30px, 8vw, 108px));
+  width:clamp(150px, 36vw, 260px);aspect-ratio:1;
+  background:radial-gradient(circle, rgba(167,139,250,.22) 0%, rgba(167,139,250,.08) 45%, transparent 70%);
+  opacity:0;transition:opacity 1.6s ease .3s;mix-blend-mode:screen;
+}
+.c2-b3.is-inview .c2-moonglow{opacity:1}
+.lcb-memorial .c2-b3.is-inview .c2-moonglow{opacity:.7}
+
+/* ---- reduced motion: the finished passage at rest ---- */
+@media (prefers-reduced-motion: reduce){
+  .lcb-root *, .lcb-root *::before, .lcb-root *::after{
+    animation:none !important;
+    transition:none !important;
+  }
+  .c2-rv{opacity:1 !important;transform:none !important}
+  .c2-constellation .cline{stroke-dashoffset:0 !important}
+  .c2-wheel .wring-a,.c2-wheel .wring-b,.c2-wheel .wring-c,
+  .c2-wheel .wspoke,.c2-wheel .waspect{stroke-dashoffset:0 !important}
+  .c2-wheel .wcusps,.c2-wheel .wticks,.c2-wheel .wglyphs text,
+  .c2-wheel .wplanets text,.c2-wheel .wptick{opacity:1 !important}
+  .c2-wheel .wplanets text{transform:scale(1) !important}
+  .c2-moonspine{opacity:.95 !important;filter:blur(0) !important}
+  .c2-moonglow{opacity:1 !important}
+  .c2-node.lit::before{width:20px !important}
+}
+`;
+
+/* ---- the passage copy: discovery + memorial registers ----
+   Discovery lines are Danny-approved C v2 verbatim. Memorial lines are the
+   remembered-tense variant of each beat: same shape, lower voice. */
+const COPY = {
+  discovery: {
+    b1whisper: "There is a map of exactly who your pet is.",
+    b2whisper: "You have been reading it for years without knowing.",
+    frags: [
+      "The waiting at the door before your key turns.",
+      "The exact spot they claim, every time.",
+      "The look they save for you alone.",
+    ],
+    pivot1: "You call that personality.",
+    b4whisper: "So the map waits.",
+  },
+  memorial: {
+    b1whisper: "There is a map of exactly who they were.",
+    b2whisper: "You were reading it for years without knowing.",
+    frags: [
+      "The waiting at the door before your key turned.",
+      "The exact spot they claimed, every time.",
+      "The look they saved for you alone.",
+    ],
+    pivot1: "You called that personality.",
+    b4whisper: "So the map remains.",
+  },
+};
 
 export function CosmicBridge() {
   const rootRef = useRef<HTMLElement>(null);
 
-  // The register: discovery (default) or memorial. The fork / URL intent
-  // drives it live via the ls-intent event; a register change remounts the
-  // whole section (key below) and rebuilds every timeline from scratch.
+  // The register: discovery (default) or memorial. The chooser toggle / URL
+  // intent drives it live via the ls-intent event; a register change remounts
+  // the whole section (key below) and rebuilds the thread from scratch.
   const [register, setRegister] = useState<"discovery" | "memorial">(() =>
     getIntent() === "memorial" ? "memorial" : "discovery");
   useEffect(() => {
     const onIntent = () => {
       setRegister(getIntent() === "memorial" ? "memorial" : "discovery");
-      // Choosing a path collapses the tall chooser into its slim banner, which
-      // reflows everything below WITHOUT a register change (discovery is the
-      // default). Every scroll timeline's start/end is stale after that shift,
-      // so re-measure once the collapse has painted.
       requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
     };
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
   const memorial = register === "memorial";
+  const T = memorial ? COPY.memorial : COPY.discovery;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -365,52 +407,29 @@ export function CosmicBridge() {
 
     const q = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => scope.querySelector<T>(sel);
     const qa = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => Array.from(scope.querySelectorAll<T>(sel));
-    // memorial register: every glow opacity cap multiplied by 0.7; the loud
-    // transients (glint flares, shared breaths, the bright flashes) soften
-    // or never exist. The same four scenes in a lower voice.
     const hush = register === "memorial";
-    const glow = (v: number) => (hush ? Math.round(v * 0.7 * 1000) / 1000 : v);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // ---------- prep the word reveals (wrap once, never per breakpoint).
-    // Lines marked lcb-nosplit (the shimmer + restrained lines) stay ONE unit. ----------
-    qa(".lcb-split .lcb-ln").forEach((ln) => {
-      if (ln.classList.contains("lcb-nosplit")) return;
-      const frag = document.createDocumentFragment();
-      Array.from(ln.childNodes).forEach((node) => {
-        if (node.nodeType !== Node.TEXT_NODE) {
-          if (node instanceof HTMLElement) node.classList.add("lcb-wd");
-          frag.appendChild(node); return;
-        }
-        (node.textContent || "").split(/(\s+)/).forEach((tok) => {
-          if (tok === "") return;
-          if (/^\s+$/.test(tok)) { frag.appendChild(document.createTextNode(tok)); return; }
-          const w = document.createElement("span"); w.className = "lcb-wd"; w.textContent = tok; frag.appendChild(w);
-        });
-      });
-      ln.replaceChildren(frag);
-    });
-
-    // ---------- honest magnitude-scaled canvas starfield + ambient life ----
-    // Sparse violet twinkle, a RARE violet-white shooting star with a soft
-    // trail, and one faint star that falls the first time each beat enters.
-    // Motion mode runs the loop; reduced motion draws ONE static frame.
+    /* ---------- canvas: magnitude-scaled starfield + star dust + a RARE
+       violet-white shooting star. Painted only while the stage is lit. ---- */
     const canvas = q<HTMLCanvasElement>(".lcb-canvas");
     const canvasWrap = q(".lcb-canvas-wrap");
+    const back = q(".lcb-back");
+    const front = q(".lcb-front");
     let drawStars = () => {};
-    let startAmbient = () => {};
-    let stopAmbient = () => {};
-    let spawnFaller = () => {};
+    let paintFrame: (t: number, dt: number) => void = () => {};
     if (canvas) {
       const ctxc = canvas.getContext("2d");
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const hushAmb = hush ? 0.7 : 1;
-      // purple/white sky only: whites, faint lavenders, true violets
+      const hushAmb = hush ? 0.65 : 1;
       const tints = [
-        [255, 252, 250], [244, 238, 225], [240, 238, 252], [232, 227, 248],
+        [255, 252, 250], [245, 242, 255], [240, 238, 252], [232, 227, 248],
         [214, 204, 250], [178, 160, 244], [178, 160, 244],
       ];
       type Tw = { x: number; y: number; r: number; a: number; c: number[]; ph: number; sp: number; tw: number };
+      type Mote = { x: number; y: number; r: number; vx: number; vy: number; ph: number; sp: number; v: boolean };
       let stars: Tw[] = [];
+      let dust: Mote[] = [];
       const buildField = (w: number, h: number) => {
         const mobile = w < 768;
         const n = Math.min(160, mobile ? 62 : 132);
@@ -424,8 +443,8 @@ export function CosmicBridge() {
             x = bx + dirx * along - diry * across; y = by + diry * along + dirx * across;
           } else { x = Math.random() * w; y = Math.random() * h; }
           if (x < -20 || x > w + 20 || y < -20 || y > h + 20) { i--; continue; }
-          const m = 1.4 + Math.pow(Math.random(), 0.6) * 4.6;         // magnitude
-          const bright = Math.pow(2.512, -(m - 1.4));                 // Pogson
+          const m = 1.4 + Math.pow(Math.random(), 0.6) * 4.6;
+          const bright = Math.pow(2.512, -(m - 1.4));
           const r = (0.5 + bright * 1.5) * dpr;
           const a = Math.min(0.95, 0.14 + bright * 0.82);
           const c = tints[(Math.random() * tints.length) | 0];
@@ -434,10 +453,23 @@ export function CosmicBridge() {
             tw: 0.18 + Math.random() * 0.4 });
         }
         stars = arr;
+        // drifting star dust: small motes rising slowly up-left
+        const nd = Math.min(44, Math.round((w * h) / 26000));
+        const darr: Mote[] = [];
+        for (let i = 0; i < nd; i++) {
+          darr.push({
+            x: Math.random() * w * dpr, y: Math.random() * h * dpr,
+            r: (0.4 + Math.random() * 0.8) * dpr,
+            vx: -(0.02 + Math.random() * 0.06) * dpr,
+            vy: -(0.03 + Math.random() * 0.09) * dpr,
+            ph: Math.random() * 6.28, sp: 0.4 + Math.random() * 0.8,
+            v: Math.random() < 0.35,
+          });
+        }
+        dust = darr;
       };
       type Meteor = { x: number; y: number; vx: number; vy: number; life: number; max: number };
       let shooter: Meteor | null = null;
-      const fallers: Meteor[] = [];
       let nextShoot = 0;
       const paint = (t: number, dt: number) => {
         if (!ctxc) return;
@@ -457,7 +489,19 @@ export function CosmicBridge() {
           ctxc.fillStyle = `rgba(${st.c[0]},${st.c[1]},${st.c[2]},${Math.max(0, a)})`;
           ctxc.arc(st.x, st.y, st.r, 0, Math.PI * 2); ctxc.fill();
         }
-        if (dt <= 0) return;   // static frame: effects at rest
+        // star dust drift (rests still under reduced motion: dt = 0)
+        const step = dt > 0 ? dt * 60 : 0;
+        for (const p of dust) {
+          p.x += p.vx * step; p.y += p.vy * step;
+          if (p.x < -4) p.x = cw + 4;
+          if (p.y < -4) p.y = ch + 4;
+          const a = (0.10 + 0.18 * (0.5 + 0.5 * Math.sin(t * 0.001 * p.sp + p.ph))) * hushAmb;
+          ctxc.beginPath();
+          ctxc.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctxc.fillStyle = p.v ? `rgba(179,167,224,${a})` : `rgba(245,242,255,${a})`;
+          ctxc.fill();
+        }
+        if (dt <= 0) return;
         // RARE violet-white shooting star with a soft trail
         if (t > nextShoot && !shooter) {
           const fromLeft = Math.random() < 0.5;
@@ -470,7 +514,7 @@ export function CosmicBridge() {
             vy: Math.abs(Math.sin(ang2)) * speed * 0.7 + ch * 0.12,
             life: 0, max: 1.2,
           };
-          nextShoot = t + 16000 + Math.random() * 14000;
+          nextShoot = t + (hush ? 26000 : 16000) + Math.random() * 14000;
         }
         if (shooter) {
           shooter.life += dt; shooter.x += shooter.vx * dt; shooter.y += shooter.vy * dt;
@@ -494,24 +538,6 @@ export function CosmicBridge() {
             ctxc.beginPath(); ctxc.arc(shooter.x, shooter.y, 5.5 * dpr, 0, Math.PI * 2); ctxc.fill();
           }
         }
-        // one faint star falling per beat: fades in, drifts down, fades out
-        for (let i = fallers.length - 1; i >= 0; i--) {
-          const f = fallers[i];
-          f.life += dt; f.x += f.vx * dt; f.y += f.vy * dt;
-          const p = f.life / f.max;
-          if (p >= 1) { fallers.splice(i, 1); continue; }
-          const a = Math.sin(Math.min(p, 1) * Math.PI) * 0.65 * hushAmb;
-          const tg3 = ctxc.createLinearGradient(f.x, f.y, f.x - f.vx * 0.4, f.y - 15 * dpr);
-          tg3.addColorStop(0, `rgba(220,214,248,${a * 0.7})`);
-          tg3.addColorStop(1, "rgba(139,123,216,0)");
-          ctxc.strokeStyle = tg3; ctxc.lineWidth = 1.1 * dpr; ctxc.lineCap = "round";
-          ctxc.beginPath(); ctxc.moveTo(f.x, f.y); ctxc.lineTo(f.x - f.vx * 0.4, f.y - 15 * dpr); ctxc.stroke();
-          const g3 = ctxc.createRadialGradient(f.x, f.y, 0, f.x, f.y, 3.2 * dpr);
-          g3.addColorStop(0, `rgba(255,255,255,${a})`);
-          g3.addColorStop(1, "rgba(167,139,250,0)");
-          ctxc.fillStyle = g3;
-          ctxc.beginPath(); ctxc.arc(f.x, f.y, 3.2 * dpr, 0, Math.PI * 2); ctxc.fill();
-        }
       };
       drawStars = () => {
         const rect = canvas.getBoundingClientRect();
@@ -519,550 +545,375 @@ export function CosmicBridge() {
         if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; buildField(w, h); }
         paint(0, 0);
       };
-      spawnFaller = () => {
-        fallers.push({
-          x: (0.15 + Math.random() * 0.7) * canvas.width,
-          y: (0.08 + Math.random() * 0.22) * canvas.height,
-          vx: (Math.random() - 0.5) * canvas.width * 0.012,
-          vy: canvas.height * 0.055,
-          life: 0, max: 3.4,
-        });
-        if (fallers.length > 3) fallers.shift();
-      };
-      let raf = 0, lastT = 0;
-      const loop = (t: number) => {
-        raf = requestAnimationFrame(loop);
-        const dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 0.016;
-        lastT = t;
-        // the stage is opacity-gated by scroll; skip painting while it is dark
-        const bo = back ? parseFloat(back.style.opacity || "1") : 1;
+      paintFrame = (t, dt) => {
+        const bo = back ? parseFloat((back as HTMLElement).style.opacity || "1") : 1;
         if (bo > 0.02) paint(t, dt);
       };
-      startAmbient = () => {
-        if (raf) return;
-        lastT = 0; nextShoot = performance.now() + 9000;
-        raf = requestAnimationFrame(loop);
-      };
-      stopAmbient = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
       drawStars();
+      nextShoot = performance.now() + 9000;
     }
 
-    // ---------- stage refs ----------
-    const back = q(".lcb-back");
-    const front = q(".lcb-front");
-    const moonPt = q(".lcb-moon-pt");
-    const travel = q(".lcb-moon-travel");
-    const moonEl = q(".lcb-moon");
-
-    // ---------- helpers ----------
-    const primeDraw = (els: SVGGeometryElement[]) => els.forEach((el) => {
-      const len = el.getTotalLength ? el.getTotalLength() : 300;
-      el.style.strokeDasharray = String(len); el.style.strokeDashoffset = String(len);
-    });
-
-    // canvas rebuilds ride ScrollTrigger's own refresh cycle
-    const onSTRefresh = () => { drawStars(); };
-    ScrollTrigger.addEventListener("refresh", onSTRefresh);
-
-    // ================= ONE CLOCK =================
-    const mm = gsap.matchMedia();
-
-    const buildStory = (mobile: boolean, scrub: number) => {
-      const amp = mobile ? 0.55 : 1;
-
-      // ---------- THE BINDING LAW: one reveal engine, every line ----------
-      // revealLine stamps TWO labels: `label` at the exact tick the key
-      // word's reveal completes, and `label+"End"` when the line's last unit
-      // lands. Labels are the authority. V7: each beat has its own reveal
-      // character (mode), all riding the same label engine.
-      type Cascade = { dur: number; each: number };
-      type RevealMode = "cascade" | "rise" | "focus" | "shimmer" | "restrain";
-      const revealLine = (
-        tl: gsap.core.Timeline, ln: Element | null, at: number, label: string, p: Cascade,
-        mode: RevealMode = "cascade",
-      ) => {
-        if (!ln) return;
-        const el = ln as HTMLElement;
-        // FOCUS (beat 2): the whole line resolves out of heavy blur - dreamy
-        if (mode === "focus") {
-          tl.fromTo(el, { opacity: 0, scale: 1.045, filter: "blur(16px)" },
-            { opacity: 1, scale: 1, filter: "blur(0px)", ease: HOUSE, duration: p.dur }, at);
-          tl.addLabel(label, at + p.dur);
-          tl.addLabel(label + "End", at + p.dur);
-          return;
-        }
-        // SHIMMER (beat 3): one unit rises clean; the light-band sweep is
-        // bound separately to this line's label
-        if (mode === "shimmer") {
-          tl.fromTo(el, { opacity: 0, y: 26 }, { opacity: 1, y: 0, ease: HOUSE, duration: p.dur }, at);
-          tl.addLabel(label, at + p.dur);
-          tl.addLabel(label + "End", at + p.dur);
-          return;
-        }
-        // RESTRAIN (beat 3 close): quiet arrival, letter-spacing settling
-        if (mode === "restrain") {
-          tl.fromTo(el, { opacity: 0, y: 10, letterSpacing: "0.16em", filter: "blur(2.5px)" },
-            { opacity: 0.94, y: 0, letterSpacing: "0.004em", filter: "blur(0px)", ease: HOUSE, duration: p.dur }, at);
-          tl.addLabel(label, at + p.dur);
-          tl.addLabel(label + "End", at + p.dur);
-          return;
-        }
-        // CASCADE / RISE: the word units settle up in sequence; RISE adds a
-        // soft line-level blur resolve (beat 1's signature)
-        const units = qa(".lcb-wd", ln);
-        if (!units.length) return;
-        let keyIdx = units.findIndex((u) => u.classList.contains("lcb-key"));
-        if (keyIdx < 0) keyIdx = units.length - 1;
-        tl.fromTo(units, { y: 24, opacity: 0 },
-          { y: 0, opacity: 1, ease: HOUSE, duration: p.dur, stagger: p.each }, at);
-        if (mode === "rise") {
-          tl.fromTo(el, { filter: "blur(5px)" }, { filter: "blur(0px)", ease: "none",
-            duration: p.dur + (units.length - 1) * p.each * 0.7 }, at);
-        }
-        tl.addLabel(label, at + keyIdx * p.each + p.dur);
-        tl.addLabel(label + "End", at + (units.length - 1) * p.each + p.dur);
-      };
-      const endAt = (label: string, dur: number) => `${label}-=${dur}`;
-      const labelTime = (tl: gsap.core.Timeline, name: string) =>
-        (tl.labels as Record<string, number>)[name] ?? 0;
-
-      // key-word ignition: primes the key soft violet, then it ignites to
-      // luminous white with a violet glow, completing at the key's label
-      const KEYGLOW = hush
-        ? "0 0 14px rgba(167,139,250,0.38), 0 0 32px rgba(139,123,216,0.22)"
-        : "0 0 18px rgba(167,139,250,0.5), 0 0 42px rgba(139,123,216,0.3)";
-      const NOGLOW = "0 0 0 rgba(167,139,250,0)";
-      const igniteKey = (tl: gsap.core.Timeline, ln: Element | null, end: number, dur = 0.45) => {
-        if (!ln) return;
-        const key = q(".lcb-key", ln);
-        if (!key) return;
-        tl.fromTo(key, { color: "#b3a7e0", textShadow: NOGLOW },
-          { color: "#ffffff", textShadow: KEYGLOW, duration: dur, ease: HOUSE },
-          Math.max(0, end - dur));
-      };
-      // the violet light-gather: ONE key word per beat grows a soft pool of
-      // violet light behind it as it lands
-      const gatherAt = (tl: gsap.core.Timeline, scope: Element | null, end: number) => {
-        if (!scope) return;
-        const g = q(".lcb-gth", scope);
-        if (!g) return;
-        tl.fromTo(g, { opacity: 0, scale: 0.4, xPercent: -50, yPercent: -50 },
-          { opacity: glow(0.85), scale: 1, xPercent: -50, yPercent: -50, duration: 0.9, ease: HOUSE },
-          Math.max(0, end - 0.2));
-      };
-
-      // inline star ignition: the star wakes BESIDE its line, completing at
-      // the key label. Warm pop + glint - the visual lands ON the word.
-      const igniteInline = (tl: gsap.core.Timeline, row: Element, end: number, dur: number) => {
-        const star = q<SVGElement>(".lcb-instar", row);
-        const halo = q<SVGElement>(".lcb-in-halo", row);
-        const core = q<SVGElement>(".lcb-in-core", row);
-        const gls = qa<SVGElement>(".lcb-in-gl", row);
-        const at = Math.max(0, end - dur);
-        if (star) tl.to(star, { scale: 1, opacity: 1, duration: dur, ease: HOUSE }, at);
-        if (halo) tl.to(halo, { opacity: glow(1), duration: dur, ease: HOUSE }, at);
-        if (core) tl.to(core, { opacity: 1, duration: dur, ease: HOUSE }, at);
-        if (gls.length) tl.to(gls, { opacity: glow(0.7), duration: dur, ease: HOUSE }, at);
-      };
-
-      // ---- SPINE: the moon travels between beat homes (transform only) ----
-      const W = window.innerWidth, H = window.innerHeight;
-      if (travel) {
-        gsap.timeline({ scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub } })
-          .to(travel, { x: -0.15 * W * amp, y: 0.10 * H * amp, ease: HOUSE, duration: 1 })
-          .to(travel, { x: -0.02 * W * amp, y: 0.02 * H * amp, ease: HOUSE, duration: 1 })
-          .to(travel, { x: 0.05 * W * amp, y: -0.11 * H * amp, ease: HOUSE, duration: 1 });
-      }
-
-      // ---- SEAM 1: the hero hands into the passage ----
-      const heroCopy = document.querySelector<HTMLElement>(".ls-hero-copy");
-      if (heroCopy && document.querySelector(".ls-hero-section")) {
-        gsap.to(heroCopy, {
-          opacity: 0, y: -34 * amp, ease: "none",
-          scrollTrigger: { trigger: ".ls-hero-section", start: "bottom 86%", end: "bottom 38%", scrub },
+    /* ---------- reveals: one observer for lines, one for the two beats
+       that draw themselves (constellation, wheel + moon) ---------- */
+    const rvNodes = qa(".c2-rv");
+    const secNodes = qa(".c2-b1, .c2-b3");
+    let io: IntersectionObserver | null = null;
+    let ioSec: IntersectionObserver | null = null;
+    if (reduced || !("IntersectionObserver" in window)) {
+      rvNodes.forEach((el) => el.classList.add("is-in"));
+      secNodes.forEach((el) => el.classList.add("is-inview"));
+    } else {
+      io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting || e.boundingClientRect.top < 0) { e.target.classList.add("is-in"); io?.unobserve(e.target); }
         });
-      }
-
-      // =============== BEAT 1 - THE RAIL OF KNOWING ===============
-      // The moon (their companion) arrives out of focus and settles sharp as
-      // "knows"/"knew" lands. Then three lines, three inline stars: each
-      // ignites violet-white beside its own words, and the violet rail grows
-      // down to meet it. What you already know, set alight one truth at a time.
-      const open = q(".lcb-open");
-      if (open) {
-        const dawn = q(".lcb-dawn", open);
-        const earthshine = q(".lcb-earthshine");
-        const rim = q(".lcb-moon-rim");
-        const bloom = q(".lcb-moon-bloom");
-        const liftImg = q(".lcb-moon-img.lift");
-        const headLn = q(".lcb-beat:not(.lcb-support) .lcb-ln", open);
-        const rows = qa(".lcb-row", open);
-        const railLine = q(".lcb-rail-line", open);
-
-        // prime to the un-lit state (CSS authors the final)
-        gsap.set(dawn, { opacity: 0, yPercent: 16 });
-        if (railLine) gsap.set(railLine, { scaleY: 0 });
-        rows.forEach((row) => {
-          gsap.set(q(".lcb-instar", row), { scale: 0.55, transformOrigin: "50% 50%" });
-          gsap.set(q(".lcb-in-halo", row), { opacity: 0 });
-          gsap.set(q(".lcb-in-core", row), { opacity: 0.3 });
-          gsap.set(qa(".lcb-in-gl", row), { opacity: 0 });
+      }, { threshold: 0.12, rootMargin: "600px 0px -9% 0px" });
+      rvNodes.forEach((el) => io?.observe(el));
+      ioSec = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting || e.boundingClientRect.top < 0) { e.target.classList.add("is-inview"); ioSec?.unobserve(e.target); }
         });
-        if (rim) gsap.set(rim, { opacity: 0.6 });
-        if (earthshine) gsap.set(earthshine, { opacity: 0 });
+      }, { threshold: 0.2, rootMargin: "600px 0px 0px 0px" });
+      secNodes.forEach((el) => ioSec?.observe(el));
+    }
 
-        const t1 = gsap.timeline({ scrollTrigger: { trigger: open, start: "top 82%", end: "bottom 38%", scrub } });
-        const T = hush
-          ? { head: 0.45, rows: [1.5, 2.7, 3.9], ig: 0.85, rail: 0.7 }
-          : { head: 0.35, rows: [1.05, 1.8, 2.55], ig: 0.5, rail: 0.5 };
+    /* ---------- THE THREAD: born under the chooser toggle, swings onto
+       the spine, ignites every station node, then finds the form card and
+       seals its border shut. The button ignites only when sealed. ---------- */
+    const col = q(".c2-col");
+    const svg = q<SVGSVGElement>(".c2-threadsvg");
+    const path = q<SVGPathElement>(".c2-thread");
+    const glowP = q<SVGPathElement>(".c2-thread-glow");
+    const nodes = qa("[data-node]");
+    const moonSec = q(".c2-b3");
+    const moonImg = q<HTMLImageElement>(".c2-moonspine");
+    const getCard = () => document.querySelector<HTMLElement>(".ls-seal-card");
 
-        // L1 "No one KNOWS/KNEW your pet the way you do/did." - the lines
-        // rise and settle out of soft blur; the key ignites luminous white;
-        // the violet light gathers behind "you". The moon crossfades sharp
-        // over the arrival, completing at the key.
-        revealLine(t1, headLn, T.head, "b1know", HEADP, "rise");
-        const arrive = labelTime(t1, "b1know");
-        igniteKey(t1, headLn, arrive, 0.5);
-        gatherAt(t1, open, arrive + 0.25);
-        t1.to(q(".lcb-moon-img.blur"), { opacity: 0, ease: "none", duration: arrive }, 0)
-          .to(q(".lcb-moon-img.sharp"), { opacity: 1, ease: "none", duration: arrive }, 0)
-          .fromTo(q(".lcb-moon"), { y: 14, scale: 1.04 }, { y: 0, scale: 1.0, ease: HOUSE, duration: hush ? 1.8 : 1.3 }, 0.05);
-        t1.to(dawn, { opacity: glow(0.85), yPercent: 4, ease: HOUSE, duration: 1.25 }, 0.45);
-        if (earthshine) t1.to(earthshine, { opacity: glow(0.35), duration: arrive, ease: "none" }, 0);
-        if (rim) t1.to(rim, { opacity: glow(1), duration: arrive, ease: "none" }, 0);
-        if (hush && liftImg) t1.to(liftImg, { opacity: glow(0.18), duration: arrive, ease: "none" }, 0);
+    let totalLen = 0, spineLen = 0, hasCard = false;
+    let nodeLens: number[] = [];
+    let cardTopAbs = 0, cardH = 0, colTopAbs = 0;
+    let lastStructure = "";
 
-        // L2-L4: each line's inline star ignites ON its key word; the violet
-        // rail hairline grows down to the star as it lights.
-        rows.forEach((row, i) => {
-          const label = `b1r${i}`;
-          const lnEl = q(".lcb-ln", row);
-          revealLine(t1, lnEl, T.rows[i], label, SUPP, "rise");
-          const end = labelTime(t1, label);
-          igniteKey(t1, lnEl, end, 0.4);
-          igniteInline(t1, row, end, T.ig);
-          if (railLine) t1.to(railLine, { scaleY: (i + 1) / rows.length, duration: T.rail, ease: HOUSE }, endAt(label, T.rail));
-        });
-        // the moon's bloom answers the completed rail with one soft breath
-        const lastLbl = `b1r${rows.length - 1}`;
-        if (bloom) t1.to(bloom, { opacity: glow(0.85), duration: 0.4, ease: HOUSE }, endAt(lastLbl, 0.4));
-      }
+    const spineX = () => parseFloat(getComputedStyle(root).getPropertyValue("--c2-spine")) || 24;
 
-      // =============== BEAT 2 - THE OPEN QUESTIONS ===============
-      // The lead sits flush left; the body lines answer from the right, each
-      // trailing a COOL star that pulses on its key but never ignites - the
-      // question asked, not answered. Motes drift in the diagonal silence.
-      // The moonlight withholds.
-      const gapScene = q(".lcb-gap-scene");
-      if (gapScene) {
-        const leadLn = q(".lcb-pivot-lead .lcb-ln", gapScene);
-        const qrows = qa(".lcb-qrow", gapScene);
-        const voids = qa(".lcb-voidstar", gapScene);
-        const bloom = q(".lcb-moon-bloom");
-
-        // prime: cool stars and motes are not yet visible
-        qrows.forEach((row) => {
-          gsap.set(q(".lcb-instar", row), { opacity: 0, scale: 0.6, transformOrigin: "50% 50%" });
-        });
-        gsap.set(voids, { opacity: 0 });
-
-        const tg = gsap.timeline({ scrollTrigger: { trigger: gapScene, start: "top 84%", end: "bottom 42%", scrub } });
-        // BEAT 2's signature: heavy blur-to-focus, dreamier and slower
-        const FOCUSP = { dur: hush ? 1.6 : 1.25, each: 0 };
-        const qT = hush ? [2.3] : [2.0, 3.2];
-
-        revealLine(tg, leadLn, hush ? 0.35 : 0.25, "b2lead", FOCUSP, "focus");
-        igniteKey(tg, leadLn, labelTime(tg, "b2lead"), 0.5);
-        gatherAt(tg, gapScene, labelTime(tg, "b2lead") + 0.2);
-        // AMBIENT: the motes surface slowly under the lead - never faster
-        // than the key events around them.
-        voids.forEach((v, i) => {
-          tg.to(v, { opacity: glow(0.5), duration: 1.3, ease: "none" }, Math.max(0, labelTime(tg, "b2lead") - 0.6 + i * 0.35));
-        });
-        // the moonlight withholds while the questions stand open
-        if (bloom) tg.to(bloom, { opacity: glow(0.5), duration: 1.2, ease: "none" }, hush ? 0.5 : 0.4);
-
-        qrows.forEach((row, i) => {
-          const label = `b2q${i}`;
-          const lnEl = q(".lcb-ln", row);
-          revealLine(tg, lnEl, qT[i], label, FOCUSP, "focus");
-          const star = q<SVGElement>(".lcb-instar", row);
-          const halo = q<SVGElement>(".lcb-in-halo", row);
-          const end = labelTime(tg, label);
-          igniteKey(tg, lnEl, end, 0.4);
-          // the cool star surfaces WITH its line...
-          if (star) tg.to(star, { opacity: 1, scale: 1, duration: 0.5, ease: HOUSE }, end - 0.5);
-          // ...brightens once on the key word, then settles dim. Unanswered.
-          if (halo) {
-            tg.to(halo, { opacity: glow(0.75), duration: 0.3, ease: "sine.inOut" }, end)
-              .to(halo, { opacity: glow(0.32), duration: 0.6, ease: HOUSE }, end + 0.34);
-          }
-          // the WITHHELD line: its key flashed white with the reveal, then
-          // the whole line cools to a dimmer violet. Said, then kept.
-          if (lnEl && lnEl.classList.contains("lcb-withhold")) {
-            tg.to(lnEl, { opacity: 0.78, duration: 0.9, ease: HOUSE }, end + 0.35);
-            const key = q(".lcb-key", lnEl);
-            if (key) tg.to(key, { color: "#8b7bd8", textShadow: "0 0 14px rgba(139,123,216,0.4)", duration: 0.9, ease: HOUSE }, end + 0.35);
-          }
-        });
-      }
-
-      // =============== BEAT 3 - THE ANSWER, CLEAN SKY ===============
-      // Two plain lines: "born." rises, then the white/violet shimmer sweeps
-      // the "exact place" line as it lands, and "read." settles in restraint.
-      // Nothing between the lines but sky.
-      const ans = q(".lcb-answer-scene");
-      if (ans) {
-        const lns = qa(".lcb-souls-text .lcb-ln", ans);
-        const bloom = q(".lcb-moon-bloom");
-
-        const ta = gsap.timeline({ scrollTrigger: { trigger: ans, start: "top 84%", end: "bottom 30%", scrub } });
-        const T3 = hush ? [0.3, 1.8, 3.9] : [0.2, 1.4, 3.2];
-
-        // place the three lines first so their labels exist: a rise, the
-        // SHIMMER line (one unit), then the RESTRAINED letter-spacing settle
-        revealLine(ta, lns[0], T3[0], "b3born", SUPP, "rise");
-        revealLine(ta, lns[1], T3[1], "b3exact", { dur: hush ? 1.0 : 0.8, each: 0 }, "shimmer");
-        revealLine(ta, lns[2], T3[2], "b3read", { dur: hush ? 1.9 : 1.5, each: 0 }, "restrain");
-        igniteKey(ta, lns[0], labelTime(ta, "b3born"), 0.45);
-        gatherAt(ta, ans, labelTime(ta, "b3born") + 0.2);
-
-        // the white/violet shimmer sweeps across the birth-sky line AS IT
-        // LANDS, with one soft glow breath, then the light settles
-        const shLn = lns[1] as HTMLElement | undefined;
-        if (shLn) {
-          ta.fromTo(shLn, { backgroundPosition: "135% 0" },
-            { backgroundPosition: "-35% 0", duration: hush ? 1.7 : 1.35, ease: "power2.inOut" },
-            Math.max(0, labelTime(ta, "b3exact") - 0.2));
-          ta.to(shLn, { keyframes: [
-            { textShadow: "0 0 22px rgba(191,178,248,0.5), 0 0 46px rgba(139,123,216,0.3)", duration: 0.6, ease: "sine.in" },
-            { textShadow: "0 0 0 rgba(167,139,250,0)", duration: 0.8, ease: "sine.out" },
-          ] }, Math.max(0, labelTime(ta, "b3exact") - 0.1));
-        }
-
-        // the sky answers: the moonlight returns
-        if (bloom) ta.to(bloom, { opacity: glow(0.85), duration: 0.9, ease: "none" }, labelTime(ta, "b3born"));
-      }
-
-      // =============== BEAT 4 - THE CLOSE ===============
-      // The promise lines arrive word by word, then the plain closing words
-      // "Set the chart." land, light in white/violet, and hand into the form.
-      const payoff = q(".lcb-payoff-scene");
-      if (payoff) {
-        const headLn = q(".lcb-payoff-line:not(.lcb-close) .lcb-ln", payoff);
-        const pLns = qa(".lcb-promises .lcb-ln", payoff);
-        const closeLn = q(".lcb-close .lcb-ln", payoff);
-        const rule = q(".lcb-rule", payoff);
-        const asc = q(".lcb-asc", payoff);
-        const crestEl = document.querySelector<HTMLElement>(".ls-seal-crest");
-
-        if (rule) gsap.set(rule, { scaleX: 0 });
-
-        const t4 = gsap.timeline({ scrollTrigger: { trigger: payoff, start: "top 76%", end: "bottom 42%", scrub } });
-        const T4 = hush
-          ? { head: 0.3, p: [1.8, 3.2], close: 5.0 }
-          : { head: 0.3, p: [1.45, 2.35, 3.3], close: 4.7 };
-
-        revealLine(t4, headLn, T4.head, "b4opens", LEADP);
-        igniteKey(t4, headLn, labelTime(t4, "b4opens"), 0.45);
-        // the promise lines brighten ONE BY ONE, violet to luminous white
-        const PROMGLOW = hush
-          ? "0 0 14px rgba(167,139,250,0.32), 0 0 30px rgba(139,123,216,0.18)"
-          : "0 0 18px rgba(167,139,250,0.42), 0 0 40px rgba(139,123,216,0.24)";
-        pLns.forEach((ln, i) => {
-          revealLine(t4, ln, T4.p[i], `b4p${i}`, SUPP);
-          const lbl = labelTime(t4, `b4p${i}`);
-          t4.fromTo(ln, { color: "#8b7bd8", textShadow: NOGLOW },
-            { color: "#ffffff", textShadow: PROMGLOW, duration: 0.55, ease: HOUSE },
-            Math.max(0, lbl - 0.2));
-        });
-        gatherAt(t4, payoff, labelTime(t4, `b4p${pLns.length - 1}`) + 0.1);
-
-        // "Set the chart." arrives word by word; as "chart" lands the words
-        // light (white with a violet breath) and the rule draws underneath.
-        revealLine(t4, closeLn, T4.close, "b4chart", LEADP);
-        t4.call(() => { if (asc) asc.classList.add("lit"); }, [], "b4chart+=0.1");
-        if (rule) t4.fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: HOUSE }, "b4chart+=0.18");
-        // keep the form crest reaching its docked final state (page-side)
-        if (crestEl) {
-          t4.call(() => {
-            if (!crestEl || crestEl.classList.contains("lcb-docked")) return;
-            if (t4.scrollTrigger && t4.scrollTrigger.direction < 0) return;
-            crestEl.classList.add("lcb-docked");
-          }, [], "b4chart");
-        }
-      }
-
-      // ========== SPINE 2 - THE MOON RETIRES AT THE REVEAL ==========
-      // After the passage the moon hangs above the seal card, waiting. Then
-      // it RETIRES: it slips upward and dims out entirely before the
-      // reveal's top edge. Below the reveal the sky belongs to the chart.
-      const orrery2 = document.querySelector("#computed-sky");
-      if (travel && orrery2) {
-        const W2 = () => window.innerWidth, H2 = () => window.innerHeight;
-        const spine = gsap.timeline({
-          scrollTrigger: { trigger: orrery2, start: "top bottom", end: "top 35%", scrub, invalidateOnRefresh: true },
-        });
-        spine.fromTo(travel,
-          { x: () => 0.05 * W2() * amp, y: () => -0.11 * H2() * amp },
-          { x: () => (mobile ? -0.36 : -0.44) * W2(), y: () => 0.18 * H2(), ease: HOUSE, duration: 1, immediateRender: false }, 0.001)
-          .to(travel, { y: () => 0.04 * H2(), ease: "none", duration: 0.8 }, 1.001)
-          .to(moonEl, { scale: 0.86, ease: "none", duration: 0.8 }, 1.001)
-          .to(moonEl, { opacity: 0, ease: "none", duration: 0.8 }, 1.001);
-
-        // the dossier CTA still takes up the thread once it arrives
-        const threadCta = document.querySelector<HTMLElement>("#begin .dsr-card .dsr-cta");
-        if (threadCta) {
-          ScrollTrigger.create({
-            trigger: threadCta,
-            start: "top 72%",
-            once: true,
-            onEnter: () => threadCta.classList.add("is-thread"),
-          });
-        }
-      }
-
-      // ========== CAMERA-TILT HANDOFFS ==========
-      // A slight rotateX/translate scrub at each beat boundary: leaving a beat
-      // reads as tilting your head to the next patch of sky.
-      const scenes = qa(".lcb-scene");
-      const tiltIn = mobile ? 1.6 : 2.6;
-      const tiltOut = mobile ? 1.4 : 2.2;
-      scenes.forEach((scene, i) => {
-        gsap.set(scene, { transformOrigin: "50% 50%" });
-        // AMBIENT: one faint star falls the first time each beat enters
-        ScrollTrigger.create({ trigger: scene, start: "top 72%", once: true, onEnter: () => spawnFaller() });
-        if (i > 0) {
-          gsap.fromTo(scene, { rotationX: -tiltIn, y: 26 * amp }, {
-            rotationX: 0, y: 0, ease: "none", immediateRender: false,
-            scrollTrigger: { trigger: scene, start: "top 98%", end: "top 55%", scrub },
-          });
-        }
-        if (i < scenes.length - 1) {
-          gsap.to(scene, {
-            rotationX: tiltOut, y: -20 * amp, ease: "none",
-            scrollTrigger: { trigger: scene, start: "bottom 48%", end: "bottom 10%", scrub },
-          });
-        }
+    const placeNodes = () => {
+      nodes.forEach((nd) => {
+        const t = document.getElementById(nd.getAttribute("data-for") || "");
+        if (!t) return;
+        const cs = getComputedStyle(t);
+        let lh = parseFloat(cs.lineHeight);
+        if (!lh || isNaN(lh)) lh = parseFloat(cs.fontSize) * 1.2;
+        // offsetTop ignores the reveal transforms, so the dot lands on the
+        // line's final resting position, centred to its first line
+        (nd as HTMLElement).style.top = `${(t as HTMLElement).offsetTop + lh / 2 - (nd as HTMLElement).offsetHeight / 2}px`;
       });
     };
 
-    mm.add(
-      {
-        mobile: "(max-width: 768px)",
-        desktop: "(min-width: 769px)",
-        reduce: "(prefers-reduced-motion: reduce)",
-      },
-      (ctx) => {
-        const cond = (ctx.conditions || {}) as { mobile?: boolean; reduce?: boolean };
-        const mobile = !!cond.mobile;
-        const noMotion = !!cond.reduce;
-        const scrub = mobile ? 1.2 : 1;
+    type Pt = { x: number; y: number };
+    const buildThread = () => {
+      if (!col || !svg || !path || !glowP) return;
+      placeNodes();
+      const colR = col.getBoundingClientRect();
+      colTopAbs = colR.top + window.scrollY;
+      const colLeft = colR.left;
+      const W = colR.width;
+      const card = getCard();
+      hasCard = !!card;
+      const cardR = card ? card.getBoundingClientRect() : null;
+      const H = cardR
+        ? Math.max(col.scrollHeight, cardR.bottom + window.scrollY - colTopAbs + 40)
+        : col.scrollHeight;
+      svg.setAttribute("width", String(W));
+      svg.setAttribute("height", String(H));
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-        // ---- ONE SKY: the stage lights as the hero sets and then STAYS ON.
-        // Ramps stay LINEAR (an eased coverage fade lights the night too
-        // early over the hero). Held OFF until the chooser clears the top
-        // quarter so its cards stay clean + tappable.
-        const stageOp = { enter: 0, frontExit: 1 };
-        const applyStage = () => {
-          if (back) (back as HTMLElement).style.opacity = String(stageOp.enter);
-          if (front) (front as HTMLElement).style.opacity = String(Math.min(stageOp.enter, stageOp.frontExit));
-        };
-        applyStage();
-        gsap.fromTo(stageOp, { enter: 0 }, {
-          enter: 1, ease: "none", onUpdate: applyStage,
-          scrollTrigger: { trigger: root, start: "top 25%", end: "top -30%", scrub: noMotion ? true : scrub },
-        });
-        gsap.fromTo(stageOp, { frontExit: 1 }, {
-          frontExit: 0, ease: "none", onUpdate: applyStage,
-          scrollTrigger: { trigger: root, start: "bottom 60%", end: "bottom 5%", scrub: noMotion ? true : scrub },
-        });
+      const sx = spineX();
+      const rel = (r: DOMRect) => ({ x: r.left - colLeft, y: r.top - colR.top, w: r.width, h: r.height });
 
-        // ---- DAWN GRADE: violet lifts at the reveal, the violet horizon rises
-        // behind checkout. Opacity-only, so it runs under reduced motion too.
-        const violetSky = q(".lcb-sky-violet");
-        const dawnSky = q(".lcb-dawn-horizon");
-        const orrerySec = document.querySelector("#computed-sky");
-        const checkoutSec = document.querySelector("#begin");
-        if (violetSky && orrerySec) {
-          gsap.fromTo(violetSky, { opacity: 0 }, {
-            opacity: 1, ease: "none",
-            scrollTrigger: { trigger: orrerySec, start: "top 70%", end: "top 12%", scrub: noMotion ? true : scrub },
-          });
+      // born under the chosen path (the chooser toggle), then swings onto the spine
+      const toggle = document.querySelector<HTMLElement>(".ls-tgl-track");
+      let d: string;
+      let startY: number;
+      if (toggle) {
+        const t = rel(toggle.getBoundingClientRect());
+        const startX = t.x + 28;
+        startY = t.y + t.h + 18;
+        const joinY = startY + 90;
+        d = `M ${startX} ${startY} C ${startX - 26} ${startY + 48}, ${sx} ${startY + 48}, ${sx} ${joinY}`;
+        startY = joinY;
+      } else {
+        startY = -40;
+        d = `M ${sx} ${startY}`;
+      }
+
+      const pts: Pt[] = [{ x: sx, y: startY }];
+      const nodeYs: number[] = [];
+      nodes.forEach((nd) => {
+        const r = rel(nd.getBoundingClientRect());
+        const p = { x: sx, y: r.y + r.h / 2 };
+        pts.push(p);
+        nodeYs.push(p.y);
+      });
+
+      let side = 1;
+      let prev = pts[0];
+      for (let i = 1; i < pts.length; i++) {
+        const p = pts[i];
+        const dx = p.x - prev.x;
+        const dy = p.y - prev.y;
+        if (Math.abs(dx) < 30) {
+          const amp = Math.min(1, Math.abs(dy) / 170);
+          d += ` C ${sx + 18 * side * amp} ${prev.y + dy * 0.35}, ${sx - 14 * side * amp} ${prev.y + dy * 0.7}, ${p.x} ${p.y}`;
+          side *= -1;
+        } else {
+          d += ` C ${prev.x} ${prev.y + dy * 0.5}, ${p.x} ${p.y - dy * 0.5}, ${p.x} ${p.y}`;
         }
-        if (dawnSky && checkoutSec) {
-          gsap.fromTo(dawnSky, { opacity: 0 }, {
-            opacity: 1, ease: "none",
-            scrollTrigger: { trigger: checkoutSec, start: "top 92%", end: "top 30%", scrub: noMotion ? true : scrub },
-          });
+        prev = p;
+      }
+
+      if (cardR) {
+        const c = rel(cardR);
+        const r0 = 18;
+        // approach the card
+        d += ` C ${sx} ${prev.y + (c.y - prev.y) * 0.5}, ${c.x - 6} ${c.y - 52}, ${c.x + r0} ${c.y}`;
+        // measure spine length before the border loop
+        const probe = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        probe.setAttribute("d", d);
+        spineLen = probe.getTotalLength();
+        // trace the card border clockwise, sealing the form shut
+        d += ` L ${c.x + c.w - r0} ${c.y}` +
+          ` Q ${c.x + c.w} ${c.y} ${c.x + c.w} ${c.y + r0}` +
+          ` L ${c.x + c.w} ${c.y + c.h - r0}` +
+          ` Q ${c.x + c.w} ${c.y + c.h} ${c.x + c.w - r0} ${c.y + c.h}` +
+          ` L ${c.x + r0} ${c.y + c.h}` +
+          ` Q ${c.x} ${c.y + c.h} ${c.x} ${c.y + c.h - r0}` +
+          ` L ${c.x} ${c.y + r0}` +
+          ` Q ${c.x} ${c.y} ${c.x + r0} ${c.y}`;
+        cardTopAbs = c.y + colTopAbs;
+        cardH = c.h;
+      } else {
+        // no card on stage (computing / revealed): the thread rests after
+        // its last claim
+        const probe = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        probe.setAttribute("d", d);
+        spineLen = probe.getTotalLength();
+        cardTopAbs = 0; cardH = 0;
+      }
+
+      path.setAttribute("d", d);
+      glowP.setAttribute("d", d);
+      totalLen = path.getTotalLength();
+      path.style.strokeDasharray = String(totalLen);
+      glowP.style.strokeDasharray = String(totalLen);
+
+      // node positions along the path (the spine is monotonic in y)
+      nodeLens = nodeYs.map((ny) => {
+        let lo = 0, hi = spineLen;
+        for (let k = 0; k < 22; k++) {
+          const mid = (lo + hi) / 2;
+          const pt = path.getPointAtLength(mid);
+          if (pt.y < ny) lo = mid; else hi = mid;
         }
+        return (lo + hi) / 2;
+      });
 
-        // ================= REDUCED MOTION: honest final state =================
-        // CSS already authors every visual's FINISHED state (lit rail stars,
-        // drawn web, risen dawn). Only the few values
-        // whose finals are JS-owned get set here.
-        if (noMotion) {
-          gsap.set(q(".lcb-moon-img.blur"), { opacity: 0 });
-          gsap.set(q(".lcb-moon-img.sharp"), { opacity: 1 });
-          if (hush) {
-            gsap.set(q(".lcb-earthshine"), { opacity: glow(0.35) });
-            gsap.set(q(".lcb-moon-img.lift"), { opacity: glow(0.18) });
-            gsap.set(q(".lcb-dawn"), { opacity: glow(0.85) });
-            qa(".lcb-open .lcb-in-halo").forEach((el) => gsap.set(el, { opacity: glow(0.9) }));
-            qa(".lcb-open .lcb-in-gl").forEach((el) => gsap.set(el, { opacity: glow(0.6) }));
-          }
-          const asc = q(".lcb-asc"); if (asc) asc.classList.add("lit");
-          return;
+      lastStructure = structureKey();
+    };
+
+    const structureKey = () => {
+      const card = getCard();
+      const cTop = card ? Math.round(card.getBoundingClientRect().top + window.scrollY) : -1;
+      return `${col ? col.scrollHeight : 0}:${card ? 1 : 0}:${cTop}:${window.innerWidth}`;
+    };
+
+    // The visitor reaching for the form IS the arrival: the moment any field
+    // takes focus, the thread finishes the border and the button ignites.
+    let engaged = false;
+    const onFocusIn = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && t.closest && t.closest(".ls-seal-card")) engaged = true;
+    };
+    document.addEventListener("focusin", onFocusIn);
+
+    const targetLen = () => {
+      if (!path || !spineLen) return 0;
+      if (engaged && hasCard) return totalLen;
+      const sy = window.scrollY;
+      const vh = window.innerHeight;
+      const tipY = sy + vh * 0.76 - colTopAbs;
+      let lo = 0, hi = spineLen;
+      for (let k = 0; k < 20; k++) {
+        const mid = (lo + hi) / 2;
+        if (path.getPointAtLength(mid).y < tipY) lo = mid; else hi = mid;
+      }
+      let len = (lo + hi) / 2;
+      if (hasCard && len > spineLen - 2) {
+        let bp = ((sy + vh) - (cardTopAbs + 30)) / (cardH + 60);
+        bp = Math.max(0, Math.min(1, bp));
+        len = spineLen + bp * (totalLen - spineLen);
+      }
+      return Math.max(0, Math.min(hasCard ? totalLen : spineLen, len));
+    };
+
+    const sealCard = () => {
+      const card = getCard();
+      if (card && !card.hasAttribute("data-sealed")) card.setAttribute("data-sealed", "1");
+    };
+    const armCard = () => {
+      const card = getCard();
+      if (card) card.setAttribute("data-thread-arm", "1");
+    };
+
+    let drawn = 0;
+    let sealed = false;
+    let raf = 0;
+    let frameCount = 0;
+    let lastT = 0;
+    const frame = (now: number) => {
+      raf = requestAnimationFrame(frame);
+      const dt = lastT ? Math.min((now - lastT) / 1000, 0.05) : 0.016;
+      lastT = now;
+      frameCount++;
+      // structure watch: the form swaps to the compute stage / the reveal
+      // mounts / fonts land - rebuild the thread when the page changes shape
+      if (frameCount % 30 === 0 && lastStructure !== structureKey()) {
+        buildThread();
+        drawn = Math.min(drawn, totalLen);
+        sealed = false;
+      }
+      const t = targetLen();
+      drawn += (t - drawn) * 0.09;
+      if (Math.abs(t - drawn) < 0.5) drawn = t;
+      if (path && glowP && totalLen > 0) {
+        const off = totalLen - drawn;
+        path.style.strokeDashoffset = String(off);
+        glowP.style.strokeDashoffset = String(off);
+      }
+      nodes.forEach((nd, i) => {
+        if (nodeLens[i] !== undefined) nd.classList.toggle("lit", drawn >= nodeLens[i] - 4);
+      });
+      if (!sealed && hasCard && totalLen > 0 && drawn >= totalLen - 1.5) {
+        sealed = true;
+        sealCard();
+      }
+      // the moon drifts gently in its corner as the birth-sky beat passes
+      if (moonSec && moonImg) {
+        const mr = moonSec.getBoundingClientRect();
+        let offm = ((window.innerHeight / 2) - (mr.top + mr.height / 2)) * 0.04;
+        offm = Math.max(-14, Math.min(14, offm));
+        moonImg.style.transform = `translate3d(0,${offm.toFixed(1)}px,0)`;
+      }
+      paintFrame(now, dt);
+    };
+
+    /* ---------- stage lighting + dawn grade (GSAP scrubs, opacity only,
+       shared with reduced motion) ---------- */
+    const stageOp = { enter: 0, frontExit: 1 };
+    const applyStage = () => {
+      if (back) (back as HTMLElement).style.opacity = String(stageOp.enter);
+      if (front) (front as HTMLElement).style.opacity = String(Math.min(stageOp.enter, stageOp.frontExit));
+    };
+    applyStage();
+    const triggers: ScrollTrigger[] = [];
+    const tw1 = gsap.fromTo(stageOp, { enter: 0 }, {
+      enter: 1, ease: "none", onUpdate: applyStage,
+      scrollTrigger: { trigger: root, start: "top 60%", end: "top 5%", scrub: reduced ? true : 1 },
+    });
+    const tw2 = gsap.fromTo(stageOp, { frontExit: 1 }, {
+      frontExit: 0, ease: "none", onUpdate: applyStage,
+      scrollTrigger: { trigger: root, start: "bottom 60%", end: "bottom 5%", scrub: reduced ? true : 1 },
+    });
+    const violetSky = q(".lcb-sky-violet");
+    const dawnSky = q(".lcb-dawn-horizon");
+    const orrerySec = document.querySelector("#computed-sky");
+    const checkoutSec = document.querySelector("#begin");
+    let tw3: gsap.core.Tween | null = null, tw4: gsap.core.Tween | null = null, tw5: gsap.core.Tween | null = null;
+    if (violetSky && orrerySec) {
+      tw3 = gsap.fromTo(violetSky, { opacity: 0 }, {
+        opacity: 1, ease: "none",
+        scrollTrigger: { trigger: orrerySec, start: "top 70%", end: "top 12%", scrub: reduced ? true : 1 },
+      });
+    }
+    if (dawnSky && checkoutSec) {
+      tw4 = gsap.fromTo(dawnSky, { opacity: 0 }, {
+        opacity: 1, ease: "none",
+        scrollTrigger: { trigger: checkoutSec, start: "top 92%", end: "top 30%", scrub: reduced ? true : 1 },
+      });
+    }
+    // SEAM: the hero's copy hands off into the chooser + passage
+    const heroCopy = document.querySelector<HTMLElement>(".ls-hero-copy");
+    if (!reduced && heroCopy && document.querySelector(".ls-hero-section")) {
+      tw5 = gsap.to(heroCopy, {
+        opacity: 0, y: -34, ease: "none",
+        scrollTrigger: { trigger: ".ls-hero-section", start: "bottom 86%", end: "bottom 38%", scrub: 1 },
+      });
+    }
+
+    // starfield parallax on the same clock
+    let tw6: gsap.core.Tween | null = null;
+    if (!reduced && canvasWrap) {
+      tw6 = gsap.fromTo(canvasWrap, { y: 0 }, {
+        y: -70, ease: "none",
+        scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 1 },
+      });
+    }
+
+    /* ---------- boot ---------- */
+    const init = () => {
+      buildThread();
+      if (reduced) {
+        // the finished passage at rest
+        if (path && glowP) {
+          path.style.strokeDashoffset = "0";
+          glowP.style.strokeDashoffset = "0";
         }
+        nodes.forEach((nd) => nd.classList.add("lit"));
+        armCard(); sealCard();
+        paintFrame(0, 0);
+        return;
+      }
+      armCard();
+      drawn = targetLen();
+      raf = requestAnimationFrame(frame);
+    };
 
-        // ================= MOTION =================
-        root.classList.add("lcb-motion");
-        gsap.set(q(".lcb-moon-img.sharp"), { opacity: 0 });
-        gsap.set(q(".lcb-moon-img.blur"), { opacity: 1 });
-        startAmbient();
+    let rT = 0;
+    const onResize = () => {
+      clearTimeout(rT);
+      rT = window.setTimeout(() => { drawStars(); buildThread(); }, 200);
+    };
+    window.addEventListener("resize", onResize);
 
-        // slow starfield parallax on the same clock
-        if (canvasWrap) {
-          gsap.fromTo(canvasWrap, { y: 0 }, { y: -70, ease: "none", scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub } });
-        }
+    const onSTRefresh = () => { drawStars(); buildThread(); };
+    ScrollTrigger.addEventListener("refresh", onSTRefresh);
 
-        // damped pointer parallax (desktop only) on the gsap ticker
-        let onPointer: ((e: PointerEvent) => void) | undefined;
-        if (!mobile && moonPt) {
-          const qx = gsap.quickTo(moonPt, "x", { duration: 0.9, ease: "power3.out" });
-          const qy = gsap.quickTo(moonPt, "y", { duration: 0.9, ease: "power3.out" });
-          onPointer = (e: PointerEvent) => {
-            qx((e.clientX / window.innerWidth - 0.5) * 10);
-            qy((e.clientY / window.innerHeight - 0.5) * 8);
-          };
-          window.addEventListener("pointermove", onPointer, { passive: true });
-        }
+    // fonts land after load and reflow every beat: rebuild once they settle
+    let fontsAlive = true;
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => { if (fontsAlive) { buildThread(); ScrollTrigger.refresh(); } }).catch(() => { /* ignore */ });
+    }
 
-        buildStory(mobile, scrub);
-
-        return () => {
-          stopAmbient();
-          if (onPointer) window.removeEventListener("pointermove", onPointer);
-          root.classList.remove("lcb-motion");
-        };
-      },
-    );
+    if (document.readyState === "complete") init();
+    else window.addEventListener("load", init, { once: true });
+    buildThread(); // provisional build so the thread exists pre-load
 
     requestAnimationFrame(() => ScrollTrigger.refresh());
-    // Webfonts (Fraunces/Newsreader) land after the load event and reflow every
-    // beat's height; without this the word-cascade triggers keep pre-font
-    // positions and the closing words can fire hundreds of pixels late.
-    let fontsAlive = true;
-    if (typeof document !== "undefined" && document.fonts?.ready) {
-      document.fonts.ready.then(() => {
-        if (fontsAlive) ScrollTrigger.refresh();
-      }).catch(() => { /* ignore */ });
-    }
 
     return () => {
       fontsAlive = false;
+      if (raf) cancelAnimationFrame(raf);
+      clearTimeout(rT);
+      document.removeEventListener("focusin", onFocusIn);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("load", init);
       ScrollTrigger.removeEventListener("refresh", onSTRefresh);
-      mm.revert();
+      io?.disconnect();
+      ioSec?.disconnect();
+      [tw1, tw2, tw3, tw4, tw5, tw6].forEach((tw) => {
+        if (!tw) return;
+        tw.scrollTrigger?.kill();
+        tw.kill();
+      });
     };
   }, [register]);
 
@@ -1075,213 +926,132 @@ export function CosmicBridge() {
     >
       <style>{LCB_CSS}</style>
 
-      {/* shared paint servers for every star on the page (band, rail) */}
-      <svg className="lcb-defs" aria-hidden="true" focusable="false">
-        <defs>
-          <radialGradient id="lcbHaloCool">
-            <stop offset="0%" stopColor="rgba(176,188,222,0.55)" />
-            <stop offset="28%" stopColor="rgba(150,160,210,0.20)" />
-            <stop offset="60%" stopColor="rgba(150,160,210,0.06)" />
-            <stop offset="100%" stopColor="rgba(150,160,210,0)" />
-          </radialGradient>
-          <radialGradient id="lcbCoreCool">
-            <stop offset="0%" stopColor="rgba(226,232,248,0.95)" />
-            <stop offset="42%" stopColor="rgba(196,206,232,0.55)" />
-            <stop offset="78%" stopColor="rgba(176,188,222,0.10)" />
-            <stop offset="100%" stopColor="rgba(176,188,222,0)" />
-          </radialGradient>
-          {/* "Warm" = the LIT state. V7: lit is violet-white, never gold. */}
-          <radialGradient id="lcbHaloWarm">
-            <stop offset="0%" stopColor="rgba(203,190,250,0.75)" />
-            <stop offset="26%" stopColor="rgba(178,160,244,0.28)" />
-            <stop offset="58%" stopColor="rgba(167,139,250,0.08)" />
-            <stop offset="100%" stopColor="rgba(167,139,250,0)" />
-          </radialGradient>
-          <radialGradient id="lcbCoreWarm">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.98)" />
-            <stop offset="40%" stopColor="rgba(238,232,255,0.6)" />
-            <stop offset="80%" stopColor="rgba(203,190,250,0.10)" />
-            <stop offset="100%" stopColor="rgba(203,190,250,0)" />
-          </radialGradient>
-          <radialGradient id="lcbChroma">
-            <stop offset="0%" stopColor="rgba(167,139,250,0)" />
-            <stop offset="55%" stopColor="rgba(167,139,250,0.10)" />
-            <stop offset="82%" stopColor="rgba(139,123,216,0.05)" />
-            <stop offset="100%" stopColor="rgba(139,123,216,0)" />
-          </radialGradient>
-        </defs>
-      </svg>
-
       {/* fixed graded night stage - the ONE sky for the whole page */}
       <div className="lcb-back" aria-hidden="true">
         <div className="lcb-sky" />
         <div className="lcb-sky-violet" />
         <div className="lcb-canvas-wrap"><canvas className="lcb-canvas" /></div>
-        <div className="lcb-moon-travel">
-          <div className="lcb-moon-pt">
-            <div className="lcb-moon">
-              <div className="lcb-moon-bloom" />
-              <div className="lcb-moon-disc">
-                <img className="lcb-moon-img blur" src="/start/cosmos-moon-blur.webp" width={520} height={520} alt="" decoding="async" loading="lazy" />
-                <img className="lcb-moon-img sharp" src="/start/cosmos-moon.webp" width={520} height={520} alt="" decoding="async" loading="lazy" />
-                <img className="lcb-moon-img lift" src="/start/cosmos-moon.webp" width={520} height={520} alt="" decoding="async" loading="lazy" />
-                <div className="lcb-earthshine" />
-                <div className="lcb-moon-grade" />
-                <div className="lcb-moon-term" />
-                <div className="lcb-moon-rim" />
-              </div>
-            </div>
-          </div>
-        </div>
         <div className="lcb-dawn-horizon" />
         <div className="lcb-grade" />
       </div>
 
-      <div className="lcb-beats">
-        {memorial ? (
-          <>
-            {/* MEMORIAL BEAT 1 - THE RAIL OF KNOWING (past tense): three
-                inline stars ignite softly beside what you knew. */}
-            <div className="lcb-scene lcb-open">
-              <div className="lcb-dawn" aria-hidden="true" />
-              <p className="lcb-beat lcb-split"><span className="lcb-ln">No one <span className="lcb-key">knew</span> your pet the way <span className="lcb-gather">you<i className="lcb-gth" aria-hidden="true" /></span> did.</span></p>
-              <div className="lcb-rail">
-                <span className="lcb-rail-line" aria-hidden="true" />
-                <div className="lcb-row">
-                  <InStar />
-                  <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">You knew what they <span className="lcb-key">loved.</span></span></p>
-                </div>
-                <div className="lcb-row">
-                  <InStar />
-                  <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">You knew what <span className="lcb-key">settled</span> them.</span></p>
-                </div>
-                <div className="lcb-row">
-                  <InStar />
-                  <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">You knew the look they <span className="lcb-key">saved</span> only for you.</span></p>
-                </div>
-              </div>
-            </div>
+      <div className="c2-col">
+        <div className="c2-threadwrap" aria-hidden="true">
+          <svg className="c2-threadsvg" xmlns="http://www.w3.org/2000/svg">
+            <path className="c2-thread-glow" d="" />
+            <path className="c2-thread" d="" />
+          </svg>
+        </div>
 
-            {/* MEMORIAL BEAT 2 - THE OPEN QUESTIONS: one cool star that
-                pulses but never ignites. The moonlight withholds. */}
-            <div className="lcb-scene lcb-gap-scene">
-              <div className="lcb-gap-block">
-                <p className="lcb-pivot-lead lcb-split">
-                  <span className="lcb-ln">And there is still more of them to <span className="lcb-key lcb-gather">know.<i className="lcb-gth" aria-hidden="true" /></span></span>
-                </p>
-                <span className="lcb-voidstar v1" aria-hidden="true" />
-                <span className="lcb-voidstar v2" aria-hidden="true" />
-                <span className="lcb-voidstar v3" aria-hidden="true" />
-                <div className="lcb-qrows">
-                  <div className="lcb-qrow">
-                    <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln lcb-withhold">Parts you felt but never had <span className="lcb-key">words</span> for.</span></p>
-                    <InStar cool />
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* ── Beat 1 · the map ── */}
+        <section className="c2-beat c2-b1">
+          <span className="c2-node" data-node data-for="c2-pk-drawn" aria-hidden="true" />
+          <span className="c2-node" data-node data-for="c2-pk-read" aria-hidden="true" />
+          <p className="c2-whisper c2-rv">{T.b1whisper}</p>
+          <p className="c2-peak c2-rv" id="c2-pk-drawn">It was drawn the day they were born.</p>
+          <svg className="c2-constellation" viewBox="0 0 190 230" aria-hidden="true">
+            <rect className="cframe" x="8" y="8" width="174" height="214" rx="10" />
+            <path className="cline" d="M44 52 L92 78 L74 128 L118 150 L146 108 L92 78 M74 128 L48 176 M118 150 L142 190" />
+            <circle className="cstar" cx="44" cy="52" r="2.4" />
+            <circle className="cstar" cx="92" cy="78" r="3" />
+            <circle className="cstar" cx="74" cy="128" r="2.2" />
+            <circle className="cstar" cx="118" cy="150" r="2.8" />
+            <circle className="cstar" cx="146" cy="108" r="2" />
+            <circle className="cstar" cx="48" cy="176" r="1.8" />
+            <circle className="cstar" cx="142" cy="190" r="2.1" />
+            <circle className="cstar" cx="150" cy="40" r="1.4" />
+            <circle className="cstar" cx="30" cy="102" r="1.3" />
+          </svg>
+          <p className="c2-peak c2-rv" id="c2-pk-read">No one has ever <em>read</em> it.</p>
+        </section>
 
-            {/* MEMORIAL BEAT 3 - THE ANSWER, CLEAN SKY: two plain lines with
-                the shimmer sweep. The line keeps only the shimmer. */}
-            <div className="lcb-scene lcb-answer-scene">
-              <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
-                <span className="lcb-ln">It all began the day they were <span className="lcb-key lcb-gather">born.<i className="lcb-gth" aria-hidden="true" /></span></span>
-                <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.</span>
-              </p>
-              <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
-                <span className="lcb-ln lcb-emph lcb-quiet lcb-nosplit">Nothing after can touch it. It is still there to be <span className="lcb-key">read.</span></span>
-              </p>
-            </div>
+        {/* ── Beat 2 · recognition ── */}
+        <section className="c2-beat c2-b2">
+          <span className="c2-node" data-node data-for="c2-st-you" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-frag-1" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-frag-2" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-frag-3" aria-hidden="true" />
+          <p className="c2-ll c2-rv" id="c2-st-you">Except you. Almost.</p>
+          <p className="c2-whisper c2-rv">{T.b2whisper}</p>
+          <div className="c2-frags">
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-1">{T.frags[0]}</p>
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-2">{T.frags[1]}</p>
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-3">{T.frags[2]}</p>
+          </div>
+        </section>
 
-            {/* MEMORIAL BEAT 4 - THE CLOSE: two promises, then the plain
-                closing words hand gently into the form. Held, not merged. */}
-            <div className="lcb-scene lcb-payoff lcb-payoff-scene">
-              <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A soul reading <span className="lcb-key">opens</span> who they were.</span></p>
-              <p className="lcb-beat lcb-support lcb-promises lcb-split">
-                <span className="lcb-ln">What made them, <span className="lcb-key">them.</span></span>
-                <span className="lcb-ln lcb-emph">Why they <span className="lcb-key lcb-gather">loved<i className="lcb-gth" aria-hidden="true" /></span> you the way they did.</span>
-              </p>
-              <p className="lcb-payoff-line lcb-close lcb-split">
-                <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
-              </p>
-              <span className="lcb-rule" aria-hidden="true" />
-            </div>
-          </>
-        ) : (
-          <>
-            {/* BEAT 1 - THE RAIL OF KNOWING: three inline stars ignite warm
-                beside what you already know. */}
-            <div className="lcb-scene lcb-open">
-              <div className="lcb-dawn" aria-hidden="true" />
-              <p className="lcb-beat lcb-split"><span className="lcb-ln">No one <span className="lcb-key">knows</span> your pet the way <span className="lcb-gather">you<i className="lcb-gth" aria-hidden="true" /></span> do.</span></p>
-              <div className="lcb-rail">
-                <span className="lcb-rail-line" aria-hidden="true" />
-                <div className="lcb-row">
-                  <InStar />
-                  <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">You know what they <span className="lcb-key">love.</span></span></p>
-                </div>
-                <div className="lcb-row">
-                  <InStar />
-                  <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">You know what <span className="lcb-key">settles</span> them.</span></p>
-                </div>
-                <div className="lcb-row">
-                  <InStar />
-                  <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">You know the look they save only for <span className="lcb-key">you.</span></span></p>
-                </div>
-              </div>
-            </div>
+        {/* ── Beat 2/3 pivot ── */}
+        <section className="c2-beat c2-pivot">
+          <span className="c2-node" data-node data-for="c2-st-pos" aria-hidden="true" />
+          <p className="c2-ll c2-rv">{T.pivot1}</p>
+          <p className="c2-ll c2-rv" id="c2-st-pos"><em>The sky calls it position.</em></p>
+        </section>
 
-            {/* BEAT 2 - THE OPEN QUESTIONS: cool stars pulse on the parts
-                you cannot explain, and never ignite. */}
-            <div className="lcb-scene lcb-gap-scene">
-              <div className="lcb-gap-block">
-                <p className="lcb-pivot-lead lcb-split">
-                  <span className="lcb-ln">But there are parts of them you have never quite <span className="lcb-key lcb-gather">understood.<i className="lcb-gth" aria-hidden="true" /></span></span>
-                </p>
-                <span className="lcb-voidstar v1" aria-hidden="true" />
-                <span className="lcb-voidstar v2" aria-hidden="true" />
-                <span className="lcb-voidstar v3" aria-hidden="true" />
-                <div className="lcb-qrows">
-                  <div className="lcb-qrow">
-                    <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln">Why they are the way they <span className="lcb-key">are.</span></span></p>
-                    <InStar cool />
-                  </div>
-                  <div className="lcb-qrow">
-                    <p className="lcb-beat lcb-support lcb-split"><span className="lcb-ln lcb-withhold">What they would say if they <span className="lcb-key">could.</span></span></p>
-                    <InStar cool />
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* ── Beat 3 · the birth sky: a real natal wheel, the real moon
+              arriving beside it as a corner presence ── */}
+        <section className="c2-beat c2-b3">
+          <span className="c2-node" data-node data-for="c2-st-sky" aria-hidden="true" />
+          <div className="c2-moonglow" aria-hidden="true" />
+          <img
+            className="c2-moonspine"
+            src="/start/cosmos-moon.webp"
+            alt=""
+            width={520}
+            height={520}
+            decoding="async"
+            loading="lazy"
+          />
+          <p className="c2-whisper c2-rv" id="c2-st-sky">The minute they arrived, every planet held its place around them.</p>
+          <div className="c2-wheel c2-rv" aria-hidden="true">
+            <svg viewBox="0 0 320 320">
+              <circle className="wring-a" cx="160" cy="160" r="152" />
+              <circle className="wring-b" cx="160" cy="160" r="128" />
+              <circle className="wring-c" cx="160" cy="160" r="44" />
+              <g className="wcusps">
+                {WHEEL_CUSPS.map((c, i) => (
+                  <line key={i} className="wcusp" x1={c.p1.x} y1={c.p1.y} x2={c.p2.x} y2={c.p2.y} />
+                ))}
+              </g>
+              <g className="wticks">
+                {WHEEL_TICKS.map((t, i) => (
+                  <line key={i} className="wtick" x1={t.p1.x} y1={t.p1.y} x2={t.p2.x} y2={t.p2.y} />
+                ))}
+              </g>
+              <g className="wspokes">
+                {WHEEL_SPOKES.map((s, i) => (
+                  <line key={i} className="wspoke" x1={s.p1.x} y1={s.p1.y} x2={s.p2.x} y2={s.p2.y} style={{ transitionDelay: `${s.d}s` }} />
+                ))}
+              </g>
+              <g className="wglyphs">
+                {WHEEL_SIGNS.map((s, i) => (
+                  <text key={i} x={s.p.x} y={s.p.y} textAnchor="middle" dominantBaseline="central" style={{ transitionDelay: `${s.d}s` }}>{s.g}</text>
+                ))}
+              </g>
+              <g className="waspects">
+                {WHEEL_ASPECTS.map((a, i) => (
+                  <line key={i} className="waspect" x1={a.p1.x} y1={a.p1.y} x2={a.p2.x} y2={a.p2.y} style={{ transitionDelay: `${a.d}s` }} />
+                ))}
+              </g>
+              <g className="wplanets">
+                {WHEEL_PLANETS.map((p, i) => (
+                  <g key={i}>
+                    <line className="wptick" x1={p.t1.x} y1={p.t1.y} x2={p.t2.x} y2={p.t2.y} style={{ transitionDelay: `${p.d}s` }} />
+                    <text x={p.glyph.x} y={p.glyph.y} textAnchor="middle" dominantBaseline="central" style={{ transitionDelay: `${p.d}s` }}>{p.g}</text>
+                  </g>
+                ))}
+              </g>
+            </svg>
+          </div>
+          <p className="c2-lxl c2-rv">That sky has never happened again. It never will.</p>
+        </section>
 
-            {/* BEAT 3 - THE ANSWER, CLEAN SKY: two plain lines with the
-                shimmer sweep. The line keeps only the shimmer. */}
-            <div className="lcb-scene lcb-answer-scene">
-              <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
-                <span className="lcb-ln">All of it began the day they were <span className="lcb-key lcb-gather">born.<i className="lcb-gth" aria-hidden="true" /></span></span>
-                <span className="lcb-ln lcb-shimmer lcb-nosplit">The sky that day was set just for them, every planet in an exact place.</span>
-              </p>
-              <p className="lcb-beat lcb-support lcb-souls-text lcb-split">
-                <span className="lcb-ln lcb-emph lcb-quiet lcb-nosplit">A map of who they are, that no one has ever <span className="lcb-key">read.</span></span>
-              </p>
-            </div>
-
-            {/* BEAT 4 - THE CLOSE: three promises arrive word by word, then
-                the plain closing words hand straight into the form. */}
-            <div className="lcb-scene lcb-payoff lcb-payoff-scene">
-              <p className="lcb-payoff-line lcb-split"><span className="lcb-ln">A soul reading <span className="lcb-key">opens</span> it, piece by piece.</span></p>
-              <p className="lcb-beat lcb-support lcb-promises lcb-split">
-                <span className="lcb-ln">Who they <span className="lcb-key">are.</span></span>
-                <span className="lcb-ln">What they <span className="lcb-key">need.</span></span>
-                <span className="lcb-ln lcb-emph">Why they <span className="lcb-key lcb-gather">love<i className="lcb-gth" aria-hidden="true" /></span> you the way they do.</span>
-              </p>
-              <p className="lcb-payoff-line lcb-close lcb-split">
-                <span className="lcb-ln"><span className="lcb-asc">Set the chart.</span></span>
-              </p>
-              <span className="lcb-rule" aria-hidden="true" />
-            </div>
-          </>
-        )}
+        {/* ── Beat 4 · invitation ── */}
+        <section className="c2-beat c2-b4">
+          <span className="c2-node" data-node data-for="c2-st-set" aria-hidden="true" />
+          <p className="c2-whisper c2-rv">{T.b4whisper}</p>
+          <p className="c2-lm c2-rv">Be the first to read it.</p>
+          <p className="c2-peak c2-peak-v c2-rv" id="c2-st-set">Set the chart.</p>
+        </section>
       </div>
 
       {/* framing overlays (above the beats) */}

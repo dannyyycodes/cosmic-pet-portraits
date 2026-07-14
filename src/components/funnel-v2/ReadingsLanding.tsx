@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, AudioLines, ChevronDown, Feather, Heart, Mail, Orbit, Volume2 } from "lucide-react";
+import { ArrowRight, AudioLines, ChevronDown, Mail, Orbit, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import { gsap } from "gsap";
@@ -16,7 +16,7 @@ import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant"
 import { descendTo } from "@/lib/descend";
 import { SIGN_LINES } from "./signLines";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
-import { getIntent, setIntent, clearIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
+import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
 
 const C = {
   ink: "#141210",
@@ -518,154 +518,135 @@ function HeroSection() {
 }
 
 /* ── The reading-path chooser ─────────────────────────────────────────
-   The first real fork, made big and unmistakable: is this reading for a
-   companion who is here, or one who has passed. A short heading names the
-   choice; two large cards each carry a plain label plus a line saying who
-   the path is for. DISCOVERY leads and reads as primary, and it is the
-   default: ignoring or skipping the chooser leaves intent unset, which every
-   downstream section treats as discovery. A memorial choice hushes the
-   passage and the checkout. Neither answer changes price or tier, and either
-   choice reopens via "change" — grief state, and discovery, are never fixed. */
-// Path icons are intentionally plain Lucide marks. Danny specified Heart for the
-// living companion path and Feather for memorial; keep these as recognizable
-// library icons rather than bespoke celestial drawings.
-function DiscoveryMark() {
-  return <Heart strokeWidth={1.45} aria-hidden="true" />;
-}
-
-function MemorialMark() {
-  return <Feather strokeWidth={1.45} aria-hidden="true" />;
-}
+   C v2 (Danny-approved): one compact TOGGLE, not a two-card fork. The
+   question stands huge; the answer is a single switch — "Here with you" /
+   "Held in memory" — wired straight into the ls_intent plumbing. Discovery
+   is the default (checked). The sub-line under the track answers the choice
+   in one quiet italic breath. The passage's violet thread is born under
+   this toggle. Either state can be flipped at any time; grief is never
+   fixed. Neither answer changes price or tier. */
+const TGL_SUBS = {
+  here: "Read while they are right beside you.",
+  memory: "The sky they were born under has not gone anywhere.",
+} as const;
 
 function IntentFork() {
   const [intent, setIntentState] = useState<Intent | null>(() => getIntent());
-  const rootRef = useRef<HTMLElement>(null);
+  const memorialOn = intent === "memorial";
+  const trackRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<HTMLParagraphElement>(null);
+  const [subText, setSubText] = useState<string>(() =>
+    getIntent() === "memorial" ? TGL_SUBS.memory : TGL_SUBS.here,
+  );
+
   useEffect(() => {
     const onIntent = () => setIntentState(getIntent());
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
 
-  // Self-contained reveal, re-run whenever the state flips (chooser <-> banner),
-  // so a returning visitor who taps "Change" always sees the chooser fade in.
-  // The page-level observer only runs once, so this section owns its own.
+  // The slider hugs the active label. Re-measured after every render (labels
+  // reflow when webfonts land) plus on resize.
+  const placeSlider = () => {
+    const track = trackRef.current, slider = sliderRef.current;
+    if (!track || !slider) return;
+    const id = memorialOn ? "ls-intent-memory" : "ls-intent-here";
+    const label = track.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
+    if (!label) return;
+    slider.style.width = `${label.offsetWidth}px`;
+    slider.style.transform = `translateX(${label.offsetLeft - 4}px)`;
+  };
+  useLayoutEffect(placeSlider);
   useEffect(() => {
-    const root = rootRef.current;
-    if (!root || typeof window === "undefined") return;
-    const nodes = Array.from(root.querySelectorAll<HTMLElement>(".ls-path-rv"));
-    if (!nodes.length) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
-      nodes.forEach((n) => n.setAttribute("data-in", "1"));
+    const onResize = () => placeSlider();
+    window.addEventListener("resize", onResize);
+    let alive = true;
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(() => { if (alive) placeSlider(); }).catch(() => { /* ignore */ });
+    }
+    return () => { alive = false; window.removeEventListener("resize", onResize); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The sub-line swaps with one soft dip, not a hard cut.
+  useEffect(() => {
+    const next = memorialOn ? TGL_SUBS.memory : TGL_SUBS.here;
+    const el = subRef.current;
+    if (subText === next) return;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setSubText(next);
       return;
     }
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.setAttribute("data-in", "1");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.14 },
-    );
-    nodes.forEach((n) => io.observe(n));
-    return () => io.disconnect();
-  }, [intent]);
+    el.classList.add("is-swap");
+    const t = window.setTimeout(() => {
+      setSubText(next);
+      el.classList.remove("is-swap");
+    }, 220);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memorialOn]);
 
-  // Already chosen: a dignified, clearly-visible path banner (never a tiny grey
-  // line). The reader always sees which path their reading is on, carries the
-  // same celestial mark from the chooser, and gets one clear control to change it.
-  if (intent === "memorial" || intent === "discovery") {
-    const isMemorial = intent === "memorial";
-    return (
-      <section
-        ref={rootRef}
-        id="passage-fork"
-        className={`ls-path ls-path-held ls-parallax-band ${isMemorial ? "is-memorial" : "is-discovery"}`}
-        aria-label="Your reading path"
-      >
-        <div className="ls-path-held-inner ls-path-rv">
-          <span className="ls-path-mark" aria-hidden="true">
-            {isMemorial ? <MemorialMark /> : <DiscoveryMark />}
-          </span>
-          <div className="ls-path-held-text">
-            <p className="ls-path-held-label">
-              {isMemorial ? "Reading in remembrance" : "Reading for the soul beside you"}
-            </p>
-            <p className="ls-path-held-desc">
-              {isMemorial ? "A reading in their memory" : "Discover who they are"}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="ls-path-change"
-            onClick={() => clearIntent()}
-            aria-label="Change your reading path"
-          >
-            Change
-            <ArrowRight size={15} aria-hidden="true" />
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  // Not yet chosen: the full, unmissable chooser as its own journey moment.
-  // Discovery is first and primary (gold); memorial is second (violet). Leaving
-  // without choosing keeps the discovery path.
   return (
-    <section ref={rootRef} id="passage-fork" className="ls-path ls-parallax-band" aria-labelledby="ls-path-title">
-      <div className="ls-path-sky" aria-hidden="true" />
-      <div className="ls-path-inner">
-        <p className="ls-path-eyebrow ls-path-rv">Before their reading begins</p>
-        <h2 id="ls-path-title" className="ls-path-title ls-path-rv" style={revealDelay(0.06)}>
+    <section id="passage-fork" className="ls-tgl-section ls-parallax-band" aria-labelledby="ls-tgl-q">
+      <div className="ls-tgl-col">
+        <svg className="ls-tgl-arc" viewBox="0 0 600 600" aria-hidden="true">
+          <circle className="haring" cx="300" cy="300" r="282" />
+          <circle className="haring2" cx="300" cy="300" r="226" />
+          <g>
+            <line className="hatick" x1="300" y1="12" x2="300" y2="26" />
+            <line className="hatick" x1="97" y1="97" x2="107" y2="107" />
+            <line className="hatick" x1="18" y1="300" x2="32" y2="300" />
+            <line className="hatick" x1="97" y1="503" x2="107" y2="493" />
+            <line className="hatick" x1="300" y1="588" x2="300" y2="574" />
+            <line className="hatick" x1="503" y1="503" x2="493" y2="493" />
+            <line className="hatick" x1="582" y1="300" x2="568" y2="300" />
+            <line className="hatick" x1="503" y1="97" x2="493" y2="107" />
+          </g>
+          <circle className="haplanet" cx="300" cy="18" r="3" />
+          <circle className="haplanet" cx="101" cy="499" r="2.4" />
+          <circle className="haplanet" cx="524" cy="132" r="2" />
+        </svg>
+        <p className="ls-tgl-micro ls-reveal">Before their reading begins</p>
+        <h2 id="ls-tgl-q" className="ls-tgl-q ls-reveal" style={revealDelay(0.08)}>
           Who is this reading for?
         </h2>
-        <div className="ls-path-cards">
-          <button
-            type="button"
-            className="ls-path-card is-discovery ls-path-rv"
-            style={revealDelay(0.16)}
-            onClick={() => setIntent("discovery")}
-          >
-            <span className="ls-path-mark" aria-hidden="true">
-              <DiscoveryMark />
-            </span>
-            <span className="ls-path-card-text">
-              <span className="ls-path-card-label">My pet is here with me</span>
-              <span className="ls-path-card-desc">Discover who they are</span>
-            </span>
-            <span className="ls-path-card-go" aria-hidden="true">
-              <ArrowRight size={17} />
-            </span>
-          </button>
-          <button
-            type="button"
-            className="ls-path-card is-memorial ls-path-rv"
-            style={revealDelay(0.24)}
-            onClick={() => setIntent("memorial")}
-          >
-            <span className="ls-path-mark" aria-hidden="true">
-              <MemorialMark />
-            </span>
-            <span className="ls-path-card-text">
-              <span className="ls-path-card-label">My pet has passed</span>
-              <span className="ls-path-card-desc">A reading in their memory</span>
-            </span>
-            <span className="ls-path-card-go" aria-hidden="true">
-              <ArrowRight size={17} />
-            </span>
-          </button>
+        <fieldset className="ls-tgl ls-reveal" style={revealDelay(0.16)}>
+          <legend className="sr-only">Choose who the reading is for</legend>
+          <div className="ls-tgl-track" ref={trackRef}>
+            <div className="ls-tgl-slider" ref={sliderRef} aria-hidden="true" />
+            <input
+              type="radio"
+              name="ls-intent-path"
+              id="ls-intent-here"
+              value="here"
+              checked={!memorialOn}
+              onChange={() => setIntent("discovery")}
+            />
+            <label htmlFor="ls-intent-here">Here with you</label>
+            <input
+              type="radio"
+              name="ls-intent-path"
+              id="ls-intent-memory"
+              value="memory"
+              checked={memorialOn}
+              onChange={() => setIntent("memorial")}
+            />
+            <label htmlFor="ls-intent-memory">Held in memory</label>
+          </div>
+        </fieldset>
+        <div className="ls-reveal" style={revealDelay(0.24)}>
+          <p className="ls-tgl-sub" ref={subRef}>{subText}</p>
         </div>
       </div>
     </section>
   );
 }
 
-// The emotional bridge between the hero and the "Set the chart" form is now the
-// Cinematic Cosmos scroll experience — see ./CosmicBridge.tsx (self-hosted GSAP +
-// moon, the nine approved beats, and the real Monty natal wheel drawn on scroll).
+// The opening passage between the chooser and the "Set the chart" form is the
+// C v2 momentum experience — see ./CosmicBridge.tsx (THE MAP EXISTS: violet
+// thread + station nodes, whisper-to-huge peaks, real natal wheel drawn on
+// scroll, the real moon arriving at the birth-sky beat).
 
 // Scroll journey through the birth sky. A sticky stage holds the solar system;
 // a tall transparent track of step-triggers drives an IntersectionObserver that
@@ -2492,6 +2473,23 @@ function BirthSkyJourney() {
   const bodyFor = (key: keyof typeof PLANET_META): ChartBody | undefined =>
     chart ? (chart[key as keyof PetBirthChart] as ChartBody | undefined) : undefined;
 
+  // The seal form re-mounts with FRESH .ls-reveal nodes when a compute attempt
+  // fails (form -> ComputeSequence -> form). The page-level reveal observer has
+  // already run by then, so without this pass the returning fields would sit at
+  // opacity 0 forever. Seat them immediately - the visitor is already here.
+  const prevStatus = useRef(status);
+  useEffect(() => {
+    const was = prevStatus.current;
+    prevStatus.current = status;
+    if (was !== "computing" || status === "computing" || status === "ready") return;
+    const id = requestAnimationFrame(() => {
+      sectionRef.current
+        ?.querySelectorAll<HTMLElement>(".ls-reveal:not(.is-in)")
+        .forEach((n) => n.classList.add("is-in"));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [status]);
+
   // ONE gate, at the start: name (optional) + date + email open the chart.
   // The lead fires the moment they start the free reading (source
   // "free_reading_start"), then the fetch runs in parallel with the compute
@@ -2594,49 +2592,38 @@ function BirthSkyJourney() {
                 }}
               />
             ) : (
-              <form className="ls-seal-card ls-stage-card ls-reveal" onSubmit={handleOpen}>
-                <span className="ls-seal-crest" aria-hidden="true">
-                  <svg viewBox="0 0 64 64" width="46" height="46" fill="none">
-                    <circle cx="32" cy="32" r="27" stroke="#9a7ee6" strokeOpacity="0.85" strokeWidth="1" />
-                    <circle cx="32" cy="32" r="20.5" stroke="#9a7ee6" strokeOpacity="0.4" strokeWidth="1" />
-                    <circle cx="32" cy="32" r="23.75" stroke="#9a7ee6" strokeOpacity="0.5" strokeWidth="6.5" strokeDasharray="1 11.44" />
-                    <circle cx="32" cy="5" r="2.6" fill="#b9a5f0" className="ls-seal-crest-asc" />
-                    <circle cx="32" cy="32" r="2" fill="#9a7ee6" fillOpacity="0.9" />
-                  </svg>
-                </span>
-                <p className="ls-seal-sub">Name optional. The date does the rest.</p>
-                <div className="ls-seal-field">
-                  <label htmlFor="seal-name">Their name <span>(if they have one)</span></label>
-                  <input id="seal-name" className={petName ? "is-filled" : undefined} type="text" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} placeholder="e.g. Bella" />
+              <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen}>
+                <p className="ls-seal-lead ls-reveal">Two facts. That is all it takes.</p>
+                <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
+                  <label htmlFor="seal-name">Their name <span>optional</span></label>
+                  <input id="seal-name" type="text" autoComplete="off" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
                 </div>
-                <div className="ls-seal-field">
-                  <label htmlFor="seal-date">Birth date, or the day they came home</label>
+                <div className="ls-seal-field ls-reveal" style={revealDelay(0.12)}>
+                  <label htmlFor="seal-date">The day they were born</label>
                   <input
                     id="seal-date"
-                    className={date ? "is-filled" : undefined}
                     type="date"
                     value={date}
                     max="2030-12-31"
                     onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
+                  <p className="ls-seal-hint">Or the day they came home. Both set a true chart.</p>
                 </div>
-                <div className="ls-seal-field">
+                <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
                   <label htmlFor="seal-email">{memorial ? "Where should we hold their reading?" : "Where should their reading open?"}</label>
                   <input
                     id="seal-email"
-                    className={email ? "is-filled" : undefined}
                     type="email"
                     inputMode="email"
                     autoComplete="email"
-                    placeholder="you@example.com"
                     value={email}
                     required
                     onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
-                  <p className="ls-seal-quiet">{memorial ? "No account. Just where it waits." : "No account. Just where it opens."}</p>
+                  <p className="ls-seal-hint">{memorial ? "No account. Just where it waits." : "No account. This is where it opens."}</p>
                 </div>
-                <button type="submit" className="ls-gold-button ls-violet-button ls-seal-cta">
-                  Set the chart <ArrowRight size={17} />
+                <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.24)}>
+                  Set the chart <ArrowRight size={18} />
                 </button>
                 {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
                 <button type="button" className="ls-seal-why" onClick={() => setWhyOpen((v) => !v)} aria-expanded={whyOpen}>
@@ -5674,130 +5661,83 @@ function CosmicStyles() {
         background: radial-gradient(ellipse at 50% 40%, rgba(13,10,20,0.55), rgba(8,6,11,0.86) 72%);
         backdrop-filter: blur(2px);
       }
-      /* === "Set the chart" card - a violet-lit celestial surface. The passage's
-         destination: same night, same stars, the chart waiting to be set. ==== */
+      /* === "Set the chart" card — C v2: a near-transparent surface whose
+         real border is the passage's violet thread, drawn shut on arrival.
+         The button waits at half light and IGNITES when the border seals
+         (data attributes set by the CosmicBridge thread engine). ==== */
       .ls-seal-card {
         position: relative;
-        width: 100%; max-width: 440px;
-        display: grid; gap: 13px; justify-items: center; text-align: center;
-        padding: clamp(24px, 5vw, 36px) clamp(22px, 4vw, 34px) clamp(22px, 4vw, 32px);
-        border: 1px solid rgba(124,92,214,0.46); border-radius: 22px;
-        background:
-          radial-gradient(1.1px 1.1px at 21% 24%, rgba(236,232,255,0.8), transparent),
-          radial-gradient(1.4px 1.4px at 71% 62%, rgba(214,204,255,0.6), transparent),
-          radial-gradient(1px 1px at 46% 86%, rgba(236,232,255,0.5), transparent),
-          radial-gradient(1px 1px at 86% 14%, rgba(236,232,255,0.55), transparent),
-          radial-gradient(120% 90% at 50% -10%, rgba(124,92,214,0.28), transparent 56%),
-          radial-gradient(90% 70% at 86% 112%, rgba(94,70,150,0.22), transparent 62%),
-          linear-gradient(180deg, rgba(30,22,48,0.95), rgba(13,10,20,0.98));
-        background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
-        background-size: 230px 230px, 230px 230px, 230px 230px, 230px 230px, 100% 100%, 100% 100%, 100% 100%;
-        box-shadow:
-          0 34px 90px rgba(0,0,0,0.6),
-          0 0 70px rgba(124,92,214,0.16),
-          inset 0 1px 0 rgba(185,165,240,0.2),
-          inset 0 0 44px rgba(124,92,214,0.09);
+        width: 100%; max-width: 480px;
+        display: block; text-align: left;
+        padding: clamp(28px, 5vw, 44px) clamp(22px, 4.5vw, 40px);
+        border: 1px solid rgba(167,139,250,0.13); border-radius: 18px;
+        background: rgba(139,123,216,0.055);
       }
-      .ls-seal-card::before {
-        content: ""; position: absolute; top: -1px; left: 9%; right: 9%; height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(185,165,240,0.85), transparent);
-        pointer-events: none;
+      .ls-seal-lead {
+        margin: 0 0 28px;
+        color: #f5f2ff; font-family: "Fraunces", Georgia, serif; font-weight: 400;
+        font-size: clamp(1.25rem, 1.8vw + 0.7rem, 1.6rem); line-height: 1.3;
+        letter-spacing: -0.008em;
       }
-      .ls-seal-crest { line-height: 0; margin-bottom: 2px; position: relative; }
-      .ls-seal-crest svg { display: block; filter: drop-shadow(0 0 9px rgba(154,126,230,0.45)); }
-      .ls-seal-crest-asc { filter: drop-shadow(0 0 5px rgba(185,165,240,0.9)); }
-      /* the seal docks: one flare when the passage's traveling ring
-         match-cuts onto the crest (class added once by CosmicBridge) */
-      .ls-seal-crest::after {
-        content: ""; position: absolute; inset: -16px; border-radius: 50%;
-        opacity: 0; pointer-events: none;
-        background: radial-gradient(circle, rgba(185,165,240,0.55) 0%, rgba(154,126,230,0.22) 46%, transparent 72%);
-      }
-      .ls-seal-crest.lcb-docked::after { animation: lsCrestFlare 1.3s cubic-bezier(.16,1,.3,1) 1; }
-      @keyframes lsCrestFlare { 0% { opacity: 0; } 24% { opacity: 1; } 100% { opacity: 0; } }
-      @media (prefers-reduced-motion: reduce) { .ls-seal-crest.lcb-docked::after { animation: none; } }
-      .ls-seal-glyph { font-size: 1.6rem; color: ${C.gold}; line-height: 1; }
-      .ls-seal-title {
-        color: ${C.cream}; font-family: "Fraunces", Georgia, serif;
-        font-size: clamp(1.5rem, 4vw, 2.05rem); font-weight: 500; line-height: 1.1;
-      }
-      .ls-seal-sub { color: rgba(222,214,244,0.85); font-family: "Newsreader", Georgia, serif; font-size: 0.95rem; letter-spacing: 0.01em; }
-      .ls-seal-field { width: 100%; display: grid; gap: 6px; text-align: left; }
+      .ls-seal-field { display: block; width: 100%; margin-bottom: 26px; text-align: left; }
       .ls-seal-field label {
-        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif;
-        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+        display: block; margin-bottom: 8px;
+        color: #b3a7e0; font-family: "Newsreader", Georgia, serif;
+        font-size: 12.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
       }
-      .ls-seal-field label span { color: rgba(200,192,226,0.6); font-weight: 500; text-transform: none; letter-spacing: 0; }
+      .ls-seal-field label span {
+        color: rgba(245,242,255,0.55); font-weight: 400; font-style: italic;
+        text-transform: none; letter-spacing: 0.04em;
+      }
       .ls-seal-field input {
-        min-height: 52px; width: 100%;
-        border: 1px solid rgba(124,92,214,0.42); border-radius: 12px;
-        background: linear-gradient(180deg, rgba(8,6,15,0.85), rgba(13,10,22,0.72));
-        color: ${C.cream}; padding: 0 16px;
-        font-family: "Newsreader", Georgia, serif; font-size: 1rem;
+        width: 100%; min-height: 46px;
+        background: transparent; border: 0; border-radius: 0;
+        border-bottom: 1px solid rgba(167,139,250,0.32);
+        padding: 10px 2px 12px; color: #f5f2ff;
+        font-family: "Newsreader", Georgia, serif; font-size: 18px;
         caret-color: ${C.violetBright}; color-scheme: dark;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-        transition: border-color 220ms ease, background 220ms ease, box-shadow 320ms ease;
+        transition: border-color 500ms ease;
       }
-      .ls-seal-field input::placeholder { color: rgba(200,192,226,0.42); }
-      .ls-seal-field input:focus {
-        outline: none; border-color: ${C.violetBright};
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(154,126,230,0.16), 0 0 26px rgba(124,92,214,0.3);
-        animation: ls-seal-breathe 3s ease-in-out infinite;
+      .ls-seal-field input:focus { outline: none; border-bottom-color: #a78bfa; }
+      .ls-seal-field input::-webkit-calendar-picker-indicator { filter: invert(0.8) sepia(1) saturate(3) hue-rotate(215deg); cursor: pointer; }
+      .ls-seal-card[data-sealed] .ls-seal-field input { border-bottom-color: rgba(167,139,250,0.5); }
+      .ls-seal-hint {
+        margin: 9px 0 0; color: rgba(245,242,255,0.55);
+        font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15.5px; line-height: 1.5;
       }
-      @keyframes ls-seal-breathe {
-        0%, 100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(154,126,230,0.13), 0 0 20px rgba(124,92,214,0.22); }
-        50% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 4px rgba(154,126,230,0.24), 0 0 34px rgba(124,92,214,0.42); }
-      }
-      .ls-seal-field input.is-filled {
-        border-color: rgba(185,165,240,0.66);
-        background: linear-gradient(180deg, rgba(16,12,30,0.9), rgba(20,15,36,0.8));
-      }
-      .ls-seal-field input.is-filled:not(:focus) {
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18);
-        animation: ls-seal-seat 460ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      @keyframes ls-seal-seat {
-        0% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 0 rgba(154,126,230,0); }
-        35% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 5px rgba(154,126,230,0.26), 0 0 30px rgba(124,92,214,0.46); }
-        100% { box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0 0 14px rgba(124,92,214,0.18); }
-      }
-      /* the quiet reassurance under the email ask: no account, no inbox promise */
-      .ls-seal-quiet { margin: 2px 0 0; color: rgba(200,192,226,0.6); font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 0.82rem; letter-spacing: 0.01em; }
-      .ls-seal-help { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
+      .ls-seal-help { margin-top: 10px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
       .ls-seal-help-ln { margin: 0; opacity: 0; animation: lsSealHelpIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
       @keyframes lsSealHelpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
       @media (prefers-reduced-motion: reduce) { .ls-seal-help-ln { animation: none; opacity: 1; } }
-      /* The form CTA rides a metal-VIOLET ramp: the free-reading section is
-         cosmic purple + white only (no gold), so the buy-moment gold material
-         is re-cut in the section's own light. Only its halo breathes. */
       .ls-seal-card .ls-seal-cta {
-        width: 100%; justify-content: center; margin-top: 6px;
-        min-height: 54px; border-radius: 14px; font-size: 16.5px;
-        background: linear-gradient(180deg,#ece4fb 0%,#cfc0f4 18%,#ab90e6 40%,#9a7ee6 56%,#7b5fc7 80%,#5d47a0 100%);
-        color: #170f2b;
-        box-shadow: 0 1px 0 rgba(255,255,255,.42) inset, 0 -1px 0 rgba(0,0,0,.3) inset,
-          0 6px 18px -6px rgba(124,92,214,.55);
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        width: 100%; min-height: 58px; margin-top: 6px;
+        border: 0; border-radius: 13px; cursor: pointer;
+        background: linear-gradient(135deg, #a78bfa, #8b7bd8);
+        color: #0d0a14; font-family: "Fraunces", Georgia, serif; font-size: 19px; font-weight: 600;
+        letter-spacing: 0.01em;
+        transition: transform 250ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 800ms ease, filter 800ms ease;
+        box-shadow: 0 4px 26px rgba(139,123,216,0.28);
       }
-      .ls-seal-card .ls-seal-cta:hover {
-        filter: brightness(1.07) saturate(1.05);
-        box-shadow: 0 1px 0 rgba(255,255,255,.46) inset, 0 -1px 0 rgba(0,0,0,.3) inset,
-          0 10px 26px -6px rgba(124,92,214,.68);
+      /* half-light until the thread seals the border, then IGNITION */
+      .ls-seal-card[data-thread-arm]:not([data-sealed]) .ls-seal-cta {
+        filter: saturate(0.5) brightness(0.8);
+        box-shadow: 0 2px 12px rgba(139,123,216,0.12);
       }
-      .ls-seal-card .ls-seal-cta:active {
-        background: linear-gradient(165deg,#ab90e6,#7b5fc7);
-        box-shadow: inset 0 2px 6px rgba(0,0,0,.35);
+      .ls-seal-card[data-sealed] .ls-seal-cta {
+        filter: none; box-shadow: 0 6px 34px rgba(167,139,250,0.48);
+        animation: lsSealIgnite 850ms cubic-bezier(0.2,0.9,0.3,1.15) both;
       }
-      .ls-seal-card .ls-seal-cta:focus-visible { outline: 2px solid #ece4fb; outline-offset: 3px; }
-      .ls-seal-card .ls-seal-cta::after {
-        content: ""; position: absolute; inset: -3px; border-radius: 17px; pointer-events: none;
-        background: none; mix-blend-mode: normal; transform: none;
-        box-shadow: 0 0 26px 5px rgba(154,126,230,0.4);
-        opacity: 0.3; animation: ls-seal-cta-glow 4.2s ease-in-out infinite;
-      }
-      @keyframes ls-seal-cta-glow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.85; } }
+      @keyframes lsSealIgnite { 0% { transform: scale(0.985); } 55% { transform: scale(1.018); } 100% { transform: scale(1); } }
+      .ls-seal-card .ls-seal-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(167,139,250,0.4); }
+      .ls-seal-card .ls-seal-cta:active { transform: scale(0.985); }
+      .ls-seal-card .ls-seal-cta:focus-visible { outline: 2px solid #f5f2ff; outline-offset: 3px; }
+      .ls-seal-card .ls-chart-message { margin-top: 14px; text-align: left; }
+      .ls-seal-card .ls-seal-why { margin-top: 18px; padding-left: 0; text-align: left; display: inline-block; }
       @media (prefers-reduced-motion: reduce) {
-        .ls-seal-field input:focus, .ls-seal-field input.is-filled:not(:focus) { animation: none; }
-        .ls-seal-card .ls-seal-cta::after { animation: none; opacity: 0.45; }
+        .ls-seal-card[data-thread-arm]:not([data-sealed]) .ls-seal-cta { filter: none; box-shadow: 0 4px 26px rgba(139,123,216,0.28); }
+        .ls-seal-card[data-sealed] .ls-seal-cta { animation: none; }
+        .ls-seal-cta { transition: none; }
       }
 
       /* loading animation between gate submit and the reveal */
@@ -6587,23 +6527,21 @@ function CosmicStyles() {
       .ls-hero-memorial:hover { color: #efe9dd; text-decoration-color: rgba(185,165,240,0.55); }
       .ls-hero-memorial:focus-visible { outline: 1px solid rgba(185,165,240,0.7); outline-offset: 4px; border-radius: 4px; }
       /* ── the reading-path chooser (intent capture) ───────────────────────
-         Its own journey-moment section directly after the hero. First visit:
-         a tall, unmissable chooser (discovery / gold first, memorial / violet
-         second). Returning: a dignified, clearly-visible path banner, never a
-         tiny grey line. Heart and feather marks stay recognizable; the
-         choice itself reads as two quiet doorways. */
-      .ls-path {
+         C v2: the question stands huge, the answer is one compact toggle.
+         The section shares the passage column's geometry so the violet
+         thread can be born directly under the chosen path. */
+      .ls-tgl-section {
         position: relative;
         z-index: 2;
         display: flex;
-        align-items: center;
+        flex-direction: column;
         justify-content: center;
-        min-height: min(88svh, 780px);
-        padding: clamp(56px, 11svh, 128px) 20px;
-        text-align: center;
-        overflow: hidden;
+        min-height: 86svh;
+        padding: 9svh 20px 5svh;
+        overflow: visible;
       }
-      .ls-path-sky {
+      .ls-tgl-section::before {
+        content: "";
         position: absolute;
         inset: 0;
         z-index: 0;
@@ -6616,295 +6554,113 @@ function CosmicStyles() {
           radial-gradient(1.3px 1.3px at 46% 32%, rgba(255,255,255,0.5), transparent 60%),
           radial-gradient(1.1px 1.1px at 91% 54%, rgba(255,255,255,0.45), transparent 60%),
           radial-gradient(1.2px 1.2px at 8% 52%, rgba(185,165,240,0.5), transparent 60%);
-        opacity: 0.7;
-        transform: translate3d(calc(var(--ls-pointer-x, 0) * 14px), calc((var(--ls-scroll-y, 0) * -0.01px) + (var(--ls-pointer-y, 0) * 12px)), 0);
+        opacity: 0.55;
+      }
+      .ls-tgl-col {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        padding-left: 40px;
+        padding-right: 2px;
+        text-align: left;
+      }
+      @media (min-width: 900px) { .ls-tgl-col { padding-left: 84px; padding-right: 20px; } }
+      .ls-tgl-arc { display: none; }
+      @media (min-width: 900px) {
+        .ls-tgl-arc {
+          display: block;
+          position: absolute;
+          z-index: 0;
+          pointer-events: none;
+          top: -14svh;
+          right: calc(-1 * clamp(140px, 19vw, 270px));
+          width: clamp(400px, 44vw, 580px);
+          opacity: 0.55;
+        }
+        .ls-tgl-arc .haring { stroke: rgba(167,139,250,0.16); fill: none; stroke-width: 1.1; }
+        .ls-tgl-arc .haring2 { stroke: rgba(167,139,250,0.09); fill: none; stroke-width: 1; }
+        .ls-tgl-arc .hatick { stroke: rgba(167,139,250,0.2); stroke-width: 1; }
+        .ls-tgl-arc .haplanet { fill: rgba(167,139,250,0.5); }
+      }
+      .ls-tgl-micro {
+        margin: 0 0 2.2svh;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #9d8ce0;
+      }
+      .ls-tgl-q {
+        margin: 0 0 4.4svh;
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 400;
+        font-size: clamp(2rem, 5.2vw + 0.9rem, 3.4rem);
+        line-height: 1.12;
+        letter-spacing: -0.016em;
+        color: #f5f2ff;
+        max-width: 12ch;
+        text-wrap: balance;
+      }
+      .ls-tgl { border: 0; margin: 0; padding: 0; position: relative; z-index: 1; }
+      .ls-tgl-track {
+        position: relative;
+        display: inline-flex;
+        gap: 0;
+        border: 1px solid rgba(167,139,250,0.28);
+        border-radius: 999px;
+        padding: 4px;
+        background: rgba(139,123,216,0.06);
+      }
+      .ls-tgl-slider {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        height: calc(100% - 8px);
+        border-radius: 999px;
+        background: linear-gradient(135deg, #a78bfa, #8b7bd8);
+        transition: transform 450ms cubic-bezier(0.34,1.56,0.64,1), width 450ms cubic-bezier(0.34,1.56,0.64,1);
         will-change: transform;
       }
-      .ls-path-inner {
+      .ls-tgl input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+      .ls-tgl label {
         position: relative;
-        z-index: 2;
-        width: 100%;
-        max-width: 940px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .ls-path-rv {
-        opacity: 0;
-        transform: translate3d(0, 26px, 0);
-        filter: blur(8px);
-        transition: opacity .8s cubic-bezier(.22,.7,.2,1), transform .8s cubic-bezier(.22,.7,.2,1), filter .8s cubic-bezier(.22,.7,.2,1);
-        transition-delay: var(--ls-delay, 0s);
-        will-change: opacity, transform;
-      }
-      .ls-path-rv[data-in] { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
-      .ls-path-eyebrow {
-        margin: 0;
-        font-family: "Newsreader", Georgia, serif;
-        font-size: 0.75rem;
-        font-weight: 500;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-        color: #b9a5f0;
-      }
-      .ls-path-title {
-        margin: 15px 0 0;
-        font-family: "Fraunces", Georgia, serif;
-        font-weight: 500;
-        font-size: clamp(2.15rem, 1.42rem + 3.2vw, 3.75rem);
-        line-height: 1.02;
-        letter-spacing: -0.018em;
-        color: #ffffff;
-      }
-      .ls-path-sub {
-        margin: 16px 0 0;
-        max-width: 34rem;
-        font-family: "Newsreader", Georgia, serif;
-        font-size: clamp(1rem, 0.94rem + 0.5vw, 1.18rem);
-        line-height: 1.55;
-        color: #c8c8d2;
-      }
-      .ls-path-cards {
-        margin-top: clamp(34px, 5.5vw, 56px);
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 18px;
-        width: 100%;
-        max-width: 54rem;
-      }
-      .ls-path-card {
-        appearance: none;
-        -webkit-appearance: none;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        flex-direction: column;
-        gap: 24px;
-        width: 100%;
-        min-height: 248px;
-        padding: clamp(24px, 6vw, 34px);
-        text-align: left;
-        border-radius: 8px;
-        border: 1px solid rgba(237,233,247,0.12);
-        background:
-          linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012)),
-          rgba(9,7,13,0.62);
-        color: #efe9dd;
-        isolation: isolate;
-        transition: transform .42s cubic-bezier(.22,.7,.2,1), border-color .4s ease, box-shadow .4s ease, background .4s ease;
-      }
-      .ls-path-card::before {
-        content: "";
-        position: absolute;
-        inset: 12px;
-        z-index: -1;
-        border-radius: 6px;
-        border: 1px solid rgba(255,255,255,0.075);
-        background:
-          linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255,255,255,0.08) calc(50% - 0.5px), rgba(255,255,255,0.08) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-          radial-gradient(120% 72% at 50% 0%, rgba(255,255,255,0.045), transparent 60%);
-        opacity: 0.94;
-        transition: border-color .4s ease, background .4s ease, opacity .4s ease;
-      }
-      .ls-path-card::after {
-        content: "";
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        height: 34%;
-        z-index: -1;
-        border-radius: 0 0 6px 6px;
-        opacity: 0.42;
-        transform: translateY(12%);
-        transition: opacity .4s ease, transform .42s cubic-bezier(.22,.7,.2,1);
-        pointer-events: none;
-      }
-      .ls-path-card.is-discovery {
-        border-color: rgba(154,126,230,0.42);
-        background:
-          linear-gradient(180deg, rgba(185,165,240,0.09), rgba(255,255,255,0.015)),
-          rgba(9,7,13,0.64);
-        box-shadow: 0 0 0 1px rgba(154,126,230,0.10) inset, 0 24px 58px -34px rgba(154,126,230,0.68);
-      }
-      .ls-path-card.is-discovery::after {
-        background: radial-gradient(80% 100% at 50% 100%, rgba(185,165,240,0.32), transparent 72%);
-      }
-      .ls-path-card.is-memorial {
-        border-color: rgba(154,126,230,0.34);
-        background:
-          linear-gradient(180deg, rgba(154,126,230,0.10), rgba(255,255,255,0.012)),
-          rgba(9,7,13,0.64);
-        box-shadow: 0 24px 58px -36px rgba(124,92,214,0.64);
-      }
-      .ls-path-card.is-memorial::after {
-        background: radial-gradient(80% 100% at 50% 100%, rgba(185,165,240,0.30), transparent 72%);
-      }
-      .ls-path-card:hover { transform: translateY(-4px); }
-      .ls-path-card:hover::after { opacity: 0.72; transform: translateY(0); }
-      .ls-path-card.is-discovery:hover {
-        border-color: rgba(185,165,240,0.78);
-        box-shadow: 0 0 0 1px rgba(185,165,240,0.2) inset, 0 28px 64px -26px rgba(154,126,230,0.74);
-      }
-      .ls-path-card.is-memorial:hover {
-        border-color: rgba(185,165,240,0.62);
-        box-shadow: 0 28px 64px -28px rgba(124,92,214,0.72);
-      }
-      .ls-path-card:focus-visible { outline: 2px solid rgba(185,165,240,0.85); outline-offset: 3px; }
-      .ls-path-card.is-memorial:focus-visible { outline-color: rgba(185,165,240,0.9); }
-      .ls-path-card-text {
-        flex: 1 1 auto;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-      .ls-path-card-label {
-        font-family: "Fraunces", Georgia, serif;
-        font-weight: 500;
-        font-size: clamp(1.32rem, 1.05rem + 1.2vw, 1.8rem);
-        line-height: 1.05;
-        letter-spacing: -0.008em;
-        color: #ffffff;
-      }
-      .ls-path-card-desc {
-        font-family: "Newsreader", Georgia, serif;
-        font-size: 0.96rem;
-        line-height: 1.35;
-        color: #c8c8d2;
-      }
-      .is-discovery .ls-path-card-desc { color: #e7dcc2; }
-      .ls-path-card-go {
-        flex: none;
-        display: grid;
-        place-items: center;
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        border: 1px solid rgba(237,233,247,0.16);
-        color: #8f8798;
-        transition: transform .35s cubic-bezier(.22,.7,.2,1), color .3s ease, border-color .3s ease, background .3s ease;
-      }
-      .ls-path-card:hover .ls-path-card-go { transform: translateX(3px); }
-      .is-discovery:hover .ls-path-card-go { color: #0d0a14; background: #cfc0f4; border-color: #cfc0f4; }
-      .is-memorial:hover .ls-path-card-go { color: #0d0a14; background: #b9a5f0; border-color: #b9a5f0; }
-      /* bespoke celestial marks - dots of light, crescent, horizon. No sparkles. */
-      .ls-path-mark {
-        flex: none;
-        display: grid;
-        place-items: center;
-        width: 72px;
-        height: 72px;
-      }
-      .ls-path-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
-      .is-discovery .ls-path-mark { color: #cfc0f4; }
-      .is-memorial .ls-path-mark { color: #b9a5f0; }
-      .ls-pm-line { stroke: currentColor; opacity: 0.55; }
-      .ls-pm-thread { stroke: currentColor; opacity: 0.4; }
-      .ls-pm-core { fill: currentColor; opacity: 0.16; animation: ls-pm-core 6s ease-in-out infinite; }
-      .ls-pm-crescent { fill: currentColor; opacity: 0.9; }
-      .ls-pm-star { fill: currentColor; animation: ls-pm-twinkle 3.8s ease-in-out infinite; }
-      .ls-pm-star.s2 { animation-duration: 4.6s; animation-delay: .7s; }
-      .ls-pm-star.s3 { animation-duration: 5.4s; animation-delay: 1.5s; }
-      @keyframes ls-pm-twinkle { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
-      @keyframes ls-pm-core { 0%, 100% { opacity: .12; } 50% { opacity: .26; } }
-      /* returning-visitor path banner - dignified, always visible, easy change */
-      .ls-path-held {
-        min-height: clamp(210px, 32svh, 280px);
-        padding: clamp(30px, 6svh, 56px) 20px;
-      }
-      .ls-path-held-inner {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        max-width: 580px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        padding: 22px 24px;
-        border-radius: 20px;
-        border: 1px solid rgba(237,233,247,0.12);
-        background:
-          linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012)),
-          rgba(9,7,13,0.55);
-        text-align: left;
-      }
-      .ls-path-held.is-discovery .ls-path-held-inner {
-        border-color: rgba(154,126,230,0.42);
-        box-shadow: 0 0 0 1px rgba(154,126,230,0.09) inset, 0 20px 48px -32px rgba(154,126,230,0.55);
-      }
-      .ls-path-held.is-memorial .ls-path-held-inner {
-        border-color: rgba(154,126,230,0.38);
-        box-shadow: 0 20px 48px -32px rgba(124,92,214,0.55);
-      }
-      .ls-path-held .ls-path-mark { width: 58px; height: 58px; }
-      .ls-path-held-text { flex: 1 1 auto; min-width: 0; }
-      .ls-path-held-label {
-        margin: 0;
-        font-family: "Fraunces", Georgia, serif;
-        font-weight: 500;
-        font-size: clamp(1.18rem, 1.04rem + 0.65vw, 1.46rem);
-        line-height: 1.12;
-        letter-spacing: -0.006em;
-        color: #ffffff;
-      }
-      .ls-path-held-desc {
-        margin: 6px 0 0;
-        font-family: "Newsreader", Georgia, serif;
-        font-size: 0.96rem;
-        line-height: 1.35;
-        color: #c8c8d2;
-      }
-      .ls-path-held.is-discovery .ls-path-held-desc { color: #e7dcc2; }
-      .ls-path-change {
-        flex: none;
+        z-index: 1;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        min-height: 44px;
-        padding: 10px 16px;
+        justify-content: center;
+        min-height: 46px;
+        padding: 10px 22px;
         border-radius: 999px;
-        border: 1px solid rgba(237,233,247,0.24);
-        background: rgba(255,255,255,0.03);
         cursor: pointer;
-        color: #d8d0c1;
         font-family: "Newsreader", Georgia, serif;
-        font-size: 0.92rem;
-        letter-spacing: 0.01em;
-        transition: color .3s ease, border-color .3s ease, background .3s ease;
+        font-size: 16px;
+        color: rgba(245,242,255,0.78);
+        transition: color 300ms ease;
+        -webkit-tap-highlight-color: transparent;
+        white-space: nowrap;
       }
-      .ls-path-change svg { transition: transform .3s ease; }
-      .ls-path-change:hover { color: #ffffff; border-color: rgba(185,165,240,0.6); background: rgba(255,255,255,0.06); }
-      .ls-path-held.is-memorial .ls-path-change:hover { border-color: rgba(185,165,240,0.66); }
-      .ls-path-change:hover svg { transform: translateX(2px); }
-      .ls-path-change:focus-visible { outline: 2px solid rgba(185,165,240,0.85); outline-offset: 3px; }
-      @media (min-width: 760px) {
-        .ls-path-cards {
-          grid-template-columns: 1fr 1fr;
-          gap: 22px;
-          max-width: 720px;
-        }
-        .ls-path-card {
-          min-height: 356px;
-          padding: 38px 34px 32px;
-        }
-        .ls-path-card .ls-path-mark { width: 92px; height: 92px; }
-        .ls-path-card-go { position: absolute; right: 26px; bottom: 28px; }
-        .ls-path-card-text { gap: 7px; }
+      .ls-tgl input:checked + label { color: #0d0a14; }
+      .ls-tgl input:focus-visible + label { outline: 2px solid #a78bfa; outline-offset: 3px; }
+      .ls-tgl-sub {
+        margin: 2.6svh 0 0;
+        font-family: "Newsreader", Georgia, serif;
+        font-style: italic;
+        font-size: 17px;
+        color: rgba(245,242,255,0.55);
+        min-height: 1.6em;
+        max-width: 38ch;
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+      .ls-tgl-sub.is-swap { opacity: 0; transform: translateY(6px); }
+      @media (max-width: 520px) {
+        .ls-tgl label { padding: 10px 15px; font-size: 15px; }
       }
       @media (prefers-reduced-motion: reduce) {
-        .ls-path-card, .ls-path-card-go { transition: border-color .3s ease, box-shadow .3s ease, color .3s ease; }
-        .ls-path-card:hover { transform: none; }
-        .ls-path-card:hover .ls-path-card-go { transform: none; }
-        .ls-path-sky { transform: none; }
-        .ls-pm-core, .ls-pm-star { animation: none; opacity: 1; }
-        .ls-pm-core { opacity: .2; }
-        .ls-path-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        .ls-tgl-slider { transition: none; }
+        .ls-tgl-sub { transition: none; }
       }
       .ls-hero-section {
         background:
