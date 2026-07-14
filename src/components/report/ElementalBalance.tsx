@@ -42,8 +42,8 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
       style={{
         background: '#ffffff',
         borderRadius: '18px',
-        border: '1px solid #e8ddd0',
-        boxShadow: '0 2px 12px rgba(61,47,42,0.07)',
+        border: '1px solid #e2dbf3',
+        boxShadow: '0 2px 12px rgba(42,36,64,0.07)',
       }}
     >
       <div className="px-6 pt-6 pb-5">
@@ -51,19 +51,19 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
         <div className="text-center mb-5">
           <div
             className="text-[0.6rem] font-bold tracking-[2.5px] uppercase mb-1.5"
-            style={{ color: '#c4a265' }}
+            style={{ color: '#8b7bd8' }}
           >
             Elemental Balance
           </div>
           <h2
             className="text-[1.2rem] mt-0 mb-1"
-            style={{ fontFamily: 'DM Serif Display, serif', color: '#3d2f2a' }}
+            style={{ fontFamily: 'DM Serif Display, serif', color: '#2a2440' }}
           >
             {petName}&apos;s Inner Composition
           </h2>
           <p
             className="text-[0.84rem] leading-[1.75] max-w-[360px] mx-auto mt-1"
-            style={{ color: '#5a4a42' }}
+            style={{ color: '#4a4560' }}
           >
             How the four elements shape {petName}&apos;s temperament.
           </p>
@@ -84,8 +84,8 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
                 transition={{ duration: 0.4, delay: 0.15 + index * 0.1, ease: 'easeOut' }}
                 className="px-3 py-2.5 rounded-[12px]"
                 style={{
-                  borderLeft: isDominant ? '3px solid #c4a265' : '3px solid transparent',
-                  background: isDominant ? 'rgba(196,162,101,0.05)' : 'transparent',
+                  borderLeft: isDominant ? '3px solid #8b7bd8' : '3px solid transparent',
+                  background: isDominant ? 'rgba(139,123,216,0.05)' : 'transparent',
                 }}
               >
                 {/* Label row */}
@@ -93,7 +93,7 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
                   <span className="text-lg leading-none">{config.emoji}</span>
                   <span
                     className="text-[0.84rem] font-bold flex-1"
-                    style={{ color: '#3d2f2a' }}
+                    style={{ color: '#2a2440' }}
                   >
                     {element}
                   </span>
@@ -102,9 +102,9 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
                     <span
                       className="text-[0.58rem] font-bold tracking-[1.5px] uppercase px-1.5 py-0.5 rounded-full"
                       style={{
-                        color: '#c4a265',
-                        background: 'rgba(196,162,101,0.12)',
-                        border: '1px solid rgba(196,162,101,0.35)',
+                        color: '#8b7bd8',
+                        background: 'rgba(139,123,216,0.12)',
+                        border: '1px solid rgba(139,123,216,0.35)',
                       }}
                     >
                       Dominant
@@ -113,7 +113,7 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
 
                   <span
                     className="text-[0.78rem] font-semibold tabular-nums ml-1"
-                    style={{ color: '#5a4a42' }}
+                    style={{ color: '#4a4560' }}
                   >
                     {pct}%
                   </span>
@@ -139,10 +139,10 @@ export function ElementalBalance({ elementalBalance, dominantElement, petName }:
 
         {/* Summary text */}
         {dominantElement && (
-          <div className="text-center mt-4 pt-4" style={{ borderTop: '1px solid #e8ddd0' }}>
+          <div className="text-center mt-4 pt-4" style={{ borderTop: '1px solid #e2dbf3' }}>
             <p
               className="text-[0.8rem] italic"
-              style={{ color: '#9a8578' }}
+              style={{ color: '#928aa8' }}
             >
               Heavily {dominantElement}-dominant &mdash; {petName} lives through{' '}
               {dominantQualities[dominantElement] ?? 'instinct'}.

@@ -12,11 +12,11 @@
  * doc.addFont if Danny wants pixel-perfect parity with the on-screen viewer.
  *
  * Palette mirrors MemorialReportViewer:
- *   bg cream        #fbfaf6
- *   bg dove         #f8f5ee
- *   text warm brown #2d2428
- *   muted brown     #5a4a42
- *   gold rule       #c4a265
+ *   bg cream        #f8f6ff
+ *   bg dove         #f5f1ff
+ *   text warm brown #241d33
+ *   muted brown     #4a4560
+ *   gold rule       #8b7bd8
  *   sage small-cap  #8fa082
  */
 
@@ -44,14 +44,14 @@ const rgb = (hex: string): [number, number, number] => {
 };
 
 const COLOR = {
-  cream: rgb('#fbfaf6'),
-  dove: rgb('#f8f5ee'),
-  text: rgb('#2d2428'),
-  muted: rgb('#5a4a42'),
-  softBrown: rgb('#3d2f2a'),
-  gold: rgb('#c4a265'),
+  cream: rgb('#f8f6ff'),
+  dove: rgb('#f5f1ff'),
+  text: rgb('#241d33'),
+  muted: rgb('#4a4560'),
+  softBrown: rgb('#2a2440'),
+  gold: rgb('#8b7bd8'),
   sage: rgb('#8fa082'),
-  divider: rgb('#e0dace'),
+  divider: rgb('#ddd7f0'),
 } as const;
 
 export function MemorialPDFDownload({
@@ -521,7 +521,7 @@ export function MemorialPDFDownload({
       className="gap-2"
       style={{
         borderColor: '#8fa082',
-        color: '#2d2428',
+        color: '#241d33',
         background: 'transparent',
         fontFamily: "'DM Serif Display', Georgia, serif",
         padding: '0.85rem 1.5rem',

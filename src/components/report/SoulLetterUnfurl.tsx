@@ -95,15 +95,15 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
         className="relative rounded-[20px] overflow-hidden"
         style={{
           background:
-            'radial-gradient(ellipse at center, #2a1f1a 0%, #1a1210 70%, #0f0908 100%)',
-          border: '1px solid rgba(196,162,101,0.2)',
+            'radial-gradient(ellipse at center, #201a30 0%, #14101f 70%, #0f0908 100%)',
+          border: '1px solid rgba(139,123,216,0.2)',
           minHeight: 380,
           boxShadow: '0 8px 40px rgba(0,0,0,0.45)',
         }}
       >
         {/* Eyebrow */}
         <div className="absolute top-6 inset-x-0 text-center">
-          <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#c4a265]/85">
+          <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#8b7bd8]/85">
             A Sealed Letter Awaits
           </div>
         </div>
@@ -114,7 +114,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
           onFocus={() => setPaused(true)}
           onBlur={() => setPaused(false)}
           aria-label="Break the seal to open the letter — auto-opens in a moment if you don't"
-          className="absolute inset-0 flex items-center justify-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4a265] focus-visible:ring-offset-2 rounded-[20px]"
+          className="absolute inset-0 flex items-center justify-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b7bd8] focus-visible:ring-offset-2 rounded-[20px]"
           disabled={stage !== 'sealed'}
         >
           {/* Ambient halo */}
@@ -123,7 +123,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
             className="absolute w-[260px] h-[260px] rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(196,162,101,0.25) 0%, rgba(191,82,74,0.15) 40%, transparent 70%)',
+                'radial-gradient(circle, rgba(139,123,216,0.25) 0%, rgba(106,76,196,0.15) 40%, transparent 70%)',
               filter: 'blur(6px)',
             }}
             initial={{ opacity: 0, scale: 0.6 }}
@@ -146,7 +146,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
               width: 116,
               height: 116,
               background:
-                'radial-gradient(circle at 35% 30%, #d96350 0%, #bf524a 35%, #8e2f2a 90%)',
+                'radial-gradient(circle at 35% 30%, #8266d9 0%, #6a4cc4 35%, #8e2f2a 90%)',
               boxShadow:
                 '0 6px 20px rgba(0,0,0,0.55), inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -4px 8px rgba(0,0,0,0.35)',
             }}
@@ -181,7 +181,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
               aria-hidden="true"
               className="absolute inset-0 rounded-full pointer-events-none"
               style={{
-                border: '2px solid rgba(61,18,16,0.6)',
+                border: '2px solid rgba(40,24,60,0.6)',
                 boxShadow: 'inset 0 0 0 1px rgba(255,200,180,0.25)',
               }}
             />
@@ -195,11 +195,11 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
                 aria-hidden="true"
                 className="absolute w-1 h-1 rounded-full pointer-events-none"
                 style={{
-                  background: s.i % 2 === 0 ? '#c4a265' : '#d96350',
+                  background: s.i % 2 === 0 ? '#8b7bd8' : '#8266d9',
                   boxShadow:
                     s.i % 2 === 0
-                      ? '0 0 6px #c4a265, 0 0 12px #c4a265'
-                      : '0 0 6px #d96350',
+                      ? '0 0 6px #8b7bd8, 0 0 12px #8b7bd8'
+                      : '0 0 6px #8266d9',
                 }}
                 initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
                 animate={{
@@ -227,10 +227,10 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
               transition={{ delay: 1.2, duration: 0.8 }}
               className="absolute bottom-7 inset-x-0 text-center px-6"
             >
-              <div className="text-[#c4a265] text-sm font-serif italic mb-1">
+              <div className="text-[#8b7bd8] text-sm font-serif italic mb-1">
                 {petName}&rsquo;s soul has written you a letter.
               </div>
-              <div className="text-[#faf6ef]/50 text-[0.68rem] tracking-[0.25em] uppercase font-sans">
+              <div className="text-[#f6f3ff]/50 text-[0.68rem] tracking-[0.25em] uppercase font-sans">
                 Tap the seal to open &middot; or wait a moment
               </div>
             </motion.div>

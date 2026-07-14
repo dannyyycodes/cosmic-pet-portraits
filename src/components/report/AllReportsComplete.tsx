@@ -378,8 +378,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 transition={{ delay: 0.55 }}
                 className="mb-6 p-5 rounded-2xl text-left relative"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(191,82,74,0.08) 100%)',
-                  border: '1.5px solid rgba(196,162,101,0.35)',
+                  background: 'linear-gradient(135deg, rgba(139,123,216,0.12) 0%, rgba(106,76,196,0.08) 100%)',
+                  border: '1.5px solid rgba(139,123,216,0.35)',
                 }}
               >
                 <button
@@ -390,7 +390,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </button>
 
                 <div className="inline-flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3 text-white"
-                  style={{ background: '#bf524a' }}>
+                  style={{ background: '#6a4cc4' }}>
                   <span>🎁</span> Thank-you offer — 30% off
                 </div>
 
@@ -399,7 +399,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </h3>
                 <p className="text-xs md:text-sm text-muted-foreground mb-4">
                   Send a friend a full reading for{' '}
-                  <strong style={{ color: '#bf524a' }}>{fmt(prices.giftUpsell)}</strong>{' '}
+                  <strong style={{ color: '#6a4cc4' }}>{fmt(prices.giftUpsell)}</strong>{' '}
                   <span className="line-through text-xs text-muted-foreground">{fmt(prices.basic)}</span>
                   {' '}— they get a code that never expires.
                 </p>
@@ -411,7 +411,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                     onChange={(e) => setGiftRecipientName(e.target.value)}
                     placeholder="Friend's name (optional)"
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors"
-                    style={{ borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(255,253,245,0.8)', color: '#141210' }}
+                    style={{ borderColor: 'rgba(139,123,216,0.3)', background: 'rgba(250,248,255,0.8)', color: '#141210' }}
                   />
                   <input
                     type="email"
@@ -419,7 +419,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                     onChange={(e) => setGiftRecipientEmail(e.target.value)}
                     placeholder="Friend's email (optional — or we'll give you a shareable code)"
                     className="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors"
-                    style={{ borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(255,253,245,0.8)', color: '#141210' }}
+                    style={{ borderColor: 'rgba(139,123,216,0.3)', background: 'rgba(250,248,255,0.8)', color: '#141210' }}
                   />
                 </div>
 
@@ -427,7 +427,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                   onClick={handleGiftUpsell}
                   disabled={isGiftLoading}
                   className="w-full text-white font-semibold"
-                  style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)' }}
+                  style={{ background: 'linear-gradient(135deg, #8b7bd8, #6a4cc4)' }}
                 >
                   {isGiftLoading ? (
                     <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 animate-spin" /> Loading...</span>
@@ -451,12 +451,12 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               transition={{ delay: 0.62 }}
               className="mb-6 p-5 rounded-2xl text-left"
               style={{
-                background: 'linear-gradient(135deg, rgba(191,82,74,0.10) 0%, rgba(196,162,101,0.10) 100%)',
-                border: '1.5px solid rgba(191,82,74,0.30)',
+                background: 'linear-gradient(135deg, rgba(106,76,196,0.10) 0%, rgba(139,123,216,0.10) 100%)',
+                border: '1.5px solid rgba(106,76,196,0.30)',
               }}
             >
               <div className="inline-flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3 text-white"
-                style={{ background: '#bf524a' }}>
+                style={{ background: '#6a4cc4' }}>
                 <Share2 className="w-3 h-3" /> Earn from sharing
               </div>
               <h3 className="font-semibold text-foreground text-sm md:text-base mb-1">
@@ -468,7 +468,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               <Button
                 onClick={() => navigate(`/become-affiliate?for=customer${email ? `&email=${encodeURIComponent(email)}` : ''}`)}
                 className="w-full text-white font-semibold"
-                style={{ background: 'linear-gradient(135deg, #bf524a, #c4a265)' }}
+                style={{ background: 'linear-gradient(135deg, #6a4cc4, #8b7bd8)' }}
               >
                 <Share2 className="w-4 h-4 mr-2" /> Get your sharing link
               </Button>

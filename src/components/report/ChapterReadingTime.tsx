@@ -96,10 +96,10 @@ export function ChapterReadingTime({ chapterAnchors }: ChapterReadingTimeProps) 
             animate={{ opacity: 0.92, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.45 }}
-            className="rounded-full bg-[#FFFDF5]/85 backdrop-blur-md border border-[#c4a265]/30 px-3 py-1.5 text-[0.62rem] tracking-[0.18em] uppercase text-[#5a4a42] font-sans shadow-sm"
+            className="rounded-full bg-[#faf8ff]/85 backdrop-blur-md border border-[#8b7bd8]/30 px-3 py-1.5 text-[0.62rem] tracking-[0.18em] uppercase text-[#4a4560] font-sans shadow-sm"
           >
-            <span className="text-[#c4a265]">Ch {active.idx + 1}</span>
-            <span className="text-[#c4a265]/40 mx-1.5">·</span>
+            <span className="text-[#8b7bd8]">Ch {active.idx + 1}</span>
+            <span className="text-[#8b7bd8]/40 mx-1.5">·</span>
             <span>~{active.remaining} min left</span>
           </motion.div>
         )}

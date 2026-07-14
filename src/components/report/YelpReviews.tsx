@@ -41,7 +41,7 @@ function generateDefaultReviews(petName: string, element: string) {
   return templates[element] || templates.Water;
 }
 
-const starColors = ['#c4a265', '#c4a265', '#c4a265', '#c4a265', '#c4a265'];
+const starColors = ['#8b7bd8', '#8b7bd8', '#8b7bd8', '#8b7bd8', '#8b7bd8'];
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -50,7 +50,7 @@ function Stars({ rating }: { rating: number }) {
         <span
           key={i}
           className="text-[0.9rem]"
-          style={{ color: i <= rating ? '#c4a265' : '#e0d5c7' }}
+          style={{ color: i <= rating ? '#8b7bd8' : '#e0d5c7' }}
         >
           ★
         </span>
@@ -70,12 +70,12 @@ export function YelpReviews({ petName, report }: YelpReviewsProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e2dbf3] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#8b7bd8] mb-1">
         {petName}'s Reviews
       </div>
-      <p className="text-[0.72rem] text-[#9a8578] mb-4">
+      <p className="text-[0.72rem] text-[#928aa8] mb-4">
         {petName} reviews their life — brutally honest, cosmically biased.
       </p>
 
@@ -84,13 +84,13 @@ export function YelpReviews({ petName, report }: YelpReviewsProps) {
           <div
             key={i}
             className="pb-3.5 last:pb-0"
-            style={{ borderBottom: i < reviews.length - 1 ? '1px solid #f0e8de' : 'none' }}
+            style={{ borderBottom: i < reviews.length - 1 ? '1px solid #ece6fb' : 'none' }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="font-dm-serif text-[0.92rem] text-[#3d2f2a]">{review.place}</span>
+              <span className="font-dm-serif text-[0.92rem] text-[#2a2440]">{review.place}</span>
               <Stars rating={review.rating} />
             </div>
-            <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6] italic">
+            <p className="text-[0.78rem] text-[#4a4560] leading-[1.6] italic">
               "{review.review}"
             </p>
           </div>

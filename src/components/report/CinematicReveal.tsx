@@ -78,7 +78,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   height: 1 + Math.random() * 1.5,
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
-                  backgroundColor: i % 5 === 0 ? 'rgba(196,162,101,0.6)' : 'rgba(255,255,255,0.7)',
+                  backgroundColor: i % 5 === 0 ? 'rgba(139,123,216,0.6)' : 'rgba(255,255,255,0.7)',
                   animation: `cr-twinkle ${2 + Math.random() * 4}s ease-in-out infinite ${Math.random() * 4}s`,
                 }}
               />
@@ -89,7 +89,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
           <div
             className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
             style={{
-              background: 'radial-gradient(circle, rgba(196,162,101,0.10) 0%, rgba(184,160,212,0.05) 40%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(139,123,216,0.10) 0%, rgba(184,160,212,0.05) 40%, transparent 70%)',
               animation: 'cr-nebula 5s ease-in-out infinite',
             }}
           />
@@ -122,7 +122,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
                   className="w-12 h-[1px] mx-auto mb-5"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(196,162,101,0.5), transparent)', transformOrigin: 'center' }}
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(139,123,216,0.5), transparent)', transformOrigin: 'center' }}
                 />
                 <motion.p
                   initial={{ opacity: 0, letterSpacing: '2px' }}
@@ -137,7 +137,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
                   className="w-12 h-[1px] mx-auto mt-5"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(196,162,101,0.5), transparent)', transformOrigin: 'center' }}
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(139,123,216,0.5), transparent)', transformOrigin: 'center' }}
                 />
               </motion.div>
             )}
@@ -164,8 +164,8 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                     <div
                       className="w-full h-full rounded-full overflow-hidden"
                       style={{
-                        border: '2.5px solid rgba(196,162,101,0.5)',
-                        boxShadow: '0 0 60px rgba(196,162,101,0.3), 0 0 120px rgba(196,162,101,0.15)',
+                        border: '2.5px solid rgba(139,123,216,0.5)',
+                        boxShadow: '0 0 60px rgba(139,123,216,0.3), 0 0 120px rgba(139,123,216,0.15)',
                       }}
                     >
                       <img
@@ -178,7 +178,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                     <div
                       className="absolute inset-[-10px] rounded-full pointer-events-none"
                       style={{
-                        border: '1px solid rgba(196,162,101,0.2)',
+                        border: '1px solid rgba(139,123,216,0.2)',
                         animation: 'cr-ring 3s ease-in-out infinite',
                       }}
                     />
@@ -189,7 +189,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                   className="font-dm-serif text-[4rem] sm:text-[4.5rem] text-white leading-[1]"
-                  style={{ textShadow: '0 0 80px rgba(196,162,101,0.4), 0 0 30px rgba(196,162,101,0.2)' }}
+                  style={{ textShadow: '0 0 80px rgba(139,123,216,0.4), 0 0 30px rgba(139,123,216,0.2)' }}
                 >
                   {stages[1].title}
                 </motion.h1>
@@ -222,16 +222,16 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   transition={{ duration: 0.8, type: 'spring', stiffness: 120 }}
                   className="w-[120px] h-[120px] rounded-full mx-auto mb-5 flex items-center justify-center text-[3.2rem] relative"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(196,162,101,0.2), rgba(196,162,101,0.05))',
-                    border: '1.5px solid rgba(196,162,101,0.35)',
-                    boxShadow: '0 0 60px rgba(196,162,101,0.25), inset 0 0 30px rgba(196,162,101,0.08)',
+                    background: 'linear-gradient(135deg, rgba(139,123,216,0.2), rgba(139,123,216,0.05))',
+                    border: '1.5px solid rgba(139,123,216,0.35)',
+                    boxShadow: '0 0 60px rgba(139,123,216,0.25), inset 0 0 30px rgba(139,123,216,0.08)',
                   }}
                 >
                   {/* Breathing ring */}
                   <div
                     className="absolute inset-[-12px] rounded-full pointer-events-none"
                     style={{
-                      border: '1px solid rgba(196,162,101,0.15)',
+                      border: '1px solid rgba(139,123,216,0.15)',
                       animation: 'cr-ring 3s ease-in-out infinite',
                     }}
                   />
@@ -242,7 +242,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-[#c4a265]/50 text-[0.7rem] tracking-[3px] uppercase font-bold"
+                  className="text-[#8b7bd8]/50 text-[0.7rem] tracking-[3px] uppercase font-bold"
                 >
                   {stages[2].overline}
                 </motion.p>
@@ -292,7 +292,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                   className="font-dm-serif text-[2rem] sm:text-[2.2rem] mt-3"
-                  style={{ color: '#c4a265', textShadow: '0 0 40px rgba(196,162,101,0.3)' }}
+                  style={{ color: '#8b7bd8', textShadow: '0 0 40px rgba(139,123,216,0.3)' }}
                 >
                   {stages[3].title}
                 </motion.div>
@@ -301,7 +301,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                   animate={{ scaleX: 1 }}
                   transition={{ delay: 0.6, duration: 0.6 }}
                   className="w-10 h-[1px] mx-auto my-4"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(196,162,101,0.4), transparent)', transformOrigin: 'center' }}
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(139,123,216,0.4), transparent)', transformOrigin: 'center' }}
                 />
                 <motion.p
                   initial={{ opacity: 0 }}
@@ -324,7 +324,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                 className="h-[3px] rounded-full transition-all duration-500"
                 style={{
                   width: stage === s ? 24 : 6,
-                  backgroundColor: stage >= s ? '#c4a265' : 'rgba(255,255,255,0.15)',
+                  backgroundColor: stage >= s ? '#8b7bd8' : 'rgba(255,255,255,0.15)',
                 }}
               />
             ))}

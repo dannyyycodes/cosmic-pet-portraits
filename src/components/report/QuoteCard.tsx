@@ -37,7 +37,7 @@ export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
       className="relative max-w-[560px] mx-auto px-6 py-12 sm:py-14 my-8 text-center"
     >
       {/* Top hairline */}
-      <div className="mx-auto mb-6 h-px w-24 bg-gradient-to-r from-transparent via-[#c4a265]/70 to-transparent" />
+      <div className="mx-auto mb-6 h-px w-24 bg-gradient-to-r from-transparent via-[#8b7bd8]/70 to-transparent" />
 
       {/* Oversized opening quote */}
       <motion.span
@@ -46,14 +46,14 @@ export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
         whileInView={{ opacity: 0.55, scale: 1, rotate: 0 }}
         viewport={{ once: true, margin: '-15% 0px' }}
         transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="block font-serif text-[#c4a265] leading-none mb-3 select-none"
+        className="block font-serif text-[#8b7bd8] leading-none mb-3 select-none"
         style={{ fontSize: '3.5rem', fontFamily: 'DM Serif Display, serif' }}
       >
         &ldquo;
       </motion.span>
 
       <blockquote
-        className="text-[#3d2f2a] italic"
+        className="text-[#2a2440] italic"
         style={{
           fontFamily: 'Cormorant, serif',
           fontSize: 'clamp(1.05rem, 3vw, 1.25rem)',
@@ -69,19 +69,19 @@ export function QuoteCard({ lines, attribution, species }: QuoteCardProps) {
 
       {attribution && (
         <figcaption className="mt-6 flex items-center justify-center gap-2">
-          <span className="block h-px w-6 bg-[#c4a265]/50" />
+          <span className="block h-px w-6 bg-[#8b7bd8]/50" />
           <span
-            className="text-[#c4a265]"
+            className="text-[#8b7bd8]"
             style={{ fontFamily: 'Caveat, cursive', fontSize: '1rem' }}
           >
             {attribution}
           </span>
-          <span className="block h-px w-6 bg-[#c4a265]/50" />
+          <span className="block h-px w-6 bg-[#8b7bd8]/50" />
         </figcaption>
       )}
 
       {/* Bottom hairline */}
-      <div className="mx-auto mt-6 h-px w-24 bg-gradient-to-r from-transparent via-[#c4a265]/70 to-transparent" />
+      <div className="mx-auto mt-6 h-px w-24 bg-gradient-to-r from-transparent via-[#8b7bd8]/70 to-transparent" />
     </motion.figure>
   );
 }

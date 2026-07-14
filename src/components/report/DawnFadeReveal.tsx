@@ -27,9 +27,9 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
         initial={reducedMotion ? false : { background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }}
         animate={
           reducedMotion
-            ? { background: 'linear-gradient(180deg, #FFFDF5 0%, #faf6ef 100%)' }
+            ? { background: 'linear-gradient(180deg, #faf8ff 0%, #f6f3ff 100%)' }
             : inView
-            ? { background: 'linear-gradient(180deg, #FFFDF5 0%, #faf6ef 100%)' }
+            ? { background: 'linear-gradient(180deg, #faf8ff 0%, #f6f3ff 100%)' }
             : { background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }
         }
         transition={reducedMotion ? { duration: 0 } : { duration: 1.6, ease: [0.65, 0, 0.35, 1], delay: 0.4 }}
@@ -40,15 +40,15 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
           <motion.div
             aria-hidden="true"
             className="absolute top-12 left-1/2 -translate-x-1/2 rounded-full"
-            style={{ background: '#c4a265' }}
-            initial={{ width: 2, height: 2, opacity: 0, boxShadow: '0 0 0 0 rgba(196,162,101,0)' }}
+            style={{ background: '#8b7bd8' }}
+            initial={{ width: 2, height: 2, opacity: 0, boxShadow: '0 0 0 0 rgba(139,123,216,0)' }}
             animate={
               inView
                 ? {
                     width: 64,
                     height: 64,
                     opacity: 1,
-                    boxShadow: '0 0 80px 40px rgba(196,162,101,0.45)',
+                    boxShadow: '0 0 80px 40px rgba(139,123,216,0.45)',
                   }
                 : { width: 2, height: 2, opacity: 0 }
             }
@@ -58,11 +58,11 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
 
         {/* Whisper line — colour shifts from cream to ink as dawn breaks */}
         <motion.h3
-          initial={{ opacity: 0, y: 18, color: '#faf6ef' }}
+          initial={{ opacity: 0, y: 18, color: '#f6f3ff' }}
           animate={
             inView
-              ? { opacity: 1, y: 0, color: '#3d2f2a' }
-              : { opacity: 0, y: 18, color: '#faf6ef' }
+              ? { opacity: 1, y: 0, color: '#2a2440' }
+              : { opacity: 0, y: 18, color: '#f6f3ff' }
           }
           transition={{
             opacity: { duration: 0.9, delay: 0.8 },

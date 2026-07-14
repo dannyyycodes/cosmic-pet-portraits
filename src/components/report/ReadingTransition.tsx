@@ -46,12 +46,12 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
         <div
           className="flex-1 h-px"
           style={{
-            background: 'linear-gradient(to right, transparent, #c4a265)',
+            background: 'linear-gradient(to right, transparent, #8b7bd8)',
           }}
         />
         <span
           style={{
-            color: '#c4a265',
+            color: '#8b7bd8',
             fontSize: '0.85rem',
             lineHeight: 1,
             display: 'inline-block',
@@ -62,7 +62,7 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
         <div
           className="flex-1 h-px"
           style={{
-            background: 'linear-gradient(to left, transparent, #c4a265)',
+            background: 'linear-gradient(to left, transparent, #8b7bd8)',
           }}
         />
       </motion.div>
@@ -72,7 +72,7 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
         variants={fadeUp}
         className="mb-5"
         style={{
-          color: '#c4a265',
+          color: '#8b7bd8',
           fontSize: '0.6rem',
           fontWeight: 700,
           letterSpacing: '0.22em',
@@ -91,7 +91,7 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
           fontFamily: 'DM Serif Display, serif',
           fontSize: '1.6rem',
           lineHeight: 1.35,
-          color: '#3d2f2a',
+          color: '#2a2440',
           margin: '0 0 1rem',
         }}
       >
@@ -106,7 +106,7 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
           fontStyle: 'italic',
           fontSize: '1.05rem',
           lineHeight: 1.75,
-          color: '#9a8578',
+          color: '#928aa8',
           margin: '0 auto',
           maxWidth: '360px',
         }}
@@ -123,12 +123,12 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
         <div
           className="flex-1 h-px"
           style={{
-            background: 'linear-gradient(to right, transparent, #c4a265)',
+            background: 'linear-gradient(to right, transparent, #8b7bd8)',
           }}
         />
         <span
           style={{
-            color: '#c4a265',
+            color: '#8b7bd8',
             fontSize: '0.85rem',
             lineHeight: 1,
             display: 'inline-block',
@@ -139,7 +139,7 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
         <div
           className="flex-1 h-px"
           style={{
-            background: 'linear-gradient(to left, transparent, #c4a265)',
+            background: 'linear-gradient(to left, transparent, #8b7bd8)',
           }}
         />
       </motion.div>

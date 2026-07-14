@@ -23,7 +23,7 @@ interface ShareableCardProps {
 }
 
 const elementConfig: Record<string, { emoji: string; accent: string }> = {
-  Fire: { emoji: '🔥', accent: '#c4a265' },
+  Fire: { emoji: '🔥', accent: '#8b7bd8' },
   Water: { emoji: '💧', accent: '#7ba7c9' },
   Air: { emoji: '💨', accent: '#b8a0d4' },
   Earth: { emoji: '🌿', accent: '#8fae7e' },
@@ -156,10 +156,10 @@ export function ShareableCard({
 
   // Card background — memorial gets softer tones
   const cardBg = isMemorial
-    ? 'linear-gradient(155deg, #FFFDF5 0%, #f5ede3 50%, #ebe3d9 100%)'
-    : 'linear-gradient(155deg, #FFFDF5 0%, #faf3e8 50%, #f0e6d6 100%)';
+    ? 'linear-gradient(155deg, #faf8ff 0%, #f5ede3 50%, #ebe3d9 100%)'
+    : 'linear-gradient(155deg, #faf8ff 0%, #faf3e8 50%, #f0e6d6 100%)';
 
-  const goldAccent = '#c4a265';
+  const goldAccent = '#8b7bd8';
 
   return (
     <>
@@ -170,13 +170,13 @@ export function ShareableCard({
         variants={header.variants}
         className="text-center px-6 py-5 max-w-[520px] mx-auto"
       >
-        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]">
+        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#8b7bd8]">
           Collector's Edition
         </div>
-        <h2 className="font-dm-serif text-2xl text-[#3d2f2a] leading-tight mt-1.5">
+        <h2 className="font-dm-serif text-2xl text-[#2a2440] leading-tight mt-1.5">
           {petName}'s Cosmic Card
         </h2>
-        <p className="text-[0.84rem] leading-[1.75] text-[#9a8578] max-w-[340px] mx-auto mt-1">
+        <p className="text-[0.84rem] leading-[1.75] text-[#928aa8] max-w-[340px] mx-auto mt-1">
           Screenshot and share — every card is one of a kind.
         </p>
       </motion.div>
@@ -218,7 +218,7 @@ export function ShareableCard({
                 className="text-[0.58rem] font-bold px-2.5 py-0.5 rounded-full inline-block"
                 style={{
                   color: isMemorial ? '#7a6b5e' : goldAccent,
-                  background: isMemorial ? 'rgba(122,107,94,0.08)' : `${goldAccent}12`,
+                  background: isMemorial ? 'rgba(124,116,150,0.08)' : `${goldAccent}12`,
                 }}
               >
                 {occasionBadge}
@@ -239,7 +239,7 @@ export function ShareableCard({
                 </span>
                 <span
                   className="font-dm-serif text-[1.6rem] leading-none font-bold"
-                  style={{ color: '#3d2f2a' }}
+                  style={{ color: '#2a2440' }}
                 >
                   {ovr}
                 </span>
@@ -263,7 +263,7 @@ export function ShareableCard({
             <div
               className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/3 px-2.5 py-0.5 rounded-full text-[0.75rem]"
               style={{
-                background: '#FFFDF5',
+                background: '#faf8ff',
                 border: `1.5px solid ${goldAccent}40`,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
               }}
@@ -274,7 +274,7 @@ export function ShareableCard({
 
           {/* Name + nickname */}
           <div className="text-center pt-4 pb-1 px-4">
-            <h3 className="font-dm-serif text-[1.5rem] text-[#3d2f2a] leading-tight">{petName}</h3>
+            <h3 className="font-dm-serif text-[1.5rem] text-[#2a2440] leading-tight">{petName}</h3>
             <div className="text-[0.75rem] font-semibold mt-0.5" style={{ color: goldAccent }}>
               {nickname}
             </div>
@@ -289,7 +289,7 @@ export function ShareableCard({
             ].map((item) => (
               <div key={item.key} className="flex flex-col items-center gap-0.5">
                 <span className="text-[1rem]">{item.icon}</span>
-                <span className="text-[0.58rem] text-[#9a8578] font-medium">{item.label}</span>
+                <span className="text-[0.58rem] text-[#928aa8] font-medium">{item.label}</span>
               </div>
             ))}
           </div>
@@ -302,9 +302,9 @@ export function ShareableCard({
                   <div
                     key={i}
                     className="px-2 py-2 rounded-lg text-center"
-                    style={{ background: 'rgba(122,107,94,0.06)', border: '1px solid rgba(122,107,94,0.1)' }}
+                    style={{ background: 'rgba(124,116,150,0.06)', border: '1px solid rgba(124,116,150,0.1)' }}
                   >
-                    <span className="text-[0.68rem] text-[#5a4a42] font-medium">{trait}</span>
+                    <span className="text-[0.68rem] text-[#4a4560] font-medium">{trait}</span>
                   </div>
                 ))}
               </div>
@@ -314,12 +314,12 @@ export function ShareableCard({
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                 {stats.map((stat) => (
                   <div key={stat.label} className="flex items-center gap-1.5">
-                    <span className="text-[0.62rem] text-[#5a4a42] font-semibold w-[50px] flex-shrink-0">
+                    <span className="text-[0.62rem] text-[#4a4560] font-semibold w-[50px] flex-shrink-0">
                       {stat.label}
                     </span>
                     <div
                       className="flex-1 h-[6px] rounded-full overflow-hidden"
-                      style={{ background: 'rgba(61,47,42,0.06)' }}
+                      style={{ background: 'rgba(42,36,64,0.06)' }}
                     >
                       <div
                         className="h-full rounded-full"
@@ -335,7 +335,7 @@ export function ShareableCard({
                     </div>
                     <span
                       className="text-[0.58rem] font-bold w-5 text-right"
-                      style={{ color: stat.value >= 90 ? goldAccent : '#5a4a42' }}
+                      style={{ color: stat.value >= 90 ? goldAccent : '#4a4560' }}
                     >
                       {stat.value}
                     </span>
@@ -353,7 +353,7 @@ export function ShareableCard({
             <span className="text-[0.5rem] font-bold tracking-[1.5px] uppercase" style={{ color: `${goldAccent}80` }}>
               LITTLE SOULS
             </span>
-            <span className="text-[0.48rem] font-mono tracking-[0.5px]" style={{ color: '#9a857860' }}>
+            <span className="text-[0.48rem] font-mono tracking-[0.5px]" style={{ color: '#928aa860' }}>
               #{collectorNum}
             </span>
           </div>
@@ -363,14 +363,14 @@ export function ShareableCard({
         <div className="flex gap-2 justify-center mt-4">
           <button
             onClick={handleCopy}
-            className="px-4 py-2 rounded-[10px] border border-[#e8ddd0] bg-[#faf6ef] text-[0.75rem] font-semibold text-[#6b4c3b] cursor-pointer font-[DM_Sans,sans-serif]"
+            className="px-4 py-2 rounded-[10px] border border-[#e2dbf3] bg-[#f6f3ff] text-[0.75rem] font-semibold text-[#564a66] cursor-pointer font-[DM_Sans,sans-serif]"
           >
             {copied ? '✓ Copied!' : 'Copy Link'}
           </button>
           {typeof navigator !== 'undefined' && 'share' in navigator && (
             <button
               onClick={handleShare}
-              className="px-4 py-2 rounded-[10px] border border-[#e8ddd0] bg-[#faf6ef] text-[0.75rem] font-semibold text-[#6b4c3b] cursor-pointer font-[DM_Sans,sans-serif]"
+              className="px-4 py-2 rounded-[10px] border border-[#e2dbf3] bg-[#f6f3ff] text-[0.75rem] font-semibold text-[#564a66] cursor-pointer font-[DM_Sans,sans-serif]"
             >
               Share
             </button>

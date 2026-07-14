@@ -20,8 +20,8 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
       className="relative w-full overflow-hidden py-24 md:py-32 px-6"
       style={{
         background: isDark
-          ? 'linear-gradient(180deg, #1a1210 0%, #3d2f2a 100%)'
-          : 'linear-gradient(180deg, #faf6ef 0%, #f5efe6 100%)',
+          ? 'linear-gradient(180deg, #14101f 0%, #2a2440 100%)'
+          : 'linear-gradient(180deg, #f6f3ff 0%, #f2eeff 100%)',
       }}
     >
       {/* Parallax glow behind the text */}
@@ -37,8 +37,8 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
           className="w-[110%] h-[110%] blur-3xl"
           style={{
             background: isDark
-              ? 'radial-gradient(ellipse at center, rgba(196,162,101,0.25) 0%, transparent 60%)'
-              : 'radial-gradient(ellipse at center, rgba(196,162,101,0.18) 0%, transparent 60%)',
+              ? 'radial-gradient(ellipse at center, rgba(139,123,216,0.25) 0%, transparent 60%)'
+              : 'radial-gradient(ellipse at center, rgba(139,123,216,0.18) 0%, transparent 60%)',
           }}
         />
       </motion.div>
@@ -51,7 +51,7 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
           viewport={{ once: true, margin: '-15% 0px' }}
           transition={{ duration: 0.8 }}
           className="font-serif text-5xl md:text-6xl leading-none mb-6 select-none"
-          style={{ color: isDark ? '#c4a265' : '#c4a265' }}
+          style={{ color: isDark ? '#8b7bd8' : '#8b7bd8' }}
           aria-hidden="true"
         >
           &ldquo;
@@ -64,7 +64,7 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
           className="font-serif text-[1.75rem] md:text-[2.75rem] leading-[1.15] tracking-tight"
           style={{
-            color: isDark ? '#faf6ef' : '#1a1210',
+            color: isDark ? '#f6f3ff' : '#14101f',
             fontFamily: '"DM Serif Display", "Playfair Display", Georgia, serif',
           }}
         >
@@ -78,7 +78,7 @@ export function PullQuote({ children, attribution, tone = 'light' }: PullQuotePr
             viewport={{ once: true, margin: '-15% 0px' }}
             transition={{ duration: 0.8, delay: 0.5 }}
             className="mt-8 text-[0.72rem] tracking-[0.35em] uppercase font-sans"
-            style={{ color: isDark ? 'rgba(196,162,101,0.8)' : '#9a8578' }}
+            style={{ color: isDark ? 'rgba(139,123,216,0.8)' : '#928aa8' }}
           >
             {attribution}
           </motion.p>

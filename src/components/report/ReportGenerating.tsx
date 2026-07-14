@@ -158,9 +158,9 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
               top: s.top + '%',
               width: s.size,
               height: s.size,
-              background: '#faf6ef',
+              background: '#f6f3ff',
               opacity: reducedMotion ? s.opacity * 0.6 : undefined,
-              boxShadow: '0 0 ' + s.size * 2 + 'px rgba(250,246,239,0.6)',
+              boxShadow: '0 0 ' + s.size * 2 + 'px rgba(246,243,255,0.6)',
             }}
             animate={reducedMotion ? undefined : { opacity: [s.opacity * 0.3, s.opacity, s.opacity * 0.3] }}
             transition={reducedMotion ? undefined : {
@@ -177,7 +177,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(ellipse 60% 40% at 70% 60%, rgba(196,162,101,0.10), transparent 70%), radial-gradient(ellipse 50% 40% at 30% 80%, rgba(191,82,74,0.08), transparent 70%)',
+              'radial-gradient(ellipse 60% 40% at 70% 60%, rgba(139,123,216,0.10), transparent 70%), radial-gradient(ellipse 50% 40% at 30% 80%, rgba(106,76,196,0.08), transparent 70%)',
           }}
           animate={reducedMotion ? undefined : { opacity: [0.5, 1, 0.5] }}
           transition={reducedMotion ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
@@ -192,7 +192,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-[1.5rem] text-[#c4a265] mb-5"
+          className="text-[1.5rem] text-[#8b7bd8] mb-5"
           style={{ fontFamily: 'Caveat, cursive' }}
         >
           {petName}
@@ -214,7 +214,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             className="absolute inset-0 rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(196,162,101,0.25) 0%, rgba(191,82,74,0.08) 45%, transparent 70%)',
+                'radial-gradient(circle, rgba(139,123,216,0.25) 0%, rgba(106,76,196,0.08) 45%, transparent 70%)',
               filter: 'blur(8px)',
             }}
             animate={reducedMotion ? undefined : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.7] }}
@@ -228,7 +228,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             style={{
               padding: 2,
               background:
-                'conic-gradient(from 0deg, #c4a265, #c4a26588, #c4a265, #d9b87c, #c4a265)',
+                'conic-gradient(from 0deg, #8b7bd8, #8b7bd888, #8b7bd8, #a78bfa, #8b7bd8)',
               animation: reducedMotion ? 'none' : 'rg-rotate 22s linear infinite',
               WebkitMask:
                 'radial-gradient(circle, transparent 55%, black 56%, black 58%, transparent 59%)',
@@ -257,7 +257,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                   y1={prev.y}
                   x2={a.x}
                   y2={a.y}
-                  stroke="#c4a265"
+                  stroke="#8b7bd8"
                   strokeWidth="0.9"
                   strokeOpacity="0.55"
                   strokeDasharray="4 5"
@@ -277,7 +277,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                     cx={a.x}
                     cy={a.y}
                     r={6}
-                    fill="#c4a265"
+                    fill="#8b7bd8"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={
                       lit
@@ -290,13 +290,13 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                         : { duration: 0.6 },
                       scale: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
                     }}
-                    style={{ filter: lit ? 'drop-shadow(0 0 8px #c4a265)' : 'none' }}
+                    style={{ filter: lit ? 'drop-shadow(0 0 8px #8b7bd8)' : 'none' }}
                   />
                   <motion.circle
                     cx={a.x}
                     cy={a.y}
                     r={2}
-                    fill="#faf6ef"
+                    fill="#f6f3ff"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: lit ? 1 : 0 }}
                     transition={{ duration: 0.4 }}
@@ -316,7 +316,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
               height: '47%',
               transform: 'translate(-50%, -50%)',
               boxShadow:
-                '0 0 50px rgba(196,162,101,0.35), 0 0 100px rgba(191,82,74,0.25), inset 0 0 0 2px rgba(196,162,101,0.45)',
+                '0 0 50px rgba(139,123,216,0.35), 0 0 100px rgba(106,76,196,0.25), inset 0 0 0 2px rgba(139,123,216,0.45)',
             }}
           >
             {petPhotoUrl ? (
@@ -346,7 +346,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
               className="absolute inset-0"
               style={{
                 background:
-                  'radial-gradient(circle at 35% 30%, rgba(196,162,101,0.28), transparent 60%), radial-gradient(circle at 70% 75%, rgba(191,82,74,0.22), transparent 60%)',
+                  'radial-gradient(circle at 35% 30%, rgba(139,123,216,0.28), transparent 60%), radial-gradient(circle at 70% 75%, rgba(106,76,196,0.22), transparent 60%)',
                 mixBlendMode: 'overlay',
               }}
               animate={reducedMotion ? undefined : { opacity: [0.6, 1, 0.6] }}
@@ -365,16 +365,16 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="mb-6"
           >
-            <div className="text-[0.62rem] tracking-[2.8px] uppercase text-[#c4a265]/85 font-semibold mb-1.5">
+            <div className="text-[0.62rem] tracking-[2.8px] uppercase text-[#8b7bd8]/85 font-semibold mb-1.5">
               {STAGES[activeStage].eyebrow}
             </div>
             <h2
-              className="text-[1.4rem] text-[#faf6ef]"
+              className="text-[1.4rem] text-[#f6f3ff]"
               style={{ fontFamily: 'DM Serif Display, serif' }}
             >
               {STAGES[activeStage].label}&hellip;
             </h2>
-            <p className="mt-2 text-[0.82rem] text-[#c4a265]/70 italic max-w-[320px] mx-auto leading-relaxed">
+            <p className="mt-2 text-[0.82rem] text-[#8b7bd8]/70 italic max-w-[320px] mx-auto leading-relaxed">
               {STAGES[activeStage].detail}
             </p>
           </motion.div>
@@ -394,8 +394,8 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                 <div
                   className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
                   style={{
-                    background: done ? '#c4a265' : active ? 'rgba(196,162,101,0.2)' : 'rgba(250,246,239,0.08)',
-                    border: active ? '1px solid #c4a265' : '1px solid rgba(250,246,239,0.15)',
+                    background: done ? '#8b7bd8' : active ? 'rgba(139,123,216,0.2)' : 'rgba(246,243,255,0.08)',
+                    border: active ? '1px solid #8b7bd8' : '1px solid rgba(246,243,255,0.15)',
                   }}
                 >
                   {done && (
@@ -405,7 +405,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                   )}
                   {active && (
                     <motion.span
-                      className="w-1.5 h-1.5 rounded-full bg-[#c4a265]"
+                      className="w-1.5 h-1.5 rounded-full bg-[#8b7bd8]"
                       animate={{ scale: [1, 1.6, 1] }}
                       transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
                     />
@@ -414,7 +414,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                 <span
                   className="text-[0.88rem]"
                   style={{
-                    color: done ? '#faf6ef' : active ? '#c4a265' : 'rgba(250,246,239,0.55)',
+                    color: done ? '#f6f3ff' : active ? '#8b7bd8' : 'rgba(246,243,255,0.55)',
                     fontFamily: 'Cormorant, serif',
                   }}
                 >
@@ -430,14 +430,14 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           <motion.div
             aria-hidden="true"
             className="absolute inset-0 rounded-full border-2"
-            style={{ borderColor: '#c4a265', boxShadow: '0 0 24px rgba(196,162,101,0.35)' }}
+            style={{ borderColor: '#8b7bd8', boxShadow: '0 0 24px rgba(139,123,216,0.35)' }}
             animate={reducedMotion ? undefined : { scale: [1, 1.25, 1], opacity: [0.9, 0.3, 0.9] }}
             transition={reducedMotion ? undefined : { duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
           />
           <motion.div
             aria-hidden="true"
             className="absolute inset-3 rounded-full border"
-            style={{ borderColor: '#c4a265', boxShadow: '0 0 12px rgba(196,162,101,0.5)' }}
+            style={{ borderColor: '#8b7bd8', boxShadow: '0 0 12px rgba(139,123,216,0.5)' }}
             animate={reducedMotion ? undefined : { scale: [1, 1.1, 1], opacity: [1, 0.7, 1] }}
             transition={reducedMotion ? undefined : { duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
           />
@@ -451,7 +451,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.6 }}
-            className="text-[0.84rem] max-w-sm text-[#faf6ef]/70 leading-relaxed italic"
+            className="text-[0.84rem] max-w-sm text-[#f6f3ff]/70 leading-relaxed italic"
             style={{ fontFamily: 'Cormorant, serif' }}
             dangerouslySetInnerHTML={{ __html: waitCopy(petName, elapsed, isMemorial) }}
           />

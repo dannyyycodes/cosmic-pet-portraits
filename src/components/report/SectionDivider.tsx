@@ -13,7 +13,7 @@ export function SectionDivider() {
       aria-hidden="true"
     >
       <span
-        className="text-[#c4a265]/55 font-serif"
+        className="text-[#8b7bd8]/55 font-serif"
         style={{ fontSize: '1.25rem', letterSpacing: '0.5em', display: 'inline-block' }}
       >
         ✦ ✦ ✦

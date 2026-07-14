@@ -13,15 +13,15 @@ export function TopProgressHairline() {
     <div
       aria-hidden="true"
       className="fixed top-0 inset-x-0 z-50 pointer-events-none h-[3px]"
-      style={{ background: 'rgba(196,162,101,0.08)' }}
+      style={{ background: 'rgba(139,123,216,0.08)' }}
     >
       <motion.div
         className="h-full origin-left"
         style={{
           scaleX,
           background:
-            'linear-gradient(90deg, rgba(196,162,101,0) 0%, #c4a265 25%, #d9b87c 50%, #c4a265 75%, rgba(196,162,101,0.6) 100%)',
-          boxShadow: '0 0 8px rgba(196,162,101,0.4)',
+            'linear-gradient(90deg, rgba(139,123,216,0) 0%, #8b7bd8 25%, #a78bfa 50%, #8b7bd8 75%, rgba(139,123,216,0.6) 100%)',
+          boxShadow: '0 0 8px rgba(139,123,216,0.4)',
         }}
       />
     </div>

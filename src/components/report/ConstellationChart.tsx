@@ -44,10 +44,10 @@ const elementInk: Record<string, string> = {
 };
 
 const planetCatalog = [
-  { key: 'sun',       name: 'Sun',        symbol: '\u2609', color: '#c4a265' },
+  { key: 'sun',       name: 'Sun',        symbol: '\u2609', color: '#8b7bd8' },
   { key: 'moon',      name: 'Moon',       symbol: '\u263D', color: '#8a6f8c' },
   { key: 'mercury',   name: 'Mercury',    symbol: '\u263F', color: '#5a8ab0' },
-  { key: 'venus',     name: 'Venus',      symbol: '\u2640', color: '#bf524a' },
+  { key: 'venus',     name: 'Venus',      symbol: '\u2640', color: '#6a4cc4' },
   { key: 'mars',      name: 'Mars',       symbol: '\u2642', color: '#a04030' },
   { key: 'jupiter',   name: 'Jupiter',    symbol: '\u2643', color: '#c88a3c' },
   { key: 'saturn',    name: 'Saturn',     symbol: '\u2644', color: '#706252' },
@@ -137,11 +137,11 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
     >
       {/* Eyebrow */}
       <div className="text-center mb-3">
-        <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#c4a265]">
+        <div className="text-[0.62rem] font-bold tracking-[2.8px] uppercase text-[#8b7bd8]">
           The Constellation
         </div>
         <h3
-          className="mt-1 text-[1.35rem] font-serif text-[#3d2f2a]"
+          className="mt-1 text-[1.35rem] font-serif text-[#2a2440]"
           style={{ fontFamily: 'DM Serif Display, serif' }}
         >
           {petName}&rsquo;s sky at the moment of arrival
@@ -152,9 +152,9 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
         className="relative rounded-[22px] overflow-hidden"
         style={{
           background:
-            'radial-gradient(ellipse at center, #FFFDF5 0%, #f5efe6 60%, #ede5d8 100%)',
-          border: '1px solid rgba(196,162,101,0.25)',
-          boxShadow: '0 4px 28px rgba(61,47,42,0.1)',
+            'radial-gradient(ellipse at center, #faf8ff 0%, #f2eeff 60%, #ede5d8 100%)',
+          border: '1px solid rgba(139,123,216,0.25)',
+          boxShadow: '0 4px 28px rgba(42,36,64,0.1)',
           padding: '28px 18px 24px',
         }}
       >
@@ -164,7 +164,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
             backgroundImage:
-              'radial-gradient(circle, #3d2f2a 1px, transparent 1px)',
+              'radial-gradient(circle, #2a2440 1px, transparent 1px)',
             backgroundSize: '14px 14px',
           }}
         />
@@ -176,8 +176,8 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
         >
           <defs>
             <radialGradient id="cchart-hub">
-              <stop offset="0%" stopColor="rgba(196,162,101,0.35)" />
-              <stop offset="60%" stopColor="rgba(196,162,101,0.12)" />
+              <stop offset="0%" stopColor="rgba(139,123,216,0.35)" />
+              <stop offset="60%" stopColor="rgba(139,123,216,0.12)" />
               <stop offset="100%" stopColor="transparent" />
             </radialGradient>
             <filter id="cchart-planet-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -218,7 +218,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
             cy={cy}
             r={outerR}
             fill="none"
-            stroke="#c4a265"
+            stroke="#8b7bd8"
             strokeWidth="1.4"
             pathLength={1}
             initial={{ strokeDashoffset: 1, strokeDasharray: 1 }}
@@ -232,7 +232,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
             cy={cy}
             r={innerR}
             fill="none"
-            stroke="rgba(196,162,101,0.55)"
+            stroke="rgba(139,123,216,0.55)"
             strokeWidth="0.8"
             pathLength={1}
             initial={{ strokeDashoffset: 1, strokeDasharray: 1 }}
@@ -254,7 +254,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
                 y1={inner.y}
                 x2={outer.x}
                 y2={outer.y}
-                stroke="rgba(61,47,42,0.35)"
+                stroke="rgba(42,36,64,0.35)"
                 strokeWidth={isMajor ? 1 : 0.5}
                 initial={{ opacity: 0 }}
                 animate={inView ? { opacity: 1 } : { opacity: 0 }}
@@ -347,7 +347,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
                   cx={pos.x}
                   cy={pos.y}
                   r={baseR}
-                  fill="#FFFDF5"
+                  fill="#faf8ff"
                   stroke={p.color}
                   strokeWidth="1.5"
                 />
@@ -377,7 +377,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               x={cx}
               y={cy - 4}
               textAnchor="middle"
-              fill="#5a4a42"
+              fill="#4a4560"
               fontSize="9"
               fontWeight="700"
               letterSpacing="2.5"
@@ -389,7 +389,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               x={cx}
               y={cy + 10}
               textAnchor="middle"
-              fill="#c4a265"
+              fill="#8b7bd8"
               fontSize="8.5"
               fontWeight="700"
               letterSpacing="2.2"
@@ -413,7 +413,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               <div className="text-[0.62rem] tracking-[2.5px] uppercase font-bold" style={{ color: activeData.color }}>
                 {activeData.name}
               </div>
-              <div className="text-[0.95rem] font-serif text-[#3d2f2a]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+              <div className="text-[0.95rem] font-serif text-[#2a2440]" style={{ fontFamily: 'DM Serif Display, serif' }}>
                 {activeData.placement.sign} &middot; {Math.round(activeData.placement.degree)}&deg;
               </div>
             </>

@@ -25,7 +25,7 @@ export function DatingProfile({ petName, datingProfile, sunSign, element }: Dati
     Water: '#e8f0f8',
     Air: '#f0edf8',
   };
-  const bg = avatarBg[element] || '#faf6ef';
+  const bg = avatarBg[element] || '#f6f3ff';
   const avatarEmoji = zodiacSigns[sunSign.toLowerCase()]?.icon || '⭐';
 
   return (
@@ -36,34 +36,34 @@ export function DatingProfile({ petName, datingProfile, sunSign, element }: Dati
       variants={s.variants}
       className="mx-4 my-2.5 max-w-[420px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-2 text-center">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#8b7bd8] mb-2 text-center">
         💕 {petName}'s Dating Profile
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#e2dbf3] overflow-hidden">
         {/* Avatar area */}
         <div className="text-center py-6" style={{ background: bg }}>
           <div className="text-5xl mb-2">{avatarEmoji}</div>
-          <p className="text-[#3d2f2a] font-bold text-lg">{petName}</p>
-          <p className="text-[#9a8578] text-xs">{sunSign} · {element} Energy</p>
+          <p className="text-[#2a2440] font-bold text-lg">{petName}</p>
+          <p className="text-[#928aa8] text-xs">{sunSign} · {element} Energy</p>
         </div>
 
         {/* Content */}
         <div className="p-5">
           {/* Headline */}
-          <p className="text-[#3d2f2a] text-xl italic font-dm-serif text-center mb-3">
+          <p className="text-[#2a2440] text-xl italic font-dm-serif text-center mb-3">
             "{datingProfile.headline}"
           </p>
 
           {/* Bio */}
-          <p className="text-[#5a4a42] text-sm leading-relaxed mb-4">
+          <p className="text-[#4a4560] text-sm leading-relaxed mb-4">
             {datingProfile.bio}
           </p>
 
           {/* Green Flags */}
           {datingProfile.greenFlags?.length > 0 && (
             <div className="mb-3">
-              <p className="text-[#9a8578] text-[10px] uppercase tracking-widest font-bold mb-1.5">Green Flags</p>
+              <p className="text-[#928aa8] text-[10px] uppercase tracking-widest font-bold mb-1.5">Green Flags</p>
               {datingProfile.greenFlags.map((flag, i) => (
                 <p key={i} className="text-[#6b8f5e] text-sm mb-1">✅ {flag}</p>
               ))}
@@ -73,9 +73,9 @@ export function DatingProfile({ petName, datingProfile, sunSign, element }: Dati
           {/* Red Flags (funny) */}
           {datingProfile.redFlags?.length > 0 && (
             <div className="mb-3">
-              <p className="text-[#9a8578] text-[10px] uppercase tracking-widest font-bold mb-1.5">Red Flags (Endearing)</p>
+              <p className="text-[#928aa8] text-[10px] uppercase tracking-widest font-bold mb-1.5">Red Flags (Endearing)</p>
               {datingProfile.redFlags.map((flag, i) => (
-                <p key={i} className="text-[#c4a265] text-sm mb-1">🚩 {flag}</p>
+                <p key={i} className="text-[#8b7bd8] text-sm mb-1">🚩 {flag}</p>
               ))}
             </div>
           )}

@@ -48,51 +48,51 @@ export function CompatibilityChart({ compatibilityNotes, petName }: Compatibilit
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-5 bg-white rounded-[14px] border border-[#e2dbf3] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#8b7bd8] mb-1">
         Pet-Parent Cosmic Match
       </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-3">Best Zodiac Playmates</h3>
+      <h3 className="font-dm-serif text-[1.05rem] text-[#2a2440] mb-3">Best Zodiac Playmates</h3>
 
       {entries.map((entry) => (
         <div
           key={entry.sign}
-          className="py-2 border-b border-[#e8ddd0] last:border-b-0"
+          className="py-2 border-b border-[#e2dbf3] last:border-b-0"
         >
           <div className="flex items-center gap-2.5">
-            <span className="font-dm-serif text-[0.95rem] text-[#3d2f2a] w-20 shrink-0">
+            <span className="font-dm-serif text-[0.95rem] text-[#2a2440] w-20 shrink-0">
               {entry.icon} {entry.sign}
             </span>
-            <div className="flex-1 h-1.5 bg-[#e8ddd0] rounded-sm overflow-hidden">
+            <div className="flex-1 h-1.5 bg-[#e2dbf3] rounded-sm overflow-hidden">
               <div
                 className="h-full rounded-sm"
                 style={{
                   width: s.isInView ? `${entry.pct}%` : '0%',
-                  background: 'linear-gradient(90deg, #c4a265, #8b6f3a)',
+                  background: 'linear-gradient(90deg, #8b7bd8, #8b6f3a)',
                   transition: 'width 1s ease-out',
                 }}
               />
             </div>
-            <span className="text-[0.72rem] font-semibold text-[#c4a265] w-9 text-right">
+            <span className="text-[0.72rem] font-semibold text-[#8b7bd8] w-9 text-right">
               {entry.pct}%
             </span>
           </div>
           {entry.reason && (
-            <p className="text-[0.72rem] text-[#5a4a42] mt-1 ml-[5.5rem] leading-[1.6] italic">
+            <p className="text-[0.72rem] text-[#4a4560] mt-1 ml-[5.5rem] leading-[1.6] italic">
               {entry.reason}
             </p>
           )}
         </div>
       ))}
 
-      <p className="text-[0.78rem] text-[#5a4a42] mt-2.5 leading-[1.75]">
+      <p className="text-[0.78rem] text-[#4a4560] mt-2.5 leading-[1.75]">
         {compatibilityNotes.humanCompatibility}
       </p>
 
       {compatibilityNotes.relationshipGift && (
-        <p className="text-[0.78rem] text-[#3d2f2a] mt-3 pt-3 border-t border-[#e8ddd0] leading-[1.65] italic">
-          <span className="text-[0.6rem] font-bold tracking-[2px] uppercase text-[#c4a265] not-italic block mb-1">
+        <p className="text-[0.78rem] text-[#2a2440] mt-3 pt-3 border-t border-[#e2dbf3] leading-[1.65] italic">
+          <span className="text-[0.6rem] font-bold tracking-[2px] uppercase text-[#8b7bd8] not-italic block mb-1">
             What {petName} Brings
           </span>
           {compatibilityNotes.relationshipGift}

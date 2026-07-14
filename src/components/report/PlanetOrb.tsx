@@ -455,7 +455,7 @@ export function PlanetOrb({
             y1={c + r * 0.2}
             x2={total * 0.92}
             y2={c + r * 0.2}
-            stroke="#c4a265"
+            stroke="#8b7bd8"
             strokeWidth="1.1"
             opacity="0.85"
           />

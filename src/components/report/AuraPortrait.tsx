@@ -38,6 +38,46 @@ function getAuraColor(colorName: string): string {
   return '#c4b5fd';
 }
 
+// Reverse of getAuraColor. The model occasionally emits a raw hex code instead
+// of a colour word — this resolves it to the nearest named colour so the aura
+// heading reads "Orange with Gold", never "#FF6B35 with #FFD700".
+const auraHexNames: Array<[number, number, number, string]> = [
+  [255, 215, 0, 'gold'], [255, 191, 0, 'amber'], [239, 68, 68, 'red'],
+  [220, 38, 38, 'crimson'], [249, 115, 22, 'orange'], [245, 158, 11, 'amber'],
+  [234, 179, 8, 'gold'], [250, 204, 21, 'yellow'], [34, 197, 94, 'green'],
+  [16, 185, 129, 'emerald'], [132, 204, 22, 'sage'], [20, 184, 166, 'teal'],
+  [6, 182, 212, 'cyan'], [45, 212, 191, 'turquoise'], [59, 130, 246, 'blue'],
+  [37, 99, 235, 'cobalt'], [14, 165, 233, 'azure'], [56, 189, 248, 'sky'],
+  [99, 102, 241, 'indigo'], [139, 92, 246, 'violet'], [168, 85, 247, 'purple'],
+  [124, 58, 237, 'amethyst'], [196, 181, 253, 'lavender'], [216, 180, 254, 'lilac'],
+  [236, 72, 153, 'pink'], [244, 63, 94, 'rose'], [217, 70, 239, 'magenta'],
+  [251, 113, 133, 'coral'], [248, 250, 252, 'white'], [148, 163, 184, 'silver'],
+  [226, 232, 240, 'pearl'], [254, 252, 232, 'ivory'],
+];
+
+function hexToAuraName(hex: string): string {
+  const m = hex.replace('#', '');
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  let best = 'cosmic';
+  let bestD = Infinity;
+  for (const [rr, gg, bb, name] of auraHexNames) {
+    const d = (r - rr) ** 2 + (g - gg) ** 2 + (b - bb) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = name;
+    }
+  }
+  return best;
+}
+
+// Show a readable colour NAME: keep an existing word, resolve a raw hex.
+function getAuraName(value: string): string {
+  const v = (value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(v) ? hexToAuraName(v) : value;
+}
+
 /**
  * Pet photo in a cosmic frame with an animated particle halo. Uses the
  * pet's aura.primary / aura.secondary hues for the swirl and a slowly
@@ -90,8 +130,8 @@ export function AuraPortrait({
       style={{
         background: '#ffffff',
         borderRadius: '18px',
-        border: '1px solid #e8ddd0',
-        boxShadow: '0 2px 12px rgba(61,47,42,0.07)',
+        border: '1px solid #e2dbf3',
+        boxShadow: '0 2px 12px rgba(42,36,64,0.07)',
         padding: '36px 24px 28px',
         textAlign: 'center',
         overflow: 'hidden',
@@ -104,7 +144,7 @@ export function AuraPortrait({
           fontWeight: 700,
           letterSpacing: '2.5px',
           textTransform: 'uppercase',
-          color: '#c4a265',
+          color: '#8b7bd8',
           marginBottom: '6px',
         }}
       >
@@ -115,13 +155,13 @@ export function AuraPortrait({
         style={{
           fontSize: '1.35rem',
           fontFamily: 'DM Serif Display, serif',
-          color: '#3d2f2a',
+          color: '#2a2440',
           margin: '0 0 28px',
           lineHeight: 1.3,
         }}
       >
-        {aura.primary}
-        {aura.secondary ? ` with ${aura.secondary}` : ''}
+        {getAuraName(aura.primary)}
+        {aura.secondary ? ` with ${getAuraName(aura.secondary)}` : ''}
       </h2>
 
       {/* The cosmic frame — scales down on phones so it never overflows */}
@@ -151,7 +191,7 @@ export function AuraPortrait({
           className="absolute inset-2 rounded-full"
           style={{
             padding: 2,
-            background: `conic-gradient(from 0deg, #c4a265, ${primaryColor}, #c4a265aa, ${secondaryColor}, #c4a265)`,
+            background: `conic-gradient(from 0deg, #8b7bd8, ${primaryColor}, #8b7bd8aa, ${secondaryColor}, #8b7bd8)`,
             animation: 'aura-portrait-rotate 18s linear infinite',
             WebkitMask:
               'radial-gradient(circle, transparent 52%, black 53%, black 55%, transparent 56%)',
@@ -211,7 +251,7 @@ export function AuraPortrait({
         >
           <img
             src={photo}
-            alt={`${petName}'s cosmic portrait with ${aura?.primary || 'cosmic'} aura`}
+            alt={`${petName}'s cosmic portrait with ${getAuraName(aura?.primary || '') || 'cosmic'} aura`}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -235,9 +275,9 @@ export function AuraPortrait({
               top: 14,
               right: 18,
               fontSize: 28,
-              color: '#c4a265',
+              color: '#8b7bd8',
               textShadow: `0 0 12px ${primaryColor}66`,
-              filter: 'drop-shadow(0 0 6px rgba(196,162,101,0.4))',
+              filter: 'drop-shadow(0 0 6px rgba(139,123,216,0.4))',
             }}
           >
             {zodiacIcon}
@@ -250,7 +290,7 @@ export function AuraPortrait({
         style={{
           fontSize: '0.9rem',
           lineHeight: 1.8,
-          color: '#5a4a42',
+          color: '#4a4560',
           maxWidth: 380,
           margin: '0 auto 20px',
           fontStyle: 'italic',
@@ -262,25 +302,25 @@ export function AuraPortrait({
       {/* Color pills */}
       <div className="flex flex-wrap gap-2.5 justify-center">
         {[
-          { label: 'Primary', name: aura.primary, color: primaryColor },
+          { label: 'Primary', name: getAuraName(aura.primary), color: primaryColor },
           aura.secondary
-            ? { label: 'Secondary', name: aura.secondary, color: secondaryColor }
+            ? { label: 'Secondary', name: getAuraName(aura.secondary), color: secondaryColor }
             : null,
         ]
           .filter((x): x is { label: string; name: string; color: string } => !!x)
           .map((p) => (
             <div
               key={p.label}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#f5efe6] border border-[#e8ddd0] px-3 py-1"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#f2eeff] border border-[#e2dbf3] px-3 py-1"
             >
               <span
                 className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ background: p.color, boxShadow: `0 0 4px ${p.color}80` }}
               />
-              <span className="text-[0.68rem] font-semibold tracking-wider uppercase text-[#9a8578]">
+              <span className="text-[0.68rem] font-semibold tracking-wider uppercase text-[#928aa8]">
                 {p.label}
               </span>
-              <span className="text-[0.78rem] font-medium text-[#3d2f2a] capitalize">
+              <span className="text-[0.78rem] font-medium text-[#2a2440] capitalize">
                 {p.name}
               </span>
             </div>

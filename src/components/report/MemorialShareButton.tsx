@@ -122,7 +122,7 @@ export function MemorialShareButton({
       className="gap-2"
       style={{
         borderColor: '#8fa082',
-        color: '#2d2428',
+        color: '#241d33',
         background: 'transparent',
         fontFamily: "'DM Serif Display', Georgia, serif",
         padding: '0.85rem 1.5rem',

@@ -246,38 +246,38 @@ const readingSections = [
 const chapters = [
   {
     number: 1, title: 'How They Came Into This World', subtitle: 'The stars were watching', icon: '✦',
-    bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
-    border: '2px solid rgba(212,182,122,0.2)', ornament: '✦',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)', accent: '#a78bfa', textColor: '#f2eeff',
+    border: '2px solid rgba(167,139,250,0.2)', ornament: '✦',
   },
   {
     number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '✨',
-    bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
-    border: '2px solid rgba(212,182,122,0.15)', ornament: '☽',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)', accent: '#a78bfa', textColor: '#f2eeff',
+    border: '2px solid rgba(167,139,250,0.15)', ornament: '☽',
   },
   {
     number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '🎭',
-    bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
-    border: '2px solid rgba(212,182,122,0.15)', ornament: '🐾',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)', accent: '#a78bfa', textColor: '#f2eeff',
+    border: '2px solid rgba(167,139,250,0.15)', ornament: '🐾',
   },
   {
     number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '💭',
-    bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
-    border: '2px solid rgba(212,182,122,0.18)', ornament: '✦',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)', accent: '#a78bfa', textColor: '#f2eeff',
+    border: '2px solid rgba(167,139,250,0.18)', ornament: '✦',
   },
   {
     number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕',
-    bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
-    border: '2px solid rgba(212,182,122,0.15)', ornament: '♡',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)', accent: '#a78bfa', textColor: '#f2eeff',
+    border: '2px solid rgba(167,139,250,0.15)', ornament: '♡',
   },
   {
     number: 6, title: 'The Keepsake', subtitle: 'Something to hold onto', icon: '🎁',
-    bg: 'linear-gradient(165deg, #201722 0%, #15101c 100%)', accent: '#d4b67a', textColor: '#f5efe6',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)', accent: '#a78bfa', textColor: '#f2eeff',
     border: '2px solid rgba(184,150,42,0.2)', ornament: '⟡',
   },
   {
     number: 7, title: 'A Letter From Their Soul', subtitle: 'In their own words, at last', icon: '💌',
-    bg: 'linear-gradient(165deg, #201722 0%, #1a1210 100%)', accent: '#d4b67a', textColor: '#ffffff',
-    border: '1px solid rgba(212,182,122,0.25)', ornament: '✦',
+    bg: 'linear-gradient(165deg, #1a1430 0%, #14101f 100%)', accent: '#a78bfa', textColor: '#ffffff',
+    border: '1px solid rgba(167,139,250,0.25)', ornament: '✦',
   },
 ];
 
@@ -445,18 +445,18 @@ export function CosmicReportViewer({
 
       {/* Multi-pet selector bar */}
       {hasMultipleReports && onSwitchReport && (
-        <div className="sticky top-0 z-50 border-b border-[rgba(212,182,122,0.4)]" style={{ background: 'rgba(13,10,20,0.92)', backdropFilter: 'blur(8px)' }}>
+        <div className="sticky top-0 z-50 border-b border-[rgba(167,139,250,0.4)]" style={{ background: 'rgba(13,10,20,0.92)', backdropFilter: 'blur(8px)' }}>
           <div className="max-w-[520px] mx-auto px-4 py-2">
             <div className="flex items-center justify-center gap-1.5 flex-wrap">
-              <span className="text-[#a89a8a] text-xs mr-1">View:</span>
+              <span className="text-[#a29ab8] text-xs mr-1">View:</span>
               {allReports!.map((r, idx) => (
                 <button
                   key={r.reportId}
                   onClick={() => onSwitchReport(idx)}
                   className={`inline-flex items-center gap-1 px-3.5 py-2.5 min-h-[40px] rounded-full text-sm font-medium transition-all max-w-[160px] ${
                     idx === currentIndex
-                      ? 'bg-[#201722] text-white'
-                      : 'bg-[rgba(21,16,28,0.8)] text-[#cfc1b1] border border-[rgba(212,182,122,0.4)] hover:border-[#d4b67a]'
+                      ? 'bg-[#1a1430] text-white'
+                      : 'bg-[rgba(21,16,28,0.8)] text-[#c7bfe0] border border-[rgba(167,139,250,0.4)] hover:border-[#a78bfa]'
                   }`}
                 >
                   <span aria-hidden="true">🐾</span>
@@ -616,10 +616,10 @@ export function CosmicReportViewer({
       {/* ═══ UNLOCK CTA (preview mode) ═══ */}
       {isPreview && onUnlockFull && (
         <div className="text-center py-12 px-6">
-          <div className="max-w-[520px] mx-auto p-8 rounded-[14px] bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]">
-            <Gift className="w-12 h-12 mx-auto text-[#d4b67a] mb-4" />
-            <h3 className="font-dm-serif text-2xl text-[#f5efe6] mb-2">Unlock the Full Little Souls Reading</h3>
-            <p className="text-[#a89a8a] text-[0.84rem] mb-6 max-w-md mx-auto">
+          <div className="max-w-[520px] mx-auto p-8 rounded-[14px] bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)]">
+            <Gift className="w-12 h-12 mx-auto text-[#a78bfa] mb-4" />
+            <h3 className="font-dm-serif text-2xl text-[#f2eeff] mb-2">Unlock the Full Little Souls Reading</h3>
+            <p className="text-[#a29ab8] text-[0.84rem] mb-6 max-w-md mx-auto">
               Get all 12 reading sections, the soul letter, trading card, fun sections, and more.
             </p>
             <Button onClick={onUnlockFull} variant="gold" size="xl" className="gap-2">
@@ -831,36 +831,36 @@ export function CosmicReportViewer({
                 <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
                   <div
                     className="py-7 px-6 sm:px-7 rounded-[18px]"
-                    style={{ background: '#201722' }}
+                    style={{ background: '#1a1430' }}
                   >
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0 bg-rose-500/10">
                         {'\uD83D\uDC95'}
                       </div>
                       <div>
-                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
+                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
                           Keeper&rsquo;s Bond
                         </div>
-                        <h3 className="text-[1.1rem] text-[#f5efe6] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{kb.title}</h3>
+                        <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{kb.title}</h3>
                       </div>
                     </div>
 
                     <div
-                      className="text-[0.88rem] leading-[1.9] text-[#cfc1b1]"
+                      className="text-[0.88rem] leading-[1.9] text-[#c7bfe0]"
                       dangerouslySetInnerHTML={{ __html: safeHtml((kb.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ')) }}
                     />
 
                     {kb.soulContract && (
-                      <div className="mt-5 p-4 rounded-[12px] bg-[rgba(21,16,28,0.7)] border-l-[3px] border-[#d4b67a]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-1">
+                      <div className="mt-5 p-4 rounded-[12px] bg-[rgba(21,16,28,0.7)] border-l-[3px] border-[#a78bfa]">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-1">
                           {'\uD83D\uDC95'} Soul contract
                         </div>
-                        <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.65]">{kb.soulContract}</p>
+                        <p className="text-[0.84rem] text-[#c7bfe0] leading-[1.65]">{kb.soulContract}</p>
                       </div>
                     )}
 
                     {kb.funFact && (
-                      <p className="mt-4 text-[0.8rem] text-[#a89a8a] italic leading-[1.65]"
+                      <p className="mt-4 text-[0.8rem] text-[#a29ab8] italic leading-[1.65]"
                         style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                       >
                         {kb.funFact}
@@ -890,63 +890,63 @@ export function CosmicReportViewer({
                 <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
                   <div
                     className="py-7 px-6 sm:px-7 rounded-[18px] relative overflow-hidden"
-                    style={{ background: 'linear-gradient(165deg, #201722 0%, #15101c 100%)' }}
+                    style={{ background: 'linear-gradient(165deg, #1a1430 0%, #15101c 100%)' }}
                   >
                     {/* Premium badge */}
                     <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[0.55rem] font-bold tracking-[1.5px] uppercase"
-                      style={{ background: 'linear-gradient(135deg, #d4b67a, #d4b67a)', color: '#fff' }}>
+                      style={{ background: 'linear-gradient(135deg, #a78bfa, #a78bfa)', color: '#fff' }}>
                       Soul Bond
                     </div>
 
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg, rgba(212,182,122,0.15), rgba(212,182,122,0.15))' }}>
+                        style={{ background: 'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(167,139,250,0.15))' }}>
                         {'\uD83D\uDC9E'}
                       </div>
                       <div>
-                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
+                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
                           Pet-Parent Soul Bond
                         </div>
-                        <h3 className="text-[1.1rem] text-[#f5efe6] mt-0.5 pr-16" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{sb.title}</h3>
+                        <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5 pr-16" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{sb.title}</h3>
                       </div>
                     </div>
 
-                    <p className="text-[0.88rem] leading-[1.9] text-[#cfc1b1] mb-5">{sb.intro}</p>
+                    <p className="text-[0.88rem] leading-[1.9] text-[#c7bfe0] mb-5">{sb.intro}</p>
 
                     {/* Elemental Harmony */}
                     {sb.elementalHarmony && (
                       <div className="mb-4 p-4 rounded-[12px] bg-[rgba(21,16,28,0.6)]">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a]">
+                          <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa]">
                             {'\u2728'} {sb.elementalHarmony.title}
                           </div>
-                          <div className="text-[0.72rem] font-bold text-[#d4b67a]">
+                          <div className="text-[0.72rem] font-bold text-[#a78bfa]">
                             {sb.elementalHarmony.compatibilityScore}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-0.5 rounded-full text-[0.68rem] font-medium"
-                            style={{ background: sb.elementalHarmony.petElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.petElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.petElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#cfc1b1' }}>
+                            style={{ background: sb.elementalHarmony.petElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.petElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.petElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#c7bfe0' }}>
                             {sb.elementalHarmony.petElement}
                           </span>
-                          <span className="text-[0.7rem] text-[#a89a8a]">&amp;</span>
+                          <span className="text-[0.7rem] text-[#a29ab8]">&amp;</span>
                           <span className="px-2 py-0.5 rounded-full text-[0.68rem] font-medium"
-                            style={{ background: sb.elementalHarmony.ownerElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.ownerElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.ownerElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#cfc1b1' }}>
+                            style={{ background: sb.elementalHarmony.ownerElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.ownerElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.ownerElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#c7bfe0' }}>
                             {sb.elementalHarmony.ownerElement}
                           </span>
                         </div>
-                        <p className="text-[0.82rem] text-[#cfc1b1] leading-[1.7]">{sb.elementalHarmony.harmony}</p>
+                        <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.7]">{sb.elementalHarmony.harmony}</p>
                       </div>
                     )}
 
                     {/* Sun-Moon Dance */}
                     {sb.sunMoonDance && (
                       <div className="mb-4 p-4 rounded-[12px] bg-[rgba(21,16,28,0.6)]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-2">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-2">
                           {'\u2600\uFE0F'}{'\uD83C\uDF19'} {sb.sunMoonDance.title}
                         </div>
-                        <p className="text-[0.82rem] text-[#cfc1b1] leading-[1.7] mb-2">{sb.sunMoonDance.content}</p>
-                        <p className="text-[0.78rem] text-[#a89a8a] italic leading-[1.6]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                        <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.7] mb-2">{sb.sunMoonDance.content}</p>
+                        <p className="text-[0.78rem] text-[#a29ab8] italic leading-[1.6]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                           {sb.sunMoonDance.crossAspect}
                         </p>
                       </div>
@@ -955,11 +955,11 @@ export function CosmicReportViewer({
                     {/* Venus Connection */}
                     {sb.venusConnection && (
                       <div className="mb-4 p-4 rounded-[12px] bg-[rgba(21,16,28,0.6)]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-2">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-2">
                           {'\u2665\uFE0F'} {sb.venusConnection.title}
                         </div>
-                        <p className="text-[0.82rem] text-[#cfc1b1] leading-[1.7] mb-2">{sb.venusConnection.content}</p>
-                        <div className="text-[0.75rem] text-[#d4b67a] font-medium">
+                        <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.7] mb-2">{sb.venusConnection.content}</p>
+                        <div className="text-[0.75rem] text-[#a78bfa] font-medium">
                           {sb.venusConnection.loveLanguageMatch}
                         </div>
                       </div>
@@ -968,11 +968,11 @@ export function CosmicReportViewer({
                     {/* Mars Energy */}
                     {sb.marsEnergy && (
                       <div className="mb-4 p-4 rounded-[12px] bg-[rgba(21,16,28,0.6)]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-2">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-2">
                           {'\u26A1'} {sb.marsEnergy.title}
                         </div>
-                        <p className="text-[0.82rem] text-[#cfc1b1] leading-[1.7] mb-2">{sb.marsEnergy.content}</p>
-                        <div className="text-[0.75rem] text-[#d4b67a] font-medium">
+                        <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.7] mb-2">{sb.marsEnergy.content}</p>
+                        <div className="text-[0.75rem] text-[#a78bfa] font-medium">
                           Best together: {sb.marsEnergy.activityMatch}
                         </div>
                       </div>
@@ -980,21 +980,21 @@ export function CosmicReportViewer({
 
                     {/* Soul Contract */}
                     {sb.soulContract && (
-                      <div className="mb-4 p-4 rounded-[12px] border-l-[3px] border-[#d4b67a] bg-[rgba(21,16,28,0.7)]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-2">
+                      <div className="mb-4 p-4 rounded-[12px] border-l-[3px] border-[#a78bfa] bg-[rgba(21,16,28,0.7)]">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-2">
                           {'\uD83D\uDCDC'} {sb.soulContract.title}
                         </div>
-                        <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.8] mb-3">{sb.soulContract.content}</p>
+                        <p className="text-[0.84rem] text-[#c7bfe0] leading-[1.8] mb-3">{sb.soulContract.content}</p>
                         {sb.soulContract.lessonForOwner && (
-                          <div className="mb-2 pl-3 border-l-2 border-[rgba(212,182,122,0.4)]">
-                            <div className="text-[0.62rem] font-bold tracking-[1px] uppercase text-[#a89a8a] mb-0.5">What they teach you</div>
-                            <p className="text-[0.8rem] text-[#cfc1b1] leading-[1.6]">{sb.soulContract.lessonForOwner}</p>
+                          <div className="mb-2 pl-3 border-l-2 border-[rgba(167,139,250,0.4)]">
+                            <div className="text-[0.62rem] font-bold tracking-[1px] uppercase text-[#a29ab8] mb-0.5">What they teach you</div>
+                            <p className="text-[0.8rem] text-[#c7bfe0] leading-[1.6]">{sb.soulContract.lessonForOwner}</p>
                           </div>
                         )}
                         {sb.soulContract.lessonForPet && (
-                          <div className="pl-3 border-l-2 border-[rgba(212,182,122,0.4)]">
-                            <div className="text-[0.62rem] font-bold tracking-[1px] uppercase text-[#a89a8a] mb-0.5">What you give them</div>
-                            <p className="text-[0.8rem] text-[#cfc1b1] leading-[1.6]">{sb.soulContract.lessonForPet}</p>
+                          <div className="pl-3 border-l-2 border-[rgba(167,139,250,0.4)]">
+                            <div className="text-[0.62rem] font-bold tracking-[1px] uppercase text-[#a29ab8] mb-0.5">What you give them</div>
+                            <p className="text-[0.8rem] text-[#c7bfe0] leading-[1.6]">{sb.soulContract.lessonForPet}</p>
                           </div>
                         )}
                       </div>
@@ -1003,14 +1003,14 @@ export function CosmicReportViewer({
                     {/* Cosmic Rating */}
                     {sb.cosmicRating && (
                       <div className="mt-5 p-4 rounded-[12px] text-center"
-                        style={{ background: 'linear-gradient(135deg, rgba(212,182,122,0.1), rgba(212,182,122,0.1))' }}>
-                        <div className="text-[2rem] font-bold text-[#d4b67a] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                        style={{ background: 'linear-gradient(135deg, rgba(167,139,250,0.1), rgba(167,139,250,0.1))' }}>
+                        <div className="text-[2rem] font-bold text-[#a78bfa] mb-1" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                           {sb.cosmicRating.overallScore}
                         </div>
-                        <p className="text-[0.82rem] text-[#cfc1b1] mb-3">{sb.cosmicRating.verdict}</p>
+                        <p className="text-[0.82rem] text-[#c7bfe0] mb-3">{sb.cosmicRating.verdict}</p>
                         <div className="flex flex-wrap justify-center gap-1.5">
                           {sb.cosmicRating.strengthAreas?.map((area, i) => (
-                            <span key={i} className="px-2 py-0.5 rounded-full text-[0.65rem] bg-[rgba(21,16,28,0.7)] text-[#cfc1b1]">
+                            <span key={i} className="px-2 py-0.5 rounded-full text-[0.65rem] bg-[rgba(21,16,28,0.7)] text-[#c7bfe0]">
                               {'\u2728'} {area}
                             </span>
                           ))}
@@ -1032,36 +1032,36 @@ export function CosmicReportViewer({
                 <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
                   <div
                     className="py-7 px-6 sm:px-7 rounded-[18px]"
-                    style={{ background: '#201722' }}
+                    style={{ background: '#1a1430' }}
                   >
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0 bg-green-500/10">
                         {'\uD83C\uDF0E'}
                       </div>
                       <div>
-                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
+                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
                           Earthly Expression
                         </div>
-                        <h3 className="text-[1.1rem] text-[#f5efe6] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{ee.title}</h3>
+                        <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{ee.title}</h3>
                       </div>
                     </div>
 
                     <div
-                      className="text-[0.88rem] leading-[1.9] text-[#cfc1b1]"
+                      className="text-[0.88rem] leading-[1.9] text-[#c7bfe0]"
                       dangerouslySetInnerHTML={{ __html: safeHtml((ee.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ')) }}
                     />
 
                     {ee.practicalTip && (
-                      <div className="mt-5 p-4 rounded-[12px] bg-[rgba(21,16,28,0.7)] border-l-[3px] border-[#d4b67a]">
-                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-1">
+                      <div className="mt-5 p-4 rounded-[12px] bg-[rgba(21,16,28,0.7)] border-l-[3px] border-[#a78bfa]">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-1">
                           {'\uD83D\uDCA1'} Practical tip
                         </div>
-                        <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.65]">{ee.practicalTip}</p>
+                        <p className="text-[0.84rem] text-[#c7bfe0] leading-[1.65]">{ee.practicalTip}</p>
                       </div>
                     )}
 
                     {ee.funFact && (
-                      <p className="mt-4 text-[0.8rem] text-[#a89a8a] italic leading-[1.65]"
+                      <p className="mt-4 text-[0.8rem] text-[#a29ab8] italic leading-[1.65]"
                         style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                       >
                         {ee.funFact}
@@ -1221,37 +1221,37 @@ export function CosmicReportViewer({
                 className="py-10 px-6 sm:px-10 rounded-[20px] text-center relative"
                 style={{
                   background:
-                    'radial-gradient(circle at 50% 0%, #201722 0%, #201722 55%, #201722 100%)',
-                  border: '1px solid rgba(212,182,122,0.4)',
+                    'radial-gradient(circle at 50% 0%, #1a1430 0%, #1a1430 55%, #1a1430 100%)',
+                  border: '1px solid rgba(167,139,250,0.4)',
                 }}
               >
                 <div className="flex justify-center mb-4" aria-hidden>
                   <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
-                    <circle cx="21" cy="21" r="18" stroke="#d4b67a" strokeWidth="1" opacity="0.5" />
-                    <circle cx="21" cy="21" r="10" stroke="#d4b67a" strokeWidth="1" opacity="0.75" />
-                    <circle cx="21" cy="21" r="3" fill="#d4b67a" />
+                    <circle cx="21" cy="21" r="18" stroke="#a78bfa" strokeWidth="1" opacity="0.5" />
+                    <circle cx="21" cy="21" r="10" stroke="#a78bfa" strokeWidth="1" opacity="0.75" />
+                    <circle cx="21" cy="21" r="3" fill="#a78bfa" />
                   </svg>
                 </div>
 
-                <div className="text-[0.58rem] font-bold tracking-[3px] uppercase text-[#d4b67a] mb-3">
+                <div className="text-[0.58rem] font-bold tracking-[3px] uppercase text-[#a78bfa] mb-3">
                   The Reading Is Complete
                 </div>
 
                 <h3
-                  className="text-[1.35rem] text-[#f5efe6] leading-[1.35] mb-4 max-w-[460px] mx-auto"
+                  className="text-[1.35rem] text-[#f2eeff] leading-[1.35] mb-4 max-w-[460px] mx-auto"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   You&rsquo;ve seen {petName} fully.
                 </h3>
 
-                <p className="text-[0.92rem] text-[#cfc1b1] leading-[1.85] max-w-[440px] mx-auto mb-5">
+                <p className="text-[0.92rem] text-[#c7bfe0] leading-[1.85] max-w-[440px] mx-auto mb-5">
                   Every placement. Every shadow. Every quiet truth the stars have been holding for
                   you. This isn&rsquo;t the end of the reading &mdash; it&rsquo;s the beginning of seeing
                   {petName === 'your pet' ? ' them' : ' ' + petName} differently.
                 </p>
 
                 <p
-                  className="text-[0.95rem] text-[#f5efe6] italic max-w-[400px] mx-auto"
+                  className="text-[0.95rem] text-[#f2eeff] italic max-w-[400px] mx-auto"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   Return whenever you need to remember.
@@ -1272,7 +1272,7 @@ export function CosmicReportViewer({
                 className="text-center px-6 mb-6"
               >
                 <p
-                  className="text-[0.95rem] text-[#cfc1b1] leading-[1.85] max-w-[420px] mx-auto"
+                  className="text-[0.95rem] text-[#c7bfe0] leading-[1.85] max-w-[420px] mx-auto"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
                 >
                   {petName}&rsquo;s entire birth chart &mdash; every planet, every placement, every trait you just read &mdash; has been woven into a living intelligence. This isn&rsquo;t a chatbot. This is {petName}&rsquo;s soul, speaking through their stars.
@@ -1287,16 +1287,16 @@ export function CosmicReportViewer({
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="rounded-[20px] overflow-hidden relative"
                 style={{
-                  background: 'linear-gradient(165deg, #201722 0%, #2a1f1a 50%, #1a1210 100%)',
-                  boxShadow: '0 12px 48px rgba(61,47,42,0.35)',
-                  border: '1px solid rgba(212,182,122,0.2)',
+                  background: 'linear-gradient(165deg, #1a1430 0%, #201a30 50%, #14101f 100%)',
+                  boxShadow: '0 12px 48px rgba(42,36,64,0.35)',
+                  border: '1px solid rgba(167,139,250,0.2)',
                 }}
               >
                 {/* Glow accents */}
                 <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none opacity-20"
-                  style={{ background: 'radial-gradient(circle, rgba(212,182,122,0.4), transparent 70%)' }} />
+                  style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.4), transparent 70%)' }} />
                 <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full pointer-events-none opacity-20"
-                  style={{ background: 'radial-gradient(circle, rgba(212,182,122,0.4), transparent 70%)' }} />
+                  style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.4), transparent 70%)' }} />
 
                 <div className="relative z-10 px-7 py-10 sm:px-9">
                   {/* Chat preview mockup */}
@@ -1304,7 +1304,7 @@ export function CosmicReportViewer({
                     {/* User message */}
                     <div className="flex justify-end">
                       <div className="px-4 py-2.5 rounded-[16px] rounded-br-[4px] text-[0.8rem] text-white/90 leading-[1.5] max-w-[240px]"
-                        style={{ background: 'rgba(212,182,122,0.2)', border: '1px solid rgba(212,182,122,0.15)' }}
+                        style={{ background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.15)' }}
                       >
                         What were you thinking the first time we met?
                       </div>
@@ -1338,13 +1338,13 @@ export function CosmicReportViewer({
 
                   {/* Divider */}
                   <div className="flex items-center justify-center gap-3 mb-7">
-                    <div className="w-10 h-[1px] bg-[#d4b67a]/25" />
-                    <span className="text-[#d4b67a]/40 text-[0.55rem]">✦</span>
-                    <div className="w-10 h-[1px] bg-[#d4b67a]/25" />
+                    <div className="w-10 h-[1px] bg-[#a78bfa]/25" />
+                    <span className="text-[#a78bfa]/40 text-[0.55rem]">✦</span>
+                    <div className="w-10 h-[1px] bg-[#a78bfa]/25" />
                   </div>
 
                   <div className="text-center">
-                    <div className="text-[0.45rem] font-bold tracking-[4px] uppercase text-[#d4b67a]/60 mb-2">
+                    <div className="text-[0.45rem] font-bold tracking-[4px] uppercase text-[#a78bfa]/60 mb-2">
                       SoulSpeak &mdash; World&rsquo;s First Astrology-Powered Soul Channel
                     </div>
 
@@ -1367,9 +1367,9 @@ export function CosmicReportViewer({
                       href={`/soul-chat.html?id=${reportId}${shareToken ? '&token=' + shareToken : ''}`}
                       className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-[0.88rem] font-semibold tracking-[0.3px] no-underline transition-all hover:scale-[1.03] active:scale-[0.98]"
                       style={{
-                        background: 'linear-gradient(135deg, #d4b67a, #d4b67a)',
-                        color: '#1a1210',
-                        boxShadow: '0 4px 24px rgba(212,182,122,0.35), 0 0 0 1px rgba(212,182,122,0.1)',
+                        background: 'linear-gradient(135deg, #a78bfa, #a78bfa)',
+                        color: '#14101f',
+                        boxShadow: '0 4px 24px rgba(167,139,250,0.35), 0 0 0 1px rgba(167,139,250,0.1)',
                       }}
                     >
                       <span>Start a Conversation With {petName}</span>
@@ -1408,17 +1408,17 @@ export function CosmicReportViewer({
 
           {/* ═══ MULTI-PET NAVIGATION ═══ */}
           {(hasMultipleReports || onAllComplete) && (
-            <div className="py-8 px-6 border-t border-[rgba(212,182,122,0.4)]">
+            <div className="py-8 px-6 border-t border-[rgba(167,139,250,0.4)]">
               <div className="text-center max-w-[520px] mx-auto space-y-4">
                 {hasMultipleReports && (
-                  <p className="text-[#a89a8a] text-sm">
+                  <p className="text-[#a29ab8] text-sm">
                     Report {currentIndex + 1} of {allReports!.length} complete
                   </p>
                 )}
                 {hasMultipleReports && currentIndex < allReports!.length - 1 ? (
                   <div className="space-y-3">
-                    <p className="text-[#f5efe6]">
-                      Ready to see <span className="font-semibold text-[#d4b67a]">{allReports![currentIndex + 1].petName}</span>'s cosmic secrets?
+                    <p className="text-[#f2eeff]">
+                      Ready to see <span className="font-semibold text-[#a78bfa]">{allReports![currentIndex + 1].petName}</span>'s cosmic secrets?
                     </p>
                     <Button onClick={onNextPet} variant="gold" size="xl" className="gap-2">
                       <span>View {allReports![currentIndex + 1].petName}'s Report</span>
@@ -1427,7 +1427,7 @@ export function CosmicReportViewer({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-[#f5efe6]">
+                    <p className="text-[#f2eeff]">
                       {hasMultipleReports
                         ? "You've viewed all your cosmic pet reports!"
                         : `${petName}'s cosmic journey is complete!`}
@@ -1462,11 +1462,11 @@ function SectionLabel({ icon, label }: { icon: string; label: string }) {
     <div className="mx-4 mt-6 mb-1 max-w-[520px] sm:mx-auto flex items-center gap-2.5">
       <span className="text-[1rem]">{icon}</span>
       <span
-        className="text-[0.7rem] font-bold tracking-[1.5px] uppercase text-[#a89a8a]"
+        className="text-[0.7rem] font-bold tracking-[1.5px] uppercase text-[#a29ab8]"
       >
         {label}
       </span>
-      <div className="flex-1 h-[1px] bg-[rgba(212,182,122,0.4)]" />
+      <div className="flex-1 h-[1px] bg-[rgba(167,139,250,0.4)]" />
     </div>
   );
 }
@@ -1494,7 +1494,7 @@ function SectionShareHint({ petName, section }: { petName: string; section: stri
     <div className="flex items-center justify-center gap-2 pt-2 pb-1">
       <button
         onClick={handleShare}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-medium text-[#a89a8a] hover:text-[#cfc1b1] hover:bg-[#201722] transition-all"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-medium text-[#a29ab8] hover:text-[#c7bfe0] hover:bg-[#1a1430] transition-all"
       >
         <Share2 className="w-3 h-3" />
         Share this section
@@ -1520,7 +1520,7 @@ function ShareButton({ petName, reportId }: { petName: string; reportId?: string
   };
 
   return (
-    <button onClick={handleShare} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[0.68rem] font-medium transition-all bg-[#201722] text-white hover:bg-[#2a1f1a]" title="Share this reading">
+    <button onClick={handleShare} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[0.68rem] font-medium transition-all bg-[#1a1430] text-white hover:bg-[#201a30]" title="Share this reading">
       {copied ? <Check className="w-3 h-3" /> : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>}
       <span className="hidden sm:inline">{copied ? 'Copied!' : 'Share'}</span>
     </button>
@@ -1567,7 +1567,7 @@ function ChapterProgressBar({ chapters: chapterList, petName, reportId }: { chap
       style={{
         background: 'rgba(13,10,20,0.92)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(212,182,122,0.15)',
+        borderBottom: '1px solid rgba(167,139,250,0.15)',
       }}
     >
       <div className="max-w-[600px] mx-auto px-3 py-2.5 flex items-center gap-1">
@@ -1580,17 +1580,17 @@ function ChapterProgressBar({ chapters: chapterList, petName, reportId }: { chap
               title={ch.title}
             >
               <span className={`text-[0.65rem] transition-all ${
-                i <= activeChapter ? 'text-[#d4b67a]' : 'text-[#d4b67a]/30'
+                i <= activeChapter ? 'text-[#a78bfa]' : 'text-[#a78bfa]/30'
               }`}>
                 {ch.icon}
               </span>
               <div
                 className={`w-full h-[3px] rounded-full transition-all duration-300 ${
                   i < activeChapter
-                    ? 'bg-[#d4b67a]'
+                    ? 'bg-[#a78bfa]'
                     : i === activeChapter
-                    ? 'bg-[#d4b67a]/70'
-                    : 'bg-[#d4b67a]/15'
+                    ? 'bg-[#a78bfa]/70'
+                    : 'bg-[#a78bfa]/15'
                 }`}
               />
             </button>
@@ -1608,7 +1608,7 @@ function ChapterProgressBar({ chapters: chapterList, petName, reportId }: { chap
 function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
   const s = useScrollReveal();
   const isDark = [7].includes(chapter.number);
-  const subtitleColor = isDark ? `${chapter.accent}aa` : '#a89a8a';
+  const subtitleColor = isDark ? `${chapter.accent}aa` : '#a29ab8';
 
   return (
     <motion.div
@@ -1705,9 +1705,9 @@ function TableOfContents() {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(212,182,122,0.4)] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(167,139,250,0.4)] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#d4b67a] mb-3 text-center">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#a78bfa] mb-3 text-center">
         Your Cosmic Journey
       </div>
       <div className="space-y-1">
@@ -1715,20 +1715,20 @@ function TableOfContents() {
           <button
             key={ch.number}
             onClick={() => handleClick(ch.number)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#201722] transition-colors text-left group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#1a1430] transition-colors text-left group"
           >
-            <span className="w-8 h-8 rounded-lg bg-[#201722] group-hover:bg-[rgba(21,16,28,0.8)] flex items-center justify-center text-[0.9rem] flex-shrink-0 border border-[rgba(212,182,122,0.4)]/50">
+            <span className="w-8 h-8 rounded-lg bg-[#1a1430] group-hover:bg-[rgba(21,16,28,0.8)] flex items-center justify-center text-[0.9rem] flex-shrink-0 border border-[rgba(167,139,250,0.4)]/50">
               {ch.icon}
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-[0.65rem] text-[#d4b67a] font-semibold tracking-[1px] uppercase">
+              <div className="text-[0.65rem] text-[#a78bfa] font-semibold tracking-[1px] uppercase">
                 Chapter {ch.number}
               </div>
-              <div className="text-[0.88rem] text-[#f5efe6] font-medium truncate" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+              <div className="text-[0.88rem] text-[#f2eeff] font-medium truncate" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                 {ch.title}
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-[#d4b67a]/40 group-hover:text-[#d4b67a] transition-colors flex-shrink-0" />
+            <ChevronRight className="w-4 h-4 text-[#a78bfa]/40 group-hover:text-[#a78bfa] transition-colors flex-shrink-0" />
           </button>
         ))}
       </div>
@@ -1772,27 +1772,27 @@ function PetMonologue({
       initial="hidden"
       animate={intro.isInView ? 'visible' : 'hidden'}
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
-      className="mx-4 my-3 max-w-[520px] sm:mx-auto rounded-[18px] overflow-hidden bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]"
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto rounded-[18px] overflow-hidden bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)]"
       style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
       {/* Header */}
       <div
         className="px-6 pt-7 pb-5 sm:px-8 text-center"
-        style={{ background: 'linear-gradient(170deg, #201722 0%, #201722 100%)' }}
+        style={{ background: 'linear-gradient(170deg, #1a1430 0%, #1a1430 100%)' }}
       >
         <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(212,182,122,0.4))' }} />
-          <span className="text-[#d4b67a]/50 text-[0.5rem]">✦</span>
-          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(212,182,122,0.4))' }} />
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(167,139,250,0.4))' }} />
+          <span className="text-[#a78bfa]/50 text-[0.5rem]">✦</span>
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(167,139,250,0.4))' }} />
         </div>
         <p
-          className="text-[1.15rem] text-[#f5efe6] leading-[1.5] mb-1"
+          className="text-[1.15rem] text-[#f2eeff] leading-[1.5] mb-1"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
           If {petName} could speak to you
         </p>
         <p
-          className="text-[0.92rem] text-[#a89a8a] italic leading-[1.6]"
+          className="text-[0.92rem] text-[#a29ab8] italic leading-[1.6]"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
           just once, in words you could understand&hellip;
@@ -1801,11 +1801,11 @@ function PetMonologue({
 
       {/* Divider */}
       <div className="flex items-center justify-center gap-3 py-1 px-6"
-        style={{ background: 'linear-gradient(90deg, transparent 5%, rgba(212,182,122,0.06) 50%, transparent 95%)' }}
+        style={{ background: 'linear-gradient(90deg, transparent 5%, rgba(167,139,250,0.06) 50%, transparent 95%)' }}
       >
-        <div className="w-10 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #d4b67a)' }} />
-        <span className="text-[#d4b67a]/40 text-[0.5rem]">&ldquo;</span>
-        <div className="w-10 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #d4b67a)' }} />
+        <div className="w-10 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #a78bfa)' }} />
+        <span className="text-[#a78bfa]/40 text-[0.5rem]">&ldquo;</span>
+        <div className="w-10 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #a78bfa)' }} />
       </div>
 
       {/* Monologue body */}
@@ -1818,7 +1818,7 @@ function PetMonologue({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-20px' }}
               transition={{ duration: 0.6, delay: i * 0.04, ease: 'easeOut' }}
-              className="text-[0.92rem] sm:text-[0.96rem] text-[#cfc1b1] leading-[2] italic"
+              className="text-[0.92rem] sm:text-[0.96rem] text-[#c7bfe0] leading-[2] italic"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
             >
               {para}
@@ -1828,21 +1828,21 @@ function PetMonologue({
 
         {/* Attribution */}
         <div className="flex items-center justify-center gap-3 mt-6 mb-2">
-          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(212,182,122,0.3))' }} />
-          <span className="text-[#d4b67a]/40 text-[0.5rem]">&rdquo;</span>
-          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(212,182,122,0.3))' }} />
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(167,139,250,0.3))' }} />
+          <span className="text-[#a78bfa]/40 text-[0.5rem]">&rdquo;</span>
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(167,139,250,0.3))' }} />
         </div>
         <div className="text-center">
-          <div className="text-[0.85rem] text-[#d4b67a] font-bold">
+          <div className="text-[0.85rem] text-[#a78bfa] font-bold">
             — {petName} {signIcon}
           </div>
-          <div className="text-[0.65rem] text-[#a89a8a] mt-0.5">{sunSign}</div>
+          <div className="text-[0.65rem] text-[#a29ab8] mt-0.5">{sunSign}</div>
         </div>
 
         {/* Post script */}
         {monologue.postScript && (
-          <div className="mt-5 p-4 rounded-[12px] bg-[#201722] border-l-[3px] border-[#d4b67a]">
-            <p className="text-[0.82rem] text-[#cfc1b1] italic leading-[1.7]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+          <div className="mt-5 p-4 rounded-[12px] bg-[#1a1430] border-l-[3px] border-[#a78bfa]">
+            <p className="text-[0.82rem] text-[#c7bfe0] italic leading-[1.7]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
               P.S. {monologue.postScript}
             </p>
           </div>
@@ -1877,18 +1877,18 @@ function VillainOriginStory({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)]"
       style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
       {/* Header */}
       <div
         className="px-6 pt-5 pb-4 sm:px-7"
-        style={{ background: 'linear-gradient(170deg, #201722 0%, #201722 100%)', borderBottom: '1px solid rgba(212,182,122,0.4)' }}
+        style={{ background: 'linear-gradient(170deg, #1a1430 0%, #1a1430 100%)', borderBottom: '1px solid rgba(167,139,250,0.4)' }}
       >
-        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a] mb-1">
+        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa] mb-1">
           Villain Origin Story
         </div>
-        <h3 className="text-[1.15rem] text-[#f5efe6]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h3 className="text-[1.15rem] text-[#f2eeff]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
           {petName}&rsquo;s Descent into Chaos
         </h3>
       </div>
@@ -1899,11 +1899,11 @@ function VillainOriginStory({
           <div key={sec.label}>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-[0.85rem]">{sec.icon}</span>
-              <span className="text-[0.58rem] font-bold text-[#d4b67a] uppercase tracking-[1.5px]">
+              <span className="text-[0.58rem] font-bold text-[#a78bfa] uppercase tracking-[1.5px]">
                 {sec.label}
               </span>
             </div>
-            <p className="text-[0.86rem] text-[#cfc1b1] leading-[1.75]"
+            <p className="text-[0.86rem] text-[#c7bfe0] leading-[1.75]"
                dangerouslySetInnerHTML={{ __html: safeHtml((sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ')) }}
             />
           </div>
@@ -1940,13 +1940,13 @@ function QuirkDecoder({
       <div
         className="rounded-[16px] overflow-hidden"
         style={{
-          background: '#201722',
-          border: '1px solid rgba(212,182,122,0.3)',
+          background: '#1a1430',
+          border: '1px solid rgba(167,139,250,0.3)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         }}
       >
         {/* Case file header */}
-        <div className="px-5 pt-5 pb-3 border-b border-[rgba(212,182,122,0.3)]">
+        <div className="px-5 pt-5 pb-3 border-b border-[rgba(167,139,250,0.3)]">
           <div
             className="inline-block text-[0.6rem] font-black tracking-[3px] uppercase px-3 py-1.5 mb-2"
             style={{
@@ -1958,7 +1958,7 @@ function QuirkDecoder({
           >
             CASE FILE
           </div>
-          <h3 className="font-dm-serif text-[1.05rem] text-[#f5efe6]">
+          <h3 className="font-dm-serif text-[1.05rem] text-[#f2eeff]">
             Why {petName} Does That
           </h3>
         </div>
@@ -1972,30 +1972,30 @@ function QuirkDecoder({
               style={{
                 transform: `rotate(${i % 2 === 0 ? '-1' : '1'}deg)`,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
-                border: '1px solid rgba(212,182,122,0.25)',
+                border: '1px solid rgba(167,139,250,0.25)',
               }}
             >
-              <div className="text-[0.56rem] font-bold tracking-[1.5px] uppercase text-[#d4b67a] mb-1">
+              <div className="text-[0.56rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-1">
                 Evidence #{i + 1}
               </div>
-              <h4 className="font-dm-serif text-[0.95rem] text-[#f5efe6] mb-3">
+              <h4 className="font-dm-serif text-[0.95rem] text-[#f2eeff] mb-3">
                 {quirk.behavior}
               </h4>
               <div className="space-y-2.5">
                 <div>
-                  <span className="text-[0.64rem] font-bold text-[#d4b67a] uppercase tracking-[1px]">
+                  <span className="text-[0.64rem] font-bold text-[#a78bfa] uppercase tracking-[1px]">
                     🔍 Cosmic Explanation
                   </span>
-                  <p className="text-[0.8rem] text-[#cfc1b1] leading-[1.6] mt-0.5">{quirk.cosmicExplanation}</p>
+                  <p className="text-[0.8rem] text-[#c7bfe0] leading-[1.6] mt-0.5">{quirk.cosmicExplanation}</p>
                 </div>
                 <div
                   className="pt-2 mt-2"
-                  style={{ borderTop: '1px dashed rgba(212,182,122,0.3)' }}
+                  style={{ borderTop: '1px dashed rgba(167,139,250,0.3)' }}
                 >
-                  <span className="text-[0.64rem] font-bold text-[#a89a8a] uppercase tracking-[1px]">
+                  <span className="text-[0.64rem] font-bold text-[#a29ab8] uppercase tracking-[1px]">
                     🕵️ Detective's Conclusion
                   </span>
-                  <p className="text-[0.8rem] text-[#cfc1b1] leading-[1.6] mt-0.5 italic">{quirk.whatItReallyMeans}</p>
+                  <p className="text-[0.8rem] text-[#c7bfe0] leading-[1.6] mt-0.5 italic">{quirk.whatItReallyMeans}</p>
                 </div>
               </div>
             </div>
@@ -2029,15 +2029,15 @@ function AccuracyPredictions({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(212,182,122,0.4)] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(167,139,250,0.4)] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#d4b67a] mb-1">
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#a78bfa] mb-1">
         🎯 Accuracy Check
       </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#f5efe6] mb-1">
+      <h3 className="font-dm-serif text-[1.05rem] text-[#f2eeff] mb-1">
         Did We Get It Right?
       </h3>
-      <p className="text-[0.75rem] text-[#a89a8a] mb-3.5">
+      <p className="text-[0.75rem] text-[#a29ab8] mb-3.5">
         Tap the ones that ring true — {checkedCount}/{accuracyMoments.predictions.length} confirmed
       </p>
 
@@ -2049,14 +2049,14 @@ function AccuracyPredictions({
             className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all ${
               checked[i]
                 ? 'bg-[#f0fdf4] border-green-200'
-                : 'bg-[#201722] border-[rgba(212,182,122,0.4)] hover:border-[#d4b67a]/40'
+                : 'bg-[#1a1430] border-[rgba(167,139,250,0.4)] hover:border-[#a78bfa]/40'
             }`}
           >
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
                 checked[i]
                   ? 'bg-green-500 text-white'
-                  : 'border-2 border-[#d4b67a]/30'
+                  : 'border-2 border-[#a78bfa]/30'
               }`}
             >
               {checked[i] && (
@@ -2065,7 +2065,7 @@ function AccuracyPredictions({
                 </svg>
               )}
             </div>
-            <span className={`text-[0.82rem] leading-[1.5] ${checked[i] ? 'text-green-700' : 'text-[#cfc1b1]'}`}>
+            <span className={`text-[0.82rem] leading-[1.5] ${checked[i] ? 'text-green-700' : 'text-[#c7bfe0]'}`}>
               {prediction}
             </span>
           </button>
@@ -2073,7 +2073,7 @@ function AccuracyPredictions({
       </div>
 
       {accuracyMoments.callToAction && (
-        <p className="text-[0.78rem] text-[#a89a8a] italic mt-3.5 text-center">
+        <p className="text-[0.78rem] text-[#a29ab8] italic mt-3.5 text-center">
           {accuracyMoments.callToAction}
         </p>
       )}
@@ -2102,25 +2102,25 @@ function BasedOnYourAnswers({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(212,182,122,0.4)] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(167,139,250,0.4)] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#d4b67a] mb-1">
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#a78bfa] mb-1">
         📝 {data.title}
       </div>
-      <p className="text-[0.82rem] text-[#cfc1b1] mb-3">{data.intro}</p>
+      <p className="text-[0.82rem] text-[#c7bfe0] mb-3">{data.intro}</p>
 
       <div className="space-y-2.5">
         {data.mappings.map((m, i) => (
-          <div key={i} className="p-3 rounded-xl bg-[#201722] border border-[rgba(212,182,122,0.4)]/50">
-            <div className="text-[0.72rem] font-semibold text-[#f5efe6]">{m.question}</div>
-            <div className="text-[0.72rem] text-[#d4b67a] mt-0.5">You said: {m.yourAnswer}</div>
-            <div className="text-[0.72rem] text-[#a89a8a] mt-0.5">{m.usedFor}</div>
+          <div key={i} className="p-3 rounded-xl bg-[#1a1430] border border-[rgba(167,139,250,0.4)]/50">
+            <div className="text-[0.72rem] font-semibold text-[#f2eeff]">{m.question}</div>
+            <div className="text-[0.72rem] text-[#a78bfa] mt-0.5">You said: {m.yourAnswer}</div>
+            <div className="text-[0.72rem] text-[#a29ab8] mt-0.5">{m.usedFor}</div>
           </div>
         ))}
       </div>
 
       {data.accuracyNote && (
-        <p className="text-[0.72rem] text-[#a89a8a] italic mt-3 text-center">{data.accuracyNote}</p>
+        <p className="text-[0.72rem] text-[#a29ab8] italic mt-3 text-center">{data.accuracyNote}</p>
       )}
     </motion.div>
   );
@@ -2152,19 +2152,19 @@ function FunExtrasCard({
       variants={s.variants}
       className="mx-4 my-2.5 p-6 rounded-[18px] max-w-[520px] sm:mx-auto"
       style={{
-        background: 'linear-gradient(135deg, #201722, #201722)',
-        border: '1px solid rgba(212,182,122,0.15)',
+        background: 'linear-gradient(135deg, #1a1430, #1a1430)',
+        border: '1px solid rgba(167,139,250,0.15)',
         boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
       }}
     >
-      <div className="text-[0.56rem] font-bold text-[#d4b67a] uppercase tracking-[2px] mb-1">
+      <div className="text-[0.56rem] font-bold text-[#a78bfa] uppercase tracking-[2px] mb-1">
         {icon} {label}
       </div>
-      <div className="text-[1.15rem] text-[#f5efe6] mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+      <div className="text-[1.15rem] text-[#f2eeff] mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
         {title}
       </div>
       {description && (
-        <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.7] mt-1"
+        <p className="text-[0.84rem] text-[#c7bfe0] leading-[1.7] mt-1"
            dangerouslySetInnerHTML={{ __html: safeHtml((description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ')) }}
         />
       )}
@@ -2196,13 +2196,13 @@ function MemePersonalityCard({
       <div
         className="rounded-[16px] overflow-hidden"
         style={{
-          background: '#201722',
-          border: '1px solid rgba(212,182,122,0.25)',
+          background: '#1a1430',
+          border: '1px solid rgba(167,139,250,0.25)',
           boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
         }}
       >
         {/* Top bar — profile row */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[rgba(212,182,122,0.18)]">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[rgba(167,139,250,0.18)]">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #fce4ec, #f3e5f5)' }}
@@ -2210,7 +2210,7 @@ function MemePersonalityCard({
             😼
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-[0.88rem] text-[#f5efe6]">Internet Personality</span>
+            <span className="font-semibold text-[0.88rem] text-[#f2eeff]">Internet Personality</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="#1d9bf0" className="flex-shrink-0">
               <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
             </svg>
@@ -2219,11 +2219,11 @@ function MemePersonalityCard({
 
         {/* Post content */}
         <div className="px-4 py-4">
-          <p className="text-[1.05rem] font-bold text-[#f5efe6] leading-snug mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+          <p className="text-[1.05rem] font-bold text-[#f2eeff] leading-snug mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
             {type}
           </p>
           <p
-            className="text-[0.84rem] text-[#cfc1b1] leading-[1.7]"
+            className="text-[0.84rem] text-[#c7bfe0] leading-[1.7]"
             dangerouslySetInnerHTML={{ __html: safeHtml((description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ')) }}
           />
         </div>
@@ -2258,7 +2258,7 @@ function DreamJobCard({
       <div
         className="rounded-[16px] overflow-hidden relative"
         style={{
-          border: '1px solid rgba(212,182,122,0.25)',
+          border: '1px solid rgba(167,139,250,0.25)',
           boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
         }}
       >
@@ -2301,18 +2301,18 @@ function DreamJobCard({
 
           {/* Job Description */}
           <div className="mb-4">
-            <div className="text-[0.6rem] font-bold tracking-[1.5px] uppercase text-[#a89a8a] mb-1.5">
+            <div className="text-[0.6rem] font-bold tracking-[1.5px] uppercase text-[#a29ab8] mb-1.5">
               Job Description
             </div>
             <p
-              className="text-[0.84rem] text-[#cfc1b1] leading-[1.7] relative z-10"
+              className="text-[0.84rem] text-[#c7bfe0] leading-[1.7] relative z-10"
               dangerouslySetInnerHTML={{ __html: safeHtml((description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ')) }}
             />
           </div>
 
           {/* Compensation */}
           <div>
-            <div className="text-[0.6rem] font-bold tracking-[1.5px] uppercase text-[#a89a8a] mb-1.5">
+            <div className="text-[0.6rem] font-bold tracking-[1.5px] uppercase text-[#a29ab8] mb-1.5">
               Compensation
             </div>
             <span
@@ -2344,18 +2344,18 @@ function CrimesSection({ crimes }: { crimes: string[] }) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)]"
       style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
       {/* Header */}
       <div
         className="px-6 pt-5 pb-4 sm:px-7"
-        style={{ background: 'linear-gradient(170deg, #201722 0%, #201722 100%)', borderBottom: '1px solid rgba(212,182,122,0.4)' }}
+        style={{ background: 'linear-gradient(170deg, #1a1430 0%, #1a1430 100%)', borderBottom: '1px solid rgba(167,139,250,0.4)' }}
       >
-        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a] mb-1">
+        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa] mb-1">
           Criminal Record
         </div>
-        <h3 className="text-[1.15rem] text-[#f5efe6]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+        <h3 className="text-[1.15rem] text-[#f2eeff]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
           Top 5 Crimes
         </h3>
       </div>
@@ -2369,25 +2369,25 @@ function CrimesSection({ crimes }: { crimes: string[] }) {
               key={i}
               className="flex gap-3.5 items-start py-3.5"
               style={{
-                background: isEven ? 'transparent' : '#201722',
+                background: isEven ? 'transparent' : '#1a1430',
                 marginLeft: '-1.5rem',
                 marginRight: '-1.5rem',
                 paddingLeft: '1.5rem',
                 paddingRight: '1.5rem',
-                borderBottom: i < crimes.length - 1 ? '1px solid rgba(212,182,122,0.25)' : 'none',
+                borderBottom: i < crimes.length - 1 ? '1px solid rgba(167,139,250,0.25)' : 'none',
               }}
             >
               <span
                 className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[0.72rem] font-bold mt-0.5"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(212,182,122,0.15), rgba(212,182,122,0.08))',
-                  border: '1px solid rgba(212,182,122,0.2)',
-                  color: '#d4b67a',
+                  background: 'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(167,139,250,0.08))',
+                  border: '1px solid rgba(167,139,250,0.2)',
+                  color: '#a78bfa',
                 }}
               >
                 {i + 1}
               </span>
-              <p className="text-[0.86rem] text-[#cfc1b1] leading-[1.7]"
+              <p className="text-[0.86rem] text-[#c7bfe0] leading-[1.7]"
                  dangerouslySetInnerHTML={{ __html: safeHtml((crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ')) }}
               />
             </div>
@@ -2428,7 +2428,7 @@ function HeroSection({
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(212,182,122,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(167,139,250,0.08) 0%, transparent 70%)',
         }}
       />
 
@@ -2439,7 +2439,7 @@ function HeroSection({
           animate={{ scaleX: 1 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="w-16 h-[1px] mx-auto mb-8"
-          style={{ background: 'linear-gradient(90deg, transparent, #d4b67a, transparent)', transformOrigin: 'center' }}
+          style={{ background: 'linear-gradient(90deg, transparent, #a78bfa, transparent)', transformOrigin: 'center' }}
         />
 
         {/* Zodiac circle / portrait with breathing glow */}
@@ -2455,7 +2455,7 @@ function HeroSection({
             className="absolute rounded-full"
             style={{
               inset: '-24px',
-              background: 'radial-gradient(circle, rgba(212,182,122,0.15) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)',
               animation: 'hero-glow 3.5s ease-in-out infinite',
             }}
           />
@@ -2464,7 +2464,7 @@ function HeroSection({
             className="absolute rounded-full"
             style={{
               inset: '-12px',
-              background: 'radial-gradient(circle, rgba(212,182,122,0.10) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(167,139,250,0.10) 0%, transparent 70%)',
               animation: 'hero-glow 3.5s ease-in-out infinite 0.5s',
             }}
           />
@@ -2476,8 +2476,8 @@ function HeroSection({
                 alt={petName}
                 className="w-full h-full object-cover rounded-full relative z-[1]"
                 style={{
-                  border: '3px solid rgba(212,182,122,0.6)',
-                  boxShadow: '0 0 50px rgba(212,182,122,0.2), 0 8px 32px rgba(0,0,0,0.1)',
+                  border: '3px solid rgba(167,139,250,0.6)',
+                  boxShadow: '0 0 50px rgba(167,139,250,0.2), 0 8px 32px rgba(0,0,0,0.1)',
                 }}
               />
               <motion.div
@@ -2487,7 +2487,7 @@ function HeroSection({
                 className="absolute -bottom-1.5 -right-1.5 w-11 h-11 rounded-full bg-[rgba(21,16,28,0.8)] flex items-center justify-center z-[2]"
                 style={{
                   boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-                  border: '2px solid rgba(212,182,122,0.3)',
+                  border: '2px solid rgba(167,139,250,0.3)',
                 }}
               >
                 <span className="text-[1.3rem]">{signIcon}</span>
@@ -2497,9 +2497,9 @@ function HeroSection({
             <div
               className="w-full h-full rounded-full flex items-center justify-center text-[4.5rem] relative z-[1]"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,182,122,0.15), rgba(212,182,122,0.03))',
-                border: '2px solid rgba(212,182,122,0.25)',
-                boxShadow: '0 0 60px rgba(212,182,122,0.12), inset 0 0 30px rgba(212,182,122,0.05)',
+                background: 'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(167,139,250,0.03))',
+                border: '2px solid rgba(167,139,250,0.25)',
+                boxShadow: '0 0 60px rgba(167,139,250,0.12), inset 0 0 30px rgba(167,139,250,0.05)',
               }}
             >
               {signIcon}
@@ -2512,7 +2512,7 @@ function HeroSection({
           initial={{ opacity: 0, y: 12, letterSpacing: '1px' }}
           animate={{ opacity: 1, y: 0, letterSpacing: '2.5px' }}
           transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
-          className="text-[0.58rem] font-bold uppercase text-[#d4b67a] mb-2"
+          className="text-[0.58rem] font-bold uppercase text-[#a78bfa] mb-2"
         >
           {archetype}
         </motion.div>
@@ -2522,7 +2522,7 @@ function HeroSection({
           initial={{ opacity: 0, y: 28, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="font-dm-serif text-[3rem] sm:text-[3.4rem] text-[#f5efe6] leading-[1.05] mb-1.5"
+          className="font-dm-serif text-[3rem] sm:text-[3.4rem] text-[#f2eeff] leading-[1.05] mb-1.5"
         >
           {petName}
         </motion.h1>
@@ -2533,7 +2533,7 @@ function HeroSection({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.7 }}
-            className="text-[0.88rem] text-[#a89a8a] italic leading-[1.6] max-w-[340px] mx-auto mb-5"
+            className="text-[0.88rem] text-[#a29ab8] italic leading-[1.6] max-w-[340px] mx-auto mb-5"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
             {archetypeDesc}
@@ -2559,10 +2559,10 @@ function HeroSection({
                 hidden: { opacity: 0, y: 8, scale: 0.9 },
                 visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
               }}
-              className="px-3.5 py-1.5 rounded-full text-[#cfc1b1] font-medium"
+              className="px-3.5 py-1.5 rounded-full text-[#c7bfe0] font-medium"
               style={{
                 background: 'rgba(255,255,255,0.8)',
-                border: '1px solid rgba(212,182,122,0.2)',
+                border: '1px solid rgba(167,139,250,0.2)',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                 backdropFilter: 'blur(4px)',
               }}
@@ -2580,9 +2580,9 @@ function HeroSection({
           className="flex items-center justify-center gap-3 mt-8"
           style={{ transformOrigin: 'center' }}
         >
-          <div className="w-10 h-[1px] bg-[#d4b67a]/30" />
-          <span className="text-[#d4b67a]/40 text-[0.6rem]">✦</span>
-          <div className="w-10 h-[1px] bg-[#d4b67a]/30" />
+          <div className="w-10 h-[1px] bg-[#a78bfa]/30" />
+          <span className="text-[#a78bfa]/40 text-[0.6rem]">✦</span>
+          <div className="w-10 h-[1px] bg-[#a78bfa]/30" />
         </motion.div>
       </div>
 
@@ -2603,7 +2603,7 @@ function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyEleme
   const s = useScrollReveal();
 
   const items = [
-    { label: 'Lucky Number', value: luckyElements.luckyNumber, icon: '#\uFE0F\u20E3', bg: 'rgba(212,182,122,0.07)' },
+    { label: 'Lucky Number', value: luckyElements.luckyNumber, icon: '#\uFE0F\u20E3', bg: 'rgba(167,139,250,0.07)' },
     { label: 'Lucky Day', value: luckyElements.luckyDay, icon: '\uD83D\uDCC5', bg: 'rgba(147,130,210,0.07)' },
     { label: 'Lucky Colour', value: luckyElements.luckyColor, icon: '\uD83C\uDFA8', bg: 'rgba(210,150,130,0.07)' },
     { label: 'Power Time', value: luckyElements.powerTime, icon: '\uD83D\uDD70\uFE0F', bg: 'rgba(130,180,160,0.07)' },
@@ -2620,7 +2620,7 @@ function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyEleme
       {/* Section header */}
       <div className="flex items-center gap-2 mb-3 px-1">
         <span className="text-[0.9rem]">{'\u2728'}</span>
-        <span className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
+        <span className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
           Lucky Elements
         </span>
       </div>
@@ -2638,11 +2638,11 @@ function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyEleme
           >
             <div className="flex items-center justify-center gap-1.5 mb-1">
               <span className="text-[0.7rem]">{item.icon}</span>
-              <div className="text-[0.54rem] font-bold tracking-[1.5px] uppercase text-[#a89a8a]">
+              <div className="text-[0.54rem] font-bold tracking-[1.5px] uppercase text-[#a29ab8]">
                 {item.label}
               </div>
             </div>
-            <div className="font-dm-serif text-[1.1rem] text-[#f5efe6]">{item.value}</div>
+            <div className="font-dm-serif text-[1.1rem] text-[#f2eeff]">{item.value}</div>
           </div>
         ))}
       </div>
@@ -2664,20 +2664,20 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
       className="mx-4 my-3 max-w-[520px] sm:mx-auto"
     >
       <div
-        className="rounded-[18px] overflow-hidden bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]"
+        className="rounded-[18px] overflow-hidden bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)]"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
       >
         {/* Warm-tinted header */}
         <div
           className="px-6 pt-7 pb-5 sm:px-8 text-center"
-          style={{ background: 'linear-gradient(170deg, #201722 0%, #201722 100%)' }}
+          style={{ background: 'linear-gradient(170deg, #1a1430 0%, #1a1430 100%)' }}
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(212,182,122,0.4))' }} />
-            <span className="text-[#d4b67a]/50 text-[0.5rem]">✦</span>
-            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(212,182,122,0.4))' }} />
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(167,139,250,0.4))' }} />
+            <span className="text-[#a78bfa]/50 text-[0.5rem]">✦</span>
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(167,139,250,0.4))' }} />
           </div>
-          <div className="text-[0.5rem] font-bold tracking-[3px] uppercase text-[#d4b67a] mb-1">
+          <div className="text-[0.5rem] font-bold tracking-[3px] uppercase text-[#a78bfa] mb-1">
             Prologue
           </div>
         </div>
@@ -2685,14 +2685,14 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
         {/* Content — drop-cap on the first letter sets editorial rhythm */}
         <div className="px-6 py-6 sm:px-8 text-left">
           <p
-            className="text-[1rem] sm:text-[1.05rem] text-[#cfc1b1] leading-[2.1] first-letter:float-left first-letter:font-serif first-letter:text-[3.5rem] first-letter:leading-[0.9] first-letter:pr-2 first-letter:pt-1 first-letter:text-[#d4b67a]"
+            className="text-[1rem] sm:text-[1.05rem] text-[#c7bfe0] leading-[2.1] first-letter:float-left first-letter:font-serif first-letter:text-[3.5rem] first-letter:leading-[0.9] first-letter:pr-2 first-letter:pt-1 first-letter:text-[#a78bfa]"
             style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic' }}
             dangerouslySetInnerHTML={{ __html: safeHtml(prologue.replace(/\n\n/g, '<br /><br />')) }}
           />
           <div className="flex items-center justify-center gap-3 mt-6">
-            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(212,182,122,0.3))' }} />
-            <span className="text-[#d4b67a]/40 text-[0.5rem]">✦</span>
-            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(212,182,122,0.3))' }} />
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(167,139,250,0.3))' }} />
+            <span className="text-[#a78bfa]/40 text-[0.5rem]">✦</span>
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(167,139,250,0.3))' }} />
           </div>
         </div>
       </div>
@@ -2722,7 +2722,7 @@ function LuminousFieldCard({ title, content, howToSense }: { title: string; cont
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-3 max-w-[520px] sm:mx-auto bg-[rgba(21,16,28,0.8)] rounded-[18px] border border-[rgba(212,182,122,0.4)]"
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto bg-[rgba(21,16,28,0.8)] rounded-[18px] border border-[rgba(167,139,250,0.4)]"
       style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
       <div className="p-6 sm:p-7">
@@ -2732,16 +2732,16 @@ function LuminousFieldCard({ title, content, howToSense }: { title: string; cont
             ✨
           </div>
           <div>
-            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
+            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
               Luminous Field
             </div>
-            <h3 className="text-[1.1rem] text-[#f5efe6] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</h3>
+            <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</h3>
           </div>
         </div>
 
         {/* Content */}
         <div
-          className="text-[0.86rem] leading-[1.85] text-[#cfc1b1]"
+          className="text-[0.86rem] leading-[1.85] text-[#c7bfe0]"
           dangerouslySetInnerHTML={{ __html: safeHtml(formatSectionContent(content)) }}
         />
 
@@ -2752,9 +2752,9 @@ function LuminousFieldCard({ title, content, howToSense }: { title: string; cont
               onClick={() => setShowTip(!showTip)}
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[0.68rem] font-semibold transition-all hover:scale-105 uppercase tracking-[1.5px]"
               style={{
-                background: showTip ? 'rgba(212,182,122,0.12)' : 'rgba(212,182,122,0.06)',
-                border: '1px solid rgba(212,182,122,0.2)',
-                color: '#d4b67a',
+                background: showTip ? 'rgba(167,139,250,0.12)' : 'rgba(167,139,250,0.06)',
+                border: '1px solid rgba(167,139,250,0.2)',
+                color: '#a78bfa',
               }}
             >
               <span className="text-[0.75rem]">👁️</span>
@@ -2770,8 +2770,8 @@ function LuminousFieldCard({ title, content, howToSense }: { title: string; cont
                   transition={{ duration: 0.2 }}
                   style={{ overflow: 'hidden' }}
                 >
-                  <div className="mt-3 pl-4 border-l-2 border-[#d4b67a]/30">
-                    <p className="text-[0.82rem] text-[#a89a8a] leading-[1.6] italic"
+                  <div className="mt-3 pl-4 border-l-2 border-[#a78bfa]/30">
+                    <p className="text-[0.82rem] text-[#a29ab8] leading-[1.6] italic"
                       style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
                       {howToSense}
                     </p>
@@ -2798,7 +2798,7 @@ function CelestialChoreographyCard({ title, content, funFact }: { title: string;
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-3 max-w-[520px] sm:mx-auto bg-[rgba(21,16,28,0.8)] rounded-[18px] border border-[rgba(212,182,122,0.4)]"
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto bg-[rgba(21,16,28,0.8)] rounded-[18px] border border-[rgba(167,139,250,0.4)]"
       style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
       <div className="p-6 sm:p-7">
@@ -2808,22 +2808,22 @@ function CelestialChoreographyCard({ title, content, funFact }: { title: string;
             ✶
           </div>
           <div>
-            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#d4b67a]">
+            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
               Celestial Choreography
             </div>
-            <h3 className="text-[1.1rem] text-[#f5efe6] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</h3>
+            <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</h3>
           </div>
         </div>
 
         {/* Content */}
         <div
-          className="text-[0.86rem] leading-[1.85] text-[#cfc1b1]"
+          className="text-[0.86rem] leading-[1.85] text-[#c7bfe0]"
           dangerouslySetInnerHTML={{ __html: safeHtml(formatSectionContent(content)) }}
         />
 
         {/* Fun fact */}
         {funFact && (
-          <p className="mt-5 text-[0.78rem] text-[#a89a8a] italic leading-[1.6] pl-4 border-l-2 border-[#d4b67a]/30"
+          <p className="mt-5 text-[0.78rem] text-[#a29ab8] italic leading-[1.6] pl-4 border-l-2 border-[#a78bfa]/30"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
             {funFact}
@@ -2848,31 +2848,31 @@ function MidReadingTransition({ petName }: { petName: string }) {
       className="text-center py-12 px-8 max-w-[520px] mx-auto"
     >
       <div className="flex items-center justify-center gap-3 mb-6">
-        <div className="w-12 h-[1px] bg-[#d4b67a]/30" />
-        <span className="text-[#d4b67a]/50 text-[0.7rem]">✦</span>
-        <div className="w-12 h-[1px] bg-[#d4b67a]/30" />
+        <div className="w-12 h-[1px] bg-[#a78bfa]/30" />
+        <span className="text-[#a78bfa]/50 text-[0.7rem]">✦</span>
+        <div className="w-12 h-[1px] bg-[#a78bfa]/30" />
       </div>
 
-      <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#d4b67a] mb-3">
+      <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#a78bfa] mb-3">
         Going Deeper
       </div>
       <h2
-        className="text-[1.6rem] sm:text-[1.8rem] text-[#f5efe6] leading-[1.2] mb-3"
+        className="text-[1.6rem] sm:text-[1.8rem] text-[#f2eeff] leading-[1.2] mb-3"
         style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
       >
         The Hidden Layers of {petName}&rsquo;s Soul
       </h2>
       <p
-        className="text-[0.95rem] text-[#a89a8a] leading-[1.8] max-w-[360px] mx-auto"
+        className="text-[0.95rem] text-[#a29ab8] leading-[1.8] max-w-[360px] mx-auto"
         style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic' }}
       >
         The outer planets, karmic points, and soul contracts reveal what lies beneath the surface.
       </p>
 
       <div className="flex items-center justify-center gap-3 mt-6">
-        <div className="w-12 h-[1px] bg-[#d4b67a]/30" />
-        <span className="text-[#d4b67a]/50 text-[0.7rem]">✦</span>
-        <div className="w-12 h-[1px] bg-[#d4b67a]/30" />
+        <div className="w-12 h-[1px] bg-[#a78bfa]/30" />
+        <span className="text-[#a78bfa]/50 text-[0.7rem]">✦</span>
+        <div className="w-12 h-[1px] bg-[#a78bfa]/30" />
       </div>
     </motion.div>
   );
@@ -2894,18 +2894,18 @@ function CosmicNickname({ nickname }: { nickname: { nickname: string; explanatio
     >
       <div
         className="p-6 rounded-[14px] relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, rgba(212,182,122,0.08) 0%, rgba(21,16,28,0.85) 50%, rgba(212,182,122,0.06) 100%)' }}
+        style={{ background: 'linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(21,16,28,0.85) 50%, rgba(167,139,250,0.06) 100%)' }}
       >
-        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#d4b67a] mb-1">
+        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#a78bfa] mb-1">
           Cosmic Nickname
         </div>
         <div
-          className="text-[1.4rem] text-[#f5efe6] mb-2"
+          className="text-[1.4rem] text-[#f2eeff] mb-2"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
           &ldquo;{nickname.nickname}&rdquo;
         </div>
-        <p className="text-[0.82rem] text-[#cfc1b1] leading-[1.65] max-w-md mx-auto">
+        <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.65] max-w-md mx-auto">
           {nickname.explanation}
         </p>
       </div>
@@ -2925,15 +2925,15 @@ function FirstMeeting({ firstMeeting }: { firstMeeting: { title: string; paragra
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(212,182,122,0.4)] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.8)] rounded-[14px] border border-[rgba(167,139,250,0.4)] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#d4b67a] mb-1">
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#a78bfa] mb-1">
         ✨ First Impressions
       </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#f5efe6] mb-2.5">
+      <h3 className="font-dm-serif text-[1.05rem] text-[#f2eeff] mb-2.5">
         {firstMeeting.title}
       </h3>
-      <p className="text-[0.84rem] text-[#cfc1b1] leading-[1.75]">
+      <p className="text-[0.84rem] text-[#c7bfe0] leading-[1.75]">
         {firstMeeting.paragraph}
       </p>
     </motion.div>
@@ -2956,9 +2956,9 @@ function CelestialGem({ gem }: { gem: SectionContent }) {
       className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
       <div
-        className="p-[22px] px-5 rounded-[18px] border border-[rgba(212,182,122,0.4)] relative overflow-hidden"
+        className="p-[22px] px-5 rounded-[18px] border border-[rgba(167,139,250,0.4)] relative overflow-hidden"
         style={{
-          background: `linear-gradient(165deg, #201722 0%, #201722 70%, ${gemColor}14 100%)`,
+          background: `linear-gradient(165deg, #1a1430 0%, #1a1430 70%, ${gemColor}14 100%)`,
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
         }}
       >
@@ -2973,9 +2973,9 @@ function CelestialGem({ gem }: { gem: SectionContent }) {
             {'\uD83D\uDC8E'}
           </div>
           <div>
-            <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#d4b67a]">Celestial Gem</div>
+            <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#a78bfa]">Celestial Gem</div>
             <h3
-              className="text-[1.2rem] text-[#f5efe6] mt-px"
+              className="text-[1.2rem] text-[#f2eeff] mt-px"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
             >
               {gem.crystalName || gem.title}
@@ -2983,14 +2983,14 @@ function CelestialGem({ gem }: { gem: SectionContent }) {
           </div>
         </div>
         {gem.crystalMeaning && (
-          <p className="text-[0.82rem] text-[#cfc1b1] leading-[1.65] mb-2">{gem.crystalMeaning}</p>
+          <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.65] mb-2">{gem.crystalMeaning}</p>
         )}
         {gem.howToUse && (
-          <div className="p-3 rounded-xl bg-[#201722] border border-[rgba(212,182,122,0.4)]/50">
-            <div className="text-[0.64rem] font-bold text-[#d4b67a] uppercase tracking-[1px] mb-0.5">
+          <div className="p-3 rounded-xl bg-[#1a1430] border border-[rgba(167,139,250,0.4)]/50">
+            <div className="text-[0.64rem] font-bold text-[#a78bfa] uppercase tracking-[1px] mb-0.5">
               {'\uD83D\uDCA1'} How to use
             </div>
-            <p className="text-[0.78rem] text-[#cfc1b1] leading-[1.6]">{gem.howToUse}</p>
+            <p className="text-[0.78rem] text-[#c7bfe0] leading-[1.6]">{gem.howToUse}</p>
           </div>
         )}
       </div>
@@ -3015,28 +3015,28 @@ function EternalArchetype({ archetype, petName }: { archetype: SectionContent; p
       <div
         className="p-7 sm:p-8 rounded-[18px] text-center relative overflow-hidden"
         style={{
-          background: 'linear-gradient(165deg, #201722 0%, #2a1f1a 50%, #1a1210 100%)',
-          boxShadow: '0 8px 32px rgba(61,47,42,0.3)',
+          background: 'linear-gradient(165deg, #1a1430 0%, #201a30 50%, #14101f 100%)',
+          boxShadow: '0 8px 32px rgba(42,36,64,0.3)',
         }}
       >
         {/* Corner glow */}
         <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-          style={{ background: 'radial-gradient(circle, rgba(212,182,122,0.4), transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.4), transparent 70%)' }} />
         <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-          style={{ background: 'radial-gradient(circle, rgba(212,182,122,0.4), transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.4), transparent 70%)' }} />
 
         {/* Gold border top */}
         <div className="flex items-center justify-center gap-3 mb-5">
-          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #d4b67a)' }} />
-          <span className="text-[#d4b67a]/60 text-[0.5rem]">{'\u2726'}</span>
-          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #d4b67a)' }} />
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #a78bfa)' }} />
+          <span className="text-[#a78bfa]/60 text-[0.5rem]">{'\u2726'}</span>
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #a78bfa)' }} />
         </div>
 
-        <div className="text-[0.56rem] font-bold tracking-[3px] uppercase text-[#d4b67a]/70 mb-2">
+        <div className="text-[0.56rem] font-bold tracking-[3px] uppercase text-[#a78bfa]/70 mb-2">
           {'\uD83C\uDF1F'} Eternal Archetype
         </div>
         <div
-          className="text-[1.5rem] sm:text-[1.7rem] text-[#d4b67a] mb-3"
+          className="text-[1.5rem] sm:text-[1.7rem] text-[#a78bfa] mb-3"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
           {archetype.archetypeName || archetype.title}
@@ -3053,11 +3053,11 @@ function EternalArchetype({ archetype, petName }: { archetype: SectionContent; p
           <div
             className="p-4 rounded-[14px] text-left"
             style={{
-              background: 'rgba(212,182,122,0.08)',
-              border: '1px solid rgba(212,182,122,0.15)',
+              background: 'rgba(167,139,250,0.08)',
+              border: '1px solid rgba(167,139,250,0.15)',
             }}
           >
-            <div className="text-[0.64rem] font-bold text-[#d4b67a]/80 uppercase tracking-[1px] mb-1">
+            <div className="text-[0.64rem] font-bold text-[#a78bfa]/80 uppercase tracking-[1px] mb-1">
               {'\u2726'} {petName}&rsquo;s Lesson
             </div>
             <p className="text-[0.8rem] text-white/65 leading-[1.65]">{archetype.archetypeLesson}</p>
@@ -3066,9 +3066,9 @@ function EternalArchetype({ archetype, petName }: { archetype: SectionContent; p
 
         {/* Gold border bottom */}
         <div className="flex items-center justify-center gap-3 mt-5">
-          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #d4b67a)' }} />
-          <span className="text-[#d4b67a]/60 text-[0.5rem]">{'\u2726'}</span>
-          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #d4b67a)' }} />
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #a78bfa)' }} />
+          <span className="text-[#a78bfa]/60 text-[0.5rem]">{'\u2726'}</span>
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #a78bfa)' }} />
         </div>
       </div>
     </motion.div>
@@ -3087,24 +3087,24 @@ function LockedSectionCard({ label, title, icon, iconClass }: { label: string; t
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.6)] rounded-[14px] border border-[rgba(212,182,122,0.4)] max-w-[520px] sm:mx-auto relative overflow-hidden"
+      className="mx-4 my-2.5 p-[22px] px-5 bg-[rgba(21,16,28,0.6)] rounded-[14px] border border-[rgba(167,139,250,0.4)] max-w-[520px] sm:mx-auto relative overflow-hidden"
     >
       <div className="flex items-center gap-2.5 mb-2.5">
         <div className={`w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-[1rem] flex-shrink-0 ${iconClass}`}>
           {icon}
         </div>
         <div>
-          <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#d4b67a]">{label}</div>
-          <h3 className="font-dm-serif text-[1.05rem] text-[#f5efe6] mt-px">{title}</h3>
+          <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#a78bfa]">{label}</div>
+          <h3 className="font-dm-serif text-[1.05rem] text-[#f2eeff] mt-px">{title}</h3>
         </div>
       </div>
-      <div className="h-16 blur-sm opacity-50 text-[0.84rem] text-[#cfc1b1] leading-[1.75] select-none">
+      <div className="h-16 blur-sm opacity-50 text-[0.84rem] text-[#c7bfe0] leading-[1.75] select-none">
         This section reveals deep insights about your pet's cosmic personality. Unlock the full reading to discover what the stars have written...
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-[rgba(21,16,28,0.3)]">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)] shadow-sm">
-          <Gift className="w-4 h-4 text-[#d4b67a]" />
-          <span className="text-sm text-[#cfc1b1] font-medium">Unlock full reading</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)] shadow-sm">
+          <Gift className="w-4 h-4 text-[#a78bfa]" />
+          <span className="text-sm text-[#c7bfe0] font-medium">Unlock full reading</span>
         </div>
       </div>
     </motion.div>
@@ -3139,23 +3139,23 @@ function LegacyReportViewer({
         <div
           className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl"
           style={{
-            background: 'linear-gradient(135deg, rgba(212,182,122,0.2), rgba(212,182,122,0.05))',
-            border: '2px solid rgba(212,182,122,0.3)',
+            background: 'linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.05))',
+            border: '2px solid rgba(167,139,250,0.3)',
           }}
         >
           {signIcon}
         </div>
-        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#d4b67a] mb-1">
+        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#a78bfa] mb-1">
           {typeof report.archetype === 'string' ? report.archetype : report.archetype?.name || 'Cosmic Soul'}
         </div>
-        <h1 className="font-dm-serif text-[2.5rem] text-[#f5efe6] mb-3">{petName}</h1>
-        <div className="flex items-center justify-center gap-3 text-sm text-[#a89a8a]">
+        <h1 className="font-dm-serif text-[2.5rem] text-[#f2eeff] mb-3">{petName}</h1>
+        <div className="flex items-center justify-center gap-3 text-sm text-[#a29ab8]">
           <span>{signIcon} {sunSign}</span>
           <span>·</span>
           <span>{element}</span>
         </div>
         {report.prologue && (
-          <p className="mt-6 text-[#cfc1b1] italic text-[0.84rem] leading-[1.75] max-w-xl mx-auto">
+          <p className="mt-6 text-[#c7bfe0] italic text-[0.84rem] leading-[1.75] max-w-xl mx-auto">
             {report.prologue}
           </p>
         )}
@@ -3165,25 +3165,25 @@ function LegacyReportViewer({
         {sections.map((section, i) => (
           <div
             key={section.title}
-            className={`p-5 rounded-[14px] border border-[rgba(212,182,122,0.4)] ${section.locked ? 'bg-[rgba(21,16,28,0.6)]' : 'bg-[rgba(21,16,28,0.8)]'}`}
+            className={`p-5 rounded-[14px] border border-[rgba(167,139,250,0.4)] ${section.locked ? 'bg-[rgba(21,16,28,0.6)]' : 'bg-[rgba(21,16,28,0.8)]'}`}
           >
-            <h2 className="font-dm-serif text-[1.05rem] text-[#f5efe6] mb-2">{section.title}</h2>
+            <h2 className="font-dm-serif text-[1.05rem] text-[#f2eeff] mb-2">{section.title}</h2>
             {section.locked ? (
               <div className="relative">
-                <p className="text-[#cfc1b1]/30 blur-sm select-none text-[0.84rem] line-clamp-3">{section.content}</p>
+                <p className="text-[#c7bfe0]/30 blur-sm select-none text-[0.84rem] line-clamp-3">{section.content}</p>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(21,16,28,0.8)] border border-[rgba(212,182,122,0.4)]">
-                    <Gift className="w-4 h-4 text-[#d4b67a]" />
-                    <span className="text-sm text-[#cfc1b1] font-medium">Unlock full reading</span>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(21,16,28,0.8)] border border-[rgba(167,139,250,0.4)]">
+                    <Gift className="w-4 h-4 text-[#a78bfa]" />
+                    <span className="text-sm text-[#c7bfe0] font-medium">Unlock full reading</span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-[#cfc1b1] text-[0.84rem] leading-[1.75]">{section.content}</p>
+                <p className="text-[#c7bfe0] text-[0.84rem] leading-[1.75]">{section.content}</p>
                 {section.tip && (
-                  <div className="p-3 rounded-[10px] bg-[#201722] border-l-[3px] border-[#d4b67a] text-[0.78rem] text-[#a89a8a]">
-                    💡 <strong className="text-[#f5efe6]">Tip:</strong> {section.tip}
+                  <div className="p-3 rounded-[10px] bg-[#1a1430] border-l-[3px] border-[#a78bfa] text-[0.78rem] text-[#a29ab8]">
+                    💡 <strong className="text-[#f2eeff]">Tip:</strong> {section.tip}
                   </div>
                 )}
               </div>
@@ -3193,7 +3193,7 @@ function LegacyReportViewer({
 
         {isPreview && onUnlockFull && (
           <div className="text-center pt-6">
-            <p className="text-[#a89a8a] mb-4 text-sm">Unlock {petName}'s complete cosmic soul reading</p>
+            <p className="text-[#a29ab8] mb-4 text-sm">Unlock {petName}'s complete cosmic soul reading</p>
             <Button onClick={onUnlockFull} variant="gold" size="xl" className="gap-2">
               <Sparkles className="w-5 h-5" />
               Unlock Full Report
@@ -3203,8 +3203,8 @@ function LegacyReportViewer({
 
         {report.epilogue && !isPreview && (
           <div className="text-center pt-8 space-y-3">
-            <Star className="w-6 h-6 text-[#d4b67a] mx-auto" />
-            <p className="text-[#cfc1b1] italic text-[0.84rem] leading-[1.75] max-w-xl mx-auto">
+            <Star className="w-6 h-6 text-[#a78bfa] mx-auto" />
+            <p className="text-[#c7bfe0] italic text-[0.84rem] leading-[1.75] max-w-xl mx-auto">
               {report.epilogue}
             </p>
           </div>

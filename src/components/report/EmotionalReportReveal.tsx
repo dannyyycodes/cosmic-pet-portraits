@@ -102,7 +102,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
         gravity: 0.6,
         decay: 0.94,
         scalar: 0.85,
-        colors: ['#c4a265', '#d9b87c', '#bf524a', '#faf6ef'],
+        colors: ['#8b7bd8', '#a78bfa', '#6a4cc4', '#f6f3ff'],
       };
       fire({ ...base, particleCount: 60, spread: 75, origin: { y: 0.45 } });
       setTimeout(() => fire({ ...base, particleCount: 40, spread: 110, origin: { x: 0.15, y: 0.55 } }), 180);
@@ -115,7 +115,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
-      style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
+      style={{ backgroundColor: '#faf8ff', ...grainStyle }}>
 
       {/* Background dots — suppressed when user prefers reduced motion. */}
       {!reducedMotion && dots.map((dot, i) => (
@@ -125,7 +125,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
           style={{
             left: dot.left, top: dot.top,
             width: dot.size, height: dot.size,
-            backgroundColor: isMemorial ? 'rgba(200,200,210,0.3)' : isBirthday ? `hsl(${i * 30}, 70%, 60%)` : `rgba(196,162,101,${dot.opacity})`,
+            backgroundColor: isMemorial ? 'rgba(200,200,210,0.3)' : isBirthday ? `hsl(${i * 30}, 70%, 60%)` : `rgba(139,123,216,${dot.opacity})`,
           }}
           initial={{ opacity: 0 }}
           animate={visible ? { opacity: 1 } : {}}
@@ -142,8 +142,8 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
             transition={{ delay: 0.1, duration: 0.5 }}
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8"
             style={{
-              background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(191,82,74,0.1))',
-              border: '1px solid rgba(196,162,101,0.4)',
+              background: 'linear-gradient(135deg, rgba(139,123,216,0.15), rgba(106,76,196,0.1))',
+              border: '1px solid rgba(139,123,216,0.4)',
             }}
           >
             <span
@@ -159,7 +159,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
                   className="h-1 rounded-full transition-all"
                   style={{
                     width: i < readingNumber ? 14 : 6,
-                    background: i < readingNumber ? '#bf524a' : 'rgba(196,162,101,0.35)',
+                    background: i < readingNumber ? '#6a4cc4' : 'rgba(139,123,216,0.35)',
                   }}
                 />
               ))}
@@ -172,7 +172,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
           <motion.p
             initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0 }}
-            className="text-[1.1rem] text-[#bf524a] mb-6"
+            className="text-[1.1rem] text-[#6a4cc4] mb-6"
             style={{ fontFamily: 'Caveat, cursive' }}>
             You're about to give someone a gift they'll never forget
           </motion.p>
@@ -182,7 +182,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
         <motion.p
           initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: d(isGift ? 1.2 : 0.2) }}
-          className="text-[0.7rem] text-[#9B8E84] uppercase tracking-[0.15em] mb-2"
+          className="text-[0.7rem] text-[#948cab] uppercase tracking-[0.15em] mb-2"
           style={{ fontFamily: 'Cormorant, serif', fontVariant: 'small-caps' }}>
           {bornText}
         </motion.p>
@@ -192,7 +192,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
           initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
           animate={visible ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : {}}
           transition={{ delay: d(isGift ? 1.5 : 0.5), duration: 0.8, ease: 'easeOut' }}
-          className="text-[#2D2926] mb-2"
+          className="text-[#241f30] mb-2"
           style={{ fontFamily: 'DM Serif Display, serif', fontSize: 'clamp(2.5rem, 8vw, 3.5rem)' }}>
           {sunSign}
         </motion.h1>
@@ -201,7 +201,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
         <motion.p
           initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: d(isGift ? 2.2 : 1.2) }}
-          className="text-[0.82rem] text-[#9B8E84] mb-3"
+          className="text-[0.82rem] text-[#948cab] mb-3"
           style={{ fontFamily: 'Cormorant, serif' }}>
           {elementLine}
         </motion.p>
@@ -211,7 +211,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
           <motion.p
             initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: d(isGift ? 2.6 : 1.6) }}
-            className="text-[1.3rem] text-[#bf524a] mb-4"
+            className="text-[1.3rem] text-[#6a4cc4] mb-4"
             style={{ fontFamily: 'Caveat, cursive' }}>
             {archetype}
           </motion.p>
@@ -223,7 +223,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
           transition={{ delay: d(isGift ? 3.0 : 2.0) }}
           className="flex flex-wrap gap-2 justify-center mb-6">
           {pills.map((pill, i) => (
-            <span key={i} className="bg-white border border-[#E8DFD6] rounded-[20px] px-3 py-[0.35rem] text-[0.78rem] text-[#2D2926]"
+            <span key={i} className="bg-white border border-[#E8DFD6] rounded-[20px] px-3 py-[0.35rem] text-[0.78rem] text-[#241f30]"
               style={{ fontFamily: 'Cormorant, serif' }}>
               {pill}
             </span>
@@ -236,7 +236,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
             initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: d(isGift ? 3.4 : 2.4) }}
             className="bg-white border border-[#E8DFD6] rounded-[16px] p-6 w-full mb-6">
-            <p className="text-[1.02rem] text-[#6B5E54] italic leading-[1.7]"
+            <p className="text-[1.02rem] text-[#5b5470] italic leading-[1.7]"
               style={{ fontFamily: 'Cormorant, serif' }}>
               {typeof prologue === 'string' ? prologue : ''}
             </p>
@@ -249,7 +249,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
           transition={{ delay: d(isGift ? 4.2 : 3.2) }}
           onClick={onComplete}
           className="w-full max-w-[400px] py-4 rounded-xl text-white text-[1.05rem] relative overflow-hidden"
-          style={{ fontFamily: 'DM Serif Display, serif', backgroundColor: '#bf524a' }}>
+          style={{ fontFamily: 'DM Serif Display, serif', backgroundColor: '#6a4cc4' }}>
           {/* Shimmer */}
           <motion.div
             className="absolute inset-0"

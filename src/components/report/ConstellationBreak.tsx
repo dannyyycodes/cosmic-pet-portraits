@@ -62,7 +62,7 @@ export function ConstellationBreak({ label, seed = 'cosmic' }: ConstellationBrea
             y1={l.y1}
             x2={l.x2}
             y2={l.y2}
-            stroke="#c4a265"
+            stroke="#8b7bd8"
             strokeOpacity="0.55"
             strokeWidth="0.6"
             initial={{ pathLength: 0 }}
@@ -81,8 +81,8 @@ export function ConstellationBreak({ label, seed = 'cosmic' }: ConstellationBrea
             viewport={{ once: true, margin: '-20% 0px' }}
             transition={{ duration: 0.5, delay: 0.15 + i * 0.18, ease: [0.22, 1, 0.36, 1] }}
           >
-            <circle cx={p.x} cy={p.y} r="6" fill="#c4a265" opacity="0.18" />
-            <circle cx={p.x} cy={p.y} r="2.2" fill="#c4a265" />
+            <circle cx={p.x} cy={p.y} r="6" fill="#8b7bd8" opacity="0.18" />
+            <circle cx={p.x} cy={p.y} r="2.2" fill="#8b7bd8" />
           </motion.g>
         ))}
       </svg>
@@ -93,7 +93,7 @@ export function ConstellationBreak({ label, seed = 'cosmic' }: ConstellationBrea
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-20% 0px' }}
           transition={{ duration: 0.7, delay: 1.9 }}
-          className="mt-3 text-[0.72rem] tracking-[0.32em] uppercase text-[#9a8578]"
+          className="mt-3 text-[0.72rem] tracking-[0.32em] uppercase text-[#928aa8]"
         >
           {label}
         </motion.span>

@@ -124,7 +124,7 @@ export default function SoulReadingIntake() {
               fontWeight: 700,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "#d4b67a",
+              color: "#a78bfa",
               margin: 0,
               marginBottom: 28,
             }}
@@ -135,13 +135,13 @@ export default function SoulReadingIntake() {
           <section
             className="rounded-3xl px-6 py-9"
             style={{
-              background: "rgba(245,239,230,0.05)",
-              border: `1px solid rgba(212,182,122,0.22)`,
+              background: "rgba(242,238,255,0.05)",
+              border: `1px solid rgba(167,139,250,0.22)`,
               boxShadow: "0 16px 40px rgba(20, 18, 16, 0.06)",
             }}
           >
             {loadState === "loading" && (
-              <p className="text-center" style={{ color: "#9d8d7f", fontFamily: "\"Playfair Display\", Georgia, serif" }}>
+              <p className="text-center" style={{ color: "#948cab", fontFamily: "\"Playfair Display\", Georgia, serif" }}>
                 Looking up your order…
               </p>
             )}
@@ -191,7 +191,7 @@ export default function SoulReadingIntake() {
                     fontWeight: 600,
                     letterSpacing: "0.2em",
                     textTransform: "uppercase",
-                    color: "#d4b67a",
+                    color: "#a78bfa",
                     margin: "0 0 12px 0",
                   }}
                 >
@@ -237,7 +237,7 @@ export default function SoulReadingIntake() {
                   {errorMsg && (
                     <p
                       style={{
-                        color: "#f0d99f",
+                        color: "#b9a5f0",
                         fontFamily: "Lato, system-ui, sans-serif",
                         fontSize: 13,
                         margin: "0 0 10px 0",
@@ -259,7 +259,7 @@ export default function SoulReadingIntake() {
                       textAlign: "center",
                       fontFamily: "Lato, system-ui, sans-serif",
                       fontSize: 12,
-                      color: "#9d8d7f",
+                      color: "#948cab",
                       marginTop: 12,
                       marginBottom: 0,
                     }}
@@ -276,7 +276,7 @@ export default function SoulReadingIntake() {
             style={{
               fontFamily: "Lato, system-ui, sans-serif",
               fontSize: 13,
-              color: "#9d8d7f",
+              color: "#948cab",
             }}
           >
             Questions? Reply to your order email — a real person reads them.
@@ -291,7 +291,7 @@ const titleStyle: React.CSSProperties = {
   fontFamily: "\"Playfair Display\", Georgia, serif",
   fontSize: "clamp(24px, 4vw, 32px)",
   fontWeight: 500,
-  color: "#f5efe6",
+  color: "#f2eeff",
   margin: "0 0 14px 0",
   lineHeight: 1.25,
 };
@@ -300,14 +300,14 @@ const bodyStyle: React.CSSProperties = {
   fontFamily: "\"Playfair Display\", Georgia, serif",
   fontSize: 15,
   lineHeight: 1.7,
-  color: "#cfc1b1",
+  color: "#c7bfe0",
   margin: "0 0 22px 0",
 };
 
 const primaryButtonStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
-  background: "#d4b67a",
+  background: "#a78bfa",
   color: "#141210",
   fontFamily: "Lato, system-ui, sans-serif",
   fontSize: 15,
@@ -317,7 +317,7 @@ const primaryButtonStyle: React.CSSProperties = {
   borderRadius: 999,
   padding: "14px 22px",
   cursor: "pointer",
-  boxShadow: "0 12px 28px rgba(212, 182, 122, 0.28)",
+  boxShadow: "0 12px 28px rgba(167,139,250, 0.28)",
 };
 
 interface FieldProps {
@@ -340,7 +340,7 @@ function Field({ label, value, onChange, placeholder, type = "text", maxLength, 
           fontFamily: "Lato, system-ui, sans-serif",
           fontSize: 10.5,
           fontWeight: 700,
-          color: "#9d8d7f",
+          color: "#948cab",
           letterSpacing: "0.14em",
           textTransform: "uppercase",
           display: "block",
@@ -361,10 +361,10 @@ function Field({ label, value, onChange, placeholder, type = "text", maxLength, 
         className="w-full px-3 py-2.5 rounded-lg"
         style={{
           background: "rgba(5,4,7,0.6)",
-          border: `1px solid rgba(212,182,122,0.34)`,
+          border: `1px solid rgba(167,139,250,0.34)`,
           fontFamily: "Lato, system-ui, sans-serif",
           fontSize: 15,
-          color: "#f5efe6",
+          color: "#f2eeff",
           colorScheme: "dark",
         }}
       />

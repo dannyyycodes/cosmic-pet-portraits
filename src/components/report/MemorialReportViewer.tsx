@@ -64,10 +64,10 @@ function SectionFrame({
 }) {
   const s = useScrollReveal();
   const palettes = {
-    cream: { bg: "#fffdf7", border: "#e8ddd0" },
-    dove:  { bg: "#fbfaf6", border: "#e0dace" },
+    cream: { bg: "#fffdf7", border: "#e2dbf3" },
+    dove:  { bg: "#f8f6ff", border: "#ddd7f0" },
     sage:  { bg: "#f4f6f0", border: "#d6ddcb" },
-    gold:  { bg: "#faf4e8", border: "#e4d6b8" },
+    gold:  { bg: "#f3efff", border: "#cfc7ec" },
   } as const;
   const pal = palettes[tone];
   return (
@@ -92,7 +92,7 @@ function SectionFrame({
         )}
         {title && (
           <h3
-            className="text-[1.35rem] leading-[1.4] mb-5 text-[#2d2428]"
+            className="text-[1.35rem] leading-[1.4] mb-5 text-[#241d33]"
             style={{ fontFamily: "DM Serif Display, serif" }}
           >
             {title}
@@ -107,7 +107,7 @@ function SectionFrame({
 function ThinRule() {
   return (
     <div className="flex justify-center my-12" aria-hidden>
-      <div className="w-16 h-px" style={{ background: "#c4a265", opacity: 0.5 }} />
+      <div className="w-16 h-px" style={{ background: "#8b7bd8", opacity: 0.5 }} />
     </div>
   );
 }
@@ -115,7 +115,7 @@ function ThinRule() {
 function PullQuote({ children }: { children: React.ReactNode }) {
   return (
     <blockquote
-      className="text-[1.05rem] leading-[1.65] text-[#2d2428] italic text-center max-w-[440px] mx-auto my-3 px-2"
+      className="text-[1.05rem] leading-[1.65] text-[#241d33] italic text-center max-w-[440px] mx-auto my-3 px-2"
       style={{ fontFamily: "DM Serif Display, serif" }}
     >
       {children}
@@ -126,7 +126,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
 function BodyText({ children }: { children: string }) {
   return (
     <p
-      className="text-[0.95rem] leading-[1.95] text-[#3d2f2a]"
+      className="text-[0.95rem] leading-[1.95] text-[#2a2440]"
       dangerouslySetInnerHTML={{ __html: safeHtml(children.replace(/\n\n/g, "<br /><br />")) }}
     />
   );
@@ -171,8 +171,8 @@ export function MemorialReportViewer({
       className="w-full min-h-screen"
       style={{
         background:
-          "linear-gradient(180deg, #fbfaf6 0%, #f8f5ee 60%, #fbfaf6 100%)",
-        color: "#2d2428",
+          "linear-gradient(180deg, #f8f6ff 0%, #f5f1ff 60%, #f8f6ff 100%)",
+        color: "#241d33",
         fontFamily:
           'Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
       }}
@@ -207,8 +207,8 @@ export function MemorialReportViewer({
             <div
               className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden"
               style={{
-                border: "2px solid #c4a265",
-                boxShadow: "0 0 40px rgba(196,162,101,0.12)",
+                border: "2px solid #8b7bd8",
+                boxShadow: "0 0 40px rgba(139,123,216,0.12)",
               }}
             >
               <img
@@ -220,13 +220,13 @@ export function MemorialReportViewer({
           </div>
         )}
         <h1
-          className="text-[2.25rem] sm:text-[2.75rem] leading-[1.15] text-[#2d2428]"
+          className="text-[2.25rem] sm:text-[2.75rem] leading-[1.15] text-[#241d33]"
           style={{ fontFamily: "DM Serif Display, serif" }}
         >
           {petName}
         </h1>
         <p
-          className="text-[0.95rem] text-[#5a4a42] italic mt-3 max-w-[360px] mx-auto"
+          className="text-[0.95rem] text-[#4a4560] italic mt-3 max-w-[360px] mx-auto"
           style={{ fontFamily: "DM Serif Display, serif" }}
         >
           A reading held in remembrance of a beloved soul.
@@ -234,7 +234,7 @@ export function MemorialReportViewer({
       </motion.div>
 
       {report._needsReview && (
-        <div className="mx-4 max-w-[580px] sm:mx-auto mb-4 p-3 rounded-lg text-[0.78rem] text-[#8c6a1a] bg-[#faf2df] border border-[#e4d6b8]">
+        <div className="mx-4 max-w-[580px] sm:mx-auto mb-4 p-3 rounded-lg text-[0.78rem] text-[#8c6a1a] bg-[#faf2df] border border-[#cfc7ec]">
           This reading is being quietly reviewed by our team. You may notice a
           small update in the next day or two — we want every line to be worthy
           of {petName}.
@@ -263,7 +263,7 @@ export function MemorialReportViewer({
             )}
             {report.nameMeaning.memorialNote && (
               <>
-                <div className="my-5 border-t border-[#e0dace]" />
+                <div className="my-5 border-t border-[#ddd7f0]" />
                 <PullQuote>&ldquo;{report.nameMeaning.memorialNote}&rdquo;</PullQuote>
               </>
             )}
@@ -297,7 +297,7 @@ export function MemorialReportViewer({
             <div key={i}>
               <div
                 className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-1.5"
-                style={{ color: "#c4a265" }}
+                style={{ color: "#8b7bd8" }}
               >
                 {["The First Gift", "The Second", "The Third"][i] || `Gift ${i + 1}`}
               </div>
@@ -307,10 +307,10 @@ export function MemorialReportViewer({
         </div>
         {report.giftsTheyBrought.quietestGift && (
           <>
-            <div className="my-6 border-t border-[#e4d6b8]" />
+            <div className="my-6 border-t border-[#cfc7ec]" />
             <div
               className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-1.5"
-              style={{ color: "#c4a265" }}
+              style={{ color: "#8b7bd8" }}
             >
               The Quietest Gift
             </div>
@@ -359,10 +359,10 @@ export function MemorialReportViewer({
       >
         <BodyText>{report.soulStillSpeaks.content}</BodyText>
         {report.soulStillSpeaks.signatureYouCarry && (
-          <div className="mt-5 p-4 rounded-[12px] border-l-[3px]" style={{ background: "#faf4e8", borderColor: "#c4a265" }}>
+          <div className="mt-5 p-4 rounded-[12px] border-l-[3px]" style={{ background: "#f3efff", borderColor: "#8b7bd8" }}>
             <div
               className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-1.5"
-              style={{ color: "#c4a265" }}
+              style={{ color: "#8b7bd8" }}
             >
               What You Carry Now
             </div>
@@ -381,7 +381,7 @@ export function MemorialReportViewer({
               {report.soulStillSpeaks.smallSigns.map((sign, i) => (
                 <li
                   key={i}
-                  className="text-[0.92rem] leading-[1.8] text-[#3d2f2a] pl-4 border-l-2"
+                  className="text-[0.92rem] leading-[1.8] text-[#2a2440] pl-4 border-l-2"
                   style={{ borderColor: "#d6ddcb" }}
                 >
                   {sign}
@@ -401,7 +401,7 @@ export function MemorialReportViewer({
         tone="gold"
       >
         <div
-          className="text-[1.02rem] leading-[2] text-[#2d2428]"
+          className="text-[1.02rem] leading-[2] text-[#241d33]"
           style={{ fontFamily: "DM Serif Display, serif" }}
           dangerouslySetInnerHTML={{
             __html: safeHtml(
@@ -411,7 +411,7 @@ export function MemorialReportViewer({
         />
         {report.theirVoiceNow.signoff && (
           <p
-            className="text-right text-[0.95rem] text-[#5a4a42] italic mt-6 pt-4 border-t border-[#e4d6b8]"
+            className="text-right text-[0.95rem] text-[#4a4560] italic mt-6 pt-4 border-t border-[#cfc7ec]"
             style={{ fontFamily: "DM Serif Display, serif" }}
           >
             {report.theirVoiceNow.signoff}
@@ -449,7 +449,7 @@ export function MemorialReportViewer({
               <div className="flex-shrink-0 mt-1">
                 <div
                   className="w-2 h-2 rounded-full"
-                  style={{ background: "#c4a265" }}
+                  style={{ background: "#8b7bd8" }}
                 />
               </div>
               <div className="flex-1">
@@ -495,7 +495,7 @@ export function MemorialReportViewer({
             <div key={i}>
               <div
                 className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-1.5"
-                style={{ color: "#c4a265" }}
+                style={{ color: "#8b7bd8" }}
               >
                 Permission Slip {i + 1}
               </div>
@@ -519,7 +519,7 @@ export function MemorialReportViewer({
           <div>
             <div
               className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-1.5"
-              style={{ color: "#c4a265" }}
+              style={{ color: "#8b7bd8" }}
             >
               Their Birthday
             </div>
@@ -536,7 +536,7 @@ export function MemorialReportViewer({
           </div>
           {report.anniversaryGuide.hardRandomDays && (
             <>
-              <div className="my-1 border-t border-[#e0dace]" />
+              <div className="my-1 border-t border-[#ddd7f0]" />
               <BodyText>{report.anniversaryGuide.hardRandomDays}</BodyText>
             </>
           )}
@@ -560,7 +560,7 @@ export function MemorialReportViewer({
             <div className="mt-6">
               <div
                 className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-2"
-                style={{ color: "#c4a265" }}
+                style={{ color: "#8b7bd8" }}
               >
                 What You Gather
               </div>
@@ -568,8 +568,8 @@ export function MemorialReportViewer({
                 {report.aTreatForTheirMemory.ingredients.map((ing, i) => (
                   <li
                     key={i}
-                    className="text-[0.92rem] leading-[1.75] text-[#3d2f2a] pl-4 border-l-2"
-                    style={{ borderColor: "#e4d6b8" }}
+                    className="text-[0.92rem] leading-[1.75] text-[#2a2440] pl-4 border-l-2"
+                    style={{ borderColor: "#cfc7ec" }}
                   >
                     {ing}
                   </li>
@@ -579,7 +579,7 @@ export function MemorialReportViewer({
             <div className="mt-5">
               <div
                 className="text-[0.6rem] font-semibold tracking-[2px] uppercase mb-2"
-                style={{ color: "#c4a265" }}
+                style={{ color: "#8b7bd8" }}
               >
                 The Ritual
               </div>
@@ -587,7 +587,7 @@ export function MemorialReportViewer({
                 {report.aTreatForTheirMemory.steps.map((step, i) => (
                   <li
                     key={i}
-                    className="text-[0.92rem] leading-[1.75] text-[#3d2f2a]"
+                    className="text-[0.92rem] leading-[1.75] text-[#2a2440]"
                   >
                     {step}
                   </li>
@@ -595,7 +595,7 @@ export function MemorialReportViewer({
               </ol>
             </div>
             {report.aTreatForTheirMemory.whenToMake && (
-              <p className="mt-6 text-[0.88rem] text-[#5a4a42] italic">
+              <p className="mt-6 text-[0.88rem] text-[#4a4560] italic">
                 {report.aTreatForTheirMemory.whenToMake}
               </p>
             )}
@@ -630,7 +630,7 @@ export function MemorialReportViewer({
         tone="gold"
       >
         <div
-          className="text-[1.05rem] leading-[2] text-[#2d2428] whitespace-pre-wrap text-center"
+          className="text-[1.05rem] leading-[2] text-[#241d33] whitespace-pre-wrap text-center"
           style={{ fontFamily: "DM Serif Display, serif" }}
           dangerouslySetInnerHTML={{
             __html: safeHtml(report.keepersOath.oath),
@@ -643,7 +643,7 @@ export function MemorialReportViewer({
       {/* ── EPILOGUE (final letter) ─────────────────────────────────────── */}
       <SectionFrame tone="cream">
         <div
-          className="text-[1rem] leading-[2.05] text-[#2d2428]"
+          className="text-[1rem] leading-[2.05] text-[#241d33]"
           style={{ fontFamily: "DM Serif Display, serif" }}
           dangerouslySetInnerHTML={{
             __html: safeHtml(report.epilogue.replace(/\n\n/g, "<br /><br />")),
@@ -661,12 +661,12 @@ export function MemorialReportViewer({
       >
         <div className="flex justify-center mb-6" aria-hidden>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <circle cx="14" cy="14" r="12" stroke="#c4a265" strokeWidth="0.75" opacity="0.6" />
-            <circle cx="14" cy="14" r="2.5" fill="#c4a265" />
+            <circle cx="14" cy="14" r="12" stroke="#8b7bd8" strokeWidth="0.75" opacity="0.6" />
+            <circle cx="14" cy="14" r="2.5" fill="#8b7bd8" />
           </svg>
         </div>
         <p
-          className="text-[0.95rem] text-[#5a4a42] italic leading-[1.9]"
+          className="text-[0.95rem] text-[#4a4560] italic leading-[1.9]"
           style={{ fontFamily: "DM Serif Display, serif" }}
         >
           Return to this reading whenever {he} needs to hear you

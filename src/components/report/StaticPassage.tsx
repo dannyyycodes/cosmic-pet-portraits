@@ -59,7 +59,7 @@ export function StaticPassage({ lines, variant = 'full', species }: StaticPassag
         variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
         className="w-12 h-[1px] mx-auto mb-5"
-        style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
+        style={{ background: 'linear-gradient(90deg, transparent, #8b7bd8, transparent)', transformOrigin: 'center' }}
       />
 
       {stanzas.map((stanza, si) => (
@@ -74,7 +74,7 @@ export function StaticPassage({ lines, variant = 'full', species }: StaticPassag
           {stanza.map((line, li) => {
             if (line === '\u2726' || line === '\u2726') {
               return (
-                <div key={li} className="text-[#c4a265]/50 text-[0.8rem] my-2 text-center">
+                <div key={li} className="text-[#8b7bd8]/50 text-[0.8rem] my-2 text-center">
                   \u2726
                 </div>
               );
@@ -93,10 +93,10 @@ export function StaticPassage({ lines, variant = 'full', species }: StaticPassag
                 key={li}
                 className={`leading-[1.7] mx-auto max-w-[400px] text-center ${
                   isMicro
-                    ? 'text-[#9a8578] italic'
+                    ? 'text-[#928aa8] italic'
                     : isKeyLine
-                      ? 'text-[#3d2f2a]'
-                      : 'text-[#9a8578] italic'
+                      ? 'text-[#2a2440]'
+                      : 'text-[#928aa8] italic'
                 }`}
                 style={{
                   fontFamily: isKeyLine && !isMicro ? 'DM Serif Display, serif' : 'Cormorant, serif',
@@ -119,7 +119,7 @@ export function StaticPassage({ lines, variant = 'full', species }: StaticPassag
         variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
         transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
         className="w-12 h-[1px] mx-auto mt-5"
-        style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
+        style={{ background: 'linear-gradient(90deg, transparent, #8b7bd8, transparent)', transformOrigin: 'center' }}
       />
     </motion.div>
   );
