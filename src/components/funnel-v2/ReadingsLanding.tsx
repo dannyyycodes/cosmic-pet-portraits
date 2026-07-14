@@ -2397,7 +2397,6 @@ function BirthSkyJourney() {
   const [chart, setChart] = useState<PetBirthChart | null>(null);
   const [status, setStatus] = useState<"idle" | "computing" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [whyOpen, setWhyOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
   // The memorial register softens the email ask into the "held for you" voice.
@@ -2516,7 +2515,7 @@ function BirthSkyJourney() {
     const cleanEmail = email.trim().toLowerCase();
     if (!/.+@.+\..+/.test(cleanEmail)) {
       setStatus("error");
-      setMessage(memorial ? "Add your email. We will send their reading there." : "Add your email to get their free reading.");
+      setMessage(memorial ? "Add your email to begin their reading." : "Add your email to get their free reading.");
       return;
     }
     handleLead(cleanEmail, "free_reading_start");
@@ -2632,24 +2631,12 @@ function BirthSkyJourney() {
                     required
                     onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
-                  <p className="ls-seal-send">{memorial ? "We will send their reading here, whenever you are ready." : "We will send their free reading here."}</p>
                   <p className="ls-seal-hint">No account needed.</p>
                 </div>
                 <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.24)}>
                   Set the chart <ArrowRight size={18} />
                 </button>
                 {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
-                <button type="button" className="ls-seal-why" onClick={() => setWhyOpen((v) => !v)} aria-expanded={whyOpen}>
-                  Why no time or place?
-                </button>
-                {whyOpen && (
-                  <div className="ls-seal-help">
-                    <p className="ls-seal-help-ln">Rising sign and houses need the exact minute and town.</p>
-                    <p className="ls-seal-help-ln" style={{ animationDelay: "0.16s" }}>
-                      Planet positions don't, so everything on this chart stands on the date alone.
-                    </p>
-                  </div>
-                )}
               </form>
             )}
           </div>
@@ -5775,16 +5762,6 @@ function CosmicStyles() {
         margin: 9px 0 0; color: rgba(245,242,255,0.55);
         font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.5;
       }
-      /* the value exchange under the email field: plain, unmissable */
-      .ls-seal-send {
-        margin: 10px 0 0; color: rgba(245,242,255,0.88);
-        font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.5;
-      }
-      .ls-seal-send + .ls-seal-hint { margin-top: 4px; }
-      .ls-seal-help { margin-top: 10px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 1rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
-      .ls-seal-help-ln { margin: 0; opacity: 0; animation: lsSealHelpIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
-      @keyframes lsSealHelpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-      @media (prefers-reduced-motion: reduce) { .ls-seal-help-ln { animation: none; opacity: 1; } }
       .ls-seal-card .ls-seal-cta {
         display: flex; align-items: center; justify-content: center; gap: 10px;
         width: 100%; min-height: 58px; margin-top: 6px;
@@ -5809,7 +5786,6 @@ function CosmicStyles() {
       .ls-seal-card .ls-seal-cta:active { transform: scale(0.985); }
       .ls-seal-card .ls-seal-cta:focus-visible { outline: 2px solid #f5f2ff; outline-offset: 3px; }
       .ls-seal-card .ls-chart-message { margin-top: 14px; text-align: left; }
-      .ls-seal-card .ls-seal-why { margin-top: 18px; padding-left: 0; text-align: left; display: inline-block; }
       @media (prefers-reduced-motion: reduce) {
         .ls-seal-card[data-thread-arm]:not([data-sealed]) .ls-seal-cta { filter: none; box-shadow: 0 4px 26px rgba(139,123,216,0.28); }
         .ls-seal-card[data-sealed] .ls-seal-cta { animation: none; }
@@ -6107,13 +6083,6 @@ function CosmicStyles() {
         margin: clamp(22px, 4vw, 44px) auto 0;
       }
       .ls-stage-card { margin-inline: auto; }
-      .ls-seal-why {
-        background: none; border: 0; padding: 2px 0; cursor: pointer;
-        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 1rem;
-        text-decoration: underline; text-underline-offset: 3px;
-        transition: color 180ms ease;
-      }
-      .ls-seal-why:hover { color: ${C.violetBright}; }
 
       .ls-compute {
         position: relative;
