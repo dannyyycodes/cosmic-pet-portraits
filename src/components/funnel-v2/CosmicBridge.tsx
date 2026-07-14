@@ -345,8 +345,10 @@ const LCB_CSS = `
 .c2-node-sm::after{inset:-4px}
 .c2-node-sm.lit{box-shadow:0 0 10px rgba(167,139,250,.55)}
 
-/* ---- beats: compressed, always an event in view ---- */
-.c2-b1{padding:7svh 0 7svh}
+/* ---- beats: compressed, always an event in view. B1 opens almost on the
+   chooser's heels (2026-07-14: killed the dead black band at the seam) ---- */
+.c2-b1{padding:6svh 0 7svh}
+@media (min-width:900px){ .c2-b1{padding-top:3svh} }
 .c2-b1 .c2-whisper{margin-bottom:3.2svh}
 .c2-b2{padding:9svh 0 8svh}
 .c2-b2 .c2-whisper{margin-top:2.8svh}
@@ -731,7 +733,7 @@ export function CosmicBridge() {
 
     let totalLen = 0, spineLen = 0, hasCard = false;
     let nodeLens: number[] = [];
-    let cardTopAbs = 0, cardH = 0, colTopAbs = 0;
+    let colTopAbs = 0;
     let lastStructure = "";
 
     const spineX = () => parseFloat(getComputedStyle(root).getPropertyValue("--c2-spine")) || 24;
@@ -829,15 +831,12 @@ export function CosmicBridge() {
           ` Q ${c.x} ${c.y + c.h} ${c.x} ${c.y + c.h - r0}` +
           ` L ${c.x} ${c.y + r0}` +
           ` Q ${c.x} ${c.y} ${c.x + r0} ${c.y}`;
-        cardTopAbs = c.y + colTopAbs;
-        cardH = c.h;
       } else {
         // no card on stage (computing / revealed): the thread rests after
         // its last claim
         const probe = document.createElementNS("http://www.w3.org/2000/svg", "path");
         probe.setAttribute("d", d);
         spineLen = probe.getTotalLength();
-        cardTopAbs = 0; cardH = 0;
       }
 
       path.setAttribute("d", d);
@@ -857,6 +856,7 @@ export function CosmicBridge() {
         return (lo + hi) / 2;
       });
 
+      watchCard();
       lastStructure = structureKey();
     };
 
@@ -875,9 +875,46 @@ export function CosmicBridge() {
     };
     document.addEventListener("focusin", onFocusIn);
 
+    /* THE SEAL IS LATCHED, ONE-WAY (2026-07-14). The border draw is no
+       longer scroll-scrubbed: when the card is meaningfully on screen
+       (~55% visible, or most of a short viewport), the border plays shut
+       ONCE over ~1.2s with the house ease-out, then stays whole forever -
+       it never reverses and never re-scrubs, whichever way you scroll. */
+    const SEAL_MS = 1200;
+    let latched = false;
+    let latchT0 = 0;
+    let cardIO: IntersectionObserver | null = null;
+    let observedCard: HTMLElement | null = null;
+    const latch = () => {
+      if (latched) return;
+      latched = true;
+      latchT0 = performance.now();
+      cardIO?.disconnect();
+      cardIO = null;
+    };
+    const watchCard = () => {
+      if (latched) return;
+      const card = getCard();
+      if (!card || card === observedCard) return;
+      cardIO?.disconnect();
+      observedCard = card;
+      if (!("IntersectionObserver" in window)) { latch(); return; }
+      cardIO = new IntersectionObserver((entries) => {
+        entries.forEach((en) => {
+          // "meaningfully on screen": 55% of the card, or 60% of a viewport
+          // too short to ever hold 55% of it
+          const need = Math.min(
+            en.boundingClientRect.height * 0.55,
+            window.innerHeight * 0.6,
+          );
+          if (en.intersectionRect.height >= need) latch();
+        });
+      }, { threshold: [0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75] });
+      cardIO.observe(card);
+    };
+
     const targetLen = () => {
       if (!path || !spineLen) return 0;
-      if (engaged && hasCard) return totalLen;
       const sy = window.scrollY;
       const vh = window.innerHeight;
       const tipY = sy + vh * 0.76 - colTopAbs;
@@ -886,13 +923,7 @@ export function CosmicBridge() {
         const mid = (lo + hi) / 2;
         if (path.getPointAtLength(mid).y < tipY) lo = mid; else hi = mid;
       }
-      let len = (lo + hi) / 2;
-      if (hasCard && len > spineLen - 2) {
-        let bp = ((sy + vh) - (cardTopAbs + 30)) / (cardH + 60);
-        bp = Math.max(0, Math.min(1, bp));
-        len = spineLen + bp * (totalLen - spineLen);
-      }
-      return Math.max(0, Math.min(hasCard ? totalLen : spineLen, len));
+      return Math.max(0, Math.min(spineLen, (lo + hi) / 2));
     };
 
     const sealCard = () => {
@@ -921,9 +952,18 @@ export function CosmicBridge() {
         drawn = Math.min(drawn, totalLen);
         sealed = false;
       }
-      const t = targetLen();
-      drawn += (t - drawn) * 0.09;
-      if (Math.abs(t - drawn) < 0.5) drawn = t;
+      if (engaged) latch();
+      if (latched && hasCard && totalLen > 0) {
+        // one-way seal: spine completes, border draws shut over SEAL_MS with
+        // the house ease-out, and the whole thread never retracts again
+        const p = Math.min(1, (now - latchT0) / SEAL_MS);
+        const env = spineLen + HOUSE(p) * (totalLen - spineLen);
+        drawn = Math.max(drawn, Math.min(env, totalLen));
+      } else {
+        const t = targetLen();
+        drawn += (t - drawn) * 0.09;
+        if (Math.abs(t - drawn) < 0.5) drawn = t;
+      }
       if (path && glowP && totalLen > 0) {
         const off = totalLen - drawn;
         path.style.strokeDashoffset = String(off);
@@ -1002,7 +1042,9 @@ export function CosmicBridge() {
     const init = () => {
       buildThread();
       if (reduced) {
-        // the finished passage at rest
+        // the finished passage at rest: border already complete, latched
+        latched = true;
+        cardIO?.disconnect(); cardIO = null;
         if (path && glowP) {
           path.style.strokeDashoffset = "0";
           glowP.style.strokeDashoffset = "0";
@@ -1049,6 +1091,7 @@ export function CosmicBridge() {
       ScrollTrigger.removeEventListener("refresh", onSTRefresh);
       io?.disconnect();
       ioSec?.disconnect();
+      cardIO?.disconnect();
       [tw1, tw2, tw3, tw4, tw5, tw6].forEach((tw) => {
         if (!tw) return;
         tw.scrollTrigger?.kill();

@@ -6612,8 +6612,11 @@ function CosmicStyles() {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 86svh;
-        padding: 9svh 20px 5svh;
+        /* 72svh (was 86) + 3svh tail (was 5): the passage's first beat now
+           arrives within ~a fifth of a viewport of the chooser sub-line -
+           no dead black band between the choice and the first station. */
+        min-height: 72svh;
+        padding: 9svh 20px 3svh;
         overflow: visible;
       }
       .ls-tgl-section::before {
