@@ -15,6 +15,23 @@ import { getUtm } from "@/lib/utm";
 import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
 import { descendTo } from "@/lib/descend";
 import { SIGN_LINES } from "./signLines";
+import {
+  DECK_PLANETS,
+  DECK_L1,
+  DECK_SEALED,
+  DECK_READS,
+  elementL1,
+  ELEMENT_READS,
+  SYNTH_LEAD,
+  SUN_WANTS,
+  MOON_NEEDS,
+  SYNTH_CLOSE,
+  signArticle,
+  TEASE,
+  counterLabel,
+  NUDGE_WORD,
+} from "./freeDeck";
+import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
 
@@ -1024,11 +1041,12 @@ function DegCount({ value, reduce }: { value: number; reduce: boolean }) {
   return <motion.span>{out}</motion.span>;
 }
 
-// The cinematic "measuring the sky" sequence. Every line names a real operation
-// (locate, measure, thread the angles) and the numbers shown are the real values
-// the engine returned, so a skeptic who knows their pet is a Leo sees it land and
-// believes the rest. It holds on "measuring the angles" until the chart resolves,
-// never inventing a value to fill time. Collapses to a single line on reduced motion.
+// The compute holds ONLY as long as the real fetch (typically 1.5-2.5s). One
+// line plus a live micro-ticker that ticks as the data lands, then it hands
+// straight to the first card. No staged theatre, no artificial minimum: the
+// real latency is the only suspense, and the readouts persist as the deck's
+// chips instead of vanishing. The 8s abort + error line live upstream in the
+// form handler, unchanged.
 function ComputeSequence({
   chart,
   name,
@@ -1042,42 +1060,23 @@ function ComputeSequence({
   reduce: boolean;
   onDone: () => void;
 }) {
-  const [step, setStep] = useState(0);
-  // Finish timers live in a ref, not an effect cleanup, so the setStep(4)
-  // re-render does not cancel the pending onDone before it fires.
-  const finishTimers = useRef<number[]>([]);
+  void name;
   const startedFinish = useRef(false);
+  const [landed, setLanded] = useState(false);
 
-  // Timed advance to the "measuring the angles" hold (step 3).
+  // Flip the moment the fetch resolves (+ a beat for the ticker to register).
   useEffect(() => {
-    if (reduce) return;
-    const ids = [
-      window.setTimeout(() => setStep(1), 600),
-      window.setTimeout(() => setStep(2), 1300),
-      window.setTimeout(() => setStep(3), 2000),
-    ];
-    return () => ids.forEach((id) => clearTimeout(id));
-  }, [reduce]);
-
-  // Finish only once the real chart has landed, so the wheel always has data.
-  useEffect(() => {
-    if (startedFinish.current) return;
-    if (reduce) {
-      if (!chart) return;
-      startedFinish.current = true;
-      finishTimers.current.push(window.setTimeout(onDone, 460));
-      return;
-    }
-    if (!chart || step !== 3) return;
+    if (!chart || startedFinish.current) return;
     startedFinish.current = true;
-    finishTimers.current.push(window.setTimeout(() => setStep(4), 650));
-    finishTimers.current.push(window.setTimeout(onDone, 1300));
-  }, [chart, step, reduce, onDone]);
+    if (reduce) {
+      const t = window.setTimeout(onDone, 460);
+      return () => clearTimeout(t);
+    }
+    setLanded(true);
+    const t = window.setTimeout(onDone, 520);
+    return () => clearTimeout(t);
+  }, [chart, reduce, onDone]);
 
-  useEffect(() => () => finishTimers.current.forEach((id) => clearTimeout(id)), []);
-
-  const sun = chart?.sun;
-  const moon = chart?.moon;
   const aspectCount = useMemo(() => {
     if (!chart) return 0;
     const pts = WHEEL_BODIES
@@ -1089,6 +1088,13 @@ function ComputeSequence({
     return computeWheelAspects(pts).length;
   }, [chart]);
 
+  const dateLabel = useMemo(() => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+    if (!m) return "that date";
+    const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${Number(m[3])} ${MON[Number(m[2]) - 1]} ${m[1]}`;
+  }, [date]);
+
   if (reduce) {
     return (
       <div className="ls-compute" role="status" aria-live="polite">
@@ -1096,29 +1102,6 @@ function ComputeSequence({
         <span className="ls-compute-mote is-lit" aria-hidden="true" />
         <p className="ls-compute-line">Setting the chart for that date.</p>
       </div>
-    );
-  }
-
-  const lines = [
-    "Reading the date.",
-    "Finding the Sun.",
-    "Then the Moon.",
-    "Measuring the angles between them.",
-    name ? `The chart for ${name}.` : "The chart, from the date alone.",
-  ];
-
-  let readout: ReactNode = null;
-  if (step === 1 && sun?.sign) {
-    readout = (
-      <>Sun · <DegCount value={Math.round(sun.degree ?? 0)} reduce={reduce} />° {sun.sign}</>
-    );
-  } else if (step === 2 && moon?.sign) {
-    readout = (
-      <>Moon · <DegCount value={Math.round(moon.degree ?? 0)} reduce={reduce} />° {moon.sign}</>
-    );
-  } else if (step === 3) {
-    readout = (
-      <><DegCount value={aspectCount} reduce={reduce} /> angles found</>
     );
   }
 
@@ -1130,21 +1113,26 @@ function ComputeSequence({
         <span className="ls-compute-ring ls-compute-ring-2"><i /></span>
         <span className="ls-compute-ring ls-compute-ring-3" />
         <span className="ls-compute-sweep" />
-        <span className={`ls-compute-mote ${step >= 1 ? "is-lit" : ""}`} />
+        <span className={`ls-compute-mote ${landed ? "is-lit" : ""}`} />
       </div>
-      <div className="ls-compute-readout">{readout}</div>
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={step}
-          className="ls-compute-line"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.32, ease: [0.22, 0.7, 0.2, 1] }}
-        >
-          {lines[step]}
-        </motion.p>
-      </AnimatePresence>
+      <p className="ls-compute-line">Reading the sky over {dateLabel}.</p>
+      <div className="ls-compute-tick" aria-hidden={!landed}>
+        {landed && (
+          <>
+            <span className="ls-ctk">Sun found</span>
+            <span className="ls-ctk ls-ctk-dot" style={{ animationDelay: "0.10s" }}>·</span>
+            <span className="ls-ctk" style={{ animationDelay: "0.10s" }}>Moon found</span>
+            <span className="ls-ctk ls-ctk-dot" style={{ animationDelay: "0.20s" }}>·</span>
+            <span className="ls-ctk" style={{ animationDelay: "0.20s" }}>{aspectCount} angles measured</span>
+          </>
+        )}
+      </div>
+      <style>{`
+        .ls-compute-tick { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 22px; margin-top: 10px; }
+        .ls-ctk { color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 15px; letter-spacing: 0.04em; opacity: 0; animation: lsCtkIn 0.26s ease-out forwards; }
+        .ls-ctk-dot { color: rgba(200,200,210,0.55); }
+        @keyframes lsCtkIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }
@@ -1415,582 +1403,315 @@ function pickJourneyVoice(): SpeechSynthesisVoice | null {
   }
 }
 
-type Beat = { scene: number; text: string; focus?: string; rate?: number; font?: "caveat"; audio?: string };
+// ---------------------------------------------------------------------------
+// THE FREE READING DECK (Danny-approved redesign, 2026-07-14): a full-viewport
+// tap-advance card deck replaces the scroll ceremony. Eight cards after the
+// compute: Sun, Moon, Venus, Mercury, Mars, the element balance, the
+// synthesis, then the tease + handoff. Every card leads with the fact at
+// frame 0 (sign chip + degree count-up), then the three-line law: NAME IT
+// (fixed planet frame), MEAN IT (the sign-true read), USE IT (the takeaway),
+// with the sealed-depth footer beneath. The reader sets the tempo: tap,
+// swipe, wheel, or arrow keys; the left edge and a quiet chevron go back.
+// Copy lives in ./freeDeck.ts, approved verbatim in both voices.
+// COLOUR LAW (Danny): cosmic purple + white only. No gold.
+// Reduced motion renders all eight cards as a static column, in order.
+// "ls-reading-revealed" fires when the synthesis card takes the stage, so
+// the lower funnel is mounted before the tease CTA is tapped.
+// ---------------------------------------------------------------------------
 
-function buildBeats(chart: PetBirthChart, name: string): Beat[] {
-  const el = (chart.sun?.element || chart.dominantElement || "").trim();
-  const elc = el.toLowerCase();
-  const sline = (k: keyof typeof PLANET_META) => {
-    const b = chart[k as keyof PetBirthChart] as ChartBody | undefined;
-    return (b?.sign && SIGN_LINES[k]?.[b.sign]) || JOURNEY_LINES[k] || PLANET_META[k].line;
-  };
-  const sig = (k: keyof typeof PLANET_META) => {
-    const b = chart[k as keyof PetBirthChart] as ChartBody | undefined;
-    return (b?.sign || "").toLowerCase();
-  };
-  const nm = name.trim();
-  return [
-    { scene: 1, audio: "s1a", text: nm ? `This is the sky the night ${nm} arrived.` : "This is the sky the night they arrived." },
-    { scene: 1, audio: "s1b", text: "The real positions. The actual sky, the night they came to you." },
-    { scene: 2, audio: "s2a", text: "Thirteen places in the sky. Each one holds something true about who they are." },
-    { scene: 2, audio: "s2b", text: "We will open three of them now, gently, one at a time. The full reading is where all thirteen come together." },
-    { scene: 3, focus: "sun", audio: "s3a", text: nm ? `First, the Sun. This is who ${nm} is at the centre, before the world asks anything of them.` : "First, the Sun. This is who they are at the centre, before the world asks anything of them." },
-    { scene: 3, focus: "sun", audio: `sun-${sig("sun")}`, text: sline("sun") },
-    { scene: 3, focus: "sun", audio: "s3c", text: "You have watched this in them since the first day, even if you never had a word for it." },
-    { scene: 4, focus: "moon", rate: 0.86, audio: "s4a", text: nm ? `Now the Moon. This is ${nm}'s inner weather. How they feel safe, and how they ask for comfort.` : "Now the Moon. This is their inner weather. How they feel safe, and how they ask for comfort." },
-    { scene: 4, focus: "moon", rate: 0.86, audio: `moon-${sig("moon")}`, text: sline("moon") },
-    { scene: 4, focus: "moon", rate: 0.86, font: "caveat", audio: "s4c", text: "When they come to you at night, this is the part of them doing the choosing." },
-    { scene: 5, focus: "venus", audio: "s5a", text: nm ? `And Venus. This is how ${nm} loves, and the kind of love they reach for back.` : "And Venus. This is how they love, and the kind of love they reach for back." },
-    { scene: 5, focus: "venus", audio: `venus-${sig("venus")}`, text: sline("venus") },
-    { scene: 5, focus: "venus", audio: "s5c", text: "The way they love you was never random. It was written up there before you met." },
-    { scene: 6, audio: "s6a", text: "Three placements in, and a pattern is already showing." },
-    { scene: 6, audio: `s6b-${elc}`, text: nm ? `${nm} is a ${el}-led soul.` : `They are a ${el}-led soul.` },
-    { scene: 6, audio: `el-${elc}`, text: ELEMENT_LINE[el] || "Their element runs all the way through them." },
-    { scene: 7, audio: "s7a", text: "That is three. There are ten more." },
-    { scene: 7, audio: "s7b", text: "Mars, the seat of their courage. Saturn, what they carry, and what steadies them." },
-    { scene: 7, audio: "s7c", text: "Mercury, how they size up a room. Chiron, the tender place they came in carrying." },
-    { scene: 7, audio: "s7d", text: "And the rest. The parts of them you feel every day and have never had named." },
-    { scene: 7, audio: "s7e", text: nm ? `We measured all of ${nm}. Right now, you are seeing three.` : "We measured all of them. Right now, you are seeing three." },
-    { scene: 8, audio: "s8a", text: "The lines between them are how all of it talks to each other." },
-    { scene: 8, audio: "s8b", text: "The full reading is where they stop being thirteen facts and start being one whole creature." },
-    { scene: 8, audio: "s8c", text: "And the deeper shape drawn beneath them, where it all comes together." },
-    { scene: 9, audio: "s9a", text: nm ? `You came here to find out who ${nm} really is.` : "You came here to find out who they really are." },
-    { scene: 9, audio: "s9b", text: "These three say it is real. The other ten say how deep it goes." },
-    { scene: 9, audio: "s9c", text: "You have met three of them tonight. The full reading is where you meet all of who they are." },
-  ];
+const SIGN_ELEMENT: Record<string, DeckElement> = {
+  Aries: "Fire", Leo: "Fire", Sagittarius: "Fire",
+  Taurus: "Earth", Virgo: "Earth", Capricorn: "Earth",
+  Gemini: "Air", Libra: "Air", Aquarius: "Air",
+  Cancer: "Water", Scorpio: "Water", Pisces: "Water",
+};
+
+const DECK_LABEL: Record<DeckPlanet, string> = {
+  sun: "The Sun", moon: "The Moon", venus: "Venus", mercury: "Mercury", mars: "Mars",
+};
+
+// Real full-disc photos only, and only on their own cards. The Sun's real
+// SDO disc lives under /readings/sun (there is no planets-nasa sun asset).
+const DECK_PHOTO: Record<DeckPlanet, string> = {
+  sun: "/readings/sun/sun-amber.png?v=1",
+  moon: "/readings/planets-nasa/moon.png",
+  venus: "/readings/planets-nasa/venus.png",
+  mercury: "/readings/planets-nasa/mercury.png",
+  mars: "/readings/planets-nasa/mars.png",
+};
+
+const TEASE_GLYPH: Record<string, string> = {
+  Saturn: "saturn", Chiron: "chiron", Jupiter: "jupiter", Pluto: "pluto",
+  "North Node": "northNode", Uranus: "uranus", Neptune: "neptune", Lilith: "lilith",
+};
+
+type DeckCard =
+  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; l1: string; l2: string; l3: string; sealed: string; count: number }
+  | { kind: "element"; counts: Record<DeckElement, number>; l1: string; l2: string; l3: string }
+  | { kind: "synthesis"; lead: string; wants: string; needs: string; close: string }
+  | { kind: "tease"; copy: TeaseCopy };
+
+function buildDeck(chart: PetBirthChart, memorial: boolean): DeckCard[] {
+  const voice = memorial ? ("m" as const) : ("d" as const);
+  const cards: DeckCard[] = [];
+  let count = 0;
+
+  for (const key of DECK_PLANETS) {
+    const body = chart[key] as ChartBody | undefined;
+    const sign = body?.sign;
+    const entry = sign ? DECK_READS[key][sign] : undefined;
+    if (!sign || !entry) continue;
+    count += 1;
+    cards.push({
+      kind: "planet",
+      key,
+      sign,
+      deg: typeof body?.degree === "number" ? Math.round(body.degree) : null,
+      l1: DECK_L1[key](sign),
+      l2: entry.l2[voice],
+      l3: entry.l3[voice],
+      sealed: DECK_SEALED[key][voice],
+      count,
+    });
+  }
+
+  // Element balance, counted over the five personal planets (the honest
+  // date-only set). The dominant element is the card.
+  const counts: Record<DeckElement, number> = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  for (const key of DECK_PLANETS) {
+    const sign = (chart[key] as ChartBody | undefined)?.sign;
+    const el = sign ? SIGN_ELEMENT[sign] : undefined;
+    if (el) counts[el] += 1;
+  }
+  const dominant = (Object.keys(counts) as DeckElement[]).reduce((a, b) => (counts[b] > counts[a] ? b : a));
+  if (counts[dominant] > 0) {
+    cards.push({
+      kind: "element",
+      counts,
+      l1: elementL1(counts[dominant], dominant),
+      l2: ELEMENT_READS[dominant].l2[voice],
+      l3: ELEMENT_READS[dominant].l3[voice],
+    });
+  }
+
+  const sunSign = chart.sun?.sign;
+  const moonSign = chart.moon?.sign;
+  if (sunSign && moonSign && SUN_WANTS[sunSign] && MOON_NEEDS[moonSign]) {
+    cards.push({
+      kind: "synthesis",
+      lead: SYNTH_LEAD,
+      wants: `${signArticle(sunSign)} ${sunSign} Sun wants ${SUN_WANTS[sunSign]}.`,
+      needs: `${signArticle(moonSign)} ${moonSign} Moon needs ${MOON_NEEDS[moonSign]}.`,
+      close: SYNTH_CLOSE[voice],
+    });
+  }
+
+  cards.push({ kind: "tease", copy: TEASE[voice] });
+  return cards;
 }
 
-// The animated, voice-narrated journey. A scene machine over the real wheel: the
-// voice reads one beat, the wheel focuses that planet, and on voice-end it breathes
-// then advances. Captions are the source of truth (works fully muted + reduced-motion).
-function CosmicJourney({
-  chart,
-  name,
-  bornLabel,
-  reduce,
-  onLead,
-  onCheckout,
-}: {
-  chart: PetBirthChart;
-  name: string;
-  bornLabel: string;
-  reduce: boolean;
-  onLead: (email: string) => void;
-  onCheckout: () => void;
-}) {
-  const BEATS = useMemo(() => buildBeats(chart, name), [chart, name]);
-  const hasSpeech = typeof window !== "undefined" && "speechSynthesis" in window;
-
-  const [started] = useState(true);
-  const [i, setI] = useState(0);
-  const [playing, setPlaying] = useState(true);
-  const [muted, setMuted] = useState(true);
-  const [ended, setEnded] = useState(false);
-  const [nonce, setNonce] = useState(0);
-  const [infoOpen, setInfoOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [offerMsg, setOfferMsg] = useState("");
-  const infoBtnRef = useRef<HTMLButtonElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
-
-  // Load the soothing female voice (voices arrive async) + stop speech on unmount.
-  useEffect(() => {
-    if (!hasSpeech) return;
-    const load = () => setVoice(pickJourneyVoice());
-    load();
-    try { window.speechSynthesis.onvoiceschanged = load; } catch { /* ignore */ }
-    return () => {
-      try { window.speechSynthesis.onvoiceschanged = null; } catch { /* ignore */ }
-      try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
-    };
-  }, [hasSpeech]);
-
-  // The narration + auto-advance engine. Primary voice = pre-rendered Kokoro audio
-  // clips (high quality, free, same on every device). Falls back to the browser
-  // voice if a clip cannot play, and to a plain timer when muted or no audio.
-  useEffect(() => {
-    if (!started || !playing || ended || infoOpen) return;
-    const b = BEATS[i];
-    if (!b) return;
-    let cancelled = false;
-    let advanced = false;
-    let t1 = 0;
-    let t2 = 0;
-    const advance = () => {
-      if (cancelled || advanced) return;
-      advanced = true;
-      t2 = window.setTimeout(() => {
-        if (cancelled) return;
-        if (i >= BEATS.length - 1) setEnded(true);
-        else setI(i + 1);
-      }, 650);
-    };
-    const timerOnly = () => {
-      const dur = Math.max(2600, Math.min(9000, (b.text.length / 12) * 1000));
-      t1 = window.setTimeout(advance, dur);
-    };
-    const speakBrowser = () => {
-      if (!hasSpeech) { timerOnly(); return; }
-      try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(b.text);
-        u.rate = b.rate ?? 0.9;
-        u.pitch = 1.06;
-        u.volume = 1.0;
-        const v = voice ?? pickJourneyVoice();
-        if (v) { u.voice = v; u.lang = v.lang; }
-        u.onend = advance;
-        u.onerror = advance;
-        window.speechSynthesis.speak(u);
-        t1 = window.setTimeout(advance, Math.max(7000, (b.text.length / 8) * 1000 + 3500));
-      } catch {
-        timerOnly();
-      }
-    };
-
-    if (muted) {
-      timerOnly();
-    } else if (audioRef.current && b.audio) {
-      const a = audioRef.current;
-      try {
-        a.pause();
-        a.onended = advance;
-        a.onerror = () => { if (!cancelled && !advanced) speakBrowser(); };
-        a.src = `/readings/voice/k3/${b.audio}.mp3`;
-        a.currentTime = 0;
-        const pr = a.play();
-        // Ignore the AbortError that pause/seek throws, so pausing never swaps to the browser voice.
-        if (pr && typeof pr.catch === "function") pr.catch((err) => { if (!cancelled && !advanced && !(err && err.name === "AbortError")) speakBrowser(); });
-        t1 = window.setTimeout(advance, 16000); // safety if 'ended' never fires
-      } catch {
-        speakBrowser();
-      }
-    } else {
-      speakBrowser();
-    }
-
-    return () => {
-      cancelled = true;
-      clearTimeout(t1);
-      clearTimeout(t2);
-      const a = audioRef.current;
-      if (a) { try { a.pause(); a.onended = null; a.onerror = null; } catch { /* ignore */ } }
-      if (hasSpeech) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } }
-    };
-  }, [i, started, playing, muted, ended, infoOpen, nonce, BEATS, hasSpeech, voice]);
-
-  // The journey auto-plays muted (captions + animation). This turns the voice on,
-  // inside the user gesture so the browser allows audio playback.
-  const enableSound = () => {
-    try {
-      const a = audioRef.current;
-      if (a) { a.muted = false; const p = a.play(); if (p && typeof p.catch === "function") p.catch(() => {}); }
-    } catch { /* ignore */ }
-    if (hasSpeech) {
-      try { const pr = new SpeechSynthesisUtterance(" "); pr.volume = 0; window.speechSynthesis.speak(pr); } catch { /* ignore */ }
-    }
-    setPlaying(true);
-    setMuted(false);
-    setNonce((n) => n + 1);
-    try { localStorage.setItem("ls_journey_sound", "1"); } catch { /* ignore */ }
-  };
-
-  const goNext = () => {
-    if (i >= BEATS.length - 1) setEnded(true);
-    else setI(i + 1);
-  };
-  const goPrev = () => { setEnded(false); setI((x) => Math.max(0, x - 1)); };
-  const replay = () => setNonce((n) => n + 1);
-  const toggleSound = () => setMuted((m) => { const next = !m; try { localStorage.setItem("ls_journey_sound", next ? "0" : "1"); } catch { /* ignore */ } return next; });
-  const jumpToScene = (scene: number) => {
-    const idx = BEATS.findIndex((b) => b.scene === scene);
-    if (idx >= 0) { setEnded(false); setI(idx); }
-  };
-
-  const submitOffer = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const clean = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(clean)) { setOfferMsg("Add your email to open the full reading."); return; }
-    onLead(clean);
-    onCheckout();
-  };
-
-  const beat = BEATS[i] || BEATS[0];
-  const scene = ended ? 9 : beat.scene;
-  const focusKey = ended ? null : beat.focus ?? null;
-  const showOffer = ended;
-  const SCENES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
+// A tiny bespoke seal mark for the sealed-depth footers: same stroke language
+// as the astro glyph set, no stock icon.
+function SealMark() {
   return (
-    <div className="ls-journey" onClick={(e) => { if (e.target === e.currentTarget && !showOffer) goNext(); }}>
-      <audio ref={audioRef} preload="auto" aria-hidden="true" />
-      <div className={`ls-journey-stage ${showOffer ? "is-dim" : ""}`}>
-        <NatalWheel
-          chart={chart}
-          name={name}
-          bornLabel={bornLabel}
-          reduce={reduce}
-          focusKey={focusKey}
-          onInfo={() => setInfoOpen(true)}
-          infoBtnRef={infoBtnRef}
-        />
-      </div>
-      {!showOffer && muted && (
-        <button type="button" className="ls-sound-cta" onClick={enableSound}>
-          <Volume2 size={17} /> Play with sound
-        </button>
-      )}
-
-      {!showOffer && (
-        <div className="ls-journey-cap" onClick={() => goNext()}>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={i}
-              className={`ls-cap-line ${beat.font === "caveat" ? "is-caveat" : ""}`}
-              initial={reduce ? false : { opacity: 0, y: 14 }}
-              animate={reduce ? {} : { opacity: 1, y: 0 }}
-              exit={reduce ? {} : { opacity: 0, y: -10 }}
-              transition={{ duration: reduce ? 0 : 0.75, ease: [0.22, 0.7, 0.2, 1] }}
-            >
-              {beat.text}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-      )}
-
-      {showOffer && (
-        <motion.div
-          className="ls-offer"
-          initial={reduce ? false : { opacity: 0, y: 18 }}
-          animate={reduce ? {} : { opacity: 1, y: 0 }}
-          transition={{ duration: reduce ? 0 : 0.5, ease: [0.22, 0.7, 0.2, 1] }}
-        >
-          <h3 className="ls-offer-title">{name ? `Meet all of ${name}.` : "Meet all of them."}</h3>
-          <p className="ls-offer-stack">
-            You have met three. The full reading opens the rest. What drives them, what they fear, what they have
-            survived, what they dream. How it all connects, where their tension sits, the wild part of them, and the
-            direction this life is moving them toward.
-          </p>
-          <form className="ls-offer-form" onSubmit={submitOffer}>
-            <input type="email" value={email} autoComplete="email" placeholder="you@example.com" onChange={(e) => { setEmail(e.target.value); if (offerMsg) setOfferMsg(""); }} />
-            <button type="submit" className="ls-gold-button ls-violet-button">
-              {name ? `Read the rest of ${name}` : "Read the rest of them"} <ArrowRight size={17} />
-            </button>
-          </form>
-          {offerMsg && <p className="ls-chart-message is-error">{offerMsg}</p>}
-          <p className="ls-offer-trust">Built from the real sky on {bornLabel}. If it does not sound like them, that is on us.</p>
-          <button type="button" className="ls-start-quiet" onClick={() => { setEnded(false); setI(0); }}>Play it again</button>
-        </motion.div>
-      )}
-
-      {!showOffer && (
-        <>
-          <div className="ls-journey-dots" role="tablist" aria-label="Chapters">
-            {SCENES.map((s) => (
-              <button key={s} type="button" className={`ls-jdot ${scene === s ? "is-active" : ""} ${scene > s ? "is-done" : ""}`} aria-label={`Chapter ${s}`} onClick={() => jumpToScene(s)} />
-            ))}
-          </div>
-          <div className="ls-journey-controls" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="ls-jbtn" onClick={goPrev} aria-label="Previous"><CtrlPrev /></button>
-            <button type="button" className="ls-jbtn ls-jbtn--play" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause" : "Play"}>
-              {playing ? <CtrlPause /> : <CtrlPlay />}
-            </button>
-            <button type="button" className="ls-jbtn" onClick={replay} aria-label="Replay line"><CtrlReplay /></button>
-            <button type="button" className="ls-jbtn" onClick={goNext} aria-label="Next"><CtrlNext /></button>
-            <button type="button" className="ls-jbtn ls-jbtn--sound" onClick={toggleSound} aria-label={muted ? "Turn sound on" : "Turn sound off"}>
-              {muted ? "Sound off" : "Sound on"}
-            </button>
-          </div>
-        </>
-      )}
-
-      <AnimatePresence initial={false}>
-        {infoOpen && (
-          <OrreryInfoOverlay
-            chart={chart}
-            name={name}
-            reduce={reduce}
-            onClose={() => { setInfoOpen(false); infoBtnRef.current?.focus(); }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="5.6" y="10.6" width="12.8" height="8.8" rx="2.4" />
+      <path d="M8.6 10.6V8.2a3.4 3.4 0 0 1 6.8 0v2.4" />
+    </svg>
   );
 }
 
-// The guided one-way free reading, staged as a ceremony: one planet, one moment.
-// After the chart settles the reader is only ever carried forward. An opening
-// beat, then the three placements the date can give freely (Sun, Moon, Rising),
-// each a full moment: a quiet progress mark (I of III), the astrological glyph
-// beside the placement name, the real world arriving dim and lighting as you
-// reach it, the reading as short single lines that land one at a time (never a
-// paragraph), the sign chip turning over like a card, and the personal per-sign
-// line sitting alone with space around it. A breath of dark between planets.
-// Then the desire turn (ten dim glyphs, countable, still dark on the wheel),
-// then the handoff into "the rest of who they are". Scroll is the only control.
-// COLOUR LAW (Danny): this section is cosmic purple + white ONLY. No gold.
-// CSP safe (IntersectionObserver plus CSS only), reduced motion safe (all shown,
-// no sweeps, one clear order). Note: the compute returns no ascendant (a rising
-// needs the exact minute and place), so the Rising slot never fabricates a sign.
-type FreePlanetKey = "sun" | "moon" | "rising";
-type FreePlanet = {
-  key: FreePlanetKey;
-  ord: string;
-  eyebrow: string;
-  frame: string;
-  lines: string[];
-  hook: string[];
-  /* Memorial register: the same moments in remembered tense. Habits move to
-     the past they lived in; essence stays present (continuing bonds). The
-     discovery wording above is approved and never changes. */
-  memFrame?: string;
-  memLines?: string[];
-  memHook?: string[];
-  glow: string;
-  photo: string;
-  alt: string;
-};
+function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
+  if (card.kind === "planet") {
+    return (
+      <div className="ls-dk-inner">
+        <div className="ls-dk-orb" aria-hidden="true">
+          <span className="ls-dk-halo" />
+          <img src={DECK_PHOTO[card.key]} alt="" draggable={false} />
+        </div>
+        <p className="ls-dk-eyebrow">
+          <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
+          {DECK_LABEL[card.key]}
+        </p>
+        <div className="ls-dk-chipwrap">
+          <p className="ls-dk-chip">
+            {card.sign}
+            {card.deg != null && (
+              <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
+            )}
+          </p>
+        </div>
+        <p className="ls-dk-count">{counterLabel(card.count)}</p>
+        <p className="ls-dk-l1">{card.l1}</p>
+        <p className="ls-dk-l2">{card.l2}</p>
+        <p className="ls-dk-l3">{card.l3}</p>
+        <p className="ls-dk-seal"><SealMark />{card.sealed}</p>
+      </div>
+    );
+  }
 
-const FREE_PLANETS: FreePlanet[] = [
-  {
-    key: "sun",
-    ord: "I of III",
-    eyebrow: "The Sun",
-    frame: "Who they are, all the way down.",
-    lines: [
-      "This is the part of them that was never taught and never trained.",
-      "The one that shows up whether the day was good or bad.",
-    ],
-    hook: [
-      "It is the thing they do the second the door opens,",
-      "every single time, like you had been gone a year.",
-    ],
-    memFrame: "Who they were, all the way down.",
-    memLines: [
-      "This is the part of them that was never taught and never trained.",
-      "The one that showed up whether the day was good or bad.",
-    ],
-    memHook: [
-      "It was the first thing they did, every single time,",
-      "like you had been gone a year.",
-    ],
-    glow: "#f0d9a6",
-    photo: "/readings/sun/sun-amber.png?v=1",
-    alt: "The real Sun",
-  },
-  {
-    key: "moon",
-    ord: "II of III",
-    eyebrow: "The Moon",
-    frame: "How they feel, and what settles them.",
-    lines: [
-      "This is the part that comes out when the house goes quiet.",
-      "What they need to feel safe.",
-      "What they reach for when the day has been too much.",
-    ],
-    hook: [
-      "It is why, when it has all been too much,",
-      "they end up in the one spot that still holds your warmth.",
-    ],
-    memFrame: "How they felt, and what settled them.",
-    memLines: [
-      "This is the part that came out when the house went quiet.",
-      "What they needed to feel safe.",
-      "What they reached for when the day had been too much.",
-    ],
-    memHook: [
-      "It is why, when it had all been too much,",
-      "they found the one spot that still held your warmth.",
-    ],
-    glow: "#d8d3ec",
-    photo: NASA_IMG.moon,
-    alt: "The real Moon",
-  },
-  {
-    key: "rising",
-    ord: "III of III",
-    eyebrow: "The Rising",
-    frame: "The first face they show the world.",
-    lines: [
-      "This is what a room meets before it meets the rest of them.",
-      "The front door, not the whole house.",
-      "How they meet a stranger, and how long it takes to see the real one.",
-    ],
-    hook: [
-      "It is the version of them everyone else describes,",
-      "and the version only you get to see underneath.",
-    ],
-    memFrame: "The first face they showed the world.",
-    memLines: [
-      "This is what a room met before it met the rest of them.",
-      "The front door, not the whole house.",
-      "How they met a stranger, and how long it took to see the real one.",
-    ],
-    memHook: [
-      "It was the version of them everyone else described,",
-      "and the one only you ever saw underneath.",
-    ],
-    glow: "#a78bfa",
-    photo: NASA_IMG.earth,
-    alt: "The horizon at first light",
-  },
-];
-
-// The Rising placement is never fabricated: a date alone cannot draw a rising, it
-// turns on the exact minute and place they arrived. So this slot tells the truth
-// and pulls forward, while Sun and Moon carry their real computed signs.
-const RISING_PLACE: string[] = [
-  "Two of these stand on the day alone.",
-  "A rising turns on the exact minute they arrived.",
-  "So this is the one face only the full reading can draw.",
-];
-
-// The ten unread: nine bodies still dark on the wheel, plus the synthesis mark
-// (what all of them do together). Rendered as dim, countable glyphs, never text.
-const DARK_GLYPHS = [
-  "mercury", "venus", "mars", "jupiter", "saturn",
-  "uranus", "neptune", "pluto", "chiron", "synthesis",
-] as const;
-
-// The five named desires, each a single line that lights attention as it
-// arrives and stirs a pair of the dark glyphs above it.
-const FREE_DARK: string[] = [
-  "What they are afraid of, and what steadies them when it comes.",
-  "How they love you back, in the one language only they use.",
-  "What they carry from before you, and what they let go once they were yours.",
-  "Who they trust on sight, and who they never quite forgive.",
-  "What they want that they cannot ask you for.",
-];
-
-// Split a multi-sentence line into single spoken beats so no rendered line is
-// ever a paragraph. Sentence boundaries only; the approved wording is kept.
-function splitBeats(text: string): string[] {
-  if (!text) return [];
-  const parts = text.match(/[^.!?]+[.!?]+(?:["')\]]+)?/g);
-  return parts ? parts.map((s) => s.trim()).filter(Boolean) : [text.trim()];
-}
-
-// ---------------------------------------------------------------------------
-// THE DELIVERY STAGE (Danny, 2026-07-13): the free reading is an animated
-// delivery, never stacked text. Each moment is a tall scene with a sticky
-// stage. Its lines take the stage ONE AT A TIME: a line enters large at
-// focus, then settles smaller and dimmer above as the next arrives. At any
-// scroll position at most one line holds full prominence, with one settled
-// echo above it. The sign chip flip is a standalone event with space around
-// it; the per-sign reading is the LARGE beat; the felt hook is an isolated
-// italic beat of its own.
-// CSP-safe: scroll + rAF + CSS transitions only (no pinning library).
-// Reduced motion renders every line visible, static, in reading order.
-// ---------------------------------------------------------------------------
-
-type StageBeat = {
-  key: string;
-  /** style variant: hero | sub | body | turnline | frame | line | chip | read | hook | sealed | lead | lead2 | subq | glyphs | want | own | one | what | whole */
-  kind: string;
-  node: ReactNode;
-  /** once passed, hold it visible above the stage instead of clearing it */
-  hold?: boolean;
-  /** desire turn: which pair of dark glyphs this want-line stirs */
-  dline?: number;
-};
-
-function StagedScene({
-  beats, reduce, visual, className, stageKind = "text",
-}: {
-  beats: StageBeat[];
-  reduce: boolean;
-  visual?: ReactNode;
-  className?: string;
-  stageKind?: "text" | "world";
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (reduce) return;
-    const scene = ref.current;
-    if (!scene || typeof window === "undefined") return;
-    const stage = scene.querySelector<HTMLElement>(".ls-sd-stage");
-    if (!stage) return;
-    const beatEls = Array.from(stage.children) as HTMLElement[];
-    const world = scene.querySelector<HTMLElement>(".ls-fr-planet");
-    const n = beatEls.length;
-    if (!n) return;
-    let raf = 0;
-    const apply = () => {
-      raf = 0;
-      const vh = window.innerHeight || 1;
-      const rect = scene.getBoundingClientRect();
-      // the world lives (breathes, lights) while its scene crosses the viewport
-      if (world) world.classList.toggle("is-live", rect.top < vh && rect.bottom > 0);
-      const scrollable = Math.max(1, rect.height - vh);
-      const engaged = rect.top <= 0;
-      const p = Math.min(1, Math.max(0, -rect.top / scrollable));
-      const idx = engaged ? Math.min(n - 1, Math.floor(p * n)) : -1;
-      const sub = engaged ? Math.min(1, Math.max(0, p * n - idx)) : 0;
-      beatEls.forEach((el, j) => {
-        const st = j === idx ? "focus" : j === idx - 1 ? "settle" : j < idx ? (el.dataset.hold ? "hold" : "gone") : "wait";
-        if (el.dataset.st !== st) el.dataset.st = st;
-        // sequential lighting inside a beat (the ten dark glyphs, one by one)
-        const seq = el.querySelector<HTMLElement>(".ls-sd-seq");
-        if (seq) {
-          const kids = Array.from(seq.children) as HTMLElement[];
-          const lit = j < idx ? kids.length : j === idx ? Math.round(sub * kids.length) : 0;
-          kids.forEach((k, ki) => {
-            if (ki < lit) k.setAttribute("data-on", "1");
-            else k.removeAttribute("data-on");
-          });
-        }
-      });
-      // a want-line at focus stirs its pair of dark glyphs (latched once)
-      const focusEl = idx >= 0 ? beatEls[idx] : null;
-      if (focusEl && focusEl.dataset.dline !== undefined) {
-        scene
-          .querySelectorAll<HTMLElement>(`.ls-fr-dk-g[data-grp="${focusEl.dataset.dline}"]`)
-          .forEach((g) => g.setAttribute("data-wake", "1"));
-      }
-    };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [reduce, beats.length]);
-
-  return (
-    <div
-      ref={ref}
-      className={`ls-sd-scene${reduce ? " is-static" : ""}${className ? ` ${className}` : ""}`}
-      style={{ ["--beats" as string]: beats.length } as CSSProperties}
-    >
-      <div className="ls-sd-pin">
-        {visual}
-        <div className={`ls-sd-stage is-${stageKind}`}>
-          {beats.map((b) => (
-            <div
-              key={b.key}
-              className={`ls-sd-beat ls-sd-k-${b.kind}`}
-              data-hold={b.hold ? "1" : undefined}
-              data-dline={b.dline}
-            >
-              {b.node}
+  if (card.kind === "element") {
+    const order: DeckElement[] = ["Fire", "Earth", "Air", "Water"];
+    return (
+      <div className="ls-dk-inner">
+        <div className="ls-dk-bars" aria-hidden="true">
+          {order.map((el, i) => (
+            <div key={el} className="ls-dk-bar">
+              <span className="ls-dk-bar-label">{el}</span>
+              <span className="ls-dk-bar-track">
+                <i style={{ transform: `scaleX(${card.counts[el] / 5})`, animationDelay: `${0.2 + i * 0.08}s` }} />
+              </span>
+              <span className="ls-dk-bar-n">{card.counts[el]}</span>
             </div>
           ))}
         </div>
+        <p className="ls-dk-l1el">{card.l1}</p>
+        <p className="ls-dk-l2">{card.l2}</p>
+        <p className="ls-dk-l3">{card.l3}</p>
       </div>
+    );
+  }
+
+  if (card.kind === "synthesis") {
+    return (
+      <div className="ls-dk-inner">
+        <span className="ls-dk-synmark" aria-hidden="true"><AstroGlyph name="synthesis" /></span>
+        <p className="ls-dk-lead">{card.lead}</p>
+        <p className="ls-dk-syn">{card.wants}</p>
+        <p className="ls-dk-syn ls-dk-syn2">{card.needs}</p>
+        <p className="ls-dk-close">{card.close}</p>
+      </div>
+    );
+  }
+
+  const t = card.copy;
+  return (
+    <div className="ls-dk-inner ls-dk-tease">
+      <p className="ls-dk-keep">{t.keep}</p>
+      <p className="ls-dk-deeper">{t.deeper}</p>
+      <ul className="ls-dk-ledger">
+        {t.ledger.map((row, i) => (
+          <li key={row.body} style={{ animationDelay: `${0.35 + i * 0.05}s` }}>
+            <AstroGlyph name={TEASE_GLYPH[row.body] ?? "synthesis"} className="ls-dk-ledger-g" />
+            <span><strong>{row.body}.</strong> {row.line}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="ls-dk-rising"><AstroGlyph name="rising" className="ls-dk-rising-g" />{t.rising}</p>
+      <p className="ls-dk-bridge">{t.bridge}</p>
+      <button type="button" className="ls-dk-cta" onClick={() => descendTo("#the-rest")}>
+        {t.cta} <ChevronDown size={19} strokeWidth={1.7} />
+      </button>
     </div>
   );
 }
 
-function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
+const DECK_CSS = `
+  .ls-dk { position: relative; z-index: 2; margin: 0 -20px; height: 100vh; height: 100svh; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; overflow: hidden; }
+  .ls-dk-stage { position: absolute; inset: 0; }
+  .ls-dk-card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: clamp(52px, 9svh, 88px) 22px clamp(26px, 5svh, 48px); }
+  .ls-dk-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: clamp(9px, 1.6svh, 15px); width: min(100%, 660px); max-height: 100%; }
+  .ls-dk-inner > * { opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
+  @keyframes lsDkIn { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+
+  /* The planet card: real disc + hero chip at frame 0, lines dealt beneath. */
+  .ls-dk-orb { position: relative; width: clamp(112px, 22svh, 190px); aspect-ratio: 1; display: grid; place-items: center; }
+  .ls-dk-halo { position: absolute; inset: -16%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.30) 0%, rgba(154,126,230,0.11) 44%, transparent 70%); filter: blur(12px); }
+  .ls-dk-orb img { position: relative; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 16px 44px rgba(4,2,12,0.62)); animation: lsDkKen 7s ease-in-out infinite alternate; }
+  @keyframes lsDkKen { from { transform: scale(1) translate3d(0, 1.4%, 0); } to { transform: scale(1.075) translate3d(0, -1.4%, 0); } }
+  .ls-dk-eyebrow { margin: 0; display: inline-flex; align-items: center; gap: 9px; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase; animation-delay: 0.02s; }
+  .ls-dk-glyphmark { font-size: 17px; filter: drop-shadow(0 0 8px rgba(154,126,230,0.5)); }
+  .ls-dk-chipwrap { perspective: 680px; animation: none; opacity: 1; }
+  .ls-dk-chip { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; font-size: clamp(2.1rem, 9vw, 3.2rem); line-height: 1.04; color: #ffffff; text-shadow: 0 0 34px rgba(154,126,230,0.35); transform-origin: 50% 115%; animation: lsDkFlip 0.7s cubic-bezier(0.3,1.26,0.44,1) both; }
+  @keyframes lsDkFlip { from { transform: rotateX(-92deg); opacity: 0; } to { transform: rotateX(0deg); opacity: 1; } }
+  .ls-dk-deg { color: #b9a5f0; font-size: 0.62em; font-weight: 500; letter-spacing: 0.02em; }
+  .ls-dk-count { margin: 0; color: rgba(200,200,210,0.72); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; animation-delay: 0.28s; }
+  .ls-dk-l1 { margin: 0; max-width: 40ch; color: #ececf2; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 4.1vw, 1.14rem); line-height: 1.45; animation-delay: 0.3s; }
+  .ls-dk-l2 { margin: 2px 0 0; max-width: 34ch; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.16rem, 4.9vw, 1.42rem); line-height: 1.44; animation-delay: 0.45s; }
+  .ls-dk-l3 { margin: 0; max-width: 34ch; color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.13rem, 4.6vw, 1.34rem); line-height: 1.46; animation-delay: 0.7s; }
+  .ls-dk-seal { margin: clamp(2px, 1svh, 10px) 0 0; display: inline-flex; align-items: flex-start; gap: 8px; max-width: 42ch; color: rgba(200,200,210,0.6); font-family: "Newsreader", Georgia, serif; font-size: 14px; line-height: 1.5; text-align: left; animation-delay: 0.95s; }
+  .ls-dk-seal svg { flex: 0 0 auto; margin-top: 2.5px; font-size: 13px; color: rgba(185,165,240,0.55); }
+
+  /* The element balance: four slim bars filling to the real counts. */
+  .ls-dk-bars { display: flex; flex-direction: column; gap: 12px; width: min(78vw, 330px); margin-bottom: clamp(4px, 1svh, 12px); }
+  .ls-dk-bar { display: grid; grid-template-columns: 54px 1fr 18px; align-items: center; gap: 12px; }
+  .ls-dk-bar-label { color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; text-align: right; }
+  .ls-dk-bar-track { position: relative; height: 6px; border-radius: 99px; background: rgba(154,126,230,0.14); overflow: hidden; }
+  .ls-dk-bar-track i { position: absolute; inset: 0; border-radius: 99px; background: linear-gradient(90deg, #7c5cd6, #b9a5f0); transform-origin: 0 50%; animation: lsDkBar 0.8s cubic-bezier(0.22,0.7,0.2,1) both; }
+  @keyframes lsDkBar { from { transform: scaleX(0); } }
+  .ls-dk-bar-n { color: rgba(200,200,210,0.7); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; text-align: left; }
+  .ls-dk-l1el { margin: 0; max-width: 26ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.4rem, 5.8vw, 2rem); line-height: 1.22; letter-spacing: -0.01em; animation-delay: 0.15s; }
+  .ls-dk-inner .ls-dk-l1el ~ .ls-dk-l2 { animation-delay: 0.5s; }
+  .ls-dk-inner .ls-dk-l1el ~ .ls-dk-l3 { animation-delay: 0.75s; }
+
+  /* The synthesis: two placements multiplying, the one "it is the chart" close. */
+  .ls-dk-synmark { color: #b9a5f0; font-size: 30px; filter: drop-shadow(0 0 12px rgba(154,126,230,0.5)); }
+  .ls-dk-lead { margin: 0; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.05rem, 4.2vw, 1.2rem); animation-delay: 0.05s; }
+  .ls-dk-syn { margin: 0; max-width: 26ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 6.4vw, 2.2rem); line-height: 1.18; letter-spacing: -0.014em; animation-delay: 0.25s; }
+  .ls-dk-syn2 { animation-delay: 0.55s; }
+  .ls-dk-close { margin: clamp(6px, 1.6svh, 16px) 0 0; max-width: 24ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.3rem, 5.4vw, 1.8rem); line-height: 1.24; text-shadow: 0 0 26px rgba(167,139,250,0.4); animation-delay: 0.9s; }
+
+  /* The tease + handoff (terminal card, ledger of the eight still dark). */
+  .ls-dk-tease { gap: clamp(8px, 1.4svh, 13px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; max-height: 100%; padding: 4px; cursor: default; }
+  .ls-dk-keep { margin: 0; max-width: 28ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.38rem, 5.6vw, 1.95rem); line-height: 1.22; letter-spacing: -0.012em; }
+  .ls-dk-deeper { margin: 0; max-width: 36ch; color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.1rem, 4.5vw, 1.3rem); line-height: 1.42; animation-delay: 0.22s; }
+  .ls-dk-ledger { list-style: none; margin: clamp(2px, 1svh, 8px) 0; padding: 0; display: flex; flex-direction: column; gap: 7px; text-align: left; animation: none; opacity: 1; }
+  .ls-dk-ledger li { display: flex; align-items: flex-start; gap: 10px; color: rgba(236,236,242,0.78); font-family: "Newsreader", Georgia, serif; font-size: clamp(0.95rem, 3.9vw, 1.05rem); line-height: 1.4; opacity: 0; animation: lsDkIn 0.5s cubic-bezier(0.22,0.7,0.2,1) forwards; }
+  .ls-dk-ledger li strong { color: #b9a5f0; font-weight: 600; }
+  .ls-dk-ledger-g { flex: 0 0 auto; margin-top: 3px; font-size: 15px; color: rgba(185,165,240,0.6); }
+  .ls-dk-rising { margin: 0; display: inline-flex; align-items: center; gap: 9px; max-width: 34ch; color: #ececf2; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 4.2vw, 1.18rem); animation-delay: 0.8s; }
+  .ls-dk-rising-g { font-size: 17px; color: rgba(185,165,240,0.7); }
+  .ls-dk-bridge { margin: 0; max-width: 34ch; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.12rem, 4.6vw, 1.32rem); line-height: 1.44; animation-delay: 0.95s; }
+  .ls-dk-cta { margin-top: clamp(6px, 1.4svh, 14px); display: inline-flex; align-items: center; gap: 11px; padding: clamp(15px, 2.2vw, 18px) clamp(28px, 5vw, 40px); border-radius: 999px; border: 1px solid rgba(154,126,230,0.55); background: linear-gradient(180deg, rgba(124,92,214,0.28), rgba(124,92,214,0.13)); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 4.4vw, 1.22rem); font-weight: 600; cursor: pointer; box-shadow: 0 10px 34px rgba(70,40,140,0.36); transition: transform 0.3s ease, box-shadow 0.3s ease; animation-delay: 1.05s; }
+  .ls-dk-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(70,40,140,0.48); }
+
+  /* Chrome: the segmented progress, the quiet back/next, the idle nudge. */
+  .ls-dk-progress { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 6; display: flex; gap: 6px; width: min(86%, 430px); }
+  .ls-dk-progress span { flex: 1; height: 3px; border-radius: 99px; background: rgba(236,236,242,0.16); transition: background 0.35s ease, box-shadow 0.35s ease; }
+  .ls-dk-progress span.is-done { background: rgba(236,236,242,0.82); }
+  .ls-dk-progress span.is-now { background: #b9a5f0; box-shadow: 0 0 10px rgba(185,165,240,0.55); }
+  .ls-dk-navbtn { position: absolute; top: 50%; z-index: 6; display: grid; place-items: center; width: 44px; height: 64px; margin-top: -32px; border: 0; background: transparent; color: rgba(236,236,242,0.32); font-size: 22px; cursor: pointer; transition: color 0.25s ease; }
+  .ls-dk-navbtn:hover { color: rgba(236,236,242,0.85); }
+  .ls-dk-back { left: max(2px, env(safe-area-inset-left)); }
+  .ls-dk-next { right: max(2px, env(safe-area-inset-right)); }
+  .ls-dk-nudge { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 6; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 14px; letter-spacing: 0.34em; text-indent: 0.34em; text-transform: uppercase; animation: lsDkNudge 2s ease-in-out infinite; pointer-events: none; }
+  @keyframes lsDkNudge { 0%, 100% { opacity: 0.16; } 50% { opacity: 0.42; } }
+
+  /* Static column: reduced motion, every card visible in reading order. */
+  .ls-dk.is-static { height: auto; margin: 0; touch-action: auto; cursor: default; overflow: visible; display: flex; flex-direction: column; padding: clamp(10px, 2svh, 24px) 0; }
+  .ls-dk-static-card { padding: clamp(22px, 4svh, 38px) 0; border-bottom: 1px solid rgba(154,126,230,0.14); }
+  .ls-dk-static-card:last-child { border-bottom: 0; }
+  .ls-dk.is-static .ls-dk-inner { margin: 0 auto; }
+  .ls-dk.is-static .ls-dk-inner > *, .ls-dk.is-static .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
+  .ls-dk.is-static .ls-dk-chip, .ls-dk.is-static .ls-dk-orb img, .ls-dk.is-static .ls-dk-bar-track i { animation: none !important; }
+  .ls-dk.is-static .ls-dk-tease { overflow: visible; max-height: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ls-dk-inner > *, .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
+    .ls-dk-chip, .ls-dk-orb img, .ls-dk-bar-track i, .ls-dk-nudge { animation: none !important; }
+  }
+
+  @media (max-height: 640px) {
+    .ls-dk-orb { width: clamp(84px, 16svh, 120px); }
+    .ls-dk-inner { gap: 8px; }
+    .ls-dk-chip { font-size: clamp(1.7rem, 7vw, 2.3rem); }
+  }
+
+  /* ==== TYPE FLOORS - tuned per viewport ==== */
+  @media (min-width: 1024px) {
+    .ls-dk-l1 { font-size: 1.16rem; }
+    .ls-dk-l2 { font-size: 1.44rem; }
+    .ls-dk-l3 { font-size: 1.36rem; }
+    .ls-dk-seal { font-size: 14.5px; }
+    .ls-dk-count { font-size: 13px; }
+    .ls-dk-eyebrow { font-size: 14px; }
+  }
+`;
+
+function FreeDeck({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // The memorial register keeps its hush: the ceremony itself is shared, but
-  // the ten-glyph tease and the named-desire lines stay off that path.
+  // The memorial register swaps every card to its remembered-tense twin.
   const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
   useEffect(() => {
     const onIntent = () => setMemorial(getIntent() === "memorial");
@@ -2000,382 +1721,183 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
 
   const reduced = reduce || (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-  // Reading-revealed gate: the lower funnel (the rest + reviews + pricing) only
-  // enters the page once the reader has been carried through the three free
-  // placements and reaches the desire turn. Fire once when the turn scrolls in.
+  const cards = useMemo(() => buildDeck(chart, memorial), [chart, memorial]);
+  const last = cards.length - 1;
+  const [active, setActive] = useState(0);
+  const activeRef = useRef(0);
+  activeRef.current = active;
+  const [nudge, setNudge] = useState(false);
+
+  // Reading-revealed gate: fire once when the synthesis card takes the stage
+  // (or immediately in the static column), so the lower funnel is mounted
+  // and #the-rest exists before the tease CTA is tapped.
+  const synthIndex = useMemo(() => cards.findIndex((c) => c.kind === "synthesis"), [cards]);
+  const firedReveal = useRef(false);
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const root = rootRef.current;
-    if (!root) return;
-    let done = false;
-    const fire = () => {
-      if (done) return;
-      done = true;
+    if (firedReveal.current) return;
+    if (reduced || synthIndex < 0 || active >= synthIndex) {
+      firedReveal.current = true;
       window.dispatchEvent(new Event("ls-reading-revealed"));
-    };
-    const target = root.querySelector<HTMLElement>(".ls-fr-turn");
-    if (!target || !("IntersectionObserver" in window)) {
-      fire();
+    }
+  }, [active, reduced, synthIndex]);
+
+  // Seat the stage flush with the viewport once the section's growth tween
+  // has settled, so tap one starts from a clean full-frame card.
+  useEffect(() => {
+    if (reduced) return;
+    const id = window.setTimeout(() => {
+      const el = rootRef.current;
+      if (el && Math.abs(el.getBoundingClientRect().top) > 24) descendTo(el, 0.7);
+    }, 980);
+    return () => window.clearTimeout(id);
+  }, [reduced]);
+
+  const step = useCallback(
+    (d: number) => {
+      setNudge(false);
+      setActive((a) => Math.max(0, Math.min(last, a + d)));
+      const el = rootRef.current;
+      if (el && Math.abs(el.getBoundingClientRect().top) > 60) descendTo(el, 0.5);
+    },
+    [last],
+  );
+
+  // Idle nudge: after 4s without input, one quiet word invites the next card.
+  useEffect(() => {
+    if (reduced || active >= last) {
+      setNudge(false);
       return;
     }
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            fire();
-            io.disconnect();
-          }
-        });
-      },
-      { rootMargin: "0px 0px -18% 0px", threshold: 0.05 },
+    setNudge(false);
+    const id = window.setTimeout(() => setNudge(true), 4000);
+    return () => window.clearTimeout(id);
+  }, [active, reduced, last]);
+
+  // Tap advances (left edge goes back); a vertical swipe turns the card too.
+  const gesture = useRef<{ x: number; y: number; t: number } | null>(null);
+  const onPointerDown = (e: React.PointerEvent) => {
+    setNudge(false);
+    gesture.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    const g = gesture.current;
+    gesture.current = null;
+    if (!g) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("button, a, input")) return;
+    const dx = e.clientX - g.x;
+    const dy = e.clientY - g.y;
+    if (target.closest(".ls-dk-tease")) return; // the terminal card scrolls; only its CTA and the edges act
+    if (Math.abs(dy) >= 48 && Math.abs(dy) > Math.abs(dx)) {
+      step(dy < 0 ? 1 : -1);
+      return;
+    }
+    if (Math.hypot(dx, dy) < 14 && Date.now() - g.t < 700) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      step(e.clientX - rect.left < rect.width * 0.2 ? -1 : 1);
+    }
+  };
+
+  // One wheel gesture = one card (450ms debounce). At the edges the wheel is
+  // handed back to the page so the reader can leave the deck naturally.
+  useEffect(() => {
+    if (reduced) return;
+    const el = rootRef.current;
+    if (!el) return;
+    let lastTurn = 0;
+    const onWheel = (e: WheelEvent) => {
+      const dir = e.deltaY > 0 ? 1 : -1;
+      const a = activeRef.current;
+      if ((dir > 0 && a >= last) || (dir < 0 && a <= 0)) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastTurn < 450 || Math.abs(e.deltaY) < 8) return;
+      lastTurn = now;
+      step(dir);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [reduced, last, step]);
+
+  // Space / right arrow advance, left arrow goes back, while the deck holds
+  // the viewport.
+  useEffect(() => {
+    if (reduced) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = rootRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      if (r.top > vh * 0.4 || r.bottom < vh * 0.6) return;
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        step(1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        step(-1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [reduced, step]);
+
+  if (reduced) {
+    return (
+      <div className="ls-dk is-static" id="free-deck" ref={rootRef}>
+        {cards.map((c, i) => (
+          <div key={i} className="ls-dk-static-card">
+            <DeckCardBody card={c} reduce />
+          </div>
+        ))}
+        <style>{DECK_CSS}</style>
+      </div>
     );
-    io.observe(target);
-    return () => io.disconnect();
-  }, []);
-
-  const bodyFor = (k: "sun" | "moon") => chart[k] as ChartBody | undefined;
-
-  // Opening: the chart settles, and we name the love they already feel.
-  // One beat per line: max two lines share the stage (one at focus, one
-  // settled above), never a stack of seven.
-  const openBeats: StageBeat[] = [
-    { key: "hero", kind: "hero", node: <p className="ls-sd-hero">Here they are.</p> },
-    { key: "sub", kind: "sub", node: <p className="ls-sd-sub">The whole of them, mapped to the sky the day they arrived.</p> },
-    { key: "b1", kind: "body", node: <p className="ls-sd-body">You already know some of this.</p> },
-    {
-      key: "b2", kind: "body",
-      node: (
-        <p className="ls-sd-body">
-          {memorial
-            ? "You knew the exact thing that made them lose their mind with joy."
-            : "You know the exact thing that makes them lose their mind with joy."}
-        </p>
-      ),
-    },
-    {
-      key: "b3", kind: "body",
-      node: (
-        <p className="ls-sd-body">
-          {memorial
-            ? "You still know the weight of them when they finally fell asleep on you."
-            : "You know the weight of them when they finally fall asleep on you."}
-        </p>
-      ),
-    },
-    { key: "t1", kind: "turnline", node: <p className="ls-sd-turnline">You have felt who they are for a long time.</p> },
-    { key: "t2", kind: "turnline", node: <p className="ls-sd-turnline">This is where it gets its name.</p> },
-  ];
-
-  // The desire turn, staged: the lead as its own big moment, the ten dark
-  // glyphs lighting one by one as their own beat, each named desire arriving
-  // alone at focus, the ownership line isolated huge, then the close.
-  const turnBeats: StageBeat[] = [
-    { key: "lead", kind: "lead", node: <p className="ls-sd-lead">You have met three of them.</p> },
-    { key: "lead2", kind: "lead2", node: <p className="ls-sd-lead2">Who they are, how they feel, the face they show first.</p> },
-    {
-      key: "subq", kind: "subq",
-      node: (
-        <p className="ls-sd-subq">
-          {memorial ? "There are ten more, still dark on the wheel." : "There are ten more, still dark on the wheel:"}
-        </p>
-      ),
-    },
-    ...(!memorial
-      ? [
-          {
-            key: "glyphs", kind: "glyphs", hold: true,
-            node: (
-              <div className="ls-fr-dk ls-sd-seq" aria-hidden="true">
-                {DARK_GLYPHS.map((g, i) => (
-                  <span key={g} className="ls-fr-dk-g" data-grp={Math.floor(i / 2)}>
-                    <AstroGlyph name={g} />
-                  </span>
-                ))}
-              </div>
-            ),
-          } as StageBeat,
-          ...FREE_DARK.map((d, i): StageBeat => ({
-            key: `want${i}`, kind: "want", dline: i,
-            node: <p className="ls-sd-want">{d}</p>,
-          })),
-          { key: "own", kind: "own", node: <p className="ls-sd-own">Three of thirteen, yours already.</p> } as StageBeat,
-        ]
-      : []),
-    { key: "one", kind: "one", node: <p className="ls-sd-one">And there is one thing no single planet can show you.</p> },
-    { key: "w1", kind: "what", node: <p className="ls-sd-what">What all thirteen do together.</p> },
-    { key: "w2", kind: "what", node: <p className="ls-sd-what">The reason they pick the exact spot on you they always pick.</p> },
-    { key: "w3", kind: "what", node: <p className="ls-sd-what">The reason they watch you the way they watch you.</p> },
-    { key: "whole", kind: "whole", node: <p className="ls-sd-whole">The whole of them, read in one place.</p> },
-  ];
+  }
 
   return (
-    <div className="ls-fr" ref={rootRef}>
-      {/* Opening: one moment per view. */}
-      <StagedScene
-        beats={openBeats}
-        reduce={reduced}
-        stageKind="text"
-        className="ls-fr-openscene"
-        visual={<span className="ls-fr-settle" aria-hidden="true"><i /><i /><i /></span>}
-      />
-
-      {/* Three real worlds. One planet, one moment, one line at a time. */}
-      {FREE_PLANETS.map((p, pi) => {
-        const body = p.key === "rising" ? undefined : bodyFor(p.key);
-        const sign = body?.sign;
-        const deg = typeof body?.degree === "number" ? `${Math.round(body.degree)}` : "";
-        const signLine = p.key === "rising" ? "" : ((sign && SIGN_LINES[p.key]?.[sign]) || JOURNEY_LINES[p.key] || PLANET_META[p.key]?.line || "");
-        const signBeats = splitBeats(signLine);
-        // Memorial register: remembered tense for lived habits, essence stays
-        // present. Discovery keeps the approved wording untouched.
-        const frame = memorial && p.memFrame ? p.memFrame : p.frame;
-        const lines = memorial && p.memLines ? p.memLines : p.lines;
-        const hook = memorial && p.memHook ? p.memHook : p.hook;
-
-        const beats: StageBeat[] = [
-          { key: "frame", kind: "frame", node: <p className="ls-sd-frame">{frame}</p> },
-          ...lines.map((ln, i): StageBeat => ({ key: `ln${i}`, kind: "line", node: <p className="ls-sd-line">{ln}</p> })),
-        ];
-        if (p.key === "rising") {
-          beats.push(...RISING_PLACE.map((ln, i): StageBeat => ({ key: `sealed${i}`, kind: "sealed", node: <p className="ls-sd-sealed">{ln}</p> })));
-        } else {
-          if (sign) {
-            beats.push({
-              key: "chip", kind: "chip",
-              node: (
-                <span className="ls-fr-chipturn">
-                  <span className="ls-fr-chip">{deg ? `${sign} ${deg}°` : sign}</span>
-                </span>
-              ),
-            });
-          }
-          beats.push(...signBeats.map((b, i): StageBeat => ({ key: `read${i}`, kind: "read", node: <p className="ls-sd-read">{b}</p> })));
-        }
-        beats.push({
-          key: "hook", kind: "hook",
-          node: (
-            <div className="ls-sd-hookband">
-              {hook.map((h, i) => <p key={i} className="ls-sd-hook">{h}</p>)}
-            </div>
-          ),
-        });
-
-        return (
-          <div key={p.key} className="ls-fr-world">
-            <StagedScene
-              beats={beats}
-              reduce={reduced}
-              stageKind="world"
-              visual={
-                <section className={`ls-fr-planet is-${p.key}${reduced ? " is-live" : ""}`} style={{ ["--glow" as string]: p.glow } as CSSProperties}>
-                  <p className="ls-fr-ord">{p.ord}</p>
-                  <div className="ls-fr-mark">
-                    <AstroGlyph name={p.key} className="ls-fr-glyph" />
-                    <span className="ls-fr-name">{p.eyebrow}</span>
-                  </div>
-                  <div className="ls-fr-stage">
-                    <span className="ls-fr-halo" aria-hidden="true" />
-                    {p.key === "sun" ? (
-                      <span className="ls-fr-sun">
-                        <img src={p.photo} alt={p.alt} />
-                        <span className="ls-fr-sun-shine" aria-hidden="true" />
-                      </span>
-                    ) : (
-                      <span className="ls-fr-disc">
-                        <img className="ls-fr-photo" src={p.photo} alt={p.alt} loading="lazy" decoding="async" onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }} />
-                        <span className="ls-fr-term" aria-hidden="true" />
-                        <span className="ls-fr-spec" aria-hidden="true" />
-                        <span className="ls-fr-rim" aria-hidden="true" />
-                      </span>
-                    )}
-                  </div>
-                </section>
-              }
-            />
-            {/* A breath of dark between planets: one faint star in the quiet. */}
-            {pi < FREE_PLANETS.length - 1 && (
-              <div className="ls-fr-breath" aria-hidden="true"><i /></div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* The desire turn: the gap opens, one beat at a time. */}
-      <StagedScene beats={turnBeats} reduce={reduced} stageKind="text" className="ls-fr-turn" />
-
-      {/* Handoff into the rest of who they are. */}
-      <div className="ls-fr-handoff">
-        <button type="button" className="ls-fr-handoff-cta" onClick={() => descendTo("#the-rest")}>
-          Meet the rest of who they are
-          <ChevronDown size={20} strokeWidth={1.6} />
-        </button>
+    <div
+      className="ls-dk"
+      id="free-deck"
+      ref={rootRef}
+      data-lenis-prevent
+      role="group"
+      aria-roledescription="card deck"
+      aria-label={`Their free reading, card ${active + 1} of ${cards.length}`}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
+      <div className="ls-dk-progress" aria-hidden="true">
+        {cards.map((_, i) => (
+          <span key={i} className={i < active ? "is-done" : i === active ? "is-now" : ""} />
+        ))}
       </div>
-
-      <style>{`
-        .ls-fr { position: relative; z-index: 2; margin: 0 auto; padding: clamp(8px, 2.5vw, 22px) 0 0; text-align: center; }
-
-        /* === The delivery stage: tall scenes, sticky pins, one line at a time === */
-        .ls-sd-scene { position: relative; height: calc(var(--beats) * 44vh + 100vh); height: calc(var(--beats) * 44svh + 100svh); }
-        .ls-sd-pin { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ls-sd-stage { position: relative; width: min(100%, 720px); margin: 0 auto; }
-        .ls-sd-stage.is-text { height: min(56svh, 520px); }
-        .ls-sd-stage.is-world { flex: 0 0 auto; height: clamp(220px, 34svh, 320px); }
-        .ls-sd-beat {
-          position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: clamp(10px, 2vw, 16px); padding: 0 18px; pointer-events: none;
-          opacity: 0; transform: translate3d(0, 22%, 0) scale(0.97); filter: blur(5px);
-          transition: opacity 0.55s ease, transform 0.85s cubic-bezier(0.16,1,0.3,1), filter 0.55s ease;
-          will-change: opacity, transform;
-        }
-        .ls-sd-beat[data-st="focus"] { opacity: 1; transform: translate3d(0,0,0) scale(1); filter: blur(0); }
-        .ls-sd-beat[data-st="settle"] { opacity: 0.26; transform: translate3d(0,-34%,0) scale(0.45); filter: blur(0.4px); }
-        /* A long per-sign read settling under the next long read collides with it
-           (both are 3-4 wrapped lines; the -34% lift cannot clear the focus zone).
-           Those beats clear the stage instead of echoing: the next line stands alone. */
-        .ls-sd-beat[data-st="settle"]:has(.ls-sd-read) { opacity: 0; }
-        .ls-sd-beat[data-st="gone"] { opacity: 0; transform: translate3d(0,-42%,0) scale(0.4); filter: blur(1px); }
-        .ls-sd-beat[data-st="hold"] { opacity: 0.5; transform: translate3d(0,-46%,0) scale(0.7); filter: blur(0); }
-
-        /* Reduced motion / static: every line visible, in reading order. */
-        .ls-sd-scene.is-static { height: auto; padding: clamp(20px, 4svh, 40px) 0; }
-        .ls-sd-scene.is-static .ls-sd-pin { position: static; height: auto; }
-        .ls-sd-scene.is-static .ls-sd-stage { position: static; height: auto; display: flex; flex-direction: column; gap: clamp(14px, 3vw, 22px); padding: clamp(10px, 2svh, 20px) 0; }
-        .ls-sd-scene.is-static .ls-sd-beat { position: static; opacity: 1; transform: none; filter: none; transition: none; }
-
-        /* === Beat type-scale: the stage line always towers over the settled echo === */
-        .ls-sd-hero { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.3rem, 8.4vw, 3.6rem); line-height: 1.04; letter-spacing: -0.02em; }
-        .ls-sd-sub { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.3rem, 4.4vw, 1.8rem); line-height: 1.38; }
-        .ls-sd-body { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.85rem); line-height: 1.38; }
-        .ls-sd-turnline { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.4rem, 5vw, 1.95rem); line-height: 1.36; }
-        .ls-sd-frame { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-variant-caps: all-small-caps; letter-spacing: 0.2em; font-size: clamp(1.15rem, 4vw, 1.5rem); line-height: 1.4; }
-        .ls-sd-line { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.85rem); line-height: 1.4; }
-        .ls-sd-read { margin: 0; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 6.2vw, 2.6rem); line-height: 1.18; letter-spacing: -0.015em; }
-        .ls-sd-hookband { display: flex; flex-direction: column; gap: clamp(8px, 1.8vw, 12px); max-width: 32ch; }
-        .ls-sd-hook { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.2rem, 4.2vw, 1.55rem); line-height: 1.42; }
-        .ls-sd-sealed { margin: 0; max-width: 28ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.24rem, 4.3vw, 1.6rem); line-height: 1.42; }
-
-        .ls-sd-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.95rem, 7vw, 2.9rem); line-height: 1.1; letter-spacing: -0.018em; }
-        .ls-sd-lead2 { margin: 0; max-width: 24ch; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.5vw, 1.9rem); line-height: 1.36; letter-spacing: -0.01em; }
-        .ls-sd-subq { margin: 0; max-width: 26ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.26rem, 4.4vw, 1.65rem); line-height: 1.42; }
-        .ls-sd-want { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.8rem); line-height: 1.42; }
-        .ls-sd-own { margin: 0; color: ${C.cream}; text-shadow: 0 0 28px rgba(167,139,250,0.4); font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.05rem, 7.4vw, 3rem); line-height: 1.06; letter-spacing: -0.018em; }
-        .ls-sd-one { margin: 0; max-width: 26ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.26rem, 4.4vw, 1.65rem); line-height: 1.42; }
-        .ls-sd-what { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.8rem); line-height: 1.42; }
-        .ls-sd-whole { margin: 0; max-width: 22ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.9rem, 6.8vw, 2.7rem); line-height: 1.1; letter-spacing: -0.012em; text-shadow: 0 0 26px rgba(167,139,250,0.32); }
-
-        /* The opening's settling rings live behind the stage. */
-        .ls-fr-openscene .ls-fr-settle { position: absolute; top: 50%; left: 50%; width: min(78vw, 420px); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; z-index: -1; }
-        .ls-sd-scene.is-static .ls-fr-settle { display: none; }
-        .ls-fr-settle i { position: absolute; inset: 0; margin: auto; border-radius: 50%; border: 1px solid ${C.lineViolet}; animation: lsFrSettle 6.5s ease-in-out infinite; }
-        .ls-fr-settle i:nth-child(1) { width: 40%; height: 40%; }
-        .ls-fr-settle i:nth-child(2) { width: 66%; height: 66%; animation-delay: -1.6s; opacity: 0.6; }
-        .ls-fr-settle i:nth-child(3) { width: 96%; height: 96%; animation-delay: -3.2s; opacity: 0.32; }
-        @keyframes lsFrSettle { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.82; } }
-
-        /* === One world: the planet holds the stage while its lines are dealt === */
-        .ls-fr-planet { position: relative; display: flex; flex-direction: column; align-items: center; padding: 0 0 clamp(10px, 2svh, 20px); }
-        .ls-fr-ord { margin: 0 0 clamp(8px, 1.6vw, 14px); color: rgba(185,165,240,0.82); font-family: "Newsreader", Georgia, serif; font-variant-caps: small-caps; letter-spacing: 0.34em; text-indent: 0.34em; font-size: clamp(0.82rem, 2.1vw, 0.94rem); }
-        .ls-fr-mark { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(12px, 2.2vw, 20px); color: var(--glow); }
-        .ls-fr-mark::before, .ls-fr-mark::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
-        .ls-fr-mark::after { background: linear-gradient(90deg, color-mix(in srgb, var(--glow) 72%, transparent), transparent); }
-        .ls-fr-glyph { display: block; font-size: clamp(22px, 5vw, 27px); filter: drop-shadow(0 0 9px color-mix(in srgb, var(--glow) 55%, transparent)); }
-        .ls-fr-name { font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; }
-        .ls-fr-stage { position: relative; display: grid; place-items: center; width: clamp(170px, 44vw, 250px); height: clamp(170px, 44vw, 250px); }
-        .ls-fr-halo { position: absolute; inset: -6%; border-radius: 50%; z-index: 1; pointer-events: none; background: radial-gradient(circle, color-mix(in srgb, var(--glow) 40%, transparent) 0%, color-mix(in srgb, var(--glow) 18%, transparent) 36%, color-mix(in srgb, var(--glow) 6%, transparent) 56%, transparent 72%); filter: blur(10px); opacity: 0.68; animation: lsFrBreathe 6s ease-in-out infinite; animation-play-state: paused; }
-        @keyframes lsFrBreathe { 0%, 100% { transform: scale(1); opacity: 0.56; } 50% { transform: scale(1.08); opacity: 0.84; } }
-
-        .ls-fr-disc { position: relative; z-index: 2; width: clamp(140px, 38vw, 196px); height: clamp(140px, 38vw, 196px); border-radius: 50%; overflow: hidden; isolation: isolate; box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 22px 60px rgba(4,2,12,0.66); animation: lsFrBreatheDisc 7.6s ease-in-out infinite; animation-play-state: paused; }
-        @keyframes lsFrBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.018); } }
-        .ls-fr-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); filter: brightness(0.86) contrast(1.05) saturate(1.03); background: #050310; }
-        /* STILL day/night shading, light from the upper-left. No sweep. */
-        .ls-fr-term { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%; transform: none; pointer-events: none; background: radial-gradient(circle at 66% 40%, rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%); }
-        /* the one moving light per world - distinct per key, low intensity. */
-        .ls-fr-spec { position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; border-radius: 50%; transform: none; mix-blend-mode: screen; pointer-events: none; background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--glow) 32%, white) 0%, color-mix(in srgb, var(--glow) 14%, transparent) 26%, transparent 50%); opacity: 0; will-change: opacity, transform; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-play-state: paused; }
-        .ls-fr-planet.is-moon .ls-fr-spec { animation-name: lsFrGlow; animation-duration: 9.5s; }
-        .ls-fr-planet.is-rising .ls-fr-spec { background: radial-gradient(ellipse 60% 116% at 40% 28%, color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%); animation-name: lsFrSheen; animation-duration: 13s; }
-        @keyframes lsFrGlow { 0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); } 50% { opacity: 0.34; transform: translate(6%, 2%); } }
-        @keyframes lsFrSheen { 0%, 100% { opacity: 0.10; transform: translate(-9%, -6%); } 50% { opacity: 0.28; transform: translate(7%, 6%); } }
-        .ls-fr-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.50); }
-        .ls-fr-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 60%, transparent), inset 0 0 10px 0 color-mix(in srgb, var(--glow) 32%, transparent); }
-        .ls-fr-planet.is-rising .ls-fr-disc::after { box-shadow: inset 0 0 30px 9px rgba(4,2,12,0.42), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 34%, transparent); }
-
-        /* The Sun: a real star, no night side, alive by breath and a slow shine. */
-        .ls-fr-sun { position: relative; z-index: 2; display: grid; place-items: center; width: clamp(180px, 46vw, 260px); height: clamp(180px, 46vw, 260px); animation: lsFrBreatheDisc 8s ease-in-out infinite; animation-play-state: paused; }
-        .ls-fr-sun img { position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 42px rgba(242,194,94,0.32)); }
-        .ls-fr-sun-shine { position: absolute; inset: 13%; border-radius: 50%; z-index: 3; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 38% 34%, rgba(255,255,255,0.46) 0%, rgba(250,220,150,0.16) 30%, transparent 56%); opacity: 0.55; animation: lsFrShine 9s ease-in-out infinite; animation-play-state: paused; }
-        @keyframes lsFrShine { 0%, 100% { transform: translate(-4%, -3%) scale(1); opacity: 0.4; } 50% { transform: translate(5%, 4%) scale(1.08); opacity: 0.68; } }
-
-        /* SUSPENSE: each world arrives dim, then lights as you reach it. */
-        .ls-fr-disc, .ls-fr-sun { filter: brightness(0.52) saturate(0.6); transition: filter 1.5s cubic-bezier(0.16,1,0.3,1); }
-        .ls-fr-halo { filter: opacity(0.24); transition: filter 1.5s cubic-bezier(0.16,1,0.3,1); }
-        .ls-fr-planet.is-live .ls-fr-disc, .ls-fr-planet.is-live .ls-fr-sun { filter: brightness(1) saturate(1); }
-        .ls-fr-planet.is-live .ls-fr-halo { filter: opacity(1); }
-        .ls-fr-planet.is-live .ls-fr-halo,
-        .ls-fr-planet.is-live .ls-fr-disc,
-        .ls-fr-planet.is-live .ls-fr-term,
-        .ls-fr-planet.is-live .ls-fr-spec,
-        .ls-fr-planet.is-live .ls-fr-sun,
-        .ls-fr-planet.is-live .ls-fr-sun-shine { animation-play-state: running; }
-
-        /* The sign lands like a card turn: a standalone event with air around it. */
-        .ls-fr-chipturn { display: inline-block; perspective: 640px; }
-        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow, #b9a5f0) 48%, transparent); background: color-mix(in srgb, var(--glow, #b9a5f0) 11%, transparent); color: var(--glow, #b9a5f0); font-family: "Newsreader", Georgia, serif; font-size: clamp(16px, 3.6vw, 16.5px); font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; backface-visibility: hidden; transform: rotateX(-94deg); opacity: 0; transform-origin: 50% 120%; transition: transform 1s cubic-bezier(0.3,1.36,0.44,1) 0.15s, opacity 0.4s ease 0.15s, box-shadow 0.8s ease 0.4s; will-change: transform; }
-        .ls-sd-beat[data-st="focus"] .ls-fr-chip { transform: rotateX(0deg); opacity: 1; box-shadow: 0 8px 30px color-mix(in srgb, var(--glow, #b9a5f0) 20%, transparent); }
-        .ls-sd-beat[data-st="settle"] .ls-fr-chip, .ls-sd-beat[data-st="hold"] .ls-fr-chip, .ls-sd-beat[data-st="gone"] .ls-fr-chip, .ls-sd-scene.is-static .ls-fr-chip { transform: rotateX(0deg); opacity: 1; }
-
-        /* A breath of dark between planets: one faint star holds the quiet. */
-        .ls-fr-breath { position: relative; height: clamp(56px, 12svh, 120px); }
-        .ls-fr-breath i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: rgba(185,165,240,0.55); box-shadow: 0 0 12px 3px rgba(154,126,230,0.28); animation: lsFrTwinkle 5.5s ease-in-out infinite; }
-        @keyframes lsFrTwinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
-
-        /* Ten dim glyphs, countable, lighting one by one. */
-        .ls-fr-dk { display: flex; justify-content: center; align-items: center; gap: clamp(9px, 2.4vw, 17px); color: ${C.violetBright}; }
-        .ls-fr-dk-g { display: inline-flex; font-size: clamp(19px, 4.6vw, 25px); opacity: 0.14; transform: scale(0.88); transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1); }
-        .ls-fr-dk-g[data-on] { opacity: 0.55; transform: scale(1); }
-        .ls-fr-dk-g[data-wake] { animation: lsFrWake 1.8s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes lsFrWake { 0% { opacity: 0.55; transform: scale(1); } 32% { opacity: 1; transform: scale(1.18); } 100% { opacity: 0.62; transform: scale(1); } }
-        .ls-sd-scene.is-static .ls-fr-dk-g { opacity: 0.5; transform: none; }
-
-        /* Handoff */
-        .ls-fr-handoff { display: flex; justify-content: center; padding: clamp(20px, 4svh, 44px) 0 clamp(6px, 2vw, 16px); }
-        .ls-fr-handoff-cta { display: inline-flex; align-items: center; gap: 12px; padding: clamp(15px, 2.4vw, 19px) clamp(26px, 4vw, 38px); border-radius: 999px; border: 1px solid color-mix(in srgb, ${C.violetSoft} 55%, transparent); background: linear-gradient(180deg, rgba(124,92,214,0.24), rgba(124,92,214,0.12)); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); font-weight: 600; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 10px 34px rgba(70,40,140,0.34); transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
-        .ls-fr-handoff-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(70,40,140,0.46); background: linear-gradient(180deg, rgba(124,92,214,0.32), rgba(124,92,214,0.16)); }
-        .ls-fr-handoff-cta svg { animation: lsFrNudge 2.4s ease-in-out infinite; }
-        @keyframes lsFrNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
-
-        @media (max-height: 600px) {
-          .ls-fr-stage { width: clamp(130px, 30vh, 190px); height: clamp(130px, 30vh, 190px); }
-          .ls-sd-stage.is-world { height: clamp(180px, 40svh, 280px); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .ls-sd-scene { height: auto !important; }
-          .ls-sd-pin { position: static !important; height: auto !important; }
-          .ls-sd-stage { position: static !important; height: auto !important; display: flex; flex-direction: column; gap: clamp(14px, 3vw, 22px); padding: clamp(10px, 2svh, 20px) 0; }
-          .ls-sd-beat { position: static !important; opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
-          .ls-fr-settle { display: none !important; }
-          .ls-fr-halo, .ls-fr-disc, .ls-fr-term, .ls-fr-spec, .ls-fr-sun, .ls-fr-sun-shine, .ls-fr-handoff-cta svg, .ls-fr-breath i, .ls-fr-dk-g { animation: none !important; }
-          .ls-fr-term { display: none !important; }
-          .ls-fr-spec { opacity: 0.24 !important; transform: none !important; }
-          .ls-fr-photo { filter: brightness(0.96) contrast(1.04) saturate(1.02) !important; }
-          .ls-fr-halo { opacity: 0.6 !important; filter: none !important; }
-          .ls-fr-disc, .ls-fr-sun { filter: none !important; transition: none !important; }
-          .ls-fr-chip { transform: none !important; opacity: 1 !important; transition: none !important; }
-          .ls-fr-dk-g { opacity: 0.5 !important; transform: none !important; }
-        }
-
-        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
-        .ls-fr-ord { font-size: 14px; }
-        .ls-fr-handoff-cta { font-size: 18px; }
-        @media (min-width: 768px) {
-          .ls-fr-ord { font-size: 14.5px; }
-          .ls-fr-handoff-cta { font-size: 19px; }
-        }
-        @media (min-width: 1280px) {
-          .ls-fr-ord { font-size: 15px; }
-          .ls-fr-handoff-cta { font-size: 20px; }
-        }
-      `}</style>
+      <div className="ls-dk-stage">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={active}
+            className="ls-dk-card"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            aria-live="polite"
+          >
+            <DeckCardBody card={cards[active]} reduce={false} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      {active > 0 && (
+        <button type="button" className="ls-dk-navbtn ls-dk-back" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label="Back one card">
+          <CtrlPrev />
+        </button>
+      )}
+      {active < last && (
+        <button type="button" className="ls-dk-navbtn ls-dk-next" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label="Next card">
+          <CtrlNext />
+        </button>
+      )}
+      {nudge && <span className="ls-dk-nudge" aria-hidden="true">{NUDGE_WORD}</span>}
+      <style>{DECK_CSS}</style>
     </div>
   );
 }
@@ -2586,7 +2108,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeReveal chart={chart} reduce={reduce} />
+        <FreeDeck chart={chart} reduce={reduce} />
       ) : (
         <>
           <div className="ls-stage">
