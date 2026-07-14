@@ -2244,7 +2244,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
 
         /* === Beat type-scale: the stage line always towers over the settled echo === */
         .ls-sd-hero { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.3rem, 8.4vw, 3.6rem); line-height: 1.04; letter-spacing: -0.02em; }
-        .ls-sd-sub { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.3rem, 4.4vw, 1.8rem); line-height: 1.32; }
+        .ls-sd-sub { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.3rem, 4.4vw, 1.8rem); line-height: 1.38; }
         .ls-sd-body { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.85rem); line-height: 1.38; }
         .ls-sd-turnline { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.4rem, 5vw, 1.95rem); line-height: 1.36; }
         .ls-sd-frame { margin: 0; max-width: 24ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-variant-caps: all-small-caps; letter-spacing: 0.2em; font-size: clamp(1.15rem, 4vw, 1.5rem); line-height: 1.4; }
@@ -2255,7 +2255,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-sd-sealed { margin: 0; max-width: 28ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.24rem, 4.3vw, 1.6rem); line-height: 1.42; }
 
         .ls-sd-lead { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.95rem, 7vw, 2.9rem); line-height: 1.1; letter-spacing: -0.018em; }
-        .ls-sd-lead2 { margin: 0; max-width: 24ch; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.5vw, 1.9rem); line-height: 1.24; letter-spacing: -0.01em; }
+        .ls-sd-lead2 { margin: 0; max-width: 24ch; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.5vw, 1.9rem); line-height: 1.36; letter-spacing: -0.01em; }
         .ls-sd-subq { margin: 0; max-width: 26ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.26rem, 4.4vw, 1.65rem); line-height: 1.42; }
         .ls-sd-want { margin: 0; max-width: 26ch; color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.34rem, 4.7vw, 1.8rem); line-height: 1.42; }
         .ls-sd-own { margin: 0; color: ${C.cream}; text-shadow: 0 0 28px rgba(167,139,250,0.4); font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2.05rem, 7.4vw, 3rem); line-height: 1.06; letter-spacing: -0.018em; }

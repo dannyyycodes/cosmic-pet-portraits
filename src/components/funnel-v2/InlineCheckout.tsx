@@ -1850,7 +1850,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           }
 
           /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
-          .cosmic-mini-label { font-size: 14px; }
+          .cosmic-checkout-kicker, .cosmic-mini-label { font-size: 14px; }
           .cosmic-tier-badge { font-size: 14px; }
           .cosmic-checkout-body { font-size: 18px; }
           .cosmic-tier p { font-size: 17px; line-height: 1.5; }
@@ -1875,7 +1875,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-refund { font-size: 18px; }
           .cosmic-preview-panel p { font-size: 18px; }
           @media (min-width: 1280px) {
-            .cosmic-mini-label, .cosmic-tier-badge, .cosmic-preview-link,
+            .cosmic-checkout-kicker, .cosmic-mini-label, .cosmic-tier-badge, .cosmic-preview-link,
             .cosmic-feature-list small, .cosmic-stepper > span { font-size: 15px; }
             .cosmic-checkout-body { font-size: 19px; }
             .cosmic-tier p, .cosmic-included-strip p { font-size: 17.5px; }
