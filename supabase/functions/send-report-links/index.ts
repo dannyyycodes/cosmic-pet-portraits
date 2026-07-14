@@ -21,50 +21,59 @@ interface ReportRow {
 }
 
 function getEmailTemplate(reports: ReportRow[]) {
+  // Violet celestial palette (matches the shipped funnel + nurture emails)
+  const mist = '#f3f0fb', card = '#ffffff', panel = '#f6f3fd', ink = '#241a3d', body = '#4a4363',
+        muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', line = '#e9e2f7';
+  const SIG = 'https://www.littlesouls.app/grace-signature.png';
   const reportLinks = reports
     .map(
       (r) =>
         `<tr>
-          <td style="padding: 12px 16px;">
-            <a href="https://littlesouls.app/report?id=${r.id}" style="color: #a78bfa; text-decoration: none; font-size: 15px; font-weight: 600;">${r.pet_name}'s Reading &rarr;</a>
-            <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">Purchased ${new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+          <td style="padding: 16px 20px;">
+            <a href="https://littlesouls.app/report?id=${r.id}" style="color: ${violet}; text-decoration: none; font-size: 16px; font-weight: 600; font-family: Georgia, 'Times New Roman', serif;">${r.pet_name}'s reading</a>
+            <div style="color: ${muted}; font-size: 12px; margin-top: 4px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Opened ${new Date(r.created_at).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}</div>
+          </td>
+          <td style="padding: 16px 20px; text-align:right;">
+            <a href="https://littlesouls.app/report?id=${r.id}" style="color: ${violet}; text-decoration: none; font-size: 20px;">&rarr;</a>
           </td>
         </tr>
-        <tr><td style="padding: 0 16px;"><div style="height: 1px; background: rgba(255,255,255,0.06);"></div></td></tr>`
+        <tr><td colspan="2" style="padding: 0 20px;"><div style="height: 1px; background: ${line};"></div></td></tr>`
     )
     .join("\n");
 
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #d946ef 50%, #f59e0b 75%, #6366f1 100%); border-radius: 20px;">
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(217, 70, 239, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(139, 92, 246, 0.3);">
-          <span style="font-size: 24px;">&#10024;&#128062;&#10024;</span>
-        </div>
+<body style="margin: 0; padding: 0; background-color: ${mist}; font-family: Georgia, 'Times New Roman', serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+    <div style="background: ${card}; border-radius: 18px; border: 1px solid ${line}; padding: 40px 28px; box-shadow: 0 10px 34px rgba(90,62,200,0.08);">
+      <div style="text-align: center; margin-bottom: 26px;">
+        <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0 0 16px 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
+        <h1 style="color: ${ink}; font-size: 26px; font-weight: 400; margin: 0 0 10px 0; line-height: 1.3; font-family: Georgia, 'Times New Roman', serif;">
+          Your readings, all in one place
+        </h1>
+        <p style="color: ${body}; font-size: 15px; line-height: 1.65; margin: 0;">
+          Every soul you have met with us. Open any one to sit with it again.
+        </p>
       </div>
-      <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 12px 0; text-align: center; line-height: 1.2; background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        Your Little Souls Readings
-      </h1>
-      <p style="color: #9ca3af; font-size: 15px; line-height: 1.6; margin: 0 0 28px 0; text-align: center;">
-        Here are all the readings linked to your account. Click any link to view it.
-      </p>
-      <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background: ${panel}; border-radius: 14px; border: 1px solid ${line};">
         ${reportLinks}
       </table>
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 36px 0;"></div>
-      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
-        Save this email to access your readings anytime.<br>
-        Questions? Simply reply to this message.
+      <div style="width: 44px; height: 1px; background: linear-gradient(90deg, transparent, ${soft}, transparent); margin: 30px auto 22px;"></div>
+      <p style="color: ${muted}; font-size: 13px; margin: 0 0 26px; text-align: center; line-height: 1.6;">
+        Keep this email. Your readings live at these links, always.
       </p>
-      <div style="text-align: center; margin-top: 24px;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">Little Souls</p>
+      <!-- Grace sign-off -->
+      <div style="text-align:center;">
+        <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; font-style: italic; color: ${body}; margin: 0 0 8px;">With love,</p>
+        <img src="${SIG}" alt="Grace" width="116" style="display:inline-block; width:116px; height:auto; margin: 0 0 3px;">
+        <p style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: ${muted}; margin: 0;">Grace &middot; Little Souls</p>
       </div>
     </div>
+    <div style="text-align: center; margin-top: 22px;">
+      <p style="color: ${muted}; font-size: 12px; margin: 0; line-height:1.6;">Something not here? Just reply. A real person will help.</p>
+    </div>
   </div>
-  <div style="height: 20px;"></div>
 </body>
 </html>`;
 }
@@ -103,7 +112,7 @@ serve(async (req) => {
       const emailResult = await resend.emails.send({
         from: "Little Souls <hello@littlesouls.app>",
         to: [email.toLowerCase().trim()],
-        subject: `Your Little Souls Report Links`,
+        subject: `Your Little Souls readings`,
         html: getEmailTemplate(reports),
       });
 

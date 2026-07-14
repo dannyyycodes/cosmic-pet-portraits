@@ -14,128 +14,113 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: string, customerReferralCode: string, portraitUrl?: string) => `
+const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: string, customerReferralCode: string, portraitUrl?: string) => {
+  // Violet celestial palette (matches the shipped funnel + nurture emails)
+  const mist = '#f3f0fb', card = '#ffffff', panel = '#f6f3fd', ink = '#241a3d', body = '#4a4363',
+        muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', cta = '#5a3ec8', line = '#e9e2f7';
+  const SIG = 'https://www.littlesouls.app/grace-signature.png';
+  const benefit = (title: string, sub: string) => `
+    <tr>
+      <td style="padding:9px 0; vertical-align:top; width:26px;"><span style="color:${violet}; font-size:16px; line-height:1.3;">&bull;</span></td>
+      <td style="padding:9px 0; vertical-align:top;">
+        <span style="color:${ink}; font-size:14px; font-weight:600; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">${title}</span>
+        <span style="color:${muted}; font-size:13px; display:block; line-height:1.5;">${sub}</span>
+      </td>
+    </tr>`;
+  return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with premium gold gradient border -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 3px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 25%, #f59e0b 50%, #d97706 75%, #f59e0b 100%); border-radius: 20px;">
-    
-    <!-- Inner container -->
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 17px; padding: 48px 32px;">
-      
-      <!-- VIP Badge -->
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%); border-radius: 50px; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);">
-          <span style="color: #1a1a2e; font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">⭐ VIP MEMBER ⭐</span>
+<body style="margin: 0; padding: 0; background-color: ${mist}; font-family: Georgia, 'Times New Roman', serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+
+    <div style="background: ${card}; border-radius: 18px; border: 1px solid ${line}; padding: 40px 30px; box-shadow: 0 10px 34px rgba(90,62,200,0.08);">
+
+      <!-- Header -->
+      <div style="text-align: center; margin-bottom: 26px;">
+        <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0 0 14px 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
+        <div style="display:inline-block; padding:7px 22px; background:${panel}; border:1px solid ${line}; border-radius:999px;">
+          <span style="color:${violet}; font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">VIP Member</span>
         </div>
       </div>
 
-      <!-- Main Title -->
-      <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0 0 16px 0; text-align: center; line-height: 1.2;">
-        Welcome to the <span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">VIP Experience</span>
+      <h1 style="color: ${ink}; font-size: 30px; font-weight: 400; margin: 0 0 16px 0; text-align: center; line-height: 1.25; font-family: Georgia, 'Times New Roman', serif;">
+        Welcome to VIP.
       </h1>
-      
-      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 36px 0; text-align: center;">
-        You're now part of an exclusive group of pet parents who go above and beyond for their companions.
+
+      <p style="color: ${body}; font-size: 16px; line-height: 1.75; margin: 0 0 30px 0; text-align: center;">
+        You went further for ${petName} than most people ever do for anyone. <strong style="color:${ink};">That kind of love deserves the full picture.</strong>
       </p>
 
-      <!-- VIP Benefits Card -->
-      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 16px; padding: 28px; margin: 0 0 32px 0; border: 1px solid rgba(245, 158, 11, 0.3);">
-        <p style="color: #fbbf24; font-size: 14px; font-weight: 700; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
-          Your VIP Benefits
+      <!-- Benefits -->
+      <div style="background: ${panel}; border-radius: 14px; padding: 24px 26px; margin: 0 0 30px 0; border: 1px solid ${line};">
+        <p style="color: ${violet}; font-size: 11px; font-weight: 700; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 2px; text-align: center; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">
+          Everything that is yours now
         </p>
-        <div style="display: block;">
-          <div style="display: flex; align-items: center; margin-bottom: 14px;">
-            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">✨</span>
-            <div>
-              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">Full Cosmic Report</span>
-              <span style="color: #9ca3af; font-size: 13px; display: block;">${petName}'s complete personality profile</span>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; margin-bottom: 14px;">
-            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">🎨</span>
-            <div>
-              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">AI-Generated Portrait</span>
-              <span style="color: #9ca3af; font-size: 13px; display: block;">Unique cosmic artwork of ${petName}</span>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; margin-bottom: 14px;">
-            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #d946ef 0%, #f472b6 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">📧</span>
-            <div>
-              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">Weekly Horoscopes</span>
-              <span style="color: #9ca3af; font-size: 13px; display: block;">Personalized guidance every Monday</span>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center;">
-            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">🎁</span>
-            <div>
-              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">Referral Rewards</span>
-              <span style="color: #9ca3af; font-size: 13px; display: block;">Share the magic, earn rewards</span>
-            </div>
-          </div>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${benefit(`${petName}'s full soul reading`, 'Their complete birth chart, decoded in depth')}
+          ${benefit(`A cosmic portrait of ${petName}`, 'Their soul, rendered as art')}
+          ${benefit('Weekly stars, every Monday', `${petName}'s forecast, written to their chart`)}
+          ${benefit('Referral rewards', 'Share the reading, and you both receive')}
+        </table>
       </div>
 
       ${portraitUrl ? `
-      <!-- Portrait Preview -->
-      <div style="text-align: center; margin: 32px 0;">
-        <p style="color: #9ca3af; font-size: 13px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">Your AI Portrait is Ready</p>
-        <div style="display: inline-block; padding: 4px; background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 50%, #d946ef 100%); border-radius: 20px;">
-          <img src="${portraitUrl}" alt="${petName}'s Cosmic Portrait" style="max-width: 260px; border-radius: 16px; display: block;">
+      <div style="text-align: center; margin: 30px 0;">
+        <p style="color: ${muted}; font-size: 12px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1.5px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">${petName}'s cosmic portrait is ready</p>
+        <div style="display: inline-block; padding: 4px; background: linear-gradient(135deg, ${soft} 0%, ${violet} 100%); border-radius: 18px;">
+          <img src="${portraitUrl}" alt="${petName}'s cosmic portrait" style="max-width: 260px; border-radius: 14px; display: block;">
         </div>
       </div>
       ` : ''}
 
-      <!-- CTA Button -->
-      <div style="text-align: center; margin: 36px 0;">
-        <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #1a1a2e; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4), 0 0 0 1px rgba(255,255,255,0.2) inset;">
-          View ${petName}'s Full Report →
+      <!-- CTA -->
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${reportUrl}" style="display: inline-block; background: ${cta}; color: #ffffff; text-decoration: none; padding: 16px 46px; border-radius: 999px; font-weight: 600; font-size: 15px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing:0.4px; box-shadow: 0 6px 20px rgba(90,62,200,0.28);">
+          Open ${petName}'s reading
         </a>
       </div>
 
-      <!-- Referral Section -->
-      <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(217, 70, 239, 0.15) 100%); border-radius: 16px; padding: 24px; margin: 32px 0; text-align: center; border: 1px solid rgba(139, 92, 246, 0.2);">
-        <p style="color: #a78bfa; font-size: 13px; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">🎁 Your VIP Referral Code</p>
-        <p style="color: #9ca3af; font-size: 13px; margin: 0 0 16px 0;">
-          Share with friends — you'll both get rewards!
-        </p>
-        <div style="display: inline-block; background: rgba(0,0,0,0.4); border-radius: 10px; padding: 14px 28px; border: 1px solid rgba(245, 158, 11, 0.3);">
-          <span style="color: #fbbf24; font-size: 20px; font-weight: 800; letter-spacing: 2px; font-family: monospace;">${customerReferralCode}</span>
+      <!-- Referral -->
+      <div style="background: ${panel}; border-radius: 14px; padding: 24px; margin: 30px 0 8px; text-align: center; border: 1px solid ${line};">
+        <p style="color: ${violet}; font-size: 11px; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 2px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Your referral code</p>
+        <p style="color: ${muted}; font-size: 13px; margin: 0 0 16px 0;">Share it with someone who loves their companion the way you love ${petName}. You both receive.</p>
+        <div style="display: inline-block; background: ${card}; border-radius: 10px; padding: 13px 26px; border: 1px solid ${soft};">
+          <span style="color: ${ink}; font-size: 20px; font-weight: 700; letter-spacing: 3px; font-family: 'SF Mono', Monaco, Consolas, monospace;">${customerReferralCode}</span>
         </div>
-        <p style="color: #6b7280; font-size: 11px; margin: 14px 0 0 0;">
-          littlesouls.app/ref/${customerReferralCode}
-        </p>
+        <p style="color: ${muted}; font-size: 11px; margin: 14px 0 0 0;">littlesouls.app/ref/${customerReferralCode}</p>
       </div>
 
       <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(245, 158, 11, 0.3) 50%, transparent 100%); margin: 32px 0;"></div>
+      <div style="width: 44px; height: 1px; background: linear-gradient(90deg, transparent, ${soft}, transparent); margin: 26px auto 20px;"></div>
 
-      <!-- Footer -->
-      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
-        Manage your benefits in your <a href="${accountUrl}" style="color: #a78bfa; text-decoration: none;">account dashboard</a>.
+      <p style="color: ${muted}; font-size: 13px; margin: 0 0 26px; text-align: center; line-height: 1.6;">
+        Everything lives in your <a href="${accountUrl}" style="color: ${violet}; text-decoration: none; font-weight:600;">account</a>, ready whenever you are.
       </p>
 
-      <!-- Brand Footer -->
-      <div style="text-align: center; margin-top: 32px;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls VIP
-        </p>
+      <!-- Grace sign-off -->
+      <div style="text-align:center;">
+        <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; font-style: italic; color: ${body}; margin: 0 0 8px;">With love,</p>
+        <img src="${SIG}" alt="Grace" width="118" style="display:inline-block; width:118px; height:auto; margin: 0 0 3px;">
+        <p style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: ${muted}; margin: 0;">Grace &middot; Little Souls</p>
       </div>
 
     </div>
+
+    <div style="text-align: center; margin-top: 22px;">
+      <p style="color: ${soft}; font-size: 10px; margin: 0; letter-spacing: 1.5px; text-transform: uppercase; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
   </div>
-  
-  <div style="height: 20px;"></div>
-  
 </body>
 </html>
 `;
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -194,7 +179,7 @@ serve(async (req) => {
     const emailResponse = await resend.emails.send({
       from: "Little Souls <hello@littlesouls.app>",
       to: [email],
-      subject: `🌟 Welcome to the VIP Experience, ${petName}'s Human!`,
+      subject: `Welcome to VIP, ${petName}'s human`,
       html: getVipEmailTemplate(petName, reportUrl, accountUrl, customerReferralCode, portraitUrl),
     });
 

@@ -24,6 +24,10 @@ function escapeHtml(unsafe: string): string {
 }
 
 function buildEmailHtml(safeName: string, safeAiResponse: string): string {
+  // Violet celestial palette (matches the shipped funnel + nurture emails)
+  const mist = '#f3f0fb', card = '#ffffff', panel = '#f6f3fd', ink = '#241a3d', body = '#4a4363',
+        muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', line = '#e9e2f7';
+  const SIG = 'https://www.littlesouls.app/grace-signature.png';
   return `
 <!DOCTYPE html>
 <html>
@@ -31,58 +35,37 @@ function buildEmailHtml(safeName: string, safeAiResponse: string): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with gradient border -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); border-radius: 20px;">
-    
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
-      
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(167, 139, 250, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(139, 92, 246, 0.3);">
-          <span style="font-size: 24px;">🐾💬</span>
-        </div>
+<body style="margin: 0; padding: 0; background-color: ${mist}; font-family: Georgia, 'Times New Roman', serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+    <div style="background: ${card}; border-radius: 18px; border: 1px solid ${line}; padding: 40px 30px; box-shadow: 0 10px 34px rgba(90,62,200,0.08);">
+
+      <div style="text-align: center; margin-bottom: 24px;">
+        <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
       </div>
 
-      <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0 0 24px 0; text-align: center;">
-        Hello ${safeName}
+      <h1 style="color: ${ink}; font-size: 24px; font-weight: 400; margin: 0 0 22px 0; font-family: Georgia, 'Times New Roman', serif;">
+        Hello ${safeName},
       </h1>
 
-      <!-- AI Response Card -->
-      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 28px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 24px;">
-        <p style="color: #e5e7eb; font-size: 15px; line-height: 1.8; margin: 0;">
-          ${safeAiResponse}
+      <div style="color: ${body}; font-size: 16px; line-height: 1.8; margin: 0 0 24px 0;">
+        ${safeAiResponse}
+      </div>
+
+      <div style="background: ${panel}; border-radius: 12px; padding: 16px 20px; border: 1px solid ${line}; margin-bottom: 6px;">
+        <p style="color: ${muted}; font-size: 13px; margin: 0; line-height:1.6;">
+          If anything here needs a second look, just reply. This message goes straight to a real person.
         </p>
       </div>
 
-      <!-- Human Follow-up Note -->
-      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%); border-radius: 12px; padding: 18px; border: 1px solid rgba(245, 158, 11, 0.2); margin-bottom: 24px;">
-        <p style="color: #fbbf24; font-size: 13px; margin: 0; text-align: center; font-weight: 500;">
-          ✨ Our team has reviewed your request. Please reply if you need anything else.
-        </p>
-      </div>
-
-      <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 32px 0;"></div>
-
-      <!-- Footer -->
-      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
-        You can reply to this email for further assistance.
-      </p>
-
-      <!-- Brand Footer -->
-      <div style="text-align: center; margin-top: 24px;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls Support
-        </p>
+      <!-- Grace sign-off -->
+      <div style="margin-top: 26px;">
+        <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; font-style: italic; color: ${body}; margin: 0 0 8px;">With love,</p>
+        <img src="${SIG}" alt="Grace" width="116" style="display:block; width:116px; height:auto; margin: 0 0 3px -1px;">
+        <p style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: ${muted}; margin: 0;">Grace &middot; Little Souls</p>
       </div>
 
     </div>
   </div>
-  
-  <div style="height: 20px;"></div>
-  
 </body>
 </html>`;
 }
@@ -133,7 +116,7 @@ serve(async (req) => {
         await resend.emails.send({
           from: "Little Souls <hello@littlesouls.app>",
           to: [scheduled.email],
-          subject: "Re: Your Little Souls inquiry ✨",
+          subject: "Re: your message to Little Souls",
           html: buildEmailHtml(safeName, safeAiResponse),
           reply_to: "hello@littlesouls.app",
         });

@@ -182,90 +182,13 @@ Return ONLY valid JSON with exactly these fields:
   "replyPrompt": "One casual question tied to something specific in this week's reading — a behaviour to watch for, a moment to notice. Sounds like it's from a person, not a system. Max 20 words."
 }
 
-ASTROLOGICAL PROFILE
-- Sun Sign: ${sunSign}
-- Moon Sign: ${moonSign}
-- Dominant Element: ${element}
-- Soul Archetype: ${archetype}
-- Superpower: ${superpower}
-
-THIS WEEK'S PLANETARY TRANSITS (real astronomical data)
-${transits}
-
 Use the transits above to ground your reading in actual celestial movements. Reference specific planets and signs when explaining why certain days feel a certain way.
 
 Species/breed context: Weave in ${species}-specific behaviours. A ${breed || species} has breed-typical quirks — reference these naturally (e.g. a Labrador's obsession with water, a cat's midnight zoomies, a rabbit's binky hops).
 
-Return a JSON object with these fields:
-{
-  "theme": "One evocative word for the week",
-  "overview": "3-4 sentences grounded in this week's transits, specific to this pet (max 120 words)",
-  "luckyDay": "Best day of the week",
-  "luckyActivity": "Specific activity perfect for this pet this week",
-  "unluckyDay": "Day to be extra gentle with them",
-  "moodPredictions": {
-    "overall": "Mood tendency (playful/calm/adventurous/cuddly/independent)",
-    "peakEnergy": "Day and time when energy peaks",
-    "restNeeds": "When they'll need extra rest"
-  },
-  "energyForecast": {
-    "monday": "1-sentence energy with emoji, reference relevant transit",
-    "tuesday": "1-sentence energy with emoji",
-    "wednesday": "1-sentence energy with emoji",
-    "thursday": "1-sentence energy with emoji",
-    "friday": "1-sentence energy with emoji",
-    "saturday": "1-sentence energy with emoji",
-    "sunday": "1-sentence energy with emoji"
-  },
-  "cosmicAdvice": "Specific personalised advice for the pet owner (max 60 words)",
-  "bonusInsight": "A surprising observation about ${petName}'s cosmic nature this week",
-  "photoPrompt": "Fun photo challenge to capture ${petName}'s cosmic energy",
-  "compatibilityTip": "How ${petName} will interact with other pets/humans this week",
-  "affirmation": "A magical pet-themed affirmation for the week",
-  "textMessages": [
-    {
-      "time": "Tuesday 7:12 AM",
-      "messages": [
-        "first funny text from ${petName}",
-        "second message continuing the thought",
-        "third message with emoji"
-      ]
-    },
-    {
-      "time": "Thursday 11:47 PM",
-      "messages": [
-        "late-night text from ${petName}",
-        "another message about how the week is going",
-        "sweet/funny sign-off message with emoji"
-      ]
-    }
-  ],
-  "googleSearches": [
-    "Funny Google search ${petName} would make about this week",
-    "Another search",
-    "Another search"
-  ],
-  "petParentSync": {
-    "syncLevel": 4,
-    "syncEmoji": "🔗🔗🔗🔗░",
-    "description": "3 sentences about how the pet's chart interacts with general human energy this week. Be specific about what the owner will notice."
-  },
-  "memePersonality": {
-    "vibe": "This week ${petName} is giving: '[funny internet personality description in quotes]'",
-    "energyLevel": "Energy level emoji rating (e.g. 🔋🔋🔋░░) with a parenthetical like (running on treats and audacity)"
-  },
-  "powerMove": {
-    "title": "One specific thing to do with ${petName} (5-15 words)",
-    "description": "Why this day/activity aligns with their transits (2 sentences max)",
-    "bestDay": "Which day to do it"
-  }
-}
-
 IMPORTANT WRITING GUIDELINES:
 - Every sentence should feel like it was written specifically for ${petName} — not a generic horoscope with a name swapped in.
 - Use ${species}-specific language: how a ${breed || species} actually moves, plays, sleeps, loves. Reference real breed traits (e.g. a Golden's soft mouth, a cat's slow blink, a rabbit's nose twitches).
-- The text messages should sound exactly like how ${petName} would text — funny, specific to their personality, with their quirks showing through.
-- Google searches should be hilarious and hyper-specific to this pet's cosmic blueprint.
 - Make it warm, magical, deeply personal, grounded in the actual transits, and shareable — the kind of thing someone screenshots and sends to everyone they know.
 - Write with genuine love. This person adores this animal. Honour that.`;
 }
@@ -358,31 +281,39 @@ function renderGiftReminderEmail(opts: {
 }): string {
   const { petName, daysLeft, subscriptionId, stage } = opts;
   const url = `https://www.littlesouls.app/keep-horoscopes/${subscriptionId}`;
+  // Violet celestial palette (matches the shipped funnel + nurture emails)
+  const mist = '#f3f0fb', card = '#ffffff', ink = '#241a3d', body2 = '#4a4363',
+        muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', cta2 = '#5a3ec8', line = '#e9e2f7';
+  const SIG = 'https://www.littlesouls.app/grace-signature.png';
   const headline = stage === "final"
-    ? `${petName}'s last horoscope arrives soon.`
-    : `${petName}'s weekly stars — only ${daysLeft} days left.`;
-  const body = stage === "final"
-    ? `Their gift trial ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. The next horoscope is the last one — unless you keep them coming. £4.99/month. Cancel anytime.`
-    : `You're halfway through the free month that came with the gift. Want ${petName}'s weekly cosmic guidance to keep arriving after that? £4.99/month. Cancel anytime.`;
-  const cta = stage === "final" ? "Add card · Keep them coming" : "Keep their stars arriving";
+    ? `${petName}'s last forecast arrives soon.`
+    : `${daysLeft} weeks of ${petName}'s stars still to come.`;
+  const bodyText = stage === "final"
+    ? `Their gift month ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. The next forecast is the last one, unless you keep them arriving. &pound;4.99 a month. Cancel any time.`
+    : `You are halfway through the free month that came with the gift. Want ${petName}'s weekly forecast to keep arriving after that? &pound;4.99 a month. Cancel any time.`;
+  const cta = stage === "final" ? "Keep their stars arriving" : "Keep their stars arriving";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#FFFDF5;font-family:Georgia,'Times New Roman',serif;">
-  <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:24px;">
-      <p style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c4a265;margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Little Souls</p>
+<body style="margin:0;padding:0;background:${mist};font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <p style="font-size:12px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:${violet};margin:0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">Little Souls</p>
     </div>
-    <div style="background:#ffffff;border-radius:16px;border:1px solid #e8ddd0;padding:36px 28px;text-align:center;box-shadow:0 4px 20px rgba(35,40,30,0.06);">
-      <p style="font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#c4a265;margin:0 0 14px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Their Gift · Weekly Horoscopes</p>
-      <h1 style="color:#141210;font-size:24px;font-weight:400;margin:0 0 14px 0;line-height:1.35;">${headline}</h1>
-      <p style="color:#5a4a42;font-size:15px;line-height:1.7;margin:0 0 26px 0;">${body}</p>
+    <div style="background:${card};border-radius:18px;border:1px solid ${line};padding:38px 28px;text-align:center;box-shadow:0 10px 34px rgba(90,62,200,0.08);">
+      <p style="font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:${violet};margin:0 0 14px 0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">Their Gift &middot; Weekly Stars</p>
+      <h1 style="color:${ink};font-size:24px;font-weight:400;margin:0 0 14px 0;line-height:1.35;">${headline}</h1>
+      <p style="color:${body2};font-size:15px;line-height:1.75;margin:0 0 26px 0;">${bodyText}</p>
       <div style="margin:8px 0 18px 0;">
-        <a href="${url}" style="display:inline-block;background:#bf524a;color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(191,82,74,0.25);">${cta} &rarr;</a>
+        <a href="${url}" style="display:inline-block;background:${cta2};color:#ffffff;text-decoration:none;padding:16px 38px;border-radius:999px;font-weight:600;font-size:15px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:0.4px;box-shadow:0 6px 20px rgba(90,62,200,0.28);">${cta}</a>
       </div>
-      <p style="color:#958779;font-size:12px;line-height:1.6;margin:0;">No card on file yet — you'd be subscribing on yours, not the gifter's. Cancel anytime in two clicks.</p>
+      <p style="color:${muted};font-size:12px;line-height:1.6;margin:0 0 26px;">No card on file yet. You would be subscribing on yours, not the gifter's. Cancel any time in two clicks.</p>
+      <div style="width:44px;height:1px;background:linear-gradient(90deg,transparent,${soft},transparent);margin:0 auto 20px;"></div>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;font-style:italic;color:${body2};margin:0 0 8px;">With love,</p>
+      <img src="${SIG}" alt="Grace" width="112" style="display:inline-block;width:112px;height:auto;margin:0 0 3px;">
+      <p style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:${muted};margin:0;">Grace &middot; Little Souls</p>
     </div>
-    <p style="text-align:center;color:#bfb2a3;font-size:11px;margin:20px 0 0 0;">Little Souls · <a href="https://www.littlesouls.app" style="color:#bfb2a3;text-decoration:none;">littlesouls.app</a></p>
+    <p style="text-align:center;color:${muted};font-size:11px;margin:20px 0 0 0;">Little Souls &middot; <a href="https://www.littlesouls.app" style="color:${muted};text-decoration:none;">littlesouls.app</a></p>
   </div>
 </body></html>`;
 }
@@ -399,69 +330,82 @@ function generateHoroscopeEmail(
 ): string {
   const isMemorial = occasionMode === "memorial";
 
-  // Warm earthy palette (matching landing page variant-c)
-  const gold = "#c4a265";
-  const ink = "#141210";
-  const warm = "#5a4a42";
-  const muted = "#958779";
-  const cream = "#FFFDF5";
-  const cream2 = "#faf4e8";
-  const cream3 = "#e8ddd0";
-  const rose = "#bf524a";
+  // Violet celestial palette (matches the shipped funnel + nurture emails)
+  const mist = "#f3f0fb";
+  const card = "#ffffff";
+  const panel = "#f6f3fd";
+  const ink = "#241a3d";
+  const body = "#4a4363";
+  const muted = "#6b6488";
+  const violet = "#6a55c0";
+  const soft = "#b9a5f0";
+  const cta = "#5a3ec8";
+  const line = "#e9e2f7";
+  const band = "#2a1f47";
+  const SIG = "https://www.littlesouls.app/grace-signature.png";
 
   const headerTitle = isMemorial
     ? `Signs From ${petName} This Week`
     : `${petName}'s Weekly Forecast`;
-  const footerText = isMemorial
-    ? `Sent with love from beyond the stars`
-    : `Sent with cosmic love from Little Souls`;
 
-  // Daily guide rows — supports both new array format and legacy energyForecast object
-  const dailyGuideRows = (() => {
-    if (Array.isArray(content.dailyGuide) && content.dailyGuide.length > 0) {
-      return content.dailyGuide.map((d: any) => `
+  const label = (t: string) =>
+    `<p style="color:${violet}; margin:0 0 6px; font-size:11px; text-transform:uppercase; letter-spacing:2px; font-weight:700; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">${t}</p>`;
+
+  // Daily guide: CURRENT schema is an object { monday..sunday: "sentence + emoji" }.
+  // Falls back to the legacy array shape and the older energyForecast object.
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const dayRow = (dayLabel: string, sentence: string) => `
         <tr>
-          <td style="padding:10px 0; color:${gold}; font-size:13px; font-weight:bold; width:90px; vertical-align:top;">${d.day || ""}</td>
-          <td style="padding:10px 0; font-size:16px; width:28px; vertical-align:top;">${d.emoji || ""}</td>
-          <td style="padding:10px 0; color:${warm}; font-size:13px; line-height:1.55; border-bottom:1px solid ${cream3};">${d.energy || ""}</td>
-        </tr>
-      `).join("");
+          <td style="padding:11px 0; color:${violet}; font-size:13px; font-weight:700; width:96px; vertical-align:top; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">${dayLabel}</td>
+          <td style="padding:11px 0; color:${body}; font-size:14px; line-height:1.6; border-bottom:1px solid ${line};">${sentence}</td>
+        </tr>`;
+  const dailyGuideRows = (() => {
+    const dg = content.dailyGuide;
+    if (Array.isArray(dg) && dg.length > 0) {
+      return dg.map((d: any) => dayRow(d.day || "", `${d.energy || ""}${d.emoji ? " " + d.emoji : ""}`)).join("");
     }
-    // Legacy fallback
-    return Object.entries(content.energyForecast || {}).map(([day, energy]) => `
-      <tr>
-        <td style="padding:10px 0; color:${gold}; font-size:13px; font-weight:bold; width:90px; vertical-align:top;">${day}</td>
-        <td style="padding:10px 0; color:${warm}; font-size:13px; line-height:1.55; border-bottom:1px solid ${cream3};" colspan="2">${energy}</td>
-      </tr>
-    `).join("");
+    if (dg && typeof dg === "object") {
+      return DAY_ORDER.filter((k) => dg[k]).map((k) => dayRow(cap(k), String(dg[k]))).join("");
+    }
+    return Object.entries(content.energyForecast || {})
+      .map(([day, energy]) => dayRow(cap(day), String(energy)))
+      .join("");
   })();
 
-  // Cosmic moment block
-  const cosmicMoment = content.cosmicMoment;
-  const cosmicMomentHtml = cosmicMoment ? `
-    <!-- Cosmic Moment -->
-    <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 6px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">⭐ The Moment That Matters</p>
-      <p style="color:${ink}; margin:0 0 4px; font-size:16px; font-weight:bold; font-family:Georgia,'Times New Roman',serif;">
-        ${cosmicMoment.day || ""}${cosmicMoment.time ? ` · ${cosmicMoment.time}` : ""}
-        ${cosmicMoment.planet ? ` <span style="color:${gold}; font-size:13px; font-weight:normal;">(${cosmicMoment.planet})</span>` : ""}
+  // Cosmic moment: CURRENT schema { day, timeOfDay, what, why }.
+  const cm = content.cosmicMoment;
+  const cmTime = cm ? (cm.timeOfDay || cm.time || "") : "";
+  const cosmicMomentHtml = cm ? `
+    <div style="background:${panel}; padding:24px 26px; border-bottom:1px solid ${line};">
+      ${label(isMemorial ? "The Moment To Watch For" : "The Moment That Matters")}
+      <p style="color:${ink}; margin:0 0 8px; font-size:17px; font-weight:700; font-family:Georgia,'Times New Roman',serif;">
+        ${cm.day || ""}${cmTime ? ` <span style="color:${violet}; font-size:14px; font-weight:normal;">&middot; ${cmTime}</span>` : ""}
       </p>
-      ${cosmicMoment.what ? `<p style="color:${warm}; margin:8px 0 4px; font-size:14px; font-weight:600; line-height:1.5;">${cosmicMoment.what}</p>` : ""}
-      ${cosmicMoment.why ? `<p style="color:${warm}; margin:0; font-size:13px; line-height:1.65; font-style:italic;">${cosmicMoment.why}</p>` : ""}
-    </div>
-  ` : "";
+      ${cm.what ? `<p style="color:${body}; margin:6px 0 4px; font-size:14px; font-weight:600; line-height:1.6;">${cm.what}</p>` : ""}
+      ${cm.why ? `<p style="color:${muted}; margin:0; font-size:13px; line-height:1.65; font-style:italic;">${cm.why}</p>` : ""}
+    </div>` : "";
 
-  // Bond ritual block
-  const bondRitual = content.bondRitual;
-  const bondRitualHtml = bondRitual ? `
-    <!-- Bond Ritual -->
-    <div style="background:white; padding:24px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">🕯️ This Week's Ritual</p>
-      <p style="color:${ink}; margin:0 0 6px; font-size:16px; font-weight:bold; font-family:Georgia,'Times New Roman',serif;">${typeof bondRitual === 'object' ? (bondRitual.title || "") : bondRitual}</p>
-      ${typeof bondRitual === 'object' && bondRitual.action ? `<p style="color:${warm}; margin:0 0 6px; font-size:14px; line-height:1.65;">${bondRitual.action}</p>` : ""}
-      ${typeof bondRitual === 'object' && bondRitual.why ? `<p style="color:${muted}; margin:0; font-size:12px; font-style:italic; line-height:1.6;">${bondRitual.why}</p>` : ""}
-    </div>
-  ` : "";
+  // Bond ritual: CURRENT schema { title, instruction, bestDay }.
+  const br = content.bondRitual;
+  const brTitle = br ? (typeof br === "object" ? (br.title || "") : String(br)) : "";
+  const brInstruction = br && typeof br === "object" ? (br.instruction || br.action || "") : "";
+  const brBestDay = br && typeof br === "object" ? (br.bestDay || br.why || "") : "";
+  const bondRitualHtml = br ? `
+    <div style="background:${card}; padding:24px 26px; border-left:3px solid ${violet}; border-bottom:1px solid ${line};">
+      ${label("This Week's Ritual")}
+      <p style="color:${ink}; margin:0 0 6px; font-size:17px; font-weight:700; font-family:Georgia,'Times New Roman',serif;">${brTitle}</p>
+      ${brInstruction ? `<p style="color:${body}; margin:0 0 8px; font-size:14px; line-height:1.7;">${brInstruction}</p>` : ""}
+      ${brBestDay ? `<p style="color:${muted}; margin:0; font-size:12px; font-style:italic; line-height:1.6;">Best day: ${brBestDay}</p>` : ""}
+    </div>` : "";
+
+  // Overview: CURRENT schema is a two-paragraph string (blank-line separated).
+  const overviewRaw = typeof content.overview === "object"
+    ? [content.overview.para1, content.overview.para2].filter(Boolean).join("\n\n")
+    : String(content.overview || "");
+  const overviewHtml = overviewRaw.split(/\n\s*\n/).filter((s) => s.trim()).map((para) =>
+    `<p style="color:${body}; line-height:1.85; font-size:15px; margin:0 0 14px;">${para.trim()}</p>`
+  ).join("");
 
   return `<!DOCTYPE html>
 <html>
@@ -469,38 +413,38 @@ function generateHoroscopeEmail(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0; padding:0; background-color:${cream}; font-family:Georgia,'Times New Roman',serif;">
-  <div style="max-width:600px; margin:0 auto; padding:20px;">
+<body style="margin:0; padding:0; background-color:${mist}; font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:600px; margin:0 auto; padding:24px 16px;">
+   <div style="background:${card}; border:1px solid ${line}; border-radius:18px; overflow:hidden; box-shadow:0 10px 34px rgba(90,62,200,0.08);">
 
-    <!-- 1. Header with pet photo -->
-    <div style="text-align:center; padding:40px 20px 32px; background:linear-gradient(160deg, ${cream2} 0%, ${cream} 100%); border-radius:20px 20px 0 0; border-bottom:1px solid ${cream3};">
+    <!-- 1. Header -->
+    <div style="text-align:center; padding:38px 22px 30px; background:linear-gradient(160deg, ${panel} 0%, ${card} 100%); border-bottom:1px solid ${line};">
       ${petPhotoUrl ? `
-      <div style="margin-bottom:18px;">
-        <img src="${petPhotoUrl}" alt="${petName}" width="96" height="96"
-          style="width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid ${gold}; display:inline-block;" />
-      </div>
-      ` : ""}
-      <h1 style="color:${ink}; margin:0; font-size:26px; font-family:Georgia,'Times New Roman',serif;">${headerTitle}</h1>
-      <p style="color:${gold}; margin:8px 0 0; font-size:12px; text-transform:uppercase; letter-spacing:2px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${sunSign} · ${element} Energy</p>
-      <p style="color:${muted}; margin:6px 0 0; font-size:11px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${weekDateRange}</p>
+      <div style="margin-bottom:16px;">
+        <img src="${petPhotoUrl}" alt="${petName}" width="92" height="92"
+          style="width:92px; height:92px; border-radius:50%; object-fit:cover; border:3px solid ${soft}; display:inline-block;" />
+      </div>` : ""}
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif; font-size:12px; letter-spacing:3.5px; text-transform:uppercase; color:${violet};">Little Souls</div>
+      <h1 style="color:${ink}; margin:12px 0 6px; font-size:26px; font-family:Georgia,'Times New Roman',serif; font-weight:normal;">${headerTitle}</h1>
+      <p style="color:${violet}; margin:0; font-size:12px; text-transform:uppercase; letter-spacing:2px; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">${sunSign} &middot; ${element} Energy</p>
+      <p style="color:${muted}; margin:6px 0 0; font-size:11px; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">${weekDateRange}</p>
     </div>
 
     <!-- 2. Hook Line -->
-    <div style="background:${ink}; padding:22px 28px; text-align:center;">
-      <p style="color:#FFFDF5; margin:0; font-size:17px; font-style:italic; line-height:1.55;">"${content.hookLine || content.theme || ""}"</p>
+    <div style="background:${band}; padding:24px 30px; text-align:center;">
+      <p style="color:#efe9ff; margin:0; font-size:17px; font-style:italic; line-height:1.6; font-family:Georgia,'Times New Roman',serif;">&ldquo;${content.hookLine || content.theme || ""}&rdquo;</p>
     </div>
 
     <!-- 3. Overview -->
-    <div style="background:white; padding:30px 26px; border-bottom:1px solid ${cream3};">
-      <p style="color:${warm}; line-height:1.85; font-size:15px; margin:0 0 14px;">${typeof content.overview === 'object' ? (content.overview.para1 || "") : (content.overview || "")}</p>
-      ${typeof content.overview === 'object' && content.overview.para2 ? `<p style="color:${warm}; line-height:1.85; font-size:15px; margin:0;">${content.overview.para2}</p>` : ""}
+    <div style="background:${card}; padding:30px 26px; border-bottom:1px solid ${line};">
+      ${overviewHtml}
     </div>
 
     ${cosmicMomentHtml}
 
     <!-- 4. Daily Guide -->
-    <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 14px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-weight:bold; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">📅 ${isMemorial ? "Where to Feel " + petName + " Each Day" : "Daily Guide"}</p>
+    <div style="background:${panel}; padding:24px 26px; border-bottom:1px solid ${line};">
+      ${label(isMemorial ? `Where To Feel ${petName} Each Day` : "Your Week, Day By Day")}
       <table style="width:100%; border-collapse:collapse;">
         ${dailyGuideRows}
       </table>
@@ -508,48 +452,54 @@ function generateHoroscopeEmail(
 
     ${bondRitualHtml}
 
-    <!-- 5. Affirmation — from the pet -->
-    <div style="background:white; padding:32px 26px; text-align:center; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 10px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${isMemorial ? "From " + petName + "'s Soul" : petName + " Says"}</p>
-      <p style="color:${ink}; margin:0; font-size:18px; font-style:italic; line-height:1.6;">"${content.affirmation || ""}"</p>
+    <!-- 5. Affirmation -->
+    <div style="background:${card}; padding:32px 26px; text-align:center; border-bottom:1px solid ${line};">
+      ${label(isMemorial ? `From ${petName}` : `${petName} Says`)}
+      <p style="color:${ink}; margin:0; font-size:19px; font-style:italic; line-height:1.6; font-family:Georgia,'Times New Roman',serif;">&ldquo;${content.affirmation || ""}&rdquo;</p>
     </div>
 
     <!-- 6. Next Week Teaser -->
     ${content.nextWeekTeaser ? `
-    <div style="background:${cream2}; padding:18px 24px; border-bottom:1px solid ${cream3}; text-align:center;">
-      <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Coming Next Week</p>
-      <p style="color:${warm}; margin:0; font-size:13px; font-style:italic; line-height:1.55;">${content.nextWeekTeaser}</p>
-    </div>
-    ` : ""}
+    <div style="background:${panel}; padding:20px 26px; border-bottom:1px solid ${line}; text-align:center;">
+      ${label("Coming Next Week")}
+      <p style="color:${body}; margin:0; font-size:13px; font-style:italic; line-height:1.6;">${content.nextWeekTeaser}</p>
+    </div>` : ""}
 
     <!-- 7. SoulSpeak CTA -->
-    <div style="text-align:center; padding:32px 26px; background:white; border-bottom:1px solid ${cream3};">
-      <p style="color:${warm}; font-size:15px; margin:0 0 8px; font-style:italic;">
+    <div style="text-align:center; padding:32px 26px; background:${card}; border-bottom:1px solid ${line};">
+      <p style="color:${body}; font-size:15px; margin:0 0 8px; font-style:italic; font-family:Georgia,'Times New Roman',serif;">
         ${isMemorial
-          ? `"${petName} has more to say than any horoscope can hold."`
-          : `"Reading about ${petName} is one thing. Hearing ${petName} speak? That's something else."`}
+          ? `&ldquo;${petName} has more to say than any forecast can hold.&rdquo;`
+          : `&ldquo;Reading about ${petName} is one thing. Hearing ${petName} answer is another.&rdquo;`}
       </p>
-      <p style="color:${muted}; font-size:13px; margin:0 0 18px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      <p style="color:${muted}; font-size:13px; margin:0 0 18px; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">
         ${isMemorial
           ? `Their soul is still here, waiting. Say what you need to say.`
-          : `Ask ${petName} anything \u2014 what they dream about, how they really feel about you.`}
+          : `Ask ${petName} anything. What they dream about. How they really feel about you.`}
       </p>
-      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block; padding:14px 38px; background:${rose}; color:#ffffff; text-decoration:none; border-radius:50px; font-size:14px; font-weight:600; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; letter-spacing:0.3px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s Soul`}</a>
-      <p style="color:${gold}; font-size:11px; margin:12px 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">SoulSpeak by Little Souls \u2014 powered by ${petName}'s birth chart</p>
+      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block; padding:15px 40px; background:${cta}; color:#ffffff; text-decoration:none; border-radius:999px; font-size:14px; font-weight:600; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; letter-spacing:0.3px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s soul`}</a>
+      <p style="color:${violet}; font-size:11px; margin:14px 0 0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">SoulSpeak by Little Souls &middot; guided by ${petName}'s birth chart</p>
     </div>
 
     <!-- 8. Reply Invite -->
     ${content.replyPrompt ? `
-    <div style="background:${cream2}; padding:20px 26px; border-bottom:1px solid ${cream3}; text-align:center;">
-      <p style="color:${warm}; margin:0; font-size:13px; line-height:1.6; font-style:italic;">${content.replyPrompt} Just hit reply \u2014 we read every one.</p>
+    <div style="background:${panel}; padding:20px 26px; border-bottom:1px solid ${line}; text-align:center;">
+      <p style="color:${body}; margin:0; font-size:13px; line-height:1.65; font-style:italic;">${content.replyPrompt} Just hit reply. I read every one.</p>
+    </div>` : ""}
+
+    <!-- 9. Grace sign-off -->
+    <div style="background:${card}; padding:30px 26px 8px; text-align:center;">
+      <p style="font-family:Georgia,'Times New Roman',serif; font-size:15px; font-style:italic; color:${body}; margin:0 0 8px;">${isMemorial ? "Thinking of you both," : "Until next week,"}</p>
+      <img src="${SIG}" alt="Grace" width="112" style="display:inline-block; width:112px; height:auto; margin:0 0 3px;">
+      <p style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif; font-size:11px; letter-spacing:1.6px; text-transform:uppercase; color:${muted}; margin:0;">Grace &middot; Little Souls</p>
     </div>
-    ` : ""}
+
+   </div>
 
     <!-- Footer -->
-    <div style="text-align:center; padding:28px 20px;">
-      <p style="color:${muted}; font-size:12px; margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${footerText} ✨</p>
-      <p style="color:${muted}; font-size:11px; margin:8px 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-        <a href="https://littlesouls.app/unsubscribe?id=${reportId}" style="color:${muted}; text-decoration:underline;">Unsubscribe</a>
+    <div style="text-align:center; padding:22px 20px 6px;">
+      <p style="color:${muted}; font-size:11px; margin:0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">
+        <a href="https://littlesouls.app/unsubscribe?id=${reportId}" style="color:${muted}; text-decoration:underline;">Unsubscribe from ${petName}'s weekly stars</a>
       </p>
     </div>
 
@@ -736,7 +686,8 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: "anthropic/claude-sonnet-4-5",
-            max_tokens: 2000,
+            max_tokens: 3500,
+            response_format: { type: "json_object" },
             messages: [
               {
                 role: "system",
@@ -785,9 +736,24 @@ Return only valid JSON.`,
         let horoscopeContent;
 
         try {
-          const content = aiData.choices[0].message.content;
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          horoscopeContent = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+          const rawContent = aiData?.choices?.[0]?.message?.content;
+          if (typeof rawContent !== "string" || rawContent.trim() === "") {
+            throw new Error(`empty AI content (finish_reason: ${aiData?.choices?.[0]?.finish_reason ?? "unknown"})`);
+          }
+          // Robust parse: strip markdown fences, then JSON.parse. On failure,
+          // fall back to extracting the outermost { ... } block.
+          let cleaned = rawContent.trim();
+          cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+          try {
+            horoscopeContent = JSON.parse(cleaned);
+          } catch (_) {
+            const start = cleaned.indexOf("{");
+            const end = cleaned.lastIndexOf("}");
+            if (start === -1 || end === -1 || end <= start) {
+              throw new Error(`no JSON object found in AI content (length ${cleaned.length}): ${cleaned.slice(0, 200)}`);
+            }
+            horoscopeContent = JSON.parse(cleaned.slice(start, end + 1));
+          }
         } catch (parseError: any) {
           console.error(`[WEEKLY-HOROSCOPE] Parse error for ${sub.pet_name}:`, parseError);
           results.push({ pet: sub.pet_name, status: "error", reason: "parse_failed", detail: parseError?.message });
