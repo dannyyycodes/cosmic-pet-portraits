@@ -1860,7 +1860,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-preview-link { font-size: 14px; }
           .cosmic-stepper > span { font-size: 14px; }
           .cosmic-tier.is-memorial .cosmic-tier-head p { font-size: 18px; }
+          .cosmic-tier.is-memorial .cosmic-feature-list p { font-size: 18px; }
           .cosmic-tier.is-memorial .cosmic-feature-list button { font-size: 18px; }
+          .cosmic-primary-button { font-size: 18px; }
+          .cosmic-apply-button { font-size: 17px; }
           .cosmic-mem-more summary { font-size: 18px; }
           .cosmic-mem-more-body > p { font-size: 18px; }
           .cosmic-mem-more-count b { font-size: 18px; }
@@ -1881,6 +1884,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             .cosmic-tier p, .cosmic-included-strip p { font-size: 17.5px; }
             .cosmic-feature-list button { font-size: 17.5px; }
             .cosmic-tier.is-memorial .cosmic-tier-head p { font-size: 19px; }
+            .cosmic-tier.is-memorial .cosmic-feature-list p { font-size: 19px; }
+            .cosmic-tier.is-memorial .cosmic-feature-list button { font-size: 19px; }
+            .cosmic-primary-button { font-size: 19px; }
+            .cosmic-apply-button { font-size: 17.5px; }
             .cosmic-mem-more-body > p, .cosmic-mem-review blockquote { font-size: 19px; }
             .cosmic-mem-assure { font-size: 18.5px; }
             .cosmic-order-row { font-size: 17.5px; }
@@ -2037,7 +2044,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             </a>
 
             {isLocalized && (
-              <p style={{ color: "#c8c8d2", textAlign: "center", fontSize: 16, margin: "10px 0 0" }}>
+              <p style={{ color: "#c8c8d2", textAlign: "center", fontSize: 17, margin: "10px 0 0" }}>
                 Billed in {currencyCode}. Exactly the price shown.
               </p>
             )}
