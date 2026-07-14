@@ -2516,7 +2516,7 @@ function BirthSkyJourney() {
     const cleanEmail = email.trim().toLowerCase();
     if (!/.+@.+\..+/.test(cleanEmail)) {
       setStatus("error");
-      setMessage(memorial ? "Add where their reading should be held." : "Add where their reading should open.");
+      setMessage(memorial ? "Add your email. We will send their reading there." : "Add your email to get their free reading.");
       return;
     }
     handleLead(cleanEmail, "free_reading_start");
@@ -2622,7 +2622,7 @@ function BirthSkyJourney() {
                   <p className="ls-seal-hint">Or the day they came home. Both set a true chart.</p>
                 </div>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
-                  <label htmlFor="seal-email">{memorial ? "Where should we hold their reading?" : "Where should their reading open?"}</label>
+                  <label htmlFor="seal-email">Your email</label>
                   <input
                     id="seal-email"
                     type="email"
@@ -2632,7 +2632,8 @@ function BirthSkyJourney() {
                     required
                     onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
-                  <p className="ls-seal-hint">{memorial ? "No account. Just where it waits." : "No account. This is where it opens."}</p>
+                  <p className="ls-seal-send">{memorial ? "We will send their reading here, whenever you are ready." : "We will send their free reading here."}</p>
+                  <p className="ls-seal-hint">No account needed.</p>
                 </div>
                 <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.24)}>
                   Set the chart <ArrowRight size={18} />
@@ -5774,6 +5775,12 @@ function CosmicStyles() {
         margin: 9px 0 0; color: rgba(245,242,255,0.55);
         font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.5;
       }
+      /* the value exchange under the email field: plain, unmissable */
+      .ls-seal-send {
+        margin: 10px 0 0; color: rgba(245,242,255,0.88);
+        font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.5;
+      }
+      .ls-seal-send + .ls-seal-hint { margin-top: 4px; }
       .ls-seal-help { margin-top: 10px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 1rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
       .ls-seal-help-ln { margin: 0; opacity: 0; animation: lsSealHelpIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
       @keyframes lsSealHelpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

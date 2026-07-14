@@ -37,30 +37,36 @@ gsap.registerPlugin(ScrollTrigger);
    drawn, nodes lit, wheel complete, moon sharp, form sealed, no drift.
 ===================================================================== */
 
-/* bespoke zodiac + planet glyph paths (consumed by ReadingsLanding's wheel) */
+/* bespoke zodiac + planet glyph paths (consumed by ReadingsLanding's wheel).
+   Drawn to astrology-software letterforms on a ±7.5 grid, y down, every
+   stroke round-capped at one weight - each symbol must read at a glance:
+   Aries ram horns, Taurus head+horns, Gemini twins, Cancer 69, Leo mane+tail,
+   Virgo arches+loop, Libra omega over line, Scorpio arches+arrow tail,
+   Sagittarius arrow+crossbar, Capricorn horn+loop tail, Aquarius twin waves,
+   Pisces two fishes bound, then the ten classical planet sigils. */
 export const GLYPH: Record<string, string> = {
-  aries: '<path class="gl-s" d="M-6,-1 C-6,-6 -1,-7 0,-1 C1,-7 6,-6 6,-1"/>',
-  taurus: '<circle class="gl-s" cx="0" cy="2.7" r="4"/><path class="gl-s" d="M-5.6,-3.4 A5.4,4.8 0 0 1 5.6,-3.4"/>',
-  gemini: '<path class="gl-s" d="M-4,-5.4 L-4,5.4 M4,-5.4 L4,5.4"/><path class="gl-s" d="M-5.7,-5.4 A3.2,2 0 0 1 5.7,-5.4 M-5.7,5.4 A3.2,2 0 0 0 5.7,5.4"/>',
-  cancer: '<path class="gl-s" d="M0.9,-3.7 C-3,-5.2 -6,-3 -6,-0.4"/><path class="gl-s" d="M-0.9,3.7 C3,5.2 6,3 6,0.4"/><circle class="gl-f" cx="2.7" cy="-2.5" r="1.7"/><circle class="gl-f" cx="-2.7" cy="2.5" r="1.7"/>',
-  leo: '<circle class="gl-s" cx="-3" cy="3.3" r="2.5"/><path class="gl-s" d="M-1.1,1.7 C0.4,-1 -1.2,-6 -4,-6 C-6.6,-6 -6,-1.4 -3.3,0.6 M-1,1.8 C1.6,3.6 3.8,3 4.6,0.6"/>',
-  virgo: '<path class="gl-s" d="M-6,5 L-6,-4 C-6,-6 -3.4,-6 -3.4,-4 L-3.4,5 M-3.4,-4 C-3.4,-6 -0.8,-6 -0.8,-4 L-0.8,5 M-0.8,-4 C-0.8,-6 1.9,-6 1.9,-4 L1.9,3 C1.9,6 5.2,5 4,1.3"/>',
-  libra: '<path class="gl-s" d="M-6,4 L6,4"/><path class="gl-s" d="M-6,-0.4 L-2.8,-0.4 A3.4,3.4 0 0 1 2.8,-0.4 L6,-0.4"/>',
-  scorpio: '<path class="gl-s" d="M-6,5 L-6,-4 C-6,-6 -3.4,-6 -3.4,-4 L-3.4,5 M-3.4,-4 C-3.4,-6 -0.8,-6 -0.8,-4 L-0.8,5 M-0.8,-4 C-0.8,-6 1.9,-6 1.9,-4 L1.9,4.6 L4.9,4.6"/><path class="gl-s" d="M4.9,4.6 L3.2,3 M4.9,4.6 L3.2,6.2"/>',
-  sagittarius: '<path class="gl-s" d="M-5.6,5.6 L4.6,-4.6 M4.6,-4.6 L0.3,-4.6 M4.6,-4.6 L4.6,-0.3 M-3.7,-0.7 L0.7,3.7"/>',
-  capricorn: '<path class="gl-s" d="M-6,-3.4 C-4.3,-5.6 -2.3,-4 -1.5,-1.4 L0.6,3.4 C0.7,-2.6 2.9,-4.2 4.1,-2"/><circle class="gl-s" cx="3.4" cy="2.6" r="2.4"/>',
-  aquarius: '<path class="gl-s" d="M-6.2,-1.6 L-3.7,-3.8 L-1.2,-1.6 L1.3,-3.8 L3.8,-1.6 L6.2,-3.4"/><path class="gl-s" d="M-6.2,3 L-3.7,0.8 L-1.2,3 L1.3,0.8 L3.8,3 L6.2,1.2"/>',
-  pisces: '<path class="gl-s" d="M-5.4,-5.8 A5.2,6.2 0 0 1 -5.4,5.8 M5.4,-5.8 A5.2,6.2 0 0 0 5.4,5.8 M-5.4,0 L5.4,0"/>',
-  sun: '<circle class="gl-s" cx="0" cy="0" r="5.4"/><circle class="gl-f" cx="0" cy="0" r="1.3"/>',
-  moon: '<path class="gl-f" d="M1.4,-5.6 A5.6,5.6 0 1 0 1.4,5.6 A7.2,7.2 0 0 1 1.4,-5.6 Z"/>',
-  mercury: '<circle class="gl-s" cx="0" cy="0.2" r="3.1"/><path class="gl-s" d="M-3.1,-5.6 A3.3,3.1 0 0 0 3.1,-5.6"/><path class="gl-s" d="M0,3.3 L0,7 M-2.6,5.3 L2.6,5.3"/>',
-  venus: '<circle class="gl-s" cx="0" cy="-1.6" r="3.1"/><path class="gl-s" d="M0,1.5 L0,6.8 M-2.6,4.1 L2.6,4.1"/>',
-  mars: '<circle class="gl-s" cx="-1" cy="1.6" r="3.3"/><path class="gl-s" d="M1.4,-0.8 L5.7,-5.1 M5.7,-5.1 L2.2,-5.1 M5.7,-5.1 L5.7,-1.6"/>',
-  jupiter: '<path class="gl-s" d="M-5.6,-3 C-5.4,-5.8 -1.8,-6.6 -0.7,-4 C0.2,-1.9 -1.6,0.8 -5.9,1.8 L4.9,1.8 M2.5,-5.6 L2.5,6.2"/>',
-  saturn: '<path class="gl-s" d="M-3,-6.4 L-3,5 M-5,-4.2 L-1,-4.2 M-3,-0.8 C-1.4,-2.6 1.8,-2.4 2.6,-0.3 C3.4,1.8 2,3.6 0.6,4.8 C-0.3,5.6 -0.2,6.5 0.6,6.8"/>',
-  uranus: '<circle class="gl-s" cx="0" cy="4.7" r="1.9"/><path class="gl-s" d="M0,2.8 L0,-1.7 M-4.3,-6.3 L-4.3,1 M4.3,-6.3 L4.3,1 M-4.3,-2.65 L4.3,-2.65"/>',
-  neptune: '<path class="gl-s" d="M-4.7,-6.2 L-4.7,-3.2 C-4.7,-0.4 -1.9,1 0,1 C1.9,1 4.7,-0.4 4.7,-3.2 L4.7,-6.2 M0,-6.4 L0,6.6 M-2.6,3.8 L2.6,3.8 M-1.3,-5.1 L0,-6.5 L1.3,-5.1"/>',
-  pluto: '<circle class="gl-s" cx="0" cy="-4.1" r="1.8"/><path class="gl-s" d="M-3.8,-4.4 A3.8,3.8 0 0 0 3.8,-4.4 M0,-0.6 L0,6.4 M-2.5,3 L2.5,3"/>',
+  aries: '<path class="gl-s" d="M0,7 L0,-1.8 M0,-1.8 C0,-5.4 -1.7,-7.1 -3.7,-7.1 C-5.9,-7.1 -7.1,-5.3 -7.1,-3.1 M0,-1.8 C0,-5.4 1.7,-7.1 3.7,-7.1 C5.9,-7.1 7.1,-5.3 7.1,-3.1"/>',
+  taurus: '<circle class="gl-s" cx="0" cy="2.9" r="4.1"/><path class="gl-s" d="M-5.2,-7 A5.23,5.23 0 1 0 5.2,-7"/>',
+  gemini: '<path class="gl-s" d="M-3.3,-4.9 L-3.3,4.9 M3.3,-4.9 L3.3,4.9 M-6,-6.5 C-2.5,-4.7 2.5,-4.7 6,-6.5 M-6,6.5 C-2.5,4.7 2.5,4.7 6,6.5"/>',
+  cancer: '<path class="gl-s" d="M-1.4,-3.6 C0.7,-6.1 4.1,-6.5 6.4,-5.1 M1.4,3.6 C-0.7,6.1 -4.1,6.5 -6.4,5.1"/><circle class="gl-s" cx="-3.7" cy="-2.9" r="2.4"/><circle class="gl-s" cx="3.7" cy="2.9" r="2.4"/>',
+  leo: '<circle class="gl-s" cx="-4.2" cy="4.3" r="2.3"/><path class="gl-s" d="M-2.3,3 C-0.9,1.1 -2.7,-1.9 -3.1,-4 C-3.5,-6.1 -1.7,-7.4 0,-7.4 C1.9,-7.4 3.3,-5.9 3.3,-4 C3.3,-1.6 1.7,1.1 1.7,3.5 C1.7,5.5 3.5,6.5 5.3,5.3"/>',
+  virgo: '<path class="gl-s" d="M-7.3,-4.7 C-6.7,-5.9 -4.5,-5.9 -4.5,-3.8 L-4.5,5.6 M-4.5,-3.8 C-4.5,-5.9 -1.7,-5.9 -1.7,-3.8 L-1.7,5.6 M-1.7,-3.8 C-1.7,-5.9 1.1,-5.9 1.1,-3.8 L1.1,2.8 C1.1,5.2 2.7,6.4 4.5,6.4 C6.3,6.4 7.3,5.1 6.9,3.8 C6.5,2.5 4.9,2.2 4,3.3 C3,4.5 3.6,6.6 4.9,7.9"/>',
+  libra: '<path class="gl-s" d="M-7,0.4 L-3.2,0.4 A3.35,3.35 0 1 1 3.2,0.4 L7,0.4 M-7,4.2 L7,4.2"/>',
+  scorpio: '<path class="gl-s" d="M-7.3,-4.7 C-6.7,-5.9 -4.5,-5.9 -4.5,-3.8 L-4.5,5.6 M-4.5,-3.8 C-4.5,-5.9 -1.7,-5.9 -1.7,-3.8 L-1.7,5.6 M-1.7,-3.8 C-1.7,-5.9 1.1,-5.9 1.1,-3.8 L1.1,3.2 C1.1,5.3 2.3,6.3 4.3,6.3 L6.9,6.3 M6.9,6.3 L5.2,4.8 M6.9,6.3 L5.2,7.8"/>',
+  sagittarius: '<path class="gl-s" d="M-6.3,6.3 L6.3,-6.3 M6.3,-6.3 L1.6,-6.3 M6.3,-6.3 L6.3,-1.6 M-4.7,0.5 L-0.5,4.7"/>',
+  capricorn: '<path class="gl-s" d="M-7.2,-5.6 L-4.6,1.8 M-4.6,1.8 C-4.8,-2.6 -3.6,-5.9 -1.9,-5.9 C-0.4,-5.9 0.1,-3.9 0.1,-1.5 L0.1,3.4 C0.1,6.1 2.2,7.5 4.2,6.9 C6,6.4 6.6,4.4 5.5,3.3 C4.5,2.3 2.9,2.7 2.6,4.1"/>',
+  aquarius: '<path class="gl-s" d="M-6.6,-1.5 L-3.3,-4.3 L0,-1.5 L3.3,-4.3 L6.6,-1.5 M-6.6,4.3 L-3.3,1.5 L0,4.3 L3.3,1.5 L6.6,4.3"/>',
+  pisces: '<path class="gl-s" d="M-3.2,-6.7 C-6.1,-4.3 -6.1,4.3 -3.2,6.7 M3.2,-6.7 C6.1,-4.3 6.1,4.3 3.2,6.7 M-5.3,0 L5.3,0"/>',
+  sun: '<circle class="gl-s" cx="0" cy="0" r="5.9"/><circle class="gl-f" cx="0" cy="0" r="1.5"/>',
+  moon: '<path class="gl-s" d="M0,-6 A6,6 0 0 0 0,6 A9.3,9.3 0 0 1 0,-6 Z"/>',
+  mercury: '<circle class="gl-s" cx="0" cy="-0.6" r="3.1"/><path class="gl-s" d="M-3.2,-6.6 A3.3,3.3 0 0 0 3.2,-6.6 M0,2.5 L0,7 M-2.3,4.7 L2.3,4.7"/>',
+  venus: '<circle class="gl-s" cx="0" cy="-2.3" r="3.6"/><path class="gl-s" d="M0,1.3 L0,7 M-2.6,4.2 L2.6,4.2"/>',
+  mars: '<circle class="gl-s" cx="-1.3" cy="1.9" r="3.9"/><path class="gl-s" d="M1.5,-0.9 L6.2,-5.6 M6.2,-5.6 L2.5,-5.6 M6.2,-5.6 L6.2,-1.9"/>',
+  jupiter: '<path class="gl-s" d="M-6.5,-2.8 C-6.3,-5.3 -3.6,-6.7 -1.8,-5.2 C0.1,-3.6 -1,-0.7 -5.9,2.3 L5,2.3 M2.4,-6.5 L2.4,7"/>',
+  saturn: '<path class="gl-s" d="M-2.9,-6.9 L-2.9,3 M-4.9,-4.4 L-0.9,-4.4 M-2.9,-0.9 C-1.1,-2.9 2,-2.5 2.8,-0.3 C3.6,1.8 2.2,3.7 0.8,4.9 C-0.1,5.7 -0.1,6.7 0.8,7.1"/>',
+  uranus: '<circle class="gl-s" cx="0" cy="4.7" r="2"/><path class="gl-s" d="M0,2.7 L0,-2.9 M-4.4,-6.7 L-4.4,0.9 M4.4,-6.7 L4.4,0.9 M-4.4,-2.9 L4.4,-2.9"/>',
+  neptune: '<path class="gl-s" d="M-4.7,-6 L-4.7,-2.9 C-4.7,-0.3 -2.5,1.2 0,1.2 C2.5,1.2 4.7,-0.3 4.7,-2.9 L4.7,-6 M0,-6.7 L0,7 M-2.4,4.5 L2.4,4.5 M-1.3,-5.3 L0,-6.7 L1.3,-5.3 M-6,-4.6 L-4.7,-6 L-3.4,-4.6 M3.4,-4.6 L4.7,-6 L6,-4.6"/>',
+  pluto: '<circle class="gl-s" cx="0" cy="-4.6" r="1.9"/><path class="gl-s" d="M-4,-4.4 A4,4 0 0 0 4,-4.4 M0,-0.4 L0,7 M-2.4,3.3 L2.4,3.3"/>',
   northNode: '<path class="gl-s" d="M-3.7,4.6 C-6.7,-3.4 6.7,-3.4 3.7,4.6"/><circle class="gl-f" cx="-3.9" cy="4.8" r="1.5"/><circle class="gl-f" cx="3.9" cy="4.8" r="1.5"/>',
   chiron: '<circle class="gl-s" cx="0" cy="4.2" r="2.2"/><path class="gl-s" d="M-1.6,-6.3 L-1.6,2 M-1.6,-1.7 L2.4,-6.3 M-1.6,-1.7 L2.4,2"/>',
   lilith: '<path class="gl-f" d="M1,-6.4 A3,3 0 1 0 1,-0.4 A4,4 0 0 1 1,-6.4 Z"/><path class="gl-s" d="M0,-0.4 L0,6.6 M-2.4,3.4 L2.4,3.4"/>',
@@ -115,65 +121,96 @@ const CHART_BODIES = [
   { id: "pluto", lon: 292 },   // Capricorn 22
 ];
 
-/* radii: 154 outer ring · 122 zodiac-band inner edge · 74 aspect circle */
+/* radii: 154 outer ring · 123 zodiac-band inner edge · 38 aspect circle */
 const WHEEL_SEG_FILLS = Array.from({ length: 12 }, (_, k) => {
   const a0 = k * 30, a1 = a0 + 30;
-  const o0 = wP(a0, 154), o1 = wP(a1, 154), i1 = wP(a1, 122), i0 = wP(a0, 122);
+  const o0 = wP(a0, 154), o1 = wP(a1, 154), i1 = wP(a1, 123), i0 = wP(a0, 123);
   return {
-    d: `M${o0.x},${o0.y} A154,154 0 0 0 ${o1.x},${o1.y} L${i1.x},${i1.y} A122,122 0 0 1 ${i0.x},${i0.y} Z`,
+    d: `M${o0.x},${o0.y} A154,154 0 0 0 ${o1.x},${o1.y} L${i1.x},${i1.y} A123,123 0 0 1 ${i0.x},${i0.y} Z`,
     dim: k % 2 === 0,
   };
 });
 const WHEEL_SIGNBOUNDS = Array.from({ length: 12 }, (_, k) => {
   const a = k * 30;
-  return { p1: wP(a, 122), p2: wP(a, 154) };
+  return { p1: wP(a, 123), p2: wP(a, 154) };
 });
 const WHEEL_TICKS = (() => {
   const out: { p1: { x: number; y: number }; p2: { x: number; y: number }; mj: boolean }[] = [];
   for (let deg = 0; deg < 360; deg++) {
     if (deg % 30 === 0) continue;
-    const len = deg % 10 === 0 ? 7 : deg % 5 === 0 ? 4.8 : 2.6;
-    out.push({ p1: wP(deg, 122), p2: wP(deg, 122 + len), mj: deg % 5 === 0 });
+    const len = deg % 10 === 0 ? 6.5 : deg % 5 === 0 ? 4.8 : 2.6;
+    out.push({ p1: wP(deg, 123), p2: wP(deg, 123 + len), mj: deg % 5 === 0 });
   }
   return out;
 })();
 const SIGN_ORDER = ["aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"];
 const WHEEL_SIGNS = SIGN_ORDER.map((name, k) => ({
-  name, p: wP(k * 30 + 15, 141.5), d: 1.0 + k * 0.045,
+  name, p: wP(k * 30 + 15, 142), d: 1.0 + k * 0.045,
 }));
 /* whole-sign house cusps: hairline spokes, aspect circle to the band */
 const WHEEL_SPOKES = Array.from({ length: 12 }, (_, k) => {
   const a = k * 30;
-  return { p1: wP(a, 74), p2: wP(a, 122), d: 0.75 + k * 0.05 };
+  return { p1: wP(a, 38), p2: wP(a, 123), d: 0.75 + k * 0.05 };
 });
-/* planets at their true longitudes; crowded glyphs relax apart while their
-   degree ticks + pointer lines stay exactly on the true degree */
+/* planets: glyph + degree label travel as one unit at its true longitude.
+   Crowded placements relax apart in angle AND, inside a stellium (true
+   separations within ~8°), drop to a second radial shelf - the standard
+   pro-chart solution - while every unit keeps a thin pointer tick to its
+   exact degree on the band. Each degree label then slides inward until its
+   text box measurably clears its glyph box (text is wide, not tall, so the
+   clearance a label needs depends on where it sits around the circle). */
 const WHEEL_PLANETS = (() => {
-  const MINSEP = 17;
-  const s = CHART_BODIES.map((b) => ({ ...b, adj: b.lon })).sort((a, b) => a.lon - b.lon);
-  for (let pass = 0; pass < 32; pass++) {
+  const SAME = 20;                   // slot between units sharing a shelf
+  const CROSS = 10;                  // slot between units on different shelves
+  const CLUSTER = 8;                 // true-longitude gap that makes a stellium
+  const R_GLYPH = [106, 71];         // outer / inner shelf, glyph centre
+  const GH = 9.3;                    // glyph half-extent
+  const LH = 6;                      // label half-height (16px Newsreader)
+  const PAD = 1.5;
+  const halfW = (t: string) => ((t.length - 1) * 0.52 + 0.4) * 8;
+  const s = CHART_BODIES.map((b) => ({ ...b, adj: b.lon, level: 0 })).sort((a, b) => a.lon - b.lon);
+  let run = 0;
+  for (let i = 1; i < s.length; i++) {
+    if (s[i].lon - s[i - 1].lon <= CLUSTER) { run++; s[i].level = run % 2; }
+    else run = 0;
+  }
+  if (s.length > 1 && s[0].lon + 360 - s[s.length - 1].lon <= CLUSTER && s[s.length - 1].level === 0) s[0].level = 1;
+  for (let pass = 0; pass < 48; pass++) {
     let moved = false;
     for (let i = 0; i < s.length; i++) {
       const a = s[i], b = s[(i + 1) % s.length];
+      const req = a.level === b.level ? SAME : CROSS;
       const gap = (((b.adj - a.adj) % 360) + 360) % 360;
-      if (gap < MINSEP - 0.01) {
-        const push = (MINSEP - gap) / 2;
+      if (gap < req - 0.01) {
+        const push = (req - gap) / 2;
         a.adj -= push; b.adj += push; moved = true;
       }
     }
     if (!moved) break;
   }
-  return s.map((p, k) => ({
-    id: p.id,
-    deg: `${p.lon % 30}°`,
-    glyph: wP(p.adj, 103),
-    label: wP(p.adj, 88),
-    c1: wP(p.adj, 111.5),
-    c2: wP(p.lon, 116.5),
-    t1: wP(p.lon, 122),
-    t2: wP(p.lon, 116.5),
-    d: 1.5 + k * 0.09,
-  }));
+  return s.map((p, k) => {
+    const deg = `${p.lon % 30}°`;
+    const rg = R_GLYPH[p.level];
+    const g = wP(p.adj, rg);
+    const hw = halfW(deg);
+    let rl = rg - 14;
+    for (let i = 0; i < 60; i++) {
+      const l = wP(p.adj, rl);
+      if (Math.abs(l.x - g.x) >= hw + GH + PAD || Math.abs(l.y - g.y) >= LH + GH + PAD) break;
+      rl -= 0.5;
+    }
+    return {
+      id: p.id,
+      deg,
+      glyph: g,
+      label: wP(p.adj, rl),
+      c1: wP(p.adj, rg + 10.5),
+      c2: wP(p.lon, 118),
+      t1: wP(p.lon, 123),
+      t2: wP(p.lon, 118),
+      d: 1.5 + k * 0.09,
+    };
+  });
 })();
 /* real aspects computed from the real longitudes (conjunction, square,
    trine, opposition, within orb). Conjunctions read as adjacent glyphs -
@@ -193,8 +230,8 @@ const WHEEL_ASPECTS = (() => {
       for (const t of types) {
         if (Math.abs(sep - t.angle) <= t.orb) {
           if (t.angle > 0) {
-            const p1 = wP(CHART_BODIES[i].lon, 74);
-            const p2 = wP(CHART_BODIES[j].lon, 74);
+            const p1 = wP(CHART_BODIES[i].lon, 38);
+            const p2 = wP(CHART_BODIES[j].lon, 38);
             const len = Math.ceil(Math.hypot(p2.x - p1.x, p2.y - p1.y)) + 2;
             out.push({ p1, p2, len, soft: t.angle === 120, d: 2.05 + out.length * 0.1 });
           }
@@ -353,32 +390,32 @@ const LCB_CSS = `
 .c2-wheel .wfill{opacity:0;transition:opacity 1.1s ease .7s}
 .c2-wheel .wfill.a{fill:rgba(167,139,250,.055)}
 .c2-wheel .wfill.b{fill:rgba(139,123,216,.028)}
-.c2-wheel .wring-a{stroke:rgba(167,139,250,.62);fill:none;stroke-width:1.3}
-.c2-wheel .wring-b{stroke:rgba(167,139,250,.46);fill:none;stroke-width:1}
-.c2-wheel .wring-c{stroke:rgba(139,123,216,.42);fill:none;stroke-width:.8}
+.c2-wheel .wring-a{stroke:rgba(167,139,250,.62);fill:none;stroke-width:1.4}
+.c2-wheel .wring-b{stroke:rgba(167,139,250,.5);fill:none;stroke-width:1.1}
+.c2-wheel .wring-c{stroke:rgba(139,123,216,.44);fill:none;stroke-width:1.1}
 .c2-wheel .wcusp{stroke:rgba(167,139,250,.4);stroke-width:1}
 .c2-wheel .wtick{stroke:rgba(179,167,224,.42);stroke-width:.5}
 .c2-wheel .wtick.mj{stroke:rgba(179,167,224,.58);stroke-width:.8}
-.c2-wheel .wspoke{stroke:rgba(139,123,216,.28);stroke-width:.7}
+.c2-wheel .wspoke{stroke:rgba(139,123,216,.24);stroke-width:.7}
 .c2-wheel .waspect{fill:none;stroke:rgba(167,139,250,.46);stroke-width:1}
 .c2-wheel .waspect.soft{stroke:rgba(179,167,224,.34);stroke-width:.8}
 .c2-wheel .wptick{stroke:var(--lcb-violet-br);stroke-width:1.5}
 .c2-wheel .wconn{stroke:rgba(167,139,250,.38);stroke-width:.6}
 .c2-wheel .wdeg{
-  font-family:"Newsreader",Georgia,serif;font-size:15px;
-  fill:rgba(245,242,255,.78);letter-spacing:.02em;
+  font-family:"Newsreader",Georgia,serif;font-size:16px;
+  fill:rgba(245,242,255,.82);letter-spacing:.02em;
 }
-.c2-wheel .wz .gl-s{fill:none;stroke:rgba(205,192,244,.85);stroke-width:1.05;stroke-linecap:round;stroke-linejoin:round}
-.c2-wheel .wz .gl-f{fill:rgba(205,192,244,.85);stroke:none}
-.c2-wheel .wp .gl-s{fill:none;stroke:var(--lcb-violet-br);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.c2-wheel .wz .gl-s{fill:none;stroke:rgba(205,192,244,.88);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.c2-wheel .wz .gl-f{fill:rgba(205,192,244,.88);stroke:none}
+.c2-wheel .wp .gl-s{fill:none;stroke:var(--lcb-violet-br);stroke-width:1.05;stroke-linecap:round;stroke-linejoin:round}
 .c2-wheel .wp .gl-f{fill:var(--lcb-violet-br);stroke:none}
 /* drawn on scroll */
 .c2-wheel .wring-a{stroke-dasharray:968;stroke-dashoffset:968;transition:stroke-dashoffset 1.5s ease-out .1s}
-.c2-wheel .wring-b{stroke-dasharray:767;stroke-dashoffset:767;transition:stroke-dashoffset 1.4s ease-out .35s}
-.c2-wheel .wring-c{stroke-dasharray:465;stroke-dashoffset:465;transition:stroke-dashoffset 1s ease-out .6s}
+.c2-wheel .wring-b{stroke-dasharray:774;stroke-dashoffset:774;transition:stroke-dashoffset 1.4s ease-out .35s}
+.c2-wheel .wring-c{stroke-dasharray:239;stroke-dashoffset:239;transition:stroke-dashoffset 1s ease-out .6s}
 .c2-wheel .wcusps{opacity:0;transition:opacity .9s ease .8s}
 .c2-wheel .wticks{opacity:0;transition:opacity 1s ease 1s}
-.c2-wheel .wspoke{stroke-dasharray:48;stroke-dashoffset:48;transition:stroke-dashoffset .8s ease-out}
+.c2-wheel .wspoke{stroke-dasharray:86;stroke-dashoffset:86;transition:stroke-dashoffset .8s ease-out}
 .c2-wheel .waspect{stroke-dasharray:var(--wl);stroke-dashoffset:var(--wl);transition:stroke-dashoffset .9s ease-out}
 .c2-wheel .wzg{opacity:0;transition:opacity .7s ease}
 .c2-wheel .wpg{
@@ -445,7 +482,8 @@ const LCB_CSS = `
 }
 
 /* ---- TYPE FLOORS: tuned per viewport (2026-07-14). Base above = mobile
-   390-767 (whisper 17 / frag 20 / wdeg 15). Mid and desktop tiers here. ---- */
+   390-767 (whisper 17 / frag 20 / wdeg 16 SVG units, >=15px rendered at
+   the 304px mobile wheel and 20px at the 400px desktop wheel). ---- */
 @media (min-width:768px){
   .c2-whisper{font-size:17.5px}
   .c2-frag{font-size:21px}
@@ -453,7 +491,6 @@ const LCB_CSS = `
 @media (min-width:1280px){
   .c2-whisper{font-size:18px}
   .c2-frag{font-size:24px}
-  .c2-wheel .wdeg{font-size:16px}
 }
 `;
 
@@ -1113,8 +1150,8 @@ export function CosmicBridge() {
                 ))}
               </g>
               <circle className="wring-a" cx="160" cy="160" r="154" />
-              <circle className="wring-b" cx="160" cy="160" r="122" />
-              <circle className="wring-c" cx="160" cy="160" r="74" />
+              <circle className="wring-b" cx="160" cy="160" r="123" />
+              <circle className="wring-c" cx="160" cy="160" r="38" />
               <g className="wticks">
                 {WHEEL_TICKS.map((t, i) => (
                   <line key={i} className={t.mj ? "wtick mj" : "wtick"} x1={t.p1.x} y1={t.p1.y} x2={t.p2.x} y2={t.p2.y} />
@@ -1132,7 +1169,7 @@ export function CosmicBridge() {
               </g>
               <g className="wglyphs">
                 {WHEEL_SIGNS.map((s) => (
-                  <g key={s.name} className="wz" transform={`translate(${s.p.x},${s.p.y}) scale(1.22)`}>
+                  <g key={s.name} className="wz" transform={`translate(${s.p.x},${s.p.y}) scale(1.18)`}>
                     <g
                       className="wzg"
                       style={{ transitionDelay: `${s.d}s` }}
@@ -1156,7 +1193,7 @@ export function CosmicBridge() {
                   <g key={p.id}>
                     <line className="wptick" x1={p.t1.x} y1={p.t1.y} x2={p.t2.x} y2={p.t2.y} style={{ transitionDelay: `${p.d}s` }} />
                     <line className="wconn" x1={p.c1.x} y1={p.c1.y} x2={p.c2.x} y2={p.c2.y} style={{ transitionDelay: `${p.d + 0.08}s` }} />
-                    <g className="wp" transform={`translate(${p.glyph.x},${p.glyph.y}) scale(1.32)`}>
+                    <g className="wp" transform={`translate(${p.glyph.x},${p.glyph.y}) scale(1.3)`}>
                       <g
                         className="wpg"
                         style={{ transitionDelay: `${p.d}s` }}
