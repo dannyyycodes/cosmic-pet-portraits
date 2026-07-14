@@ -892,10 +892,10 @@ function DossierStyles(): ReactNode {
       .dsr-wglyph.dim{color:var(--dsr-violet-500)}
       .is-lit .dsr-wglyph.lit{opacity:1}
       .is-lit .dsr-wglyph.dim{opacity:.7}
-      .dsr-wlabel{font-family:var(--dsr-body);font-weight:500;font-size:12.5px;letter-spacing:.12em;
+      .dsr-wlabel{font-family:var(--dsr-body);font-weight:500;font-size:22px;letter-spacing:.07em;
         text-transform:uppercase;opacity:0;transition:opacity 1.1s var(--dsr-ease) .5s}
       .dsr-wlabel.lit{fill:#8f6de0}
-      .dsr-wlabel.dim{fill:var(--dsr-violet-400);font-size:10.5px;display:none}
+      .dsr-wlabel.dim{fill:var(--dsr-violet-400);font-size:17.5px;display:none}
       @media (min-width:768px){ .dsr-wlabel.dim{display:block} }
       .is-lit .dsr-wlabel{opacity:1}
       .dsr-glyph-halo{fill:none;stroke:url(#dsr-mgold);stroke-opacity:.4;stroke-width:1;
@@ -931,7 +931,7 @@ function DossierStyles(): ReactNode {
         -webkit-mask-composite:xor;mask-composite:exclude;
       }
 
-      .dsr-eyebrow{font-family:var(--dsr-body);font-size:12.5px;font-weight:500;
+      .dsr-eyebrow{font-family:var(--dsr-body);font-size:13px;font-weight:500;
         letter-spacing:.18em;text-transform:uppercase;color:var(--dsr-violet-300)}
       .dsr-kicker{text-align:center;margin-bottom:12px;transition:color .4s var(--dsr-ease)}
       .dsr-kicker[data-flash]{color:var(--dsr-violet-100)}
@@ -969,7 +969,7 @@ function DossierStyles(): ReactNode {
       .dsr-rung i.on{background:var(--dsr-gold-metal);box-shadow:0 0 8px rgba(154,126,230,.6)}
       .is-lit .dsr-rung i{transform:scale(1);opacity:1}
       .dsr-rung-line{text-align:center;font-family:var(--dsr-display);font-style:italic;
-        font-variation-settings:'opsz' 20;font-size:15.5px;color:var(--dsr-cream-dim);margin-bottom:22px}
+        font-variation-settings:'opsz' 20;font-size:16px;color:var(--dsr-cream-dim);margin-bottom:22px}
 
       /* ---------- locked tease rows ---------- */
       .dsr-rows{list-style:none;margin:0 0 26px;padding:0}
@@ -983,7 +983,7 @@ function DossierStyles(): ReactNode {
         transition:background .3s var(--dsr-ease)}
       .dsr-lrow .dsr-gico{flex:none;width:20px;height:20px;opacity:.7}
       .dsr-lrow .nm{font-size:16px;font-weight:600;letter-spacing:.01em;color:var(--dsr-violet-300)}
-      .dsr-lrow .fr{font-size:15px;color:var(--dsr-violet-400);font-style:italic}
+      .dsr-lrow .fr{font-size:16px;color:var(--dsr-violet-400);font-style:italic}
       .dsr-chev{margin-left:auto;flex:none;width:18px;height:18px;opacity:.55}
       .dsr-lrow:active{background:var(--dsr-surface-3)}
 
@@ -1001,8 +1001,8 @@ function DossierStyles(): ReactNode {
       .dsr-stars .off{color:rgba(201,192,174,.45)}
       .dsr-review q{display:block;font-style:italic;font-size:17px;line-height:1.5;color:var(--dsr-cream);
         quotes:"\\201C" "\\201D";margin-bottom:12px}
-      .dsr-attr{font-family:var(--dsr-body);font-size:12.5px;font-weight:500;
-        letter-spacing:.18em;text-transform:uppercase;color:var(--dsr-violet-300)}
+      .dsr-attr{font-family:var(--dsr-body);font-size:16px;font-weight:500;
+        letter-spacing:.08em;text-transform:uppercase;color:var(--dsr-violet-300)}
       .dsr-rev-ph{position:relative;display:block;flex:none;width:64px;height:64px;border-radius:14px;
         background:var(--dsr-surface-3);
         box-shadow:0 2px 8px rgba(0,0,0,.4), 0 4px 16px rgba(154,126,230,.10)}
@@ -1025,8 +1025,8 @@ function DossierStyles(): ReactNode {
       .dsr-review--mini{grid-template-columns:56px 1fr;padding:14px 14px 13px;margin-bottom:20px}
       .dsr-review--mini .dsr-rev-ph{width:56px;height:56px;border-radius:12px}
       .dsr-review--mini .dsr-stars{margin:3px 0 4px}
-      .dsr-review--mini q{font-size:15px;margin-top:12px}
-      .dsr-review--mini .dsr-attr{font-size:11.5px}
+      .dsr-review--mini q{font-size:16.5px;margin-top:12px}
+      .dsr-review--mini .dsr-attr{font-size:16px}
       .dsr-rev-block{margin-bottom:24px}
       .dsr-rev-block .dsr-review{margin-bottom:12px}
       .dsr-rev-block .dsr-review:last-child{margin-bottom:0}
@@ -1042,15 +1042,15 @@ function DossierStyles(): ReactNode {
       .dsr-excerpt-eb{display:block;margin-bottom:12px}
       .dsr-excerpt-place{display:flex;align-items:center;gap:12px;margin:0 0 10px}
       .dsr-excerpt-place .dsr-gico{flex:none;width:18px;height:18px;opacity:.85}
-      .dsr-excerpt-place .nm{font-size:15.5px;font-weight:600;letter-spacing:.01em;color:var(--dsr-violet-300)}
-      .dsr-excerpt-place .fr{font-size:14.5px;color:var(--dsr-violet-400);font-style:italic}
+      .dsr-excerpt-place .nm{font-size:16.5px;font-weight:600;letter-spacing:.01em;color:var(--dsr-violet-300)}
+      .dsr-excerpt-place .fr{font-size:16px;color:var(--dsr-violet-400);font-style:italic}
       .dsr-excerpt-quote{margin:0 0 12px;font-family:var(--dsr-display);font-style:italic;
         font-variation-settings:'opsz' 24;font-weight:500;font-size:18.5px;line-height:1.5;color:var(--dsr-cream)}
       .dsr-excerpt-quote .sealed{filter:blur(4px);opacity:.5;user-select:none;
         -webkit-mask-image:linear-gradient(90deg,#000 0%,transparent 96%);
         mask-image:linear-gradient(90deg,#000 0%,transparent 96%)}
-      .dsr-excerpt-note{margin:0;font-size:13px;color:var(--dsr-violet-300);
-        letter-spacing:.06em}
+      .dsr-excerpt-note{margin:0;font-size:16px;color:var(--dsr-violet-300);
+        letter-spacing:.04em}
 
       /* ---------- the open value stack ---------- */
       .dsr-stack{list-style:none;margin:0 0 14px;padding:16px 2px 4px;position:relative}
@@ -1073,7 +1073,7 @@ function DossierStyles(): ReactNode {
       .dsr-email-kept .addr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
         font-size:16px;color:var(--dsr-cream)}
       .dsr-email-change{flex:none;min-height:44px;padding:0 14px;background:none;border:0;cursor:pointer;
-        font-family:var(--dsr-body);font-size:14.5px;font-weight:600;color:var(--dsr-violet-200);
+        font-family:var(--dsr-body);font-size:16px;font-weight:600;color:var(--dsr-violet-200);
         text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(139,123,216,.5)}
       .dsr-email-change:focus-visible{outline:2px solid var(--dsr-violet-300);outline-offset:2px;border-radius:6px}
 
@@ -1106,7 +1106,7 @@ function DossierStyles(): ReactNode {
       .dsr-bond .bt .plus{font-weight:600;white-space:nowrap;color:var(--dsr-violet-200)}
       .dsr-bond input:focus-visible ~ .box{outline:2px solid var(--dsr-violet-300);outline-offset:3px}
       .dsr-bond-badge{display:inline-block;margin-left:8px;
-        font-size:10.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+        font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
         color:var(--dsr-violet-300);
         box-shadow:0 0 0 1px rgba(139,123,216,.4) inset;
         border-radius:99px;padding:1px 8px 2px;vertical-align:2px;white-space:nowrap}
@@ -1114,13 +1114,13 @@ function DossierStyles(): ReactNode {
       /* ---------- price row ---------- */
       .dsr-price-row{display:flex;align-items:baseline;justify-content:center;gap:14px;margin-bottom:6px}
       .dsr-was{position:relative;font-family:var(--dsr-display);font-weight:500;
-        font-size:15px;color:var(--dsr-cream-dim);font-variant-numeric:lining-nums tabular-nums}
+        font-size:16px;color:var(--dsr-cream-dim);font-variant-numeric:lining-nums tabular-nums}
       .dsr-was .strike{position:absolute;left:-3px;right:-3px;top:50%;height:1px;
         background:linear-gradient(90deg,transparent,rgba(201,192,174,.85) 18% 82%,transparent);pointer-events:none}
       .dsr-now{font-family:var(--dsr-display);font-size:42px;font-weight:600;line-height:1;
         font-variant-numeric:lining-nums tabular-nums}
-      .dsr-price-mod{text-align:center;font-size:14.5px;color:var(--dsr-cream-dim);margin-bottom:24px}
-      .dsr-total-line{text-align:center;font-size:15px;color:var(--dsr-cream-dim);margin:-14px 0 22px}
+      .dsr-price-mod{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin-bottom:24px}
+      .dsr-total-line{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin:-14px 0 22px}
       .dsr-total-line b{color:var(--dsr-cream);font-weight:600}
 
       /* ---------- email + CTA ---------- */
@@ -1169,7 +1169,7 @@ function DossierStyles(): ReactNode {
           0 7px 22px -6px rgba(124,92,214,.5), 0 0 28px rgba(154,126,230,.22)}
       }
 
-      .dsr-error{margin:10px 0 0;text-align:center;font-size:14.5px;color:#e8b4b4}
+      .dsr-error{margin:10px 0 0;text-align:center;font-size:16px;color:#e8b4b4}
 
       .dsr-guarantee{font-family:var(--dsr-display);font-style:italic;
         font-variation-settings:'opsz' 20;font-size:17.5px;line-height:1.5;
@@ -1178,17 +1178,17 @@ function DossierStyles(): ReactNode {
       /* ---------- promo code (demoted) ---------- */
       .dsr-code{text-align:center;margin-bottom:22px}
       .dsr-code-link{background:none;border:0;cursor:pointer;padding:6px 8px;
-        font-family:var(--dsr-body);font-size:14px;color:var(--dsr-violet-300);
+        font-family:var(--dsr-body);font-size:16px;color:var(--dsr-violet-300);
         text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(139,123,216,.5)}
       .dsr-code-row{display:flex;gap:8px;align-items:stretch}
       .dsr-code-row .dsr-field{flex:1}
       .dsr-code-row .dsr-field input{text-transform:uppercase;min-height:44px}
       .dsr-code-apply{flex:none;min-height:44px;padding:0 18px;border:0;border-radius:10px;cursor:pointer;
         background:var(--dsr-surface-3);color:var(--dsr-violet-100);
-        font-family:var(--dsr-body);font-weight:600;font-size:15px;
+        font-family:var(--dsr-body);font-weight:600;font-size:16px;
         box-shadow:0 0 0 1px rgba(139,123,216,.4) inset}
       .dsr-code-apply:disabled{opacity:.55;cursor:default}
-      .dsr-code-applied{font-size:14.5px;color:var(--dsr-cream-dim)}
+      .dsr-code-applied{font-size:16px;color:var(--dsr-cream-dim)}
       .dsr-code-applied b{color:var(--dsr-cream)}
       .dsr-code-applied .dsr-code-link{margin-left:8px}
 
@@ -1204,13 +1204,13 @@ function DossierStyles(): ReactNode {
       .dsr-details summary::-webkit-details-marker{display:none}
       .dsr-arrow{flex:none;width:18px;height:18px;opacity:.7;transition:transform .35s var(--dsr-ease)}
       .dsr-details[open] summary .dsr-arrow{transform:rotate(180deg)}
-      .dsr-disc-body{padding:2px 2px 18px;font-size:15.5px;color:var(--dsr-cream-dim)}
+      .dsr-disc-body{padding:2px 2px 18px;font-size:16px;color:var(--dsr-cream-dim)}
       .dsr-disc-body ul{list-style:none;margin:0;padding:0}
       .dsr-disc-body li{position:relative;padding:5px 0 5px 22px}
       .dsr-disc-body li::before{content:"";position:absolute;left:2px;top:13px;
         width:5px;height:5px;border-radius:50%;background:var(--dsr-violet-500)}
       .dsr-tag{display:inline-block;margin-left:8px;
-        font-size:10.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+        font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
         color:var(--dsr-violet-300);
         box-shadow:0 0 0 1px rgba(139,123,216,.4) inset;
         border-radius:99px;padding:1px 8px 2px;vertical-align:2px}
@@ -1227,15 +1227,15 @@ function DossierStyles(): ReactNode {
         -webkit-mask-composite:xor;mask-composite:exclude}
       .dsr-stepper button:active{background:#322b52}
       .dsr-stepper .qty{font-size:17px;color:var(--dsr-cream);min-width:110px;text-align:center}
-      .dsr-saving-line{font-size:15.5px;color:var(--dsr-cream-dim)}
+      .dsr-saving-line{font-size:16px;color:var(--dsr-cream-dim)}
       .dsr-saving-line b{color:var(--dsr-cream);font-weight:600}
 
       /* ---------- trust ---------- */
       .dsr-trust-line{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
-        font-size:13.5px;color:var(--dsr-cream-dim);margin:22px 0 14px;text-align:center}
+        font-size:16px;color:var(--dsr-cream-dim);margin:22px 0 14px;text-align:center}
       .dsr-trust-line span::after{content:"·";margin-left:8px;color:rgba(139,123,216,.5)}
       .dsr-trust-line span:last-child::after{content:""}
-      .dsr-fx-note{text-align:center;font-size:12.5px;color:var(--dsr-cream-dim);margin:0 0 14px}
+      .dsr-fx-note{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin:0 0 14px}
 
       .dsr-pay-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
       .dsr-pay-chip{display:inline-flex;align-items:center;justify-content:center;
@@ -1252,15 +1252,15 @@ function DossierStyles(): ReactNode {
       .dsr-pay-chip--dark svg{height:15px}
 
       /* charity */
-      .dsr-charity{text-align:center;font-size:13.5px;color:var(--dsr-cream-dim)}
+      .dsr-charity{text-align:center;font-size:16px;color:var(--dsr-cream-dim)}
       .dsr-charity::before{display:none}
       .dsr-charity summary{justify-content:center;gap:8px;min-height:44px;
-        font-size:13.5px;color:var(--dsr-cream-dim)}
+        font-size:16px;color:var(--dsr-cream-dim)}
       .dsr-charity summary .cname{color:var(--dsr-violet-200)}
       .dsr-charity-opts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding-bottom:14px}
       .dsr-charity-opts button{position:relative;min-height:44px;padding:8px 14px;
         background:var(--dsr-surface-2);border:0;border-radius:99px;color:var(--dsr-cream-dim);
-        font-family:var(--dsr-body);font-size:13.5px;cursor:pointer}
+        font-family:var(--dsr-body);font-size:16px;cursor:pointer}
       .dsr-charity-opts button::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
         background:linear-gradient(165deg, rgba(139,123,216,.35), rgba(139,123,216,.12));
         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);

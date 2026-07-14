@@ -2279,7 +2279,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
         .ls-fr-mark::before, .ls-fr-mark::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
         .ls-fr-mark::after { background: linear-gradient(90deg, color-mix(in srgb, var(--glow) 72%, transparent), transparent); }
         .ls-fr-glyph { display: block; font-size: clamp(22px, 5vw, 27px); filter: drop-shadow(0 0 9px color-mix(in srgb, var(--glow) 55%, transparent)); }
-        .ls-fr-name { font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.36em; text-transform: uppercase; }
+        .ls-fr-name { font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; }
         .ls-fr-stage { position: relative; display: grid; place-items: center; width: clamp(170px, 44vw, 250px); height: clamp(170px, 44vw, 250px); }
         .ls-fr-halo { position: absolute; inset: -6%; border-radius: 50%; z-index: 1; pointer-events: none; background: radial-gradient(circle, color-mix(in srgb, var(--glow) 40%, transparent) 0%, color-mix(in srgb, var(--glow) 18%, transparent) 36%, color-mix(in srgb, var(--glow) 6%, transparent) 56%, transparent 72%); filter: blur(10px); opacity: 0.68; animation: lsFrBreathe 6s ease-in-out infinite; animation-play-state: paused; }
         @keyframes lsFrBreathe { 0%, 100% { transform: scale(1); opacity: 0.56; } 50% { transform: scale(1.08); opacity: 0.84; } }
@@ -2319,7 +2319,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
 
         /* The sign lands like a card turn: a standalone event with air around it. */
         .ls-fr-chipturn { display: inline-block; perspective: 640px; }
-        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow, #b9a5f0) 48%, transparent); background: color-mix(in srgb, var(--glow, #b9a5f0) 11%, transparent); color: var(--glow, #b9a5f0); font-family: "Newsreader", Georgia, serif; font-size: clamp(14px, 3.6vw, 16.5px); font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; backface-visibility: hidden; transform: rotateX(-94deg); opacity: 0; transform-origin: 50% 120%; transition: transform 1s cubic-bezier(0.3,1.36,0.44,1) 0.15s, opacity 0.4s ease 0.15s, box-shadow 0.8s ease 0.4s; will-change: transform; }
+        .ls-fr-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glow, #b9a5f0) 48%, transparent); background: color-mix(in srgb, var(--glow, #b9a5f0) 11%, transparent); color: var(--glow, #b9a5f0); font-family: "Newsreader", Georgia, serif; font-size: clamp(16px, 3.6vw, 16.5px); font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; backface-visibility: hidden; transform: rotateX(-94deg); opacity: 0; transform-origin: 50% 120%; transition: transform 1s cubic-bezier(0.3,1.36,0.44,1) 0.15s, opacity 0.4s ease 0.15s, box-shadow 0.8s ease 0.4s; will-change: transform; }
         .ls-sd-beat[data-st="focus"] .ls-fr-chip { transform: rotateX(0deg); opacity: 1; box-shadow: 0 8px 30px color-mix(in srgb, var(--glow, #b9a5f0) 20%, transparent); }
         .ls-sd-beat[data-st="settle"] .ls-fr-chip, .ls-sd-beat[data-st="hold"] .ls-fr-chip, .ls-sd-beat[data-st="gone"] .ls-fr-chip, .ls-sd-scene.is-static .ls-fr-chip { transform: rotateX(0deg); opacity: 1; }
 
@@ -3681,12 +3681,12 @@ function FullReadingOpens() {
 
         /* the copy */
         .ls-rs-copy { flex: 1 1 auto; min-width: 0; }
-        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 12px; color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; }
+        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 12px; color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
         .ls-rs-name::before, .ls-rs-name::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 70%, transparent)); }
         .ls-rs-placement { margin: 0 0 10px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5.4vw, 2.05rem); line-height: 1.08; letter-spacing: -0.015em; }
         .ls-rs-placement em { font-style: italic; color: ${C.goldSoft}; }
         .ls-rs-hook { margin: 0 auto; max-width: 40ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.14rem); line-height: 1.5; }
-        .ls-rs-seal { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
+        .ls-rs-seal { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
         .ls-rs-seal svg { width: 12px; height: 13px; }
 
         /* the close - ache only, no price, no button (pricing waits below reviews) */
@@ -3820,7 +3820,7 @@ function ValueMoments() {
         .ls-vm { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(28px, 5svh, 66px) 20px clamp(32px, 5svh, 72px); }
         .ls-vm-inner { max-width: 660px; margin: 0 auto; }
         .ls-vm-head { text-align: center; margin: 0 auto clamp(26px, 5vw, 44px); }
-        .ls-vm-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-vm-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; }
         .ls-vm-title { margin: 0 auto; max-width: 24ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5.4vw, 2.5rem); line-height: 1.1; letter-spacing: -0.016em; }
         .ls-vm-grid { display: flex; flex-direction: column; gap: clamp(16px, 3vw, 24px); }
         .ls-vm-card { position: relative; display: flex; align-items: center; gap: clamp(18px, 4vw, 28px); padding: clamp(22px, 4.6vw, 30px) clamp(20px, 4.6vw, 32px); border-radius: 18px; background: radial-gradient(120% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 60%), linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.32); }
@@ -3829,9 +3829,9 @@ function ValueMoments() {
         .ls-vm-motif svg { display: block; }
         .ls-vm-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
         .ls-vm-copy { flex: 1 1 auto; min-width: 0; }
-        .ls-vm-label { display: block; margin: 0 0 8px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; }
+        .ls-vm-label { display: block; margin: 0 0 8px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
         .ls-vm-name { margin: 0 0 8px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.28rem, 4.6vw, 1.6rem); line-height: 1.1; letter-spacing: -0.01em; }
-        .ls-vm-line { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(0.98rem, 2.6vw, 1.12rem); line-height: 1.55; }
+        .ls-vm-line { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.0625rem, 2.6vw, 1.12rem); line-height: 1.55; }
         .ls-vm-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
         @media (max-width: 560px) {
           .ls-vm-card { flex-direction: column; text-align: center; gap: 14px; }
@@ -4028,7 +4028,7 @@ function ReviewsWall() {
         .ls-rev-stars svg.off { fill: rgba(200,195,216,0.26); }
         .ls-rev-attr {
           color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
-          font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.35;
+          font-size: 16px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.35;
         }
         .ls-rev-quote {
           margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic;
@@ -4060,7 +4060,7 @@ function ReviewsWall() {
             display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px;
             padding: 0; border: 0; background: none; cursor: pointer;
             color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
-            font-style: italic; font-size: 0.98rem;
+            font-style: italic; font-size: 1.02rem;
             text-decoration: underline; text-decoration-color: rgba(185,165,240,0.45);
             text-underline-offset: 4px;
           }
@@ -5683,7 +5683,7 @@ function CosmicStyles() {
       .ls-seal-field label {
         display: block; margin-bottom: 8px;
         color: #b3a7e0; font-family: "Newsreader", Georgia, serif;
-        font-size: 12.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+        font-size: 16px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
       }
       .ls-seal-field label span {
         color: rgba(245,242,255,0.55); font-weight: 400; font-style: italic;
@@ -5703,9 +5703,9 @@ function CosmicStyles() {
       .ls-seal-card[data-sealed] .ls-seal-field input { border-bottom-color: rgba(167,139,250,0.5); }
       .ls-seal-hint {
         margin: 9px 0 0; color: rgba(245,242,255,0.55);
-        font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15.5px; line-height: 1.5;
+        font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.5;
       }
-      .ls-seal-help { margin-top: 10px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.74rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
+      .ls-seal-help { margin-top: 10px; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 1rem; line-height: 1.4; max-width: 340px; display: flex; flex-direction: column; gap: 6px; }
       .ls-seal-help-ln { margin: 0; opacity: 0; animation: lsSealHelpIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
       @keyframes lsSealHelpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
       @media (prefers-reduced-motion: reduce) { .ls-seal-help-ln { animation: none; opacity: 1; } }
@@ -5761,7 +5761,7 @@ function CosmicStyles() {
       @keyframes ls-spin { to { transform: rotate(360deg); } }
       @keyframes ls-corepulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
       .ls-seal-loading-text { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.4rem, 3.4vw, 1.95rem); line-height: 1.1; }
-      .ls-seal-loading-sub { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.85rem; }
+      .ls-seal-loading-sub { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 1rem; }
 
       /* the REAL placement shown on the solar-system bubble; generic meaning sits under it */
       .ls-orrery-placement {
@@ -5769,7 +5769,7 @@ function CosmicStyles() {
         font-family: "Fraunces", Georgia, serif;
         font-size: clamp(1.35rem, 3.2vw, 2rem); font-weight: 600; line-height: 1.04; margin: 3px 0 1px;
       }
-      .ls-orrery-line--info { color: ${C.muted} !important; font-size: clamp(0.88rem, 1.6vw, 1.08rem) !important; }
+      .ls-orrery-line--info { color: ${C.muted} !important; font-size: clamp(1rem, 1.6vw, 1.08rem) !important; }
 
       @media (prefers-reduced-motion: reduce) {
         .ls-seal-ring, .ls-seal-core { animation: none !important; }
@@ -6033,7 +6033,7 @@ function CosmicStyles() {
       .ls-stage-card { margin-inline: auto; }
       .ls-seal-why {
         background: none; border: 0; padding: 2px 0; cursor: pointer;
-        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 0.8rem;
+        color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 1rem;
         text-decoration: underline; text-underline-offset: 3px;
         transition: color 180ms ease;
       }
@@ -6587,7 +6587,7 @@ function CosmicStyles() {
       .ls-tgl-micro {
         margin: 0 0 2.2svh;
         font-family: "Newsreader", Georgia, serif;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
         letter-spacing: 0.22em;
         text-transform: uppercase;
@@ -6656,7 +6656,7 @@ function CosmicStyles() {
       }
       .ls-tgl-sub.is-swap { opacity: 0; transform: translateY(6px); }
       @media (max-width: 520px) {
-        .ls-tgl label { padding: 10px 15px; font-size: 15px; }
+        .ls-tgl label { padding: 10px 14px; font-size: 16px; }
       }
       @media (prefers-reduced-motion: reduce) {
         .ls-tgl-slider { transition: none; }

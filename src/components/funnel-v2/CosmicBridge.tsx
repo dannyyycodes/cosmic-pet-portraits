@@ -56,6 +56,11 @@ export const GLYPH: Record<string, string> = {
   mercury: '<circle class="gl-s" cx="0" cy="0.2" r="3.1"/><path class="gl-s" d="M-3.1,-5.6 A3.3,3.1 0 0 0 3.1,-5.6"/><path class="gl-s" d="M0,3.3 L0,7 M-2.6,5.3 L2.6,5.3"/>',
   venus: '<circle class="gl-s" cx="0" cy="-1.6" r="3.1"/><path class="gl-s" d="M0,1.5 L0,6.8 M-2.6,4.1 L2.6,4.1"/>',
   mars: '<circle class="gl-s" cx="-1" cy="1.6" r="3.3"/><path class="gl-s" d="M1.4,-0.8 L5.7,-5.1 M5.7,-5.1 L2.2,-5.1 M5.7,-5.1 L5.7,-1.6"/>',
+  jupiter: '<path class="gl-s" d="M-5.6,-3 C-5.4,-5.8 -1.8,-6.6 -0.7,-4 C0.2,-1.9 -1.6,0.8 -5.9,1.8 L4.9,1.8 M2.5,-5.6 L2.5,6.2"/>',
+  saturn: '<path class="gl-s" d="M-3,-6.4 L-3,5 M-5,-4.2 L-1,-4.2 M-3,-0.8 C-1.4,-2.6 1.8,-2.4 2.6,-0.3 C3.4,1.8 2,3.6 0.6,4.8 C-0.3,5.6 -0.2,6.5 0.6,6.8"/>',
+  uranus: '<circle class="gl-s" cx="0" cy="4.7" r="1.9"/><path class="gl-s" d="M0,2.8 L0,-1.7 M-4.3,-6.3 L-4.3,1 M4.3,-6.3 L4.3,1 M-4.3,-2.65 L4.3,-2.65"/>',
+  neptune: '<path class="gl-s" d="M-4.7,-6.2 L-4.7,-3.2 C-4.7,-0.4 -1.9,1 0,1 C1.9,1 4.7,-0.4 4.7,-3.2 L4.7,-6.2 M0,-6.4 L0,6.6 M-2.6,3.8 L2.6,3.8 M-1.3,-5.1 L0,-6.5 L1.3,-5.1"/>',
+  pluto: '<circle class="gl-s" cx="0" cy="-4.1" r="1.8"/><path class="gl-s" d="M-3.8,-4.4 A3.8,3.8 0 0 0 3.8,-4.4 M0,-0.6 L0,6.4 M-2.5,3 L2.5,3"/>',
   northNode: '<path class="gl-s" d="M-3.7,4.6 C-6.7,-3.4 6.7,-3.4 3.7,4.6"/><circle class="gl-f" cx="-3.9" cy="4.8" r="1.5"/><circle class="gl-f" cx="3.9" cy="4.8" r="1.5"/>',
   chiron: '<circle class="gl-s" cx="0" cy="4.2" r="2.2"/><path class="gl-s" d="M-1.6,-6.3 L-1.6,2 M-1.6,-1.7 L2.4,-6.3 M-1.6,-1.7 L2.4,2"/>',
   lilith: '<path class="gl-f" d="M1,-6.4 A3,3 0 1 0 1,-0.4 A4,4 0 0 1 1,-6.4 Z"/><path class="gl-s" d="M0,-0.4 L0,6.6 M-2.4,3.4 L2.4,3.4"/>',
@@ -81,50 +86,125 @@ function makeCubicBezier(x1: number, y1: number, x2: number, y2: number): (t: nu
 export const HOUSE = makeCubicBezier(0.16, 1, 0.3, 1);
 
 /* ---- the natal wheel geometry (module scope, deterministic) ----
-   A real chart wheel: zodiac ring, degree ticks, 12 house spokes, seven
-   planet glyphs on the inner band, three aspect chords. Drawn on scroll
-   via stroke-dashoffset + staggered opacity, exactly per the contract. */
+   A REAL natal chart: Monty, born 15 June 2019 - the same example chart the
+   free reading demonstrates. Longitudes come from the production VSOP87
+   engine (pet-birth-chart edge function, ephemeris-v2), so every glyph sits
+   at its true zodiacal position and every aspect chord is computed from the
+   real separations. Date-only chart, so the wheel reads 0° Aries at the
+   left with whole-sign cusps (the standard presentation when no birth time
+   is known). Drawn on scroll via stroke-dashoffset + staggered opacity. */
 const W_C = 160;
 const wpt = (deg: number, r: number) => ({
   x: +(W_C + r * Math.cos((deg * Math.PI) / 180)).toFixed(1),
   y: +(W_C + r * Math.sin((deg * Math.PI) / 180)).toFixed(1),
 });
-const WHEEL_CUSPS = Array.from({ length: 12 }, (_, k) => {
-  const a = -90 + k * 30;
-  return { p1: wpt(a, 128), p2: wpt(a, 152) };
+/* ecliptic longitude -> point: 0° Aries at 9 o'clock, zodiac counterclockwise */
+const wP = (lon: number, r: number) => wpt(180 - lon, r);
+
+/* Monty's real sky, 2019-06-15 (VSOP87 engine output, degree within sign) */
+const CHART_BODIES = [
+  { id: "sun", lon: 83 },      // Gemini 23
+  { id: "moon", lon: 241 },    // Sagittarius 1
+  { id: "mercury", lon: 107 }, // Cancer 17
+  { id: "venus", lon: 67 },    // Gemini 7
+  { id: "mars", lon: 109 },    // Cancer 19
+  { id: "jupiter", lon: 258 }, // Sagittarius 18
+  { id: "saturn", lon: 288 },  // Capricorn 18
+  { id: "uranus", lon: 35 },   // Taurus 5
+  { id: "neptune", lon: 348 }, // Pisces 18
+  { id: "pluto", lon: 292 },   // Capricorn 22
+];
+
+/* radii: 154 outer ring · 122 zodiac-band inner edge · 74 aspect circle */
+const WHEEL_SEG_FILLS = Array.from({ length: 12 }, (_, k) => {
+  const a0 = k * 30, a1 = a0 + 30;
+  const o0 = wP(a0, 154), o1 = wP(a1, 154), i1 = wP(a1, 122), i0 = wP(a0, 122);
+  return {
+    d: `M${o0.x},${o0.y} A154,154 0 0 0 ${o1.x},${o1.y} L${i1.x},${i1.y} A122,122 0 0 1 ${i0.x},${i0.y} Z`,
+    dim: k % 2 === 0,
+  };
+});
+const WHEEL_SIGNBOUNDS = Array.from({ length: 12 }, (_, k) => {
+  const a = k * 30;
+  return { p1: wP(a, 122), p2: wP(a, 154) };
 });
 const WHEEL_TICKS = (() => {
-  const out: { p1: { x: number; y: number }; p2: { x: number; y: number } }[] = [];
-  let i = 0;
-  for (let deg = 0; deg < 360; deg += 6) {
+  const out: { p1: { x: number; y: number }; p2: { x: number; y: number }; mj: boolean }[] = [];
+  for (let deg = 0; deg < 360; deg++) {
     if (deg % 30 === 0) continue;
-    const a = -90 + deg;
-    const rIn = i % 2 === 0 ? 124 : 121.5;
-    out.push({ p1: wpt(a, rIn), p2: wpt(a, 128) });
-    i++;
+    const len = deg % 10 === 0 ? 7 : deg % 5 === 0 ? 4.8 : 2.6;
+    out.push({ p1: wP(deg, 122), p2: wP(deg, 122 + len), mj: deg % 5 === 0 });
   }
   return out;
 })();
-const WHEEL_SIGNS = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"]
-  .map((g, k) => ({ g: g + "︎", p: wpt(-75 + k * 30, 140), d: 1.15 + k * 0.04 }));
+const SIGN_ORDER = ["aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"];
+const WHEEL_SIGNS = SIGN_ORDER.map((name, k) => ({
+  name, p: wP(k * 30 + 15, 141.5), d: 1.0 + k * 0.045,
+}));
+/* whole-sign house cusps: hairline spokes, aspect circle to the band */
 const WHEEL_SPOKES = Array.from({ length: 12 }, (_, k) => {
-  const a = -82 + k * 30;
-  return { p1: wpt(a, 44), p2: wpt(a, 128), d: 0.8 + k * 0.05 };
+  const a = k * 30;
+  return { p1: wP(a, 74), p2: wP(a, 122), d: 0.75 + k * 0.05 };
 });
-const WHEEL_PLANETS = [
-  { g: "☉︎", a: -75 },  // Sun
-  { g: "☿︎", a: -38 },  // Mercury
-  { g: "♂︎", a: 28 },   // Mars
-  { g: "♄︎", a: 58 },   // Saturn
-  { g: "♃︎", a: 113 },  // Jupiter
-  { g: "☽︎", a: 195 },  // Moon
-  { g: "♀︎", a: 238 },  // Venus
-].map((p, k) => ({ g: p.g, glyph: wpt(p.a, 101), t1: wpt(p.a, 118), t2: wpt(p.a, 126), d: 1.55 + k * 0.08 }));
-const WHEEL_ASPECTS = [
-  { a: -75, b: 113 },
-  { a: 195, b: -75 },
-  { a: 238, b: 58 },
-].map((c, k) => ({ p1: wpt(c.a, 112), p2: wpt(c.b, 112), d: 2.0 + k * 0.14 }));
+/* planets at their true longitudes; crowded glyphs relax apart while their
+   degree ticks + pointer lines stay exactly on the true degree */
+const WHEEL_PLANETS = (() => {
+  const MINSEP = 17;
+  const s = CHART_BODIES.map((b) => ({ ...b, adj: b.lon })).sort((a, b) => a.lon - b.lon);
+  for (let pass = 0; pass < 32; pass++) {
+    let moved = false;
+    for (let i = 0; i < s.length; i++) {
+      const a = s[i], b = s[(i + 1) % s.length];
+      const gap = (((b.adj - a.adj) % 360) + 360) % 360;
+      if (gap < MINSEP - 0.01) {
+        const push = (MINSEP - gap) / 2;
+        a.adj -= push; b.adj += push; moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return s.map((p, k) => ({
+    id: p.id,
+    deg: `${p.lon % 30}°`,
+    glyph: wP(p.adj, 103),
+    label: wP(p.adj, 88),
+    c1: wP(p.adj, 111.5),
+    c2: wP(p.lon, 116.5),
+    t1: wP(p.lon, 122),
+    t2: wP(p.lon, 116.5),
+    d: 1.5 + k * 0.09,
+  }));
+})();
+/* real aspects computed from the real longitudes (conjunction, square,
+   trine, opposition, within orb). Conjunctions read as adjacent glyphs -
+   the professional rendering - so only the other three draw chords. */
+const WHEEL_ASPECTS = (() => {
+  const types = [
+    { angle: 0, orb: 8 },
+    { angle: 90, orb: 7 },
+    { angle: 120, orb: 8 },
+    { angle: 180, orb: 8 },
+  ];
+  const out: { p1: { x: number; y: number }; p2: { x: number; y: number }; len: number; soft: boolean; d: number }[] = [];
+  for (let i = 0; i < CHART_BODIES.length; i++) {
+    for (let j = i + 1; j < CHART_BODIES.length; j++) {
+      const raw = Math.abs(CHART_BODIES[i].lon - CHART_BODIES[j].lon);
+      const sep = Math.min(raw, 360 - raw);
+      for (const t of types) {
+        if (Math.abs(sep - t.angle) <= t.orb) {
+          if (t.angle > 0) {
+            const p1 = wP(CHART_BODIES[i].lon, 74);
+            const p2 = wP(CHART_BODIES[j].lon, 74);
+            const len = Math.ceil(Math.hypot(p2.x - p1.x, p2.y - p1.y)) + 2;
+            out.push({ p1, p2, len, soft: t.angle === 120, d: 2.05 + out.length * 0.1 });
+          }
+          break;
+        }
+      }
+    }
+  }
+  return out;
+})();
 
 const LCB_CSS = `
 .lcb-root{
@@ -259,9 +339,10 @@ const LCB_CSS = `
 .c2-b1.is-inview .c2-constellation .cline{stroke-dashoffset:0}
 .c2-constellation .cstar{fill:var(--lcb-violet-soft)}
 
-/* beat 3: the natal wheel, drawn as its own object */
+/* beat 3: the natal wheel - Monty's real sky, professionally drawn.
+   Line-weight law: hairline ticks/spokes, medium rings, fine aspect web. */
 .c2-wheel{
-  position:relative;width:clamp(250px,70vw,390px);aspect-ratio:1;
+  position:relative;width:clamp(272px,78vw,400px);aspect-ratio:1;
   margin:4.5svh auto 0;
 }
 .c2-wheel::before{
@@ -269,46 +350,56 @@ const LCB_CSS = `
   background:radial-gradient(circle, rgba(167,139,250,.13) 0%, transparent 62%);
 }
 .c2-wheel svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.c2-wheel .wring-a{stroke:rgba(167,139,250,.6);fill:none;stroke-width:1.2}
-.c2-wheel .wring-b{stroke:rgba(167,139,250,.42);fill:none;stroke-width:1}
-.c2-wheel .wring-c{stroke:rgba(139,123,216,.5);fill:none;stroke-width:1}
-.c2-wheel .wcusp{stroke:rgba(167,139,250,.38);stroke-width:1}
-.c2-wheel .wtick{stroke:rgba(139,123,216,.42);stroke-width:1}
-.c2-wheel .wspoke{stroke:rgba(139,123,216,.34);stroke-width:1}
-.c2-wheel .waspect{stroke:rgba(167,139,250,.38);stroke-width:.9}
-.c2-wheel .wptick{stroke:rgba(167,139,250,.7);stroke-width:1.2}
-.c2-wheel text{
-  font-family:Georgia,'Segoe UI Symbol','Apple Symbols','Noto Sans Symbols 2',serif;
-  fill:rgba(179,167,224,.78);font-size:13px;
+.c2-wheel .wfill{opacity:0;transition:opacity 1.1s ease .7s}
+.c2-wheel .wfill.a{fill:rgba(167,139,250,.055)}
+.c2-wheel .wfill.b{fill:rgba(139,123,216,.028)}
+.c2-wheel .wring-a{stroke:rgba(167,139,250,.62);fill:none;stroke-width:1.3}
+.c2-wheel .wring-b{stroke:rgba(167,139,250,.46);fill:none;stroke-width:1}
+.c2-wheel .wring-c{stroke:rgba(139,123,216,.42);fill:none;stroke-width:.8}
+.c2-wheel .wcusp{stroke:rgba(167,139,250,.4);stroke-width:1}
+.c2-wheel .wtick{stroke:rgba(179,167,224,.42);stroke-width:.5}
+.c2-wheel .wtick.mj{stroke:rgba(179,167,224,.58);stroke-width:.8}
+.c2-wheel .wspoke{stroke:rgba(139,123,216,.28);stroke-width:.7}
+.c2-wheel .waspect{fill:none;stroke:rgba(167,139,250,.46);stroke-width:1}
+.c2-wheel .waspect.soft{stroke:rgba(179,167,224,.34);stroke-width:.8}
+.c2-wheel .wptick{stroke:var(--lcb-violet-br);stroke-width:1.5}
+.c2-wheel .wconn{stroke:rgba(167,139,250,.38);stroke-width:.6}
+.c2-wheel .wdeg{
+  font-family:"Newsreader",Georgia,serif;font-size:15px;
+  fill:rgba(245,242,255,.78);letter-spacing:.02em;
 }
-.c2-wheel .wplanets text{
-  font-size:15px;fill:var(--lcb-violet-br);
-  filter:drop-shadow(0 0 5px rgba(167,139,250,.55));
-}
+.c2-wheel .wz .gl-s{fill:none;stroke:rgba(205,192,244,.85);stroke-width:1.05;stroke-linecap:round;stroke-linejoin:round}
+.c2-wheel .wz .gl-f{fill:rgba(205,192,244,.85);stroke:none}
+.c2-wheel .wp .gl-s{fill:none;stroke:var(--lcb-violet-br);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.c2-wheel .wp .gl-f{fill:var(--lcb-violet-br);stroke:none}
 /* drawn on scroll */
-.c2-wheel .wring-a{stroke-dasharray:956;stroke-dashoffset:956;transition:stroke-dashoffset 1.5s ease-out .1s}
-.c2-wheel .wring-b{stroke-dasharray:805;stroke-dashoffset:805;transition:stroke-dashoffset 1.4s ease-out .35s}
-.c2-wheel .wring-c{stroke-dasharray:277;stroke-dashoffset:277;transition:stroke-dashoffset 1s ease-out .6s}
-.c2-wheel .wcusps{opacity:0;transition:opacity .9s ease .9s}
-.c2-wheel .wticks{opacity:0;transition:opacity 1s ease 1.1s}
-.c2-wheel .wspoke{stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .8s ease-out}
-.c2-wheel .waspect{stroke-dasharray:240;stroke-dashoffset:240;transition:stroke-dashoffset .9s ease-out}
-.c2-wheel .wglyphs text{opacity:0;transition:opacity .7s ease}
-.c2-wheel .wplanets text{
+.c2-wheel .wring-a{stroke-dasharray:968;stroke-dashoffset:968;transition:stroke-dashoffset 1.5s ease-out .1s}
+.c2-wheel .wring-b{stroke-dasharray:767;stroke-dashoffset:767;transition:stroke-dashoffset 1.4s ease-out .35s}
+.c2-wheel .wring-c{stroke-dasharray:465;stroke-dashoffset:465;transition:stroke-dashoffset 1s ease-out .6s}
+.c2-wheel .wcusps{opacity:0;transition:opacity .9s ease .8s}
+.c2-wheel .wticks{opacity:0;transition:opacity 1s ease 1s}
+.c2-wheel .wspoke{stroke-dasharray:48;stroke-dashoffset:48;transition:stroke-dashoffset .8s ease-out}
+.c2-wheel .waspect{stroke-dasharray:var(--wl);stroke-dashoffset:var(--wl);transition:stroke-dashoffset .9s ease-out}
+.c2-wheel .wzg{opacity:0;transition:opacity .7s ease}
+.c2-wheel .wpg{
   opacity:0;transform:scale(.4);transform-box:fill-box;transform-origin:center;
   transition:opacity .5s ease, transform .55s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(0 0 5px rgba(167,139,250,.5));
 }
-.c2-wheel .wptick{opacity:0;transition:opacity .5s ease}
+.c2-wheel .wptick,.c2-wheel .wconn,.c2-wheel .wdeg{opacity:0;transition:opacity .55s ease}
 .c2-b3.is-inview .c2-wheel .wring-a,
 .c2-b3.is-inview .c2-wheel .wring-b,
 .c2-b3.is-inview .c2-wheel .wring-c{stroke-dashoffset:0}
+.c2-b3.is-inview .c2-wheel .wfill{opacity:1}
 .c2-b3.is-inview .c2-wheel .wcusps,
 .c2-b3.is-inview .c2-wheel .wticks{opacity:1}
 .c2-b3.is-inview .c2-wheel .wspoke{stroke-dashoffset:0}
 .c2-b3.is-inview .c2-wheel .waspect{stroke-dashoffset:0}
-.c2-b3.is-inview .c2-wheel .wglyphs text{opacity:1}
-.c2-b3.is-inview .c2-wheel .wplanets text{opacity:1;transform:scale(1)}
-.c2-b3.is-inview .c2-wheel .wptick{opacity:1}
+.c2-b3.is-inview .c2-wheel .wzg{opacity:1}
+.c2-b3.is-inview .c2-wheel .wpg{opacity:1;transform:scale(1)}
+.c2-b3.is-inview .c2-wheel .wptick,
+.c2-b3.is-inview .c2-wheel .wconn,
+.c2-b3.is-inview .c2-wheel .wdeg{opacity:1}
 
 /* the real moon: corner spine presence, blur-to-sharp arrival. It lives
    with the birth-sky beat and retires with it - never below the opening. */
@@ -345,9 +436,9 @@ const LCB_CSS = `
   .c2-constellation .cline{stroke-dashoffset:0 !important}
   .c2-wheel .wring-a,.c2-wheel .wring-b,.c2-wheel .wring-c,
   .c2-wheel .wspoke,.c2-wheel .waspect{stroke-dashoffset:0 !important}
-  .c2-wheel .wcusps,.c2-wheel .wticks,.c2-wheel .wglyphs text,
-  .c2-wheel .wplanets text,.c2-wheel .wptick{opacity:1 !important}
-  .c2-wheel .wplanets text{transform:scale(1) !important}
+  .c2-wheel .wcusps,.c2-wheel .wticks,.c2-wheel .wfill,.c2-wheel .wzg,
+  .c2-wheel .wpg,.c2-wheel .wptick,.c2-wheel .wconn,.c2-wheel .wdeg{opacity:1 !important}
+  .c2-wheel .wpg{transform:scale(1) !important}
   .c2-moonspine{opacity:.95 !important;filter:blur(0) !important}
   .c2-moonglow{opacity:1 !important}
   .c2-node.lit::before{width:20px !important}
@@ -1004,17 +1095,22 @@ export function CosmicBridge() {
           <p className="c2-whisper c2-rv" id="c2-st-sky">The minute they arrived, every planet held its place around them.</p>
           <div className="c2-wheel c2-rv" aria-hidden="true">
             <svg viewBox="0 0 320 320">
-              <circle className="wring-a" cx="160" cy="160" r="152" />
-              <circle className="wring-b" cx="160" cy="160" r="128" />
-              <circle className="wring-c" cx="160" cy="160" r="44" />
-              <g className="wcusps">
-                {WHEEL_CUSPS.map((c, i) => (
-                  <line key={i} className="wcusp" x1={c.p1.x} y1={c.p1.y} x2={c.p2.x} y2={c.p2.y} />
+              <g className="wfills">
+                {WHEEL_SEG_FILLS.map((s, i) => (
+                  <path key={i} className={s.dim ? "wfill b" : "wfill a"} d={s.d} />
                 ))}
               </g>
+              <circle className="wring-a" cx="160" cy="160" r="154" />
+              <circle className="wring-b" cx="160" cy="160" r="122" />
+              <circle className="wring-c" cx="160" cy="160" r="74" />
               <g className="wticks">
                 {WHEEL_TICKS.map((t, i) => (
-                  <line key={i} className="wtick" x1={t.p1.x} y1={t.p1.y} x2={t.p2.x} y2={t.p2.y} />
+                  <line key={i} className={t.mj ? "wtick mj" : "wtick"} x1={t.p1.x} y1={t.p1.y} x2={t.p2.x} y2={t.p2.y} />
+                ))}
+              </g>
+              <g className="wcusps">
+                {WHEEL_SIGNBOUNDS.map((c, i) => (
+                  <line key={i} className="wcusp" x1={c.p1.x} y1={c.p1.y} x2={c.p2.x} y2={c.p2.y} />
                 ))}
               </g>
               <g className="wspokes">
@@ -1023,20 +1119,44 @@ export function CosmicBridge() {
                 ))}
               </g>
               <g className="wglyphs">
-                {WHEEL_SIGNS.map((s, i) => (
-                  <text key={i} x={s.p.x} y={s.p.y} textAnchor="middle" dominantBaseline="central" style={{ transitionDelay: `${s.d}s` }}>{s.g}</text>
+                {WHEEL_SIGNS.map((s) => (
+                  <g key={s.name} className="wz" transform={`translate(${s.p.x},${s.p.y}) scale(1.22)`}>
+                    <g
+                      className="wzg"
+                      style={{ transitionDelay: `${s.d}s` }}
+                      dangerouslySetInnerHTML={{ __html: GLYPH[s.name] || "" }}
+                    />
+                  </g>
                 ))}
               </g>
               <g className="waspects">
                 {WHEEL_ASPECTS.map((a, i) => (
-                  <line key={i} className="waspect" x1={a.p1.x} y1={a.p1.y} x2={a.p2.x} y2={a.p2.y} style={{ transitionDelay: `${a.d}s` }} />
+                  <line
+                    key={i}
+                    className={a.soft ? "waspect soft" : "waspect"}
+                    x1={a.p1.x} y1={a.p1.y} x2={a.p2.x} y2={a.p2.y}
+                    style={{ ["--wl" as string]: `${a.len}`, transitionDelay: `${a.d}s` }}
+                  />
                 ))}
               </g>
               <g className="wplanets">
-                {WHEEL_PLANETS.map((p, i) => (
-                  <g key={i}>
+                {WHEEL_PLANETS.map((p) => (
+                  <g key={p.id}>
                     <line className="wptick" x1={p.t1.x} y1={p.t1.y} x2={p.t2.x} y2={p.t2.y} style={{ transitionDelay: `${p.d}s` }} />
-                    <text x={p.glyph.x} y={p.glyph.y} textAnchor="middle" dominantBaseline="central" style={{ transitionDelay: `${p.d}s` }}>{p.g}</text>
+                    <line className="wconn" x1={p.c1.x} y1={p.c1.y} x2={p.c2.x} y2={p.c2.y} style={{ transitionDelay: `${p.d + 0.08}s` }} />
+                    <g className="wp" transform={`translate(${p.glyph.x},${p.glyph.y}) scale(1.32)`}>
+                      <g
+                        className="wpg"
+                        style={{ transitionDelay: `${p.d}s` }}
+                        dangerouslySetInnerHTML={{ __html: GLYPH[p.id] || "" }}
+                      />
+                    </g>
+                    <text
+                      className="wdeg"
+                      x={p.label.x} y={p.label.y}
+                      textAnchor="middle" dominantBaseline="central"
+                      style={{ transitionDelay: `${p.d + 0.14}s` }}
+                    >{p.deg}</text>
                   </g>
                 ))}
               </g>

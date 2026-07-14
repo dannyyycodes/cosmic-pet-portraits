@@ -1207,7 +1207,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-mini-label {
             color: #9a7ee6;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             letter-spacing: 0.14em;
             text-transform: uppercase;
@@ -1286,7 +1286,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             color: #1c1330;
             padding: 5px 12px;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 800;
             letter-spacing: 0.06em;
             text-transform: uppercase;
@@ -1521,7 +1521,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             color: #c8c8d2;
             font-family: "Newsreader", Georgia, serif;
             font-style: italic;
-            font-size: 0.98rem;
+            font-size: 1rem;
           }
           .cosmic-mem-more-count {
             display: flex;
@@ -1600,9 +1600,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             margin-top: 10px;
             color: #9b8fd0;
             font-family: "Newsreader", Georgia, serif;
-            font-size: 11.5px;
+            font-size: 16px;
             font-weight: 600;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
           }
           @media (prefers-reduced-motion: reduce) {
@@ -1632,7 +1632,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             padding: 12px 0;
             color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 0.92rem;
+            font-size: 1rem;
           }
           .cosmic-total-row {
             border-bottom: 0;
@@ -1652,7 +1652,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             color: #9a7ee6;
             padding: 10px 0;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 0.84rem;
+            font-size: 1rem;
             font-weight: 700;
           }
           .cosmic-code-row {
@@ -1676,7 +1676,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             margin: 14px 0 7px;
             color: #ececf2;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 0.84rem;
+            font-size: 1rem;
             font-weight: 700;
           }
           .cosmic-primary-button,
@@ -1699,7 +1699,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             margin-top: 12px;
             color: #ffffff;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 0.88rem;
+            font-size: 1rem;
             text-decoration: none;
           }
           .cosmic-proof {
@@ -1712,7 +1712,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             color: #ececf2;
             text-align: center;
             font-family: Lato, system-ui, sans-serif;
-            font-size: 0.74rem;
+            font-size: 1rem;
             line-height: 1.35;
           }
           .cosmic-refund {
@@ -1985,7 +1985,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               onChange={(e) => { setEmail(e.target.value); setError(""); }}
               placeholder="you@example.com"
             />
-            {error && <p style={{ color: "#ffffff", fontSize: 12, margin: "6px 0 0" }}>{error}</p>}
+            {error && <p style={{ color: "#ffffff", fontSize: 16, margin: "6px 0 0" }}>{error}</p>}
 
             <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
               {isLoading ? "Opening secure checkout..." : `${ctaLabel} · ${fmt(finalPrice + charityBonus * 100)}`}
@@ -1995,7 +1995,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             </a>
 
             {isLocalized && (
-              <p style={{ color: "#c8c8d2", textAlign: "center", fontSize: 12, margin: "10px 0 0" }}>
+              <p style={{ color: "#c8c8d2", textAlign: "center", fontSize: 16, margin: "10px 0 0" }}>
                 Billed in {currencyCode}. Exactly the price shown.
               </p>
             )}
@@ -2389,7 +2389,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             className="text-center mt-2"
             style={{
               fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "0.75rem",
+              fontSize: "1rem",
               color: "var(--muted, #958779)",
             }}
           >
@@ -3006,9 +3006,9 @@ const CharityBrandRow = ({
         className="text-center mb-2"
         style={{
           fontFamily: "Cormorant, Georgia, serif",
-          fontSize: "0.72rem",
+          fontSize: "1rem",
           fontWeight: 600,
-          letterSpacing: "0.14em",
+          letterSpacing: "0.1em",
           textTransform: "uppercase",
           fontVariantNumeric: "lining-nums",
           color: "var(--gold, #7c5cd6)",
@@ -3035,7 +3035,7 @@ const CharityBrandRow = ({
           margin: "12px 0 0",
           fontFamily: "Cormorant, Georgia, serif",
           fontStyle: "italic",
-          fontSize: "0.72rem",
+          fontSize: "1rem",
           color: "var(--muted, #958779)",
           lineHeight: 1.5,
         }}

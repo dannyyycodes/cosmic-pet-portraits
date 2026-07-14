@@ -148,9 +148,9 @@ export function ReadingsNav() {
           </span>
           <span
             style={{
-              color: C.gold,
+              color: "#9a7ee6",
               fontFamily: '"Newsreader", Georgia, serif',
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: 700,
               letterSpacing: "0.16em",
             }}
