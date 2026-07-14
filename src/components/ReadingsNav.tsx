@@ -150,7 +150,7 @@ export function ReadingsNav() {
             style={{
               color: "#9a7ee6",
               fontFamily: '"Newsreader", Georgia, serif',
-              fontSize: 13,
+              fontSize: "clamp(14px, 1.2vw + 9px, 15px)",
               fontWeight: 700,
               letterSpacing: "0.16em",
             }}
@@ -170,7 +170,7 @@ export function ReadingsNav() {
                 style={{
                   color: linkColor,
                   fontFamily: '"Newsreader", Georgia, serif',
-                  fontSize: 13,
+                  fontSize: "clamp(14px, 1.2vw + 9px, 15px)",
                   fontWeight: 500,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = C.goldLight)}
@@ -187,7 +187,7 @@ export function ReadingsNav() {
           {user ? (
             <Link
               to="/account"
-              className="hidden min-h-10 items-center gap-2 px-3 text-sm font-medium sm:inline-flex"
+              className="hidden min-h-10 items-center gap-2 px-3 text-[15px] font-medium sm:inline-flex"
               style={{ color: linkColor, fontFamily: '"Newsreader", Georgia, serif' }}
               aria-label="My account"
             >
@@ -196,7 +196,7 @@ export function ReadingsNav() {
           ) : (
             <Link
               to="/auth"
-              className="hidden min-h-10 items-center gap-2 px-3 text-sm font-medium sm:inline-flex"
+              className="hidden min-h-10 items-center gap-2 px-3 text-[15px] font-medium sm:inline-flex"
               style={{
                 color: C.cosmosText,
                 border: "1px solid rgba(154,126,230,0.28)",

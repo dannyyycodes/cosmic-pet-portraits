@@ -1296,6 +1296,79 @@ function DossierStyles(): ReactNode {
         .is-bond .dsr-bond-ring{stroke-dashoffset:0}
         .dsr-bond-ring{stroke-dashoffset:1}
       }
+
+      /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+      .dsr-root{font-size:18px}
+      .dsr-eyebrow{font-size:14px}
+      .dsr-inscription{font-size:18px}
+      .dsr-tier-line{font-size:18px}
+      .dsr-bullets li{font-size:18px}
+      .dsr-rung-line{font-size:17px}
+      .dsr-lrow .nm{font-size:18px}
+      .dsr-lrow .fr{font-size:17px}
+      .dsr-review q{font-size:18px}
+      .dsr-review--mini q{font-size:18px}
+      .dsr-excerpt-place .nm{font-size:18px}
+      .dsr-excerpt-place .fr{font-size:17px}
+      .dsr-excerpt-note{font-size:17px}
+      .dsr-stack li{font-size:18px}
+      .dsr-email-kept .addr{font-size:17px}
+      .dsr-email-change{font-size:17px}
+      .dsr-bond .bt{font-size:18px}
+      .dsr-bond-badge{font-size:14px}
+      .dsr-was{font-size:17px}
+      .dsr-price-mod{font-size:17px}
+      .dsr-total-line{font-size:17px}
+      .dsr-field input{font-size:17px}
+      .dsr-cta{font-size:18px}
+      .dsr-error{font-size:17px}
+      .dsr-guarantee{font-size:18px}
+      .dsr-code-link{font-size:17px}
+      .dsr-code-apply{font-size:17px}
+      .dsr-code-applied{font-size:17px}
+      .dsr-details summary{font-size:18px}
+      .dsr-disc-body{font-size:17px}
+      .dsr-tag{font-size:14px}
+      .dsr-stepper .qty{font-size:18px}
+      .dsr-saving-line{font-size:17px}
+      .dsr-trust-line{font-size:17px}
+      .dsr-fx-note{font-size:17px}
+      .dsr-charity{font-size:17px}
+      .dsr-charity summary{font-size:17px}
+      .dsr-charity-opts button{font-size:17px}
+      @media (min-width:768px){
+        .dsr-root{font-size:18.5px}
+        .dsr-eyebrow{font-size:14.5px}
+        .dsr-bullets li,.dsr-review q,.dsr-review--mini q,.dsr-stack li{font-size:18.5px}
+        .dsr-rung-line,.dsr-disc-body,.dsr-trust-line{font-size:17.5px}
+      }
+      @media (min-width:1280px){
+        .dsr-root{font-size:19px}
+        .dsr-eyebrow{font-size:15px}
+        .dsr-inscription{font-size:19px}
+        .dsr-tier-line{font-size:19px}
+        .dsr-bullets li{font-size:19px}
+        .dsr-rung-line{font-size:18px}
+        .dsr-lrow .nm{font-size:18.5px}
+        .dsr-lrow .fr{font-size:17.5px}
+        .dsr-review q,.dsr-review--mini q{font-size:19px}
+        .dsr-excerpt-place .nm{font-size:18.5px}
+        .dsr-excerpt-place .fr,.dsr-excerpt-note{font-size:17.5px}
+        .dsr-stack li{font-size:19px}
+        .dsr-email-kept .addr,.dsr-email-change{font-size:17.5px}
+        .dsr-bond .bt{font-size:18.5px}
+        .dsr-bond-badge,.dsr-tag{font-size:15px}
+        .dsr-was,.dsr-price-mod,.dsr-total-line{font-size:17.5px}
+        .dsr-field input{font-size:17.5px}
+        .dsr-cta{font-size:19px}
+        .dsr-error{font-size:17.5px}
+        .dsr-guarantee{font-size:19px}
+        .dsr-code-link,.dsr-code-apply,.dsr-code-applied{font-size:17.5px}
+        .dsr-details summary{font-size:18.5px}
+        .dsr-disc-body{font-size:18px}
+        .dsr-stepper .qty{font-size:18px}
+        .dsr-saving-line,.dsr-fx-note,.dsr-charity,.dsr-charity summary,.dsr-charity-opts button{font-size:17.5px}
+      }
     `}</style>
   );
 }

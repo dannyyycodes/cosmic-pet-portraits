@@ -1848,6 +1848,48 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               grid-template-columns: 1fr;
             }
           }
+
+          /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+          .cosmic-mini-label { font-size: 14px; }
+          .cosmic-tier-badge { font-size: 14px; }
+          .cosmic-checkout-body { font-size: 18px; }
+          .cosmic-tier p { font-size: 17px; line-height: 1.5; }
+          .cosmic-feature-list button { font-size: 17px; }
+          .cosmic-feature-list small { font-size: 14px; }
+          .cosmic-included-strip p { font-size: 17px; line-height: 1.5; }
+          .cosmic-preview-link { font-size: 14px; }
+          .cosmic-stepper > span { font-size: 14px; }
+          .cosmic-tier.is-memorial .cosmic-tier-head p { font-size: 18px; }
+          .cosmic-tier.is-memorial .cosmic-feature-list button { font-size: 18px; }
+          .cosmic-mem-more summary { font-size: 18px; }
+          .cosmic-mem-more-body > p { font-size: 18px; }
+          .cosmic-mem-more-count b { font-size: 18px; }
+          .cosmic-mem-assure { font-size: 18px; }
+          .cosmic-mem-review blockquote { font-size: 18px; }
+          .cosmic-order-row, .cosmic-total-row { font-size: 17px; }
+          .cosmic-total-row { font-size: 18px; }
+          .cosmic-code-button { font-size: 17px; }
+          .cosmic-order-panel label { font-size: 17px; }
+          .cosmic-gift-link { font-size: 17px; }
+          .cosmic-proof span { font-size: 17px; }
+          .cosmic-refund { font-size: 18px; }
+          .cosmic-preview-panel p { font-size: 18px; }
+          @media (min-width: 1280px) {
+            .cosmic-mini-label, .cosmic-tier-badge, .cosmic-preview-link,
+            .cosmic-feature-list small, .cosmic-stepper > span { font-size: 15px; }
+            .cosmic-checkout-body { font-size: 19px; }
+            .cosmic-tier p, .cosmic-included-strip p { font-size: 17.5px; }
+            .cosmic-feature-list button { font-size: 17.5px; }
+            .cosmic-tier.is-memorial .cosmic-tier-head p { font-size: 19px; }
+            .cosmic-mem-more-body > p, .cosmic-mem-review blockquote { font-size: 19px; }
+            .cosmic-mem-assure { font-size: 18.5px; }
+            .cosmic-order-row { font-size: 17.5px; }
+            .cosmic-total-row { font-size: 18.5px; }
+            .cosmic-code-button, .cosmic-order-panel label, .cosmic-gift-link,
+            .cosmic-proof span { font-size: 17.5px; }
+            .cosmic-refund { font-size: 19px; }
+            .cosmic-preview-panel p { font-size: 19px; }
+          }
         `}</style>
 
         <div className="cosmic-checkout-shell">
@@ -2837,6 +2879,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 .horo-close { transition: none !important; }
                 .horo-close:hover { transform: none !important; }
               }
+
+              /* ==== TYPE FLOORS (2026-07-14) ==== */
+              .horo-badge { font-size: 14px; }
+              .horo-footer { font-size: 14px; }
+              @media (min-width: 1280px) {
+                .horo-badge, .horo-footer { font-size: 15px; }
+              }
             `}</style>
           </div>
         </div>
@@ -3605,6 +3654,17 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         .ss-typing-dots span { animation: none !important; opacity: 0.5; }
         .ss-cursor { animation: none !important; opacity: 0; }
       }
+
+      /* ==== TYPE FLOORS (2026-07-14) ==== */
+      .ss-preview-intro { font-size: 17px; }
+      .ss-chat-name { font-size: 17px; }
+      .ss-chat-status { font-size: 14px; }
+      .ss-bubble { font-size: 17px; }
+      .ss-composer-field { font-size: 17px; }
+      @media (min-width: 1280px) {
+        .ss-preview-intro, .ss-chat-name, .ss-bubble, .ss-composer-field { font-size: 17.5px; }
+        .ss-chat-status { font-size: 15px; }
+      }
     `}</style>
   </div>
   );
@@ -3729,6 +3789,15 @@ const HoroscopePreview = () => (
         text-align: center;
         margin: 0;
         letter-spacing: 0.002em;
+      }
+
+      /* ==== TYPE FLOORS (2026-07-14) ==== */
+      .horo-lead { font-size: 18px; }
+      .horo-body { font-size: 17px; }
+      .horo-quote-text { font-size: 18px; }
+      @media (min-width: 1280px) {
+        .horo-lead, .horo-quote-text { font-size: 19px; }
+        .horo-body { font-size: 18px; }
       }
     `}</style>
   </div>

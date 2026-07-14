@@ -269,17 +269,17 @@ const LCB_CSS = `
 
 /* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
 .c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:17px;color:var(--lcb-dim);max-width:34ch;line-height:1.6;margin:0}
-.c2-lm{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.3rem,2.4vw + .6rem,1.8rem);line-height:1.3;color:var(--lcb-body);margin:0;letter-spacing:-0.008em}
-.c2-ll{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.7rem,3.4vw + .7rem,2.5rem);line-height:1.2;color:var(--lcb-white);letter-spacing:-0.014em;margin:0;text-wrap:balance}
-.c2-lxl{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.05rem,4.6vw + .8rem,3.15rem);line-height:1.14;color:var(--lcb-white);letter-spacing:-0.016em;margin:0;text-wrap:balance}
+.c2-lm{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.3rem,2.4vw + .6rem,1.8rem);line-height:1.38;color:var(--lcb-body);margin:0;letter-spacing:-0.008em}
+.c2-ll{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.7rem,3.4vw + .7rem,2.5rem);line-height:1.24;color:var(--lcb-white);letter-spacing:-0.014em;margin:0;text-wrap:balance}
+.c2-lxl{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.05rem,4.6vw + .8rem,3.15rem);line-height:1.18;color:var(--lcb-white);letter-spacing:-0.016em;margin:0;text-wrap:balance}
 .c2-peak{
   font-family:"Fraunces",Georgia,serif;font-weight:400;
-  font-size:clamp(2.35rem,6.4vw + 1rem,4.4rem);line-height:1.07;
+  font-size:clamp(2.35rem,6.4vw + 1rem,4.4rem);line-height:1.12;
   color:var(--lcb-white);letter-spacing:-0.02em;max-width:14ch;margin:0;
   text-shadow:0 1px 30px rgba(4,3,10,.5);text-wrap:balance;
 }
 .c2-peak-v{color:var(--lcb-violet-br)}
-.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:17.5px;line-height:1.5;color:var(--lcb-dim);position:relative;max-width:34ch;margin:0}
+.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:20px;line-height:1.5;color:var(--lcb-dim);position:relative;max-width:34ch;margin:0}
 .c2-peak em,.c2-ll em{font-style:italic}
 
 /* ---- station nodes riding the thread ---- */
@@ -442,6 +442,18 @@ const LCB_CSS = `
   .c2-moonspine{opacity:.95 !important;filter:blur(0) !important}
   .c2-moonglow{opacity:1 !important}
   .c2-node.lit::before{width:20px !important}
+}
+
+/* ---- TYPE FLOORS: tuned per viewport (2026-07-14). Base above = mobile
+   390-767 (whisper 17 / frag 20 / wdeg 15). Mid and desktop tiers here. ---- */
+@media (min-width:768px){
+  .c2-whisper{font-size:17.5px}
+  .c2-frag{font-size:21px}
+}
+@media (min-width:1280px){
+  .c2-whisper{font-size:18px}
+  .c2-frag{font-size:24px}
+  .c2-wheel .wdeg{font-size:16px}
 }
 `;
 

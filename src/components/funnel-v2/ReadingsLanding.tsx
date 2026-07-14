@@ -2274,7 +2274,7 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
 
         /* === One world: the planet holds the stage while its lines are dealt === */
         .ls-fr-planet { position: relative; display: flex; flex-direction: column; align-items: center; padding: 0 0 clamp(10px, 2svh, 20px); }
-        .ls-fr-ord { margin: 0 0 clamp(8px, 1.6vw, 14px); color: rgba(185,165,240,0.72); font-family: "Newsreader", Georgia, serif; font-variant-caps: small-caps; letter-spacing: 0.34em; text-indent: 0.34em; font-size: clamp(0.82rem, 2.1vw, 0.94rem); }
+        .ls-fr-ord { margin: 0 0 clamp(8px, 1.6vw, 14px); color: rgba(185,165,240,0.82); font-family: "Newsreader", Georgia, serif; font-variant-caps: small-caps; letter-spacing: 0.34em; text-indent: 0.34em; font-size: clamp(0.82rem, 2.1vw, 0.94rem); }
         .ls-fr-mark { display: flex; align-items: center; gap: 14px; margin: 0 0 clamp(12px, 2.2vw, 20px); color: var(--glow); }
         .ls-fr-mark::before, .ls-fr-mark::after { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 72%, transparent)); }
         .ls-fr-mark::after { background: linear-gradient(90deg, color-mix(in srgb, var(--glow) 72%, transparent), transparent); }
@@ -2362,6 +2362,18 @@ function FreeReveal({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }
           .ls-fr-disc, .ls-fr-sun { filter: none !important; transition: none !important; }
           .ls-fr-chip { transform: none !important; opacity: 1 !important; transition: none !important; }
           .ls-fr-dk-g { opacity: 0.5 !important; transform: none !important; }
+        }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-fr-ord { font-size: 14px; }
+        .ls-fr-handoff-cta { font-size: 18px; }
+        @media (min-width: 768px) {
+          .ls-fr-ord { font-size: 14.5px; }
+          .ls-fr-handoff-cta { font-size: 19px; }
+        }
+        @media (min-width: 1280px) {
+          .ls-fr-ord { font-size: 15px; }
+          .ls-fr-handoff-cta { font-size: 20px; }
         }
       `}</style>
     </div>
@@ -3206,6 +3218,11 @@ function CheckoutSection({
         .ls-pricelead { max-width: 640px; margin: 0 auto clamp(22px, 4vw, 40px); text-align: center; }
         .ls-pricelead-eyebrow { margin: 0 0 12px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
         .ls-pricelead-title { margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 5.6vw, 3rem); line-height: 1.05; letter-spacing: -0.018em; }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-pricelead-eyebrow { font-size: 14px; }
+        @media (min-width: 768px) { .ls-pricelead-eyebrow { font-size: 14.5px; } }
+        @media (min-width: 1280px) { .ls-pricelead-eyebrow { font-size: 15px; } }
       `}</style>
     </section>
   );
@@ -3269,6 +3286,10 @@ function StickyBeginBar() {
         .ls-stickybegin button:focus-visible { outline: 2px solid #cfc0f4; outline-offset: 3px; }
         @media (min-width: 768px) { .ls-stickybegin { display: none; } }
         @media (prefers-reduced-motion: reduce) { .ls-stickybegin { transition: none; } }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-stickybegin button { font-size: 18px; }
+        @media (min-width: 1280px) { .ls-stickybegin button { font-size: 19px; } }
       `}</style>
     </div>
   );
@@ -3737,6 +3758,24 @@ function FullReadingOpens() {
           .ls-rs-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
           .ls-rs-close-cta, .ls-rs-close-cta svg { animation: none !important; transform: none !important; transition: none !important; }
         }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-rs-eyebrow, .ls-rs-seal { font-size: 14px; }
+        .ls-rs-lead { font-size: 18px; }
+        .ls-rs-hook { font-size: 18px; }
+        .ls-rs-close-line { font-size: 18px; }
+        .ls-rs-close-cta { font-size: 18px; }
+        @media (min-width: 768px) {
+          .ls-rs-eyebrow, .ls-rs-seal { font-size: 14.5px; }
+          .ls-rs-lead, .ls-rs-hook, .ls-rs-close-line { font-size: 18.5px; }
+          .ls-rs-close-cta { font-size: 19px; }
+        }
+        @media (min-width: 1280px) {
+          .ls-rs-eyebrow, .ls-rs-seal { font-size: 15px; }
+          .ls-rs-lead { font-size: 19.5px; }
+          .ls-rs-hook, .ls-rs-close-line { font-size: 19px; }
+          .ls-rs-close-cta { font-size: 20px; }
+        }
       `}</style>
     </section>
   );
@@ -3835,6 +3874,18 @@ function ValueMoments() {
         .ls-vm-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
         @media (max-width: 560px) {
           .ls-vm-card { flex-direction: column; text-align: center; gap: 14px; }
+        }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-vm-eyebrow { font-size: 14px; }
+        .ls-vm-line, .ls-vm-pull { font-size: 18px; }
+        @media (min-width: 768px) {
+          .ls-vm-eyebrow { font-size: 14.5px; }
+          .ls-vm-line, .ls-vm-pull { font-size: 18.5px; }
+        }
+        @media (min-width: 1280px) {
+          .ls-vm-eyebrow { font-size: 15px; }
+          .ls-vm-line, .ls-vm-pull { font-size: 19px; }
         }
       `}</style>
     </section>
@@ -4084,6 +4135,24 @@ function ReviewsWall() {
         @media (min-width: 1024px) {
           .ls-reviews-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
         }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-reviews-eyebrow { font-size: 14px; }
+        .ls-rev-quote { font-size: 18px; }
+        .ls-rev-label { font-size: 18px; }
+        .ls-rev-more { font-size: 18px; }
+        .ls-reviews-more { font-size: 18px; }
+        .ls-reviews-pull { font-size: 18px; }
+        @media (min-width: 768px) {
+          .ls-reviews-eyebrow { font-size: 14.5px; }
+          .ls-rev-quote, .ls-reviews-pull { font-size: 18.5px; }
+        }
+        @media (min-width: 1280px) {
+          .ls-reviews-eyebrow { font-size: 15px; }
+          .ls-rev-quote { font-size: 19px; }
+          .ls-reviews-pull { font-size: 19.5px; }
+          .ls-reviews-more { font-size: 19px; }
+        }
       `}</style>
     </section>
   );
@@ -4123,11 +4192,11 @@ function PlaceholderFrame({
     <figure className={`ls-placeholder relative overflow-hidden ${className}`} aria-label={`${item.title} image placeholder`}>
       <div className="ls-placeholder-core" aria-hidden="true" />
       <figcaption className="absolute bottom-4 left-4 right-4">
-        <span className="block text-[11px] font-medium uppercase tracking-[0.16em]" style={{ color: C.gold }}>
+        <span className="block text-[14px] font-medium uppercase tracking-[0.16em]" style={{ color: C.gold }}>
           Image slot
         </span>
-        <span className="mt-1 block text-sm" style={{ color: C.cream }}>{item.title}</span>
-        <span className="block text-xs" style={{ color: C.muted }}>{item.note}</span>
+        <span className="mt-1 block text-[15px]" style={{ color: C.cream }}>{item.title}</span>
+        <span className="block text-[14px]" style={{ color: C.muted }}>{item.note}</span>
       </figcaption>
     </figure>
   );
@@ -7022,6 +7091,134 @@ function CosmicStyles() {
           animation: none !important;
         }
       }
+
+      /* ==== TYPE FLOORS - tuned per viewport (2026-07-14). Danny: whole
+         funnel readable for older eyes. Base tier = mobile 390-767:
+         body/support >=18, whisper/settled >=17, eyebrows/labels >=14
+         (bold, letterspaced), form inputs/labels >=17, buttons >=18.
+         768-1279 mid tier and 1280+ desktop tier tuned separately. ==== */
+      .ls-gold-button, .ls-ghost-button { font-size: 18px; }
+      .ls-hero-memorial { font-size: 17px; }
+      .ls-tgl-micro { font-size: 14px; }
+      .ls-tgl label { font-size: 18px; }
+      .ls-tgl-sub { font-size: 17px; }
+      .ls-bridge-beat { font-size: clamp(1.25rem, 2.4vw, 1.55rem); }
+      .ls-seal-field label { font-size: 17px; }
+      .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub { font-size: 17px; }
+      .ls-chart-message { font-size: 17px; }
+      .ls-chart-form label, .ls-lead-form label { font-size: 17px; letter-spacing: 0.05em; }
+      .ls-chart-form input, .ls-lead-form input { font-size: 17px; }
+      .ls-chart-pill small { font-size: 15px; }
+      .ls-orrery-label { font-size: 14px; letter-spacing: 0.1em; }
+      .ls-orrery-name { font-size: 14px; }
+      .ls-orrery-pt { font-size: 14px; }
+      .ls-orrery-bubble .ls-orrery-line { font-size: 18px; line-height: 1.36; }
+      .ls-orrery-line--info { font-size: 17px !important; }
+      .ls-sys-node { font-size: clamp(0.875rem, 2.6vw, 1.5rem); }
+      .ls-sys-glyph { font-size: clamp(0.875rem, 2.6vw, 1.4rem); }
+      .ls-journey-overview { font-size: 14px; }
+      .ls-journey-name, .ls-dock-text .ls-journey-name { font-size: 14px; }
+      .ls-journey-count, .ls-journey-step-count, .ls-journey-focus-label { font-size: 14px; }
+      .ls-journey-reveal-item span { font-size: 14px; }
+      .ls-journey-reveal-item small { font-size: 15px; }
+      .ls-jbtn--sound { font-size: 14px; }
+      .ls-sound-cta { font-size: 17px; }
+      .ls-start-eyebrow { font-size: 14px; }
+      .ls-start-sub { font-size: 18px; }
+      .ls-start-quiet { font-size: 17px; }
+      .ls-reveal-eyebrow, .ls-locked-eyebrow { font-size: 14px; }
+      .ls-free-frame, .ls-free-head { font-size: 14px; }
+      .ls-free-card small { font-size: 17px; line-height: 1.45; }
+      .ls-teaser-lock { font-size: 14px; }
+      .ls-teaser-title { font-size: 18px; }
+      .ls-teaser-line { font-size: 14px; }
+      .ls-upsell-pitch { font-size: 18px; }
+      .ls-receive-item p { font-size: 18px; }
+      .ls-trow-name { font-size: 18px; }
+      .ls-trow-sign, .ls-trow-frame { font-size: 14px; }
+      .ls-trow-line { font-size: 18px; }
+      .ls-trow.is-free .ls-trow-line { font-size: 18px; }
+      .ls-trow.is-tease .ls-trow-name { font-size: 17.5px; }
+      .ls-planet-head { font-size: 14px; }
+      .ls-planet-card small { font-size: 15px; }
+      .ls-planet-sign { font-size: 18px; }
+      .ls-calc-stat-label { font-size: 14px; }
+      .ls-calc-stat-body { font-size: 17px; }
+      .ls-calc-lead { font-size: 18px; }
+      .ls-calc-figure figcaption { font-size: 15px; }
+      .ls-calc-toggle-hint { font-size: 14px; }
+      .ls-sky-gate p { line-height: 1.3; }
+      .ls-sky-gate small { font-size: 17px; }
+      .ls-sky-bridge-lead { font-size: 18px; }
+      .ls-compute-readout { font-size: 15px; }
+      .ls-wheel-info { font-size: 17px; }
+      .ls-wheel-info-mark { font-size: 14px; }
+      .ls-info-back { font-size: 15px; }
+      .ls-info-title { font-size: 14px; }
+      .ls-info-note { font-size: 17px; }
+      .ls-offer-stack { font-size: 18px; }
+      .ls-offer-trust { font-size: 18px; }
+      .ls-video-seed, .ls-video-fallback { font-size: 14px; }
+      .ls-video-seed strong, .ls-video-fallback strong { line-height: 1.3; }
+      @media (min-width: 768px) {
+        .ls-hero-memorial { font-size: 17.5px; }
+        .ls-tgl-micro { font-size: 14.5px; }
+        .ls-tgl-sub { font-size: 17.5px; }
+        .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub, .ls-chart-message { font-size: 17.5px; }
+        .ls-orrery-bubble .ls-orrery-line { font-size: 19px; }
+        .ls-orrery-line--info { font-size: 17.5px !important; }
+        .ls-sound-cta, .ls-start-quiet { font-size: 17.5px; }
+        .ls-start-sub { font-size: 18.5px; }
+        .ls-free-card small { font-size: 17.5px; }
+        .ls-teaser-title { font-size: 18.5px; }
+        .ls-upsell-pitch, .ls-receive-item p, .ls-trow-line, .ls-trow-name { font-size: 18.5px; }
+        .ls-calc-stat-body, .ls-sky-gate small, .ls-wheel-info, .ls-info-note { font-size: 17.5px; }
+        .ls-calc-lead { font-size: 19px; }
+        .ls-sky-bridge-lead { font-size: 19px; }
+        .ls-offer-stack { font-size: 19px; }
+        .ls-offer-trust { font-size: 18.5px; }
+      }
+      @media (min-width: 1280px) {
+        .ls-gold-button, .ls-ghost-button { font-size: 19px; }
+        .ls-hero-memorial { font-size: 18px; }
+        .ls-tgl-micro { font-size: 15px; }
+        .ls-tgl-sub { font-size: 18px; }
+        .ls-seal-field label { font-size: 17.5px; }
+        .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub, .ls-chart-message { font-size: 18px; }
+        .ls-chart-form input, .ls-lead-form input { font-size: 17.5px; }
+        .ls-chart-pill small { font-size: 15.5px; }
+        .ls-orrery-label, .ls-orrery-name, .ls-orrery-pt { font-size: 15px; }
+        .ls-orrery-bubble .ls-orrery-line { font-size: 22px; }
+        .ls-orrery-line--info { font-size: 18px !important; }
+        .ls-journey-overview, .ls-journey-name, .ls-dock-text .ls-journey-name,
+        .ls-journey-count, .ls-journey-step-count, .ls-journey-focus-label,
+        .ls-journey-reveal-item span { font-size: 15px; }
+        .ls-journey-reveal-item small { font-size: 15.5px; }
+        .ls-jbtn--sound { font-size: 15px; }
+        .ls-sound-cta, .ls-start-quiet { font-size: 18px; }
+        .ls-start-eyebrow { font-size: 15px; }
+        .ls-start-sub { font-size: 19px; }
+        .ls-reveal-eyebrow, .ls-locked-eyebrow, .ls-free-frame, .ls-free-head,
+        .ls-teaser-lock, .ls-teaser-line { font-size: 15px; }
+        .ls-free-card small { font-size: 18px; }
+        .ls-teaser-title { font-size: 19px; }
+        .ls-upsell-pitch, .ls-receive-item p, .ls-trow-line, .ls-trow-name { font-size: 19px; }
+        .ls-trow.is-free .ls-trow-line { font-size: 19.5px; }
+        .ls-trow.is-tease .ls-trow-name { font-size: 18.5px; }
+        .ls-trow-sign, .ls-trow-frame, .ls-planet-head, .ls-calc-stat-label,
+        .ls-calc-toggle-hint, .ls-wheel-info-mark, .ls-info-title,
+        .ls-video-seed, .ls-video-fallback { font-size: 15px; }
+        .ls-planet-card small { font-size: 15.5px; }
+        .ls-planet-sign { font-size: 19px; }
+        .ls-calc-stat-body, .ls-sky-gate small, .ls-wheel-info, .ls-info-note { font-size: 18px; }
+        .ls-calc-lead { font-size: 20.5px; }
+        .ls-calc-figure figcaption { font-size: 15.5px; }
+        .ls-sky-bridge-lead { font-size: 23px; }
+        .ls-compute-readout { font-size: 16px; }
+        .ls-info-back { font-size: 15.5px; }
+        .ls-offer-stack { font-size: 21.5px; }
+        .ls-offer-trust { font-size: 19.5px; }
+      }
     `}</style>
   );
 }
@@ -7068,7 +7265,7 @@ const sectionTitleStyle = {
 const sectionBodyStyle = {
   color: C.creamDim,
   fontFamily: '"Newsreader", Georgia, serif',
-  fontSize: "1.08rem",
+  fontSize: "clamp(18px, 1vw + 14px, 19px)",
   lineHeight: 1.74,
 } as const;
 
@@ -7146,7 +7343,7 @@ function eyebrowStyle(color: string) {
   return {
     color,
     fontFamily: '"Newsreader", Georgia, serif',
-    fontSize: 13,
+    fontSize: "clamp(14px, 1.2vw + 9px, 15px)",
     fontWeight: 600,
     letterSpacing: "0.14em",
     textTransform: "uppercase" as const,
