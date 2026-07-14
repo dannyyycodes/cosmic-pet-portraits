@@ -883,6 +883,7 @@ export function CosmicBridge() {
     };
     let drawnT = 0;
     let glideStarted = false;
+    let glideIO: IntersectionObserver | null = null;
     const markDrawn = () => {
       if (!b3El || b3El.classList.contains("is-drawn")) return;
       b3El.classList.add("is-drawn");
@@ -905,7 +906,21 @@ export function CosmicBridge() {
         lastEl.addEventListener("transitionend", onEnd);
       }
       drawnT = window.setTimeout(markDrawn, 2600); // fallback: proof declared drawn
-      window.setTimeout(() => startGlide(), 500);  // labels take their seats
+      // the labels take their seats only when the wheel is really on screen
+      // (the wheel's draw trigger is raised ~40% early for fast scrollers,
+      // so it must NOT start the glide - the crosshairs would die unseen)
+      const wheelEl2 = q(".c2-wheel");
+      if (!wheelEl2) { startGlide(); return; }
+      const ioGlide = new IntersectionObserver((ents) => {
+        ents.forEach((en) => {
+          if (en.isIntersecting || en.boundingClientRect.top < 0) {
+            ioGlide.disconnect();
+            startGlide();
+          }
+        });
+      }, { threshold: 0.3 });
+      ioGlide.observe(wheelEl2);
+      glideIO = ioGlide;
     };
 
     let io: IntersectionObserver | null = null;
@@ -1462,6 +1477,7 @@ export function CosmicBridge() {
       io?.disconnect();
       ioSec?.disconnect();
       ioSync?.disconnect();
+      glideIO?.disconnect();
       cardIO?.disconnect();
       [tw1, tw2, tw3, tw4, tw5, tw6].forEach((tw) => {
         if (!tw) return;
