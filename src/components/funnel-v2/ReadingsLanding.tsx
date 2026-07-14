@@ -378,8 +378,8 @@ export function ReadingsLanding() {
   const [selectedPrice, setSelectedPrice] = useState(0);
   // The lower funnel (the rest of who they are + reviews + pricing) stays out of
   // the page entirely until the free reading is actually revealed. It unlocks
-  // once the reader has been carried through the three free placements and
-  // reaches the desire turn, at which point FreeReveal fires "ls-reading-revealed".
+  // when the deck's synthesis card takes the stage and FreeDeck fires
+  // "ls-reading-revealed", so #the-rest exists before the tease CTA is tapped.
   // Before that a visitor cannot scroll past an unfilled form into reviews/pricing.
   const [revealed, setRevealed] = useState(false);
   useEffect(() => {
