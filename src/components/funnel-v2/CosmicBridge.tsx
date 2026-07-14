@@ -883,6 +883,9 @@ export function CosmicBridge() {
     };
     let drawnT = 0;
     let glideStarted = false;
+    let glideArmed = false;
+    let glideWaitT = 0;
+    let annotOnT0 = 0;
     let glideIO: IntersectionObserver | null = null;
     const markDrawn = () => {
       if (!b3El || b3El.classList.contains("is-drawn")) return;
@@ -955,7 +958,9 @@ export function CosmicBridge() {
         ["#c2-frag-1", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 0, instant: passed } }))],
         ["#c2-frag-2", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 1, instant: passed } }))],
         ["#c2-frag-3", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 2, instant: passed } }))],
-        ["#c2-st-pos", () => { if (!glideStarted) annotLayer?.classList.add("is-on"); }],
+        ["#c2-st-pos", () => {
+          if (!glideStarted) { annotLayer?.classList.add("is-on"); annotOnT0 = performance.now(); }
+        }],
         ["#c2-st-set", () => startRunner()],
       ];
       const syncFns = new Map<Element, (passed: boolean) => void>();
@@ -999,7 +1004,18 @@ export function CosmicBridge() {
        texts (shallow curve, 1.1s, staggered 150ms, opacity-swap) */
     const glideTweens: gsap.core.Tween[] = [];
     const startGlide = () => {
-      if (glideStarted || reduced) return;
+      if (glideArmed || reduced) return;
+      glideArmed = true;
+      // the crosshairs get a guaranteed dwell before their labels fly -
+      // on a phone the pivot and the wheel share a viewport, so without
+      // this floor the pattern break could die the frame it was born
+      const wait = annotLayer?.classList.contains("is-on") && annotOnT0
+        ? Math.max(0, (hush ? 2000 : 1400) - (performance.now() - annotOnT0))
+        : 0;
+      glideWaitT = window.setTimeout(runGlide, wait);
+    };
+    const runGlide = () => {
+      if (glideStarted) return;
       glideStarted = true;
       if (!annotLayer || !annotLayer.classList.contains("is-on")) return;
       annotLayer.classList.add("is-glide");
@@ -1468,6 +1484,7 @@ export function CosmicBridge() {
       if (raf) cancelAnimationFrame(raf);
       clearTimeout(rT);
       clearTimeout(drawnT);
+      clearTimeout(glideWaitT);
       fxDispose();
       glideTweens.forEach((tw) => tw.kill());
       document.removeEventListener("focusin", onFocusIn);
