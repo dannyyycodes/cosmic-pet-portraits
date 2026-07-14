@@ -284,7 +284,7 @@ function renderGiftReminderEmail(opts: {
   // Violet celestial palette (matches the shipped funnel + nurture emails)
   const mist = '#f3f0fb', card = '#ffffff', ink = '#241a3d', body2 = '#4a4363',
         muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', cta2 = '#5a3ec8', line = '#e9e2f7';
-  const SIG = 'https://www.littlesouls.app/grace-signature.png';
+  const SIG = 'https://content.littlesouls.app/viral-pet-media/grace-signature.png';
   const headline = stage === "final"
     ? `${petName}'s last forecast arrives soon.`
     : `${daysLeft} weeks of ${petName}'s stars still to come.`;
@@ -342,7 +342,7 @@ function generateHoroscopeEmail(
   const cta = "#5a3ec8";
   const line = "#e9e2f7";
   const band = "#2a1f47";
-  const SIG = "https://www.littlesouls.app/grace-signature.png";
+  const SIG = "https://content.littlesouls.app/viral-pet-media/grace-signature.png";
 
   const headerTitle = isMemorial
     ? `Signs From ${petName} This Week`

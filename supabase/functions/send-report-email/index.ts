@@ -24,7 +24,7 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
   // Violet celestial palette (matches the shipped funnel + nurture emails)
   const mist = '#f3f0fb', card = '#ffffff', panel = '#f6f3fd', ink = '#241a3d', body = '#4a4363',
         muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', cta = '#5a3ec8', line = '#e9e2f7';
-  const SIG = 'https://www.littlesouls.app/grace-signature.png';
+  const SIG = 'https://content.littlesouls.app/viral-pet-media/grace-signature.png';
   const dot = `<span style="color:${violet};">&bull;</span>`;
   return `
 <!DOCTYPE html>
