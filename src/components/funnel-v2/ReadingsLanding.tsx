@@ -526,8 +526,8 @@ function HeroSection() {
    this toggle. Either state can be flipped at any time; grief is never
    fixed. Neither answer changes price or tier. */
 const TGL_SUBS = {
-  here: "Read while they are right beside you.",
-  memory: "The sky they were born under has not gone anywhere.",
+  here: "They are probably in the room with you right now.",
+  memory: "The sky they were born under is still up there.",
 } as const;
 
 function IntentFork() {
@@ -2556,7 +2556,7 @@ function BirthSkyJourney() {
       console.warn("[Little Souls] birth chart failed", error);
       setChart(null);
       setStatus("error");
-      setMessage("The sky did not answer. Try the date again.");
+      setMessage("The sky could not place that date. Try it again.");
     } finally {
       clearTimeout(timeout);
     }
@@ -2604,7 +2604,7 @@ function BirthSkyJourney() {
               />
             ) : (
               <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen}>
-                <p className="ls-seal-lead ls-reveal">Two facts. That is all it takes.</p>
+                <p className="ls-seal-lead ls-reveal">Two facts. You already know both.</p>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
                   <label htmlFor="seal-name">Their name <span>optional</span></label>
                   <input id="seal-name" type="text" autoComplete="off" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
@@ -2618,7 +2618,7 @@ function BirthSkyJourney() {
                     max="2030-12-31"
                     onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
-                  <p className="ls-seal-hint">Or the day they came home. Both set a true chart.</p>
+                  <p className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
                 </div>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
                   <label htmlFor="seal-email">Your email</label>

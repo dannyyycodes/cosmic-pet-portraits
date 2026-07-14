@@ -6,26 +6,34 @@ import { getIntent, INTENT_EVENT } from "@/lib/intent";
 gsap.registerPlugin(ScrollTrigger);
 
 /* =====================================================================
-   THE MAP EXISTS — the opening passage (littlesouls.app), C v2 momentum.
-   Danny-approved design contract: opening-variants/variant-c-momentum.html
-   (V2.1). Five beats between the intent toggle and the "Set the chart"
-   form, carried by ONE violet thread that draws itself down the page:
+   THE PROOF YOU ALREADY HOLD — the opening passage (littlesouls.app).
+   Danny-approved 2026-07-14: Direction 1 copy (recognition-first, Blair
+   Warren beat sequence) + Direction A visuals ("The Pen") + momentum
+   timeline (~2.6 viewports). Five beats between the intent toggle and
+   the "Set the chart" form, carried by ONE violet thread — a dead-
+   straight plumb line whose only bends carry meaning:
 
-     B1  the map          — whisper, then two huge peaks around the sealed
-                            constellation frame
-     B2  recognition      — "Except you. Almost." + three lived fragments
-                            riding the thread as small nodes
-     PIVOT                — personality / position
-     B3  the birth sky    — a real natal wheel DRAWN on scroll, the real
-                            moon arriving blur-to-sharp as a corner spine
-                            presence beside it
-     B4  the invitation   — "So the map waits." → "Set the chart."
+     B1  the claim        — whisper → "born already themselves" →
+                            "The sky wrote it all down." No artifact:
+                            three real canvas stars glint instead
+     B2  recognition      — "You have seen the proof for years." + three
+                            lived fragments, each brightening one star
+     PIVOT                — personality / placements: the brightened
+                            stars gain hairline crosshairs + real degree
+                            labels (geometry arriving IS the break)
+     B3  the birth sky    — the thread bends INTO the natal wheel and
+                            becomes its outer ring; the degree labels
+                            glide in as Venus/Sun/Moon; the real moon
+                            joins the wheel's Moon by a drawn hairline;
+                            ONE scripted meteor on the verdict line
+     B4  release          — two lines only, a traveling highlight dash
+                            pulls the eye to "Set the chart."
 
-   The thread is born under the chooser toggle, swings onto a left spine,
-   ignites a station node at every claim, then leaves the passage, finds
-   the form card and traces its border shut — the button ignites only
-   when the border seals. Star dust drifts; a RARE violet-white shooting
-   star crosses. Whisper-to-huge type scale. Purple/white only.
+   The thread is born under the chooser toggle (a violet spark witnesses
+   the choice), runs plumb down a left spine, ignites one station node
+   per beat (only the latest pulses), then finds the form card and traces
+   its border shut — the button ignites only AFTER the border seals.
+   Whisper-to-huge type scale. Purple/white only.
 
    The MEMORIAL register (ls_intent = memorial) speaks the same beats in
    remembered tense with hushed motion: softer node glow, dimmer dust,
@@ -243,6 +251,22 @@ const WHEEL_ASPECTS = (() => {
   return out;
 })();
 
+/* the pivot's three annotated stars carry the REAL Venus/Sun/Moon degrees
+   from CHART_BODIES; the same three labels later glide into the wheel */
+const ANNOT_PLANETS = ["venus", "sun", "moon"] as const;
+const ANNOT_DEGS = ANNOT_PLANETS.map(
+  (id) => `${(CHART_BODIES.find((b) => b.id === id)?.lon ?? 0) % 30}°`,
+);
+/* the moon join: the wheel's Moon pointer tick extended outward as a
+   hairline running off the wheel toward the photograph's rim */
+const MOON_LINE = { p1: wP(241, 156), p2: wP(241, 236) };
+const MOON_LINE_LEN = Math.ceil(
+  Math.hypot(MOON_LINE.p2.x - MOON_LINE.p1.x, MOON_LINE.p2.y - MOON_LINE.p1.y),
+) + 2;
+
+/* a chooser flip pends a birth spark on the remounted passage */
+let INTENT_FLIP_PENDING = false;
+
 const LCB_CSS = `
 .lcb-root{
   --lcb-bg:#0d0a14; --lcb-deep:#070510; --lcb-lift:#100c1a;
@@ -278,7 +302,9 @@ const LCB_CSS = `
 .lcb-vignette{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse at 50% 44%, transparent 46%, rgba(5,4,12,0.48) 100%)}
 .lcb-grain{position:absolute;inset:0;pointer-events:none;opacity:.034;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - 410px),transparent calc(50% - 330px),transparent calc(50% + 330px),#000 calc(50% + 410px),#000 100%);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(50% - 410px),transparent calc(50% - 330px),transparent calc(50% + 330px),#000 calc(50% + 410px),#000 100%)}
 
 /* ---- the column: one narrative rail, left-spined like the contract ---- */
 .c2-col{
@@ -290,6 +316,9 @@ const LCB_CSS = `
 .c2-threadwrap svg{position:absolute;top:0;left:0;overflow:visible;display:block}
 .c2-thread-glow{fill:none;stroke:rgba(167,139,250,.14);stroke-width:6;stroke-linecap:round}
 .c2-thread{fill:none;stroke:var(--lcb-violet-br);stroke-width:1.6;stroke-linecap:round}
+.c2-spark{fill:#f5f2ff;opacity:0;filter:drop-shadow(0 0 6px rgba(167,139,250,.9))}
+.c2-runner{fill:none;stroke:#f5f2ff;stroke-width:2.4;stroke-linecap:round;opacity:0;
+  filter:drop-shadow(0 0 5px rgba(167,139,250,.8))}
 .c2-beat{position:relative;z-index:1;display:block}
 
 /* ---- reveal motion ---- */
@@ -300,9 +329,21 @@ const LCB_CSS = `
   transition-delay:var(--d,0s);
 }
 .c2-rv-x{ transform:translate3d(-18px,22px,0); }
+/* S8: the fragment triple varies — 0/60/120ms stagger, -18/-14/-22px slide */
+.c2-frags .c2-rv-x:nth-child(1){transform:translate3d(-18px,22px,0);--d:0s}
+.c2-frags .c2-rv-x:nth-child(2){transform:translate3d(-14px,22px,0);--d:.06s}
+.c2-frags .c2-rv-x:nth-child(3){transform:translate3d(-22px,22px,0);--d:.12s}
+.c2-frags .c2-rv-x.is-in{transform:translate3d(0,0,0)}
 .lcb-memorial .c2-rv.is-in{
   transition-duration:.95s,.78s;
 }
+/* pattern break 1: the pivot lines land opacity-only, no vertical motion —
+   the crosshair/degree geometry arriving IS the break */
+.c2-pivot .c2-rv{transform:none}
+.c2-pivot .c2-rv.is-in{transform:none}
+/* S4: the verdict waits for the proof — the XL line reveals only after
+   the wheel finishes drawing (is-drawn set on the last planet's pop) */
+.c2-b3:not(.is-drawn) .c2-lxl.c2-rv{opacity:0;transform:translate3d(0,34px,0)}
 
 /* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
 .c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:17px;color:var(--lcb-dim);max-width:34ch;line-height:1.6;margin:0}
@@ -336,47 +377,51 @@ const LCB_CSS = `
 }
 .c2-node.lit{background:var(--lcb-violet-br);border-color:var(--lcb-violet-br);box-shadow:0 0 14px rgba(167,139,250,.65)}
 .c2-node.lit::before{width:20px}
-.c2-node.lit::after{animation:c2npulse 2.4s ease-out infinite}
+/* S1 node diet: only the MOST RECENTLY lit station pulses, ever */
+.c2-node.lit.pulse::after{animation:c2npulse 2.4s ease-out infinite}
 .lcb-memorial .c2-node.lit{box-shadow:0 0 9px rgba(167,139,250,.45)}
-.lcb-memorial .c2-node.lit::after{animation-duration:3.6s}
+.lcb-memorial .c2-node.lit.pulse::after{animation-duration:3.6s}
 @keyframes c2npulse{0%{transform:scale(.55);opacity:.85}70%{transform:scale(2);opacity:0}100%{transform:scale(2);opacity:0}}
-.c2-node-sm{width:7px;height:7px;left:calc(var(--c2-spine) - var(--c2-padl) - 3.5px);border-width:1px}
+/* fragment micro-nodes: 4px ticks on the spine, never a pulse */
+.c2-node-sm{width:4px;height:4px;left:calc(var(--c2-spine) - var(--c2-padl) - 2px);border-width:1px}
 .c2-node-sm::before{display:none}
-.c2-node-sm::after{inset:-4px}
-.c2-node-sm.lit{box-shadow:0 0 10px rgba(167,139,250,.55)}
+.c2-node-sm::after{display:none}
+.c2-node-sm.lit{box-shadow:0 0 8px rgba(167,139,250,.5)}
 
-/* ---- beats: compressed, always an event in view. B1 opens almost on the
-   chooser's heels (2026-07-14: killed the dead black band at the seam) ---- */
+/* ---- beats: momentum timeline, ~2.6 viewports toggle → form. B1 opens
+   on the chooser's heels (seam kill kept); pivot air halved; post-climax
+   padding cut so the CTA rides the wheel's momentum; memorial keeps its
+   slower/dimmer grammar but NO extra scroll distance ---- */
 .c2-b1{padding:6svh 0 7svh}
 @media (min-width:900px){ .c2-b1{padding-top:3svh} }
 .c2-b1 .c2-whisper{margin-bottom:3.2svh}
-.c2-b2{padding:9svh 0 8svh}
+.c2-b1 .c2-peak{margin-top:5svh}
+.c2-b2{padding:6svh 0 8svh}
 .c2-b2 .c2-whisper{margin-top:2.8svh}
 .c2-frags{margin-top:4.6svh;display:flex;flex-direction:column;gap:2.8svh}
-.c2-pivot{padding:12svh 0 11svh}
+.c2-pivot{padding:8svh 0 6svh}
 .c2-pivot .c2-ll{max-width:16ch}
 .c2-pivot .c2-ll + .c2-ll{margin-top:3.2svh}
-.c2-b3{padding:10svh 0 7svh}
+.c2-b3{padding:10svh 0 4svh}
 .c2-b3 .c2-lxl{max-width:16ch;margin-top:4.6svh}
-.c2-b4{padding:11svh 0 10svh}
-.c2-b4 .c2-lm{margin-top:3svh}
+.c2-b4{padding:5svh 0 5svh}
 .c2-b4 .c2-peak{margin-top:3.6svh}
-.lcb-memorial .c2-b2{padding-top:11svh}
-.lcb-memorial .c2-pivot{padding:13svh 0 12svh}
 
-/* beat 1: the sealed map, in flow between the two peaks */
-.c2-constellation{
-  display:block;width:clamp(112px,30vw,170px);opacity:.6;
-  margin:7svh clamp(4px,6vw,80px) 7svh auto;pointer-events:none;
-}
-.c2-constellation .cframe{stroke:rgba(167,139,250,.3);fill:none;stroke-width:1}
-.c2-constellation .cline{
-  stroke:rgba(167,139,250,.55);stroke-width:1;fill:none;
-  stroke-dasharray:400;stroke-dashoffset:400;
-  transition:stroke-dashoffset 1.6s ease-out .3s;
-}
-.c2-b1.is-inview .c2-constellation .cline{stroke-dashoffset:0}
-.c2-constellation .cstar{fill:var(--lcb-violet-soft)}
+/* the pivot's astronomical annotations: hairline crosshairs + real degree
+   labels on the three brightened stars (fixed layer, canvas-tracked) */
+.c2-annot{position:absolute;inset:0}
+.c2-annot-star{position:absolute;left:0;top:0;width:0;height:0;opacity:0;transition:opacity .5s ease}
+.c2-annot.is-on .c2-annot-star{opacity:1}
+.c2-annot.is-glide .c2-annot-star{opacity:0;transition:opacity .4s ease}
+.c2-annot-x,.c2-annot-y{position:absolute;background:rgba(245,242,255,.4)}
+.c2-annot-x{left:-7px;top:-0.25px;width:14px;height:0.5px}
+.c2-annot-y{top:-7px;left:-0.25px;width:0.5px;height:14px}
+.c2-annot-deg{position:absolute;left:11px;top:-7px;white-space:nowrap;
+  font-family:"Newsreader",Georgia,serif;font-size:11px;
+  color:rgba(245,242,255,.78);letter-spacing:.04em}
+.c2-annot-fly{position:absolute;left:0;top:0;white-space:nowrap;opacity:0;
+  font-family:"Newsreader",Georgia,serif;font-size:11px;
+  color:rgba(245,242,255,.85);letter-spacing:.04em}
 
 /* beat 3: the natal wheel - Monty's real sky, professionally drawn.
    Line-weight law: hairline ticks/spokes, medium rings, fine aspect web. */
@@ -426,6 +471,14 @@ const LCB_CSS = `
   filter:drop-shadow(0 0 5px rgba(167,139,250,.5));
 }
 .c2-wheel .wptick,.c2-wheel .wconn,.c2-wheel .wdeg{opacity:0;transition:opacity .55s ease}
+/* S5 the moon join: the Moon's pointer tick extends off the wheel toward
+   the photograph, drawn via dashoffset as the moon glyph pops (~1.95s) */
+.c2-wheel .wmoonline{
+  stroke:rgba(167,139,250,.5);stroke-width:.8;fill:none;
+  stroke-dasharray:${MOON_LINE_LEN};stroke-dashoffset:${MOON_LINE_LEN};
+  transition:stroke-dashoffset .7s ease-out 2.05s;
+}
+.c2-b3.is-inview .c2-wheel .wmoonline{stroke-dashoffset:0}
 .c2-b3.is-inview .c2-wheel .wring-a,
 .c2-b3.is-inview .c2-wheel .wring-b,
 .c2-b3.is-inview .c2-wheel .wring-c{stroke-dashoffset:0}
@@ -440,8 +493,9 @@ const LCB_CSS = `
 .c2-b3.is-inview .c2-wheel .wconn,
 .c2-b3.is-inview .c2-wheel .wdeg{opacity:1}
 
-/* the real moon: corner spine presence, blur-to-sharp arrival. It lives
-   with the birth-sky beat and retires with it - never below the opening. */
+/* the real moon: corner spine presence, blur-to-sharp arrival TIMED TO
+   the wheel Moon's pop (S5). The blur placeholder sits beneath the photo
+   (S7) so the arrival never depends on network timing. */
 .c2-moonspine{
   position:absolute;z-index:-1;pointer-events:none;
   top:calc(-1 * clamp(44px, 9svh, 96px));
@@ -449,8 +503,9 @@ const LCB_CSS = `
   width:clamp(116px, 28vw, 208px);height:auto;border-radius:50%;
   -webkit-mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
   mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
+  background:url("/start/cosmos-moon-blur.webp") center/cover no-repeat;
   opacity:0;filter:blur(16px);
-  transition:opacity 1.2s ease .15s, filter 1.6s ease .15s;
+  transition:opacity 1.2s ease 1.9s, filter 1.6s ease 1.9s;
   will-change:transform;
 }
 .c2-b3.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
@@ -460,7 +515,7 @@ const LCB_CSS = `
   right:calc(-1 * clamp(30px, 8vw, 108px));
   width:clamp(150px, 36vw, 260px);aspect-ratio:1;
   background:radial-gradient(circle, rgba(167,139,250,.22) 0%, rgba(167,139,250,.08) 45%, transparent 70%);
-  opacity:0;transition:opacity 1.6s ease .3s;mix-blend-mode:screen;
+  opacity:0;transition:opacity 1.6s ease 2s;mix-blend-mode:screen;
 }
 .c2-b3.is-inview .c2-moonglow{opacity:1}
 .lcb-memorial .c2-b3.is-inview .c2-moonglow{opacity:.7}
@@ -472,9 +527,9 @@ const LCB_CSS = `
     transition:none !important;
   }
   .c2-rv{opacity:1 !important;transform:none !important}
-  .c2-constellation .cline{stroke-dashoffset:0 !important}
+  .c2-annot-star,.c2-annot-fly{opacity:0 !important}
   .c2-wheel .wring-a,.c2-wheel .wring-b,.c2-wheel .wring-c,
-  .c2-wheel .wspoke,.c2-wheel .waspect{stroke-dashoffset:0 !important}
+  .c2-wheel .wspoke,.c2-wheel .waspect,.c2-wheel .wmoonline{stroke-dashoffset:0 !important}
   .c2-wheel .wcusps,.c2-wheel .wticks,.c2-wheel .wfill,.c2-wheel .wzg,
   .c2-wheel .wpg,.c2-wheel .wptick,.c2-wheel .wconn,.c2-wheel .wdeg{opacity:1 !important}
   .c2-wheel .wpg{transform:scale(1) !important}
@@ -497,30 +552,29 @@ const LCB_CSS = `
 `;
 
 /* ---- the passage copy: discovery + memorial registers ----
-   Discovery lines are Danny-approved C v2 verbatim. Memorial lines are the
-   remembered-tense variant of each beat: same shape, lower voice. */
+   Direction 1 "The Proof You Already Hold", Danny-approved 2026-07-14,
+   verbatim. Memorial speaks the same beats in remembered tense: present
+   for the sky and the record, past for the pet's remembered behaviour. */
 const COPY = {
   discovery: {
-    b1whisper: "There is a map of exactly who your pet is.",
-    b2whisper: "You have been reading it for years without knowing.",
+    b1whisper: "Your pet did not learn to be this way.",
+    b2whisper: "The evidence has been small and daily.",
     frags: [
-      "The waiting at the door before your key turns.",
-      "The exact spot they claim, every time.",
-      "The look they save for you alone.",
+      "How they know your footsteps from everyone else's.",
+      "The spot they chose and never gave up.",
+      "The way they find you when you cry.",
     ],
-    pivot1: "You call that personality.",
-    b4whisper: "So the map waits.",
+    pivot1: "You call all of it personality.",
   },
   memorial: {
-    b1whisper: "There is a map of exactly who they were.",
-    b2whisper: "You were reading it for years without knowing.",
+    b1whisper: "They did not learn to be who they were.",
+    b2whisper: "The evidence was small and daily.",
     frags: [
-      "The waiting at the door before your key turned.",
-      "The exact spot they claimed, every time.",
-      "The look they saved for you alone.",
+      "How they knew your footsteps from everyone else's.",
+      "The spot that was theirs and no one else's.",
+      "The way they found you when you cried.",
     ],
-    pivot1: "You called that personality.",
-    b4whisper: "So the map remains.",
+    pivot1: "You called all of it personality.",
   },
 };
 
@@ -534,6 +588,7 @@ export function CosmicBridge() {
     getIntent() === "memorial" ? "memorial" : "discovery");
   useEffect(() => {
     const onIntent = () => {
+      INTENT_FLIP_PENDING = true; // S6: the choice visibly starts the line
       setRegister(getIntent() === "memorial" ? "memorial" : "discovery");
       requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
     };
@@ -560,6 +615,8 @@ export function CosmicBridge() {
     const front = q(".lcb-front");
     let drawStars = () => {};
     let paintFrame: (t: number, dt: number) => void = () => {};
+    let heroScreen: (k: number) => { x: number; y: number } | null = () => null;
+    let fxDispose = () => {};
     if (canvas) {
       const ctxc = canvas.getContext("2d");
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -572,6 +629,14 @@ export function CosmicBridge() {
       type Mote = { x: number; y: number; r: number; vx: number; vy: number; ph: number; sp: number; v: boolean };
       let stars: Tw[] = [];
       let dust: Mote[] = [];
+      /* Direction A hero stars: three real stars in the right half. B1's
+         first big line flares them; each fragment brightens one for good
+         (with a photographic diffraction glint, never a sparkle); the
+         pivot annotates them. Memorial: 2s swell, no glint. */
+      type HeroFx = { from: number; to: number; t0: number; dur: number; glint0: number };
+      const heroFx: HeroFx[] = [0, 1, 2].map(() => ({ from: 1, to: 1, t0: 0, dur: 1, glint0: -1 }));
+      let heroIdx: number[] = [];
+      const heroHeld = [false, false, false];
       const buildField = (w: number, h: number) => {
         const mobile = w < 768;
         const n = Math.min(160, mobile ? 62 : 132);
@@ -595,6 +660,26 @@ export function CosmicBridge() {
             tw: 0.18 + Math.random() * 0.4 });
         }
         stars = arr;
+        // pick the three hero stars: brightest per vertical band, right half,
+        // working top to bottom so the eye tracks downward with the scroll
+        heroIdx = [];
+        const bands: [number, number][] = [[0.14, 0.4], [0.36, 0.62], [0.58, 0.82]];
+        bands.forEach(([y0, y1]) => {
+          let best = -1, bestA = 0;
+          arr.forEach((st, i) => {
+            const xr = st.x / dpr / w, yr = st.y / dpr / h;
+            if (xr > 0.6 && xr < 0.93 && yr > y0 && yr < y1 && !heroIdx.includes(i) && st.a > bestA) { best = i; bestA = st.a; }
+          });
+          if (best < 0) {
+            arr.forEach((st, i) => {
+              const xr = st.x / dpr / w;
+              if (xr > 0.55 && !heroIdx.includes(i) && st.a > bestA) { best = i; bestA = st.a; }
+            });
+          }
+          if (best >= 0) heroIdx.push(best);
+        });
+        // boosts already earned survive a field rebuild (resize)
+        heroHeld.forEach((held, k) => { if (held && heroFx[k]) { heroFx[k].from = heroFx[k].to = 2.2; heroFx[k].glint0 = -1; } });
         // drifting star dust: small motes rising slowly up-left
         const nd = Math.min(44, Math.round((w * h) / 26000));
         const darr: Mote[] = [];
@@ -612,7 +697,12 @@ export function CosmicBridge() {
       };
       type Meteor = { x: number; y: number; vx: number; vy: number; life: number; max: number };
       let shooter: Meteor | null = null;
-      let nextShoot = 0;
+      const heroMult = (k: number, t: number, dt: number) => {
+        const fx = heroFx[k];
+        if (dt <= 0 || t >= fx.t0 + fx.dur * 1000) return fx.to;
+        const p = HOUSE(Math.max(0, (t - fx.t0) / (fx.dur * 1000)));
+        return fx.from + (fx.to - fx.from) * p;
+      };
       const paint = (t: number, dt: number) => {
         if (!ctxc) return;
         const cw = canvas.width, ch = canvas.height;
@@ -623,13 +713,37 @@ export function CosmicBridge() {
         g.addColorStop(0.4, "rgba(90,96,150,0.03)");
         g.addColorStop(1, "rgba(0,0,0,0)");
         ctxc.fillStyle = g; ctxc.fillRect(0, 0, cw, ch);
-        for (const st of stars) {
+        for (let i = 0; i < stars.length; i++) {
+          const st = stars[i];
+          let base = st.a, rr = st.r;
+          const hk = heroIdx.indexOf(i);
+          if (hk >= 0) {
+            const m = heroMult(hk, t, dt);
+            base = Math.min(1, st.a * m);
+            rr = st.r * (1 + (m - 1) * 0.35);
+          }
           const a = dt > 0
-            ? st.a * (1 - st.tw * 0.5 + st.tw * 0.5 * Math.sin(t * 0.001 * st.sp + st.ph))
-            : st.a;
+            ? base * (1 - st.tw * 0.5 + st.tw * 0.5 * Math.sin(t * 0.001 * st.sp + st.ph))
+            : base;
           ctxc.beginPath();
           ctxc.fillStyle = `rgba(${st.c[0]},${st.c[1]},${st.c[2]},${Math.max(0, a)})`;
-          ctxc.arc(st.x, st.y, st.r, 0, Math.PI * 2); ctxc.fill();
+          ctxc.arc(st.x, st.y, rr, 0, Math.PI * 2); ctxc.fill();
+          // photographic diffraction glint: two crossed 1px lines at star
+          // colour, 30% opacity, 0.6s in/out - a lens artifact, not a sparkle
+          if (hk >= 0 && dt > 0) {
+            const fx = heroFx[hk];
+            if (fx.glint0 >= 0 && t >= fx.glint0 && t < fx.glint0 + 600) {
+              const gp = (t - fx.glint0) / 600;
+              const ga = 0.3 * Math.sin(Math.PI * gp) * hushAmb;
+              const gl = 7 * dpr;
+              ctxc.strokeStyle = `rgba(${st.c[0]},${st.c[1]},${st.c[2]},${ga})`;
+              ctxc.lineWidth = 1;
+              ctxc.beginPath();
+              ctxc.moveTo(st.x - gl, st.y); ctxc.lineTo(st.x + gl, st.y);
+              ctxc.moveTo(st.x, st.y - gl); ctxc.lineTo(st.x, st.y + gl);
+              ctxc.stroke();
+            }
+          }
         }
         // star dust drift (rests still under reduced motion: dt = 0)
         const step = dt > 0 ? dt * 60 : 0;
@@ -644,20 +758,8 @@ export function CosmicBridge() {
           ctxc.fill();
         }
         if (dt <= 0) return;
-        // RARE violet-white shooting star with a soft trail
-        if (t > nextShoot && !shooter) {
-          const fromLeft = Math.random() < 0.5;
-          const ang2 = (Math.random() * 0.16 + 0.12) * (fromLeft ? 1 : -1);
-          const speed = (cw + ch) * 0.55;
-          shooter = {
-            x: fromLeft ? -40 * dpr : cw + 40 * dpr,
-            y: (Math.random() * 0.35 + 0.06) * ch,
-            vx: (fromLeft ? 1 : -1) * Math.cos(ang2) * speed,
-            vy: Math.abs(Math.sin(ang2)) * speed * 0.7 + ch * 0.12,
-            life: 0, max: 1.2,
-          };
-          nextShoot = t + (hush ? 26000 : 16000) + Math.random() * 14000;
-        }
+        // the ONE scripted meteor (S3): spawned by the verdict line's
+        // reveal, never by a timer - rendered here with its soft trail
         if (shooter) {
           shooter.life += dt; shooter.x += shooter.vx * dt; shooter.y += shooter.vy * dt;
           const k = 1 - shooter.life / shooter.max;
@@ -691,32 +793,170 @@ export function CosmicBridge() {
         const bo = back ? parseFloat((back as HTMLElement).style.opacity || "1") : 1;
         if (bo > 0.02) paint(t, dt);
       };
+      /* S3: exactly ONE meteor, event-driven, crossing the top third away
+         from the wheel: 1.2s (memorial 1.8s, dimmer via the hush grade) */
+      const spawnMeteor = () => {
+        if (shooter) return;
+        const cw = canvas.width, ch = canvas.height;
+        const max = hush ? 1.8 : 1.2;
+        const fromLeft = Math.random() < 0.5;
+        shooter = {
+          x: fromLeft ? -40 * dpr : cw + 40 * dpr,
+          y: ch * (0.07 + Math.random() * 0.09),
+          vx: ((cw + 260 * dpr) / max) * (fromLeft ? 1 : -1),
+          vy: (ch * 0.14) / max,
+          life: 0, max,
+        };
+      };
+      /* hero-star event answers: B1 flare, one star per fragment */
+      let flareT = 0;
+      const onFlare = () => {
+        const now2 = performance.now();
+        const dur = hush ? 2 : 0.9;
+        heroFx.forEach((fx, k) => {
+          if (heroHeld[k]) return;
+          fx.from = 1; fx.to = 1.9; fx.t0 = now2; fx.dur = dur;
+          if (!hush) fx.glint0 = now2 + dur * 500;
+        });
+        flareT = window.setTimeout(() => {
+          const n3 = performance.now();
+          heroFx.forEach((fx, k) => {
+            if (heroHeld[k]) return;
+            fx.from = 1.9; fx.to = 1.15; fx.t0 = n3; fx.dur = dur * 0.8;
+          });
+        }, dur * 1000 + 250);
+      };
+      const onStar = (e: Event) => {
+        const det = (e as CustomEvent).detail || {};
+        const k = Number(det.i);
+        if (!(k >= 0 && k < 3) || heroHeld[k]) return;
+        heroHeld[k] = true;
+        const fx = heroFx[k];
+        if (det.instant) { fx.from = fx.to = 2.2; fx.glint0 = -1; return; }
+        const now2 = performance.now();
+        fx.from = fx.to; fx.to = 2.2; fx.t0 = now2; fx.dur = hush ? 2 : 0.9;
+        if (!hush) fx.glint0 = now2 + 150;
+      };
+      const onMeteor = () => spawnMeteor();
+      window.addEventListener("lcb-flare", onFlare);
+      window.addEventListener("lcb-star", onStar);
+      window.addEventListener("lcb-meteor", onMeteor);
+      fxDispose = () => {
+        clearTimeout(flareT);
+        window.removeEventListener("lcb-flare", onFlare);
+        window.removeEventListener("lcb-star", onStar);
+        window.removeEventListener("lcb-meteor", onMeteor);
+      };
+      /* the pivot overlay tracks the hero stars through the parallaxed canvas */
+      heroScreen = (k: number) => {
+        const i = heroIdx[k];
+        if (i === undefined || !stars[i] || !canvas.width || !canvas.height) return null;
+        const cr = canvas.getBoundingClientRect();
+        return {
+          x: cr.left + (stars[i].x / canvas.width) * cr.width,
+          y: cr.top + (stars[i].y / canvas.height) * cr.height,
+        };
+      };
       drawStars();
-      nextShoot = performance.now() + 9000;
     }
 
-    /* ---------- reveals: one observer for lines, one for the two beats
-       that draw themselves (constellation, wheel + moon) ---------- */
+    /* ---------- reveals: one observer for lines (600px pre-warm), one for
+       the beat that draws itself (the wheel - trigger raised ~40% of a
+       viewport earlier so a fast scroller catches the planet pops mid-
+       viewport), and one TIGHT sync observer that fires the word-precise
+       visual events only when their line is actually on screen ---------- */
     const rvNodes = qa(".c2-rv");
-    const secNodes = qa(".c2-b1, .c2-b3");
+    const b3El = q(".c2-b3");
+    const xlEl = q("#c2-xl-once");
+    const annotLayer = q(".c2-annot");
+    const annotEls = annotLayer ? qa(".c2-annot-star", annotLayer) : [];
+
+    /* S3 + S4: the verdict line waits for the wheel; the ONE meteor fires
+       on the verdict's actual reveal (proof, then the sky answers) */
+    let metFired = false;
+    const tryMeteor = () => {
+      if (metFired || reduced) return;
+      if (b3El?.classList.contains("is-drawn") && xlEl?.classList.contains("is-in")) {
+        metFired = true;
+        window.dispatchEvent(new CustomEvent("lcb-meteor"));
+      }
+    };
+    let drawnT = 0;
+    let glideStarted = false;
+    const markDrawn = () => {
+      if (!b3El || b3El.classList.contains("is-drawn")) return;
+      b3El.classList.add("is-drawn");
+      tryMeteor();
+    };
+    const armWheelGate = () => {
+      if (!b3El) return;
+      let last: HTMLElement | null = null, lastD = -1;
+      qa(".c2-wheel .wpg").forEach((el) => {
+        const dl = parseFloat((el as HTMLElement).style.transitionDelay || "0");
+        if (dl > lastD) { lastD = dl; last = el as HTMLElement; }
+      });
+      const lastEl = last as HTMLElement | null;
+      if (lastEl) {
+        const onEnd = (ev: Event) => {
+          if ((ev as TransitionEvent).propertyName !== "transform") return;
+          lastEl.removeEventListener("transitionend", onEnd);
+          markDrawn();
+        };
+        lastEl.addEventListener("transitionend", onEnd);
+      }
+      drawnT = window.setTimeout(markDrawn, 2600); // fallback: proof declared drawn
+      window.setTimeout(() => startGlide(), 500);  // labels take their seats
+    };
+
     let io: IntersectionObserver | null = null;
     let ioSec: IntersectionObserver | null = null;
+    let ioSync: IntersectionObserver | null = null;
     if (reduced || !("IntersectionObserver" in window)) {
       rvNodes.forEach((el) => el.classList.add("is-in"));
-      secNodes.forEach((el) => el.classList.add("is-inview"));
+      b3El?.classList.add("is-inview", "is-drawn");
     } else {
       io = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting || e.boundingClientRect.top < 0) { e.target.classList.add("is-in"); io?.unobserve(e.target); }
+          if (e.isIntersecting || e.boundingClientRect.top < 0) {
+            e.target.classList.add("is-in");
+            io?.unobserve(e.target);
+            if (e.target === xlEl) tryMeteor();
+          }
         });
       }, { threshold: 0.12, rootMargin: "600px 0px -9% 0px" });
       rvNodes.forEach((el) => io?.observe(el));
       ioSec = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting || e.boundingClientRect.top < 0) { e.target.classList.add("is-inview"); ioSec?.unobserve(e.target); }
+          if (e.isIntersecting || e.boundingClientRect.top < 0) {
+            e.target.classList.add("is-inview");
+            ioSec?.unobserve(e.target);
+            armWheelGate();
+          }
         });
-      }, { threshold: 0.2, rootMargin: "600px 0px 0px 0px" });
-      secNodes.forEach((el) => ioSec?.observe(el));
+      }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
+      if (b3El) ioSec.observe(b3El);
+      const syncMap: [string, (passed: boolean) => void][] = [
+        ["#c2-pk-born", (passed) => { if (!passed) window.dispatchEvent(new CustomEvent("lcb-flare")); }],
+        ["#c2-frag-1", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 0, instant: passed } }))],
+        ["#c2-frag-2", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 1, instant: passed } }))],
+        ["#c2-frag-3", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 2, instant: passed } }))],
+        ["#c2-st-pos", () => { if (!glideStarted) annotLayer?.classList.add("is-on"); }],
+        ["#c2-st-set", () => startRunner()],
+      ];
+      const syncFns = new Map<Element, (passed: boolean) => void>();
+      ioSync = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          const passed = !e.isIntersecting && e.boundingClientRect.top < 0;
+          if (e.isIntersecting || passed) {
+            syncFns.get(e.target)?.(passed);
+            ioSync?.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.55, rootMargin: "0px 0px -6% 0px" });
+      syncMap.forEach(([sel, fn]) => {
+        const el = q(sel);
+        if (el) { syncFns.set(el, fn); ioSync?.observe(el); }
+      });
     }
 
     /* ---------- THE THREAD: born under the chooser toggle, swings onto
@@ -726,15 +966,80 @@ export function CosmicBridge() {
     const svg = q<SVGSVGElement>(".c2-threadsvg");
     const path = q<SVGPathElement>(".c2-thread");
     const glowP = q<SVGPathElement>(".c2-thread-glow");
+    const runnerEl = q<SVGPathElement>(".c2-runner");
+    const sparkEl = q<SVGCircleElement>(".c2-spark");
     const nodes = qa("[data-node]");
     const moonSec = q(".c2-b3");
     const moonImg = q<HTMLImageElement>(".c2-moonspine");
     const getCard = () => document.querySelector<HTMLElement>(".ls-seal-card");
 
     let totalLen = 0, spineLen = 0, hasCard = false;
+    let threadEntryLen = 0; // where the thread hands off to the wheel's ring
     let nodeLens: number[] = [];
     let colTopAbs = 0;
     let lastStructure = "";
+
+    /* Direction A pivot payoff: the three degree labels glide from their
+       stars into the wheel, landing as the REAL Venus/Sun/Moon degree
+       texts (shallow curve, 1.1s, staggered 150ms, opacity-swap) */
+    const glideTweens: gsap.core.Tween[] = [];
+    const startGlide = () => {
+      if (glideStarted || reduced) return;
+      glideStarted = true;
+      if (!annotLayer || !annotLayer.classList.contains("is-on")) return;
+      annotLayer.classList.add("is-glide");
+      ANNOT_PLANETS.forEach((pid, k) => {
+        const degEl = q<SVGTextElement>(`.c2-wheel .wdeg[data-planet="${pid}"]`);
+        const from = heroScreen(k);
+        if (!degEl || !from) return;
+        const fly = document.createElement("span");
+        fly.className = "c2-annot-fly";
+        fly.textContent = ANNOT_DEGS[k];
+        annotLayer.appendChild(fly);
+        const st = { t: 0 };
+        const x0 = from.x + 11, y0 = from.y - 7;
+        glideTweens.push(gsap.to(st, {
+          t: 1, duration: 1.1, delay: 0.12 + k * 0.15, ease: "power2.inOut",
+          onStart: () => { fly.style.opacity = "1"; },
+          onUpdate: () => {
+            const r = degEl.getBoundingClientRect();
+            const x1 = r.left + r.width / 2, y1 = r.top + r.height / 2;
+            const cx2 = (x0 + x1) / 2 - 46, cy2 = (y0 + y1) / 2 - 24;
+            const u = st.t, v = 1 - u;
+            const x = v * v * x0 + 2 * v * u * cx2 + u * u * x1;
+            const y = v * v * y0 + 2 * v * u * cy2 + u * u * y1;
+            fly.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+            if (u > 0.78) fly.style.opacity = String(Math.max(0, (1 - u) / 0.22));
+          },
+          onComplete: () => { fly.remove(); },
+        }));
+      });
+    };
+
+    /* Direction A B4: a 12px traveling highlight runs the remaining spine
+       from the wheel's exit to the CTA node over 0.8s - then it lights */
+    let runnerT0 = 0, runFrom = 0, runTo = 0, ctaLit = false, runnerFired = false;
+    const startRunner = () => {
+      if (runnerFired) return;
+      runnerFired = true;
+      if (reduced || !runnerEl || !totalLen || !nodeLens.length) { ctaLit = true; return; }
+      const target = nodeLens[nodeLens.length - 1];
+      runFrom = threadEntryLen > 0 ? Math.min(threadEntryLen, target) : Math.max(0, target - 420);
+      runTo = Math.max(runFrom, target - 12);
+      runnerEl.style.strokeDasharray = `12 ${Math.ceil(totalLen) + 20}`;
+      runnerT0 = performance.now();
+    };
+
+    /* S6: the birth spark - a 300ms violet-white spark travels the first
+       90px of the thread when the chooser is flipped / first scrolled past */
+    let sparkT0 = 0, sparkScrollSeen = false, prevDrawn = -1;
+    const fireSpark = () => {
+      if (!reduced && sparkEl && path) sparkT0 = performance.now();
+    };
+    if (INTENT_FLIP_PENDING) {
+      INTENT_FLIP_PENDING = false;
+      if (!reduced) window.setTimeout(fireSpark, 380);
+    }
 
     const spineX = () => parseFloat(getComputedStyle(root).getPropertyValue("--c2-spine")) || 24;
 
@@ -797,19 +1102,38 @@ export function CosmicBridge() {
         nodeYs.push(p.y);
       });
 
-      let side = 1;
+      /* Direction A: the plumb spine bends INTO the wheel at 12 o'clock,
+         hands off to the outer ring (which draws from that junction), then
+         resumes at the wheel's bottom point and falls back to the spine.
+         Everywhere else the thread is a dead-straight plumb line (S2). */
+      const wheelEl = q<HTMLElement>(".c2-wheel");
+      let wIn: Pt | null = null, wOut: Pt | null = null;
+      if (moonSec && wheelEl) {
+        const ww = wheelEl.offsetWidth;
+        const wx = (moonSec as HTMLElement).offsetLeft + wheelEl.offsetLeft + ww / 2;
+        const wy0 = (moonSec as HTMLElement).offsetTop + wheelEl.offsetTop;
+        wIn = { x: wx, y: wy0 + ww * (6 / 320) };
+        wOut = { x: wx, y: wy0 + ww * (314 / 320) };
+      }
+
+      threadEntryLen = 0;
       let prev = pts[0];
+      let wheelDone = false;
       for (let i = 1; i < pts.length; i++) {
         const p = pts[i];
-        const dx = p.x - prev.x;
-        const dy = p.y - prev.y;
-        if (Math.abs(dx) < 30) {
-          const amp = Math.min(1, Math.abs(dy) / 170);
-          d += ` C ${sx + 18 * side * amp} ${prev.y + dy * 0.35}, ${sx - 14 * side * amp} ${prev.y + dy * 0.7}, ${p.x} ${p.y}`;
-          side *= -1;
-        } else {
-          d += ` C ${prev.x} ${prev.y + dy * 0.5}, ${p.x} ${p.y - dy * 0.5}, ${p.x} ${p.y}`;
+        if (wIn && wOut && !wheelDone && p.y > wIn.y) {
+          const bendX = Math.min(120, Math.max(40, (wIn.x - sx) * 0.55));
+          d += ` C ${sx} ${(prev.y + (wIn.y - prev.y) * 0.55).toFixed(1)}, ${(wIn.x - bendX).toFixed(1)} ${wIn.y.toFixed(1)}, ${wIn.x.toFixed(1)} ${wIn.y.toFixed(1)}`;
+          const probeIn = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          probeIn.setAttribute("d", d);
+          threadEntryLen = probeIn.getTotalLength();
+          const dropY = Math.min(p.y - 24, wOut.y + 130);
+          d += ` M ${wOut.x.toFixed(1)} ${wOut.y.toFixed(1)}` +
+            ` C ${(wOut.x - bendX).toFixed(1)} ${(wOut.y + 12).toFixed(1)}, ${sx} ${(wOut.y + 34).toFixed(1)}, ${sx} ${dropY.toFixed(1)}`;
+          prev = { x: sx, y: dropY };
+          wheelDone = true;
         }
+        d += ` L ${p.x} ${p.y}`;
         prev = p;
       }
 
@@ -841,6 +1165,7 @@ export function CosmicBridge() {
 
       path.setAttribute("d", d);
       glowP.setAttribute("d", d);
+      runnerEl?.setAttribute("d", d);
       totalLen = path.getTotalLength();
       path.style.strokeDasharray = String(totalLen);
       glowP.style.strokeDasharray = String(totalLen);
@@ -969,11 +1294,53 @@ export function CosmicBridge() {
         path.style.strokeDashoffset = String(off);
         glowP.style.strokeDashoffset = String(off);
       }
+      // S1: stations light as the thread passes; only the LATEST pulses.
+      // The CTA node waits for the traveling highlight (or the seal).
+      let lastLit = -1;
       nodes.forEach((nd, i) => {
-        if (nodeLens[i] !== undefined) nd.classList.toggle("lit", drawn >= nodeLens[i] - 4);
+        let on = nodeLens[i] !== undefined && drawn >= nodeLens[i] - 4;
+        if (i === nodes.length - 1 && !ctaLit && !latched) on = false;
+        nd.classList.toggle("lit", on);
+        if (on && !nd.classList.contains("c2-node-sm")) lastLit = i;
       });
-      if (!sealed && hasCard && totalLen > 0 && drawn >= totalLen - 1.5) {
+      nodes.forEach((nd, i) => nd.classList.toggle("pulse", i === lastLit));
+      // S6: the birth spark (chooser flip / first scroll past the birth)
+      if (!sparkScrollSeen && prevDrawn >= 0 && prevDrawn <= 24 && drawn > 24) {
+        sparkScrollSeen = true;
+        fireSpark();
+      }
+      prevDrawn = drawn;
+      if (sparkT0 && sparkEl && path) {
+        const sp = (now - sparkT0) / 300;
+        if (sp >= 1) { sparkT0 = 0; sparkEl.style.opacity = "0"; }
+        else if (sp >= 0) {
+          const pt = path.getPointAtLength(Math.max(0, Math.min(90, sp * 90)));
+          sparkEl.setAttribute("cx", pt.x.toFixed(1));
+          sparkEl.setAttribute("cy", pt.y.toFixed(1));
+          sparkEl.style.opacity = Math.sin(Math.PI * Math.min(1, sp)).toFixed(2);
+        }
+      }
+      // B4: the traveling highlight dash pulls the eye to the CTA node
+      if (runnerT0 && runnerEl) {
+        const rp = Math.min(1, (now - runnerT0) / 800);
+        const len = runFrom + (runTo - runFrom) * HOUSE(rp);
+        runnerEl.style.strokeDashoffset = String(-len);
+        runnerEl.style.opacity = String(rp < 0.12 ? rp / 0.12 : rp > 0.85 ? Math.max(0, (1 - rp) / 0.15) : 1);
+        if (rp >= 1) { runnerT0 = 0; runnerEl.style.opacity = "0"; ctaLit = true; }
+      }
+      // the pivot's crosshair annotations ride their stars through parallax
+      if (annotLayer && !glideStarted && annotLayer.classList.contains("is-on")) {
+        for (let k = 0; k < annotEls.length; k++) {
+          const pos = heroScreen(k);
+          if (pos) annotEls[k].style.transform = `translate3d(${pos.x.toFixed(1)}px,${pos.y.toFixed(1)}px,0)`;
+        }
+      }
+      // pattern break 2: thread completes, the border seals, THEN ignition -
+      // sequenced a beat AFTER the 1.2s border draw, never simultaneous
+      if (!sealed && hasCard && totalLen > 0 && drawn >= totalLen - 1.5 &&
+        (!latched || now - latchT0 >= SEAL_MS + 140)) {
         sealed = true;
+        ctaLit = true;
         sealCard();
       }
       // the moon drifts gently in its corner as the birth-sky beat passes
@@ -1085,12 +1452,16 @@ export function CosmicBridge() {
       fontsAlive = false;
       if (raf) cancelAnimationFrame(raf);
       clearTimeout(rT);
+      clearTimeout(drawnT);
+      fxDispose();
+      glideTweens.forEach((tw) => tw.kill());
       document.removeEventListener("focusin", onFocusIn);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("load", init);
       ScrollTrigger.removeEventListener("refresh", onSTRefresh);
       io?.disconnect();
       ioSec?.disconnect();
+      ioSync?.disconnect();
       cardIO?.disconnect();
       [tw1, tw2, tw3, tw4, tw5, tw6].forEach((tw) => {
         if (!tw) return;
@@ -1123,38 +1494,25 @@ export function CosmicBridge() {
           <svg className="c2-threadsvg" xmlns="http://www.w3.org/2000/svg">
             <path className="c2-thread-glow" d="" />
             <path className="c2-thread" d="" />
+            <path className="c2-runner" d="" />
+            <circle className="c2-spark" r="2.6" />
           </svg>
         </div>
 
-        {/* ── Beat 1 · the map ── */}
+        {/* ── Beat 1 · the claim (no artifact: the real sky answers) ── */}
         <section className="c2-beat c2-b1">
-          <span className="c2-node" data-node data-for="c2-pk-drawn" aria-hidden="true" />
-          <span className="c2-node" data-node data-for="c2-pk-read" aria-hidden="true" />
+          <span className="c2-node" data-node data-for="c2-pk-sky" aria-hidden="true" />
           <p className="c2-whisper c2-rv">{T.b1whisper}</p>
-          <p className="c2-peak c2-rv" id="c2-pk-drawn">It was drawn the day they were born.</p>
-          <svg className="c2-constellation" viewBox="0 0 190 230" aria-hidden="true">
-            <rect className="cframe" x="8" y="8" width="174" height="214" rx="10" />
-            <path className="cline" d="M44 52 L92 78 L74 128 L118 150 L146 108 L92 78 M74 128 L48 176 M118 150 L142 190" />
-            <circle className="cstar" cx="44" cy="52" r="2.4" />
-            <circle className="cstar" cx="92" cy="78" r="3" />
-            <circle className="cstar" cx="74" cy="128" r="2.2" />
-            <circle className="cstar" cx="118" cy="150" r="2.8" />
-            <circle className="cstar" cx="146" cy="108" r="2" />
-            <circle className="cstar" cx="48" cy="176" r="1.8" />
-            <circle className="cstar" cx="142" cy="190" r="2.1" />
-            <circle className="cstar" cx="150" cy="40" r="1.4" />
-            <circle className="cstar" cx="30" cy="102" r="1.3" />
-          </svg>
-          <p className="c2-peak c2-rv" id="c2-pk-read">No one has ever <em>read</em> it.</p>
+          <p className="c2-lxl c2-rv" id="c2-pk-born">They were born already themselves.</p>
+          <p className="c2-peak c2-rv" id="c2-pk-sky">The sky wrote it all down the day they arrived.</p>
         </section>
 
         {/* ── Beat 2 · recognition ── */}
         <section className="c2-beat c2-b2">
-          <span className="c2-node" data-node data-for="c2-st-you" aria-hidden="true" />
           <span className="c2-node c2-node-sm" data-node data-for="c2-frag-1" aria-hidden="true" />
           <span className="c2-node c2-node-sm" data-node data-for="c2-frag-2" aria-hidden="true" />
           <span className="c2-node c2-node-sm" data-node data-for="c2-frag-3" aria-hidden="true" />
-          <p className="c2-ll c2-rv" id="c2-st-you">Except you. Almost.</p>
+          <p className="c2-ll c2-rv">You have seen the proof for years.</p>
           <p className="c2-whisper c2-rv">{T.b2whisper}</p>
           <div className="c2-frags">
             <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-1">{T.frags[0]}</p>
@@ -1167,7 +1525,7 @@ export function CosmicBridge() {
         <section className="c2-beat c2-pivot">
           <span className="c2-node" data-node data-for="c2-st-pos" aria-hidden="true" />
           <p className="c2-ll c2-rv">{T.pivot1}</p>
-          <p className="c2-ll c2-rv" id="c2-st-pos"><em>The sky calls it position.</em></p>
+          <p className="c2-ll c2-rv" id="c2-st-pos"><em>An astrologer calls it placements.</em></p>
         </section>
 
         {/* ── Beat 3 · the birth sky: a real natal wheel, the real moon
@@ -1184,7 +1542,7 @@ export function CosmicBridge() {
             decoding="async"
             loading="lazy"
           />
-          <p className="c2-whisper c2-rv" id="c2-st-sky">The minute they arrived, every planet held its place around them.</p>
+          <p className="c2-whisper c2-rv" id="c2-st-sky">The minute they were born, every planet held a position it will never hold again.</p>
           <div className="c2-wheel c2-rv" aria-hidden="true">
             <svg viewBox="0 0 320 320">
               <g className="wfills">
@@ -1192,9 +1550,12 @@ export function CosmicBridge() {
                   <path key={i} className={s.dim ? "wfill b" : "wfill a"} d={s.d} />
                 ))}
               </g>
-              <circle className="wring-a" cx="160" cy="160" r="154" />
+              {/* outer ring drawn as a path from 12 o'clock - the junction
+                  where the thread hands off; the line becomes the ring */}
+              <path className="wring-a" d="M160,6 A154,154 0 1 1 160,314 A154,154 0 1 1 160,6" />
               <circle className="wring-b" cx="160" cy="160" r="123" />
               <circle className="wring-c" cx="160" cy="160" r="38" />
+              <line className="wmoonline" x1={MOON_LINE.p1.x} y1={MOON_LINE.p1.y} x2={MOON_LINE.p2.x} y2={MOON_LINE.p2.y} />
               <g className="wticks">
                 {WHEEL_TICKS.map((t, i) => (
                   <line key={i} className={t.mj ? "wtick mj" : "wtick"} x1={t.p1.x} y1={t.p1.y} x2={t.p2.x} y2={t.p2.y} />
@@ -1245,6 +1606,7 @@ export function CosmicBridge() {
                     </g>
                     <text
                       className="wdeg"
+                      data-planet={p.id}
                       x={p.label.x} y={p.label.y}
                       textAnchor="middle" dominantBaseline="central"
                       style={{ transitionDelay: `${p.d + 0.14}s` }}
@@ -1254,23 +1616,31 @@ export function CosmicBridge() {
               </g>
             </svg>
           </div>
-          <p className="c2-lxl c2-rv">That sky has never happened again. It never will.</p>
+          <p className="c2-lxl c2-rv" id="c2-xl-once">One sky. Once. Theirs.</p>
         </section>
 
-        {/* ── Beat 4 · invitation ── */}
+        {/* ── Beat 4 · release: two lines, straight into the form ── */}
         <section className="c2-beat c2-b4">
           <span className="c2-node" data-node data-for="c2-st-set" aria-hidden="true" />
-          <p className="c2-whisper c2-rv">{T.b4whisper}</p>
-          <p className="c2-lm c2-rv">Be the first to read it.</p>
+          <p className="c2-lm c2-rv">It opens with two facts you already know.</p>
           <p className="c2-peak c2-peak-v c2-rv" id="c2-st-set">Set the chart.</p>
         </section>
       </div>
 
-      {/* framing overlays (above the beats) */}
+      {/* framing overlays (above the beats) + the pivot's star annotations */}
       <div className="lcb-front" aria-hidden="true">
         <div className="lcb-veil" />
         <div className="lcb-vignette" />
         <div className="lcb-grain" />
+        <div className="c2-annot">
+          {ANNOT_DEGS.map((deg, i) => (
+            <div key={i} className="c2-annot-star">
+              <span className="c2-annot-x" />
+              <span className="c2-annot-y" />
+              <span className="c2-annot-deg">{deg}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
