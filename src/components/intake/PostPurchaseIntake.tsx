@@ -106,6 +106,60 @@ const grainStyle: React.CSSProperties = {
   backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
 };
 
+// ── Free-reading seed ─────────────────────────────────────────────────────────
+// Readings-funnel buyers pay on email alone, then land here — but the free
+// reading already collected the pet's name, birth date and their email
+// (sessionStorage: ls_chart_pet / ls_chart_email / ls_wheel_email, written by
+// ReadingsLanding + SpinWheel). Seed those three fields so the buyer confirms
+// instead of re-typing. Every seeded field stays visible and editable — no
+// step is ever silently skipped. Direct buyers who never ran the free reading
+// find the blank form exactly as before.
+interface FreeReadingSeed { name: string; date: string; email: string }
+const EMPTY_SEED: FreeReadingSeed = { name: "", date: "", email: "" };
+function readFreeReadingSeed(): FreeReadingSeed {
+  const seed: FreeReadingSeed = { ...EMPTY_SEED };
+  try {
+    const raw = sessionStorage.getItem("ls_chart_pet");
+    if (raw) {
+      const pet = JSON.parse(raw) as { name?: unknown; date?: unknown };
+      if (typeof pet.name === "string") seed.name = pet.name.trim();
+      if (typeof pet.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(pet.date)) seed.date = pet.date;
+    }
+  } catch { /* ignore — the blank form is the graceful fallback */ }
+  try {
+    // Same preference order as InlineCheckout: wheel email wins over chart email.
+    const stored = (sessionStorage.getItem("ls_wheel_email") || sessionStorage.getItem("ls_chart_email") || "").trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stored)) seed.email = stored;
+  } catch { /* ignore */ }
+  return seed;
+}
+
+// The birthday picker offers the last 30 years and the sync effect refuses
+// future dates — only seed what the selects can actually display and commit.
+function seedableDateParts(date: string): { month: string; year: string; day: string } | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  if (date > today) return null;
+  const [y, m, d] = date.split("-");
+  const year = parseInt(y, 10);
+  if (year < now.getFullYear() - 29) return null;
+  return { month: String(parseInt(m, 10) - 1), year: String(year), day: String(parseInt(d, 10)) };
+}
+
+// Quiet violet marker under a seeded field — from the free reading, not gold,
+// no icons. Rendered only while the field still holds the seeded value.
+function FromFreeReading({ className }: { className?: string }) {
+  return (
+    <p
+      className={cn("text-center text-[0.8rem] italic", className)}
+      style={{ color: "#c9bdf0", fontFamily: '"Playfair Display", Georgia, serif' }}
+    >
+      From their free reading.
+    </p>
+  );
+}
+
 export function PostPurchaseIntake({
   reportId,
   onComplete,
@@ -120,6 +174,14 @@ export function PostPurchaseIntake({
   const hasSharedEmail = !!sharedEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sharedEmail);
   const hasSharedOwner = !!(sharedOwner && sharedOwner.ownerBirthDate);
 
+  // Free-reading prefill: single-pet flows and the first pet of a multi-pet
+  // flow seed from the free reading; later pets already inherit sharedEmail.
+  const [seed] = useState<FreeReadingSeed>(() => ((petIndex ?? 0) === 0 ? readFreeReadingSeed() : EMPTY_SEED));
+  const seededDate = useMemo(() => (seed.date ? seedableDateParts(seed.date) : null), [seed.date]);
+  // The seeded email renders as a confirm-or-change band on the final screen;
+  // "Change" flips this and hands back the plain input, pre-filled.
+  const [editSeededEmail, setEditSeededEmail] = useState(false);
+
   const [screen, setScreen] = useState(0);
   const [occasionMode, setOccasionMode] = useState("discover");
   // Gate the first paint until we've checked the DB for a known occasion.
@@ -128,7 +190,7 @@ export function PostPurchaseIntake({
   // should never see that header, even briefly. Reported 2026-04-21 after
   // a QATEST memorial redeem landed on the occasion picker.
   const [ready, setReady] = useState(false);
-  const [petName, setPetName] = useState("");
+  const [petName, setPetName] = useState(seed.name);
   const [species, setSpecies] = useState("");
   const [gender, setGender] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -144,7 +206,7 @@ export function PostPurchaseIntake({
   const [strangerReaction, setStrangerReaction] = useState("");
   const [ownerMemory, setOwnerMemory] = useState("");
   const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
-  const [email, setEmail] = useState(sharedEmail ?? "");
+  const [email, setEmail] = useState(sharedEmail ?? seed.email);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -241,9 +303,9 @@ export function PostPurchaseIntake({
   const [useEstimateAge, setUseEstimateAge] = useState(false);
   const [estimateYears, setEstimateYears] = useState("");
   const [estimateMonths, setEstimateMonths] = useState("");
-  const [birthMonth, setBirthMonth] = useState("");
-  const [birthYear, setBirthYear] = useState("");
-  const [birthDay, setBirthDay] = useState("");
+  const [birthMonth, setBirthMonth] = useState(seededDate?.month ?? "");
+  const [birthYear, setBirthYear] = useState(seededDate?.year ?? "");
+  const [birthDay, setBirthDay] = useState(seededDate?.day ?? "");
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => Array.from({ length: 30 }, (_, i) => currentYear - i), [currentYear]);
@@ -708,6 +770,7 @@ export function PostPurchaseIntake({
                   autoFocus style={{ fontSize: '1.1rem' }}
                   aria-label="Pet name"
                 />
+                {seed.name !== "" && petName === seed.name && <FromFreeReading className="mt-2" />}
               </motion.div>
 
               {showSpecies && (
@@ -843,6 +906,7 @@ export function PostPurchaseIntake({
                         </div>
                       </motion.div>
                     )}
+                    {seed.date !== "" && birthDate === seed.date && <FromFreeReading />}
                   </motion.div>
                 ) : (
                   <motion.div key="estimate-age" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
@@ -1417,7 +1481,10 @@ export function PostPurchaseIntake({
                 )}
               </div>
 
-              {/* Email — either fresh entry or confirmed from previous pet in flow */}
+              {/* Email — confirmed from a previous pet in the flow, confirmed from
+                  the free reading, or fresh entry. The free-reading band is a
+                  confirm-or-change: the buyer sees the saved address and either
+                  submits with it or taps Change to get the plain input back. */}
               {hasSharedEmail ? (
                 <div>
                   <label className={labelClass}>Your email</label>
@@ -1431,6 +1498,29 @@ export function PostPurchaseIntake({
                   </div>
                   <p className={hintClass}>
                     We'll keep all of {isMultiPet ? 'your pets\'' : petName + '\'s'} readings under this email so you can find them again.
+                  </p>
+                </div>
+              ) : seed.email !== "" && !editSeededEmail && email === seed.email ? (
+                <div>
+                  <label className={labelClass}>Your email</label>
+                  <div
+                    className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+                    style={{ background: 'rgba(139,123,216,0.10)', border: '1px solid rgba(167,139,250,0.42)' }}
+                  >
+                    <span className="text-[0.95rem] text-[#f5efe6] break-all" style={{ fontFamily: '"Playfair Display", Georgia, serif' }}>
+                      {email}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditSeededEmail(true)}
+                      className="shrink-0 -my-2 px-2 py-2 text-[0.68rem] uppercase tracking-wider font-semibold underline underline-offset-2"
+                      style={{ color: '#c9bdf0', fontFamily: '"Playfair Display", Georgia, serif' }}
+                    >
+                      Change
+                    </button>
+                  </div>
+                  <p className={hintClass} style={{ color: '#c9bdf0' }}>
+                    From their free reading. {petName}'s reading stays under this email.
                   </p>
                 </div>
               ) : (

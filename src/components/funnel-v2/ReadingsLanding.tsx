@@ -2806,9 +2806,12 @@ function StickyBeginBar() {
 }
 
 // ── The rest of their sky ─────────────────────────────────────────────────────
-// The desire beat between the free reveal and the reviews. The free reading opened
-// three worlds (Sun, Moon, Rising); here the nine planets that stay sealed are read
-// one real world at a time. Each is a genuine NASA / observatory disc lit by a moving
+// The desire beat between the free reveal and the reviews. The free deck gives
+// five worlds (Sun, Moon, Venus, Mercury, Mars); here the eight still dark are
+// read one at a time, matching the tease card ledger in freeDeck.ts exactly
+// (Saturn, Chiron, Jupiter, Pluto, North Node, Uranus, Neptune, Lilith), with
+// the rising named as an honest fact and the synthesis carried by the close.
+// Each world is a genuine NASA / observatory disc lit by a moving
 // terminator + specular sweep, an atmospheric rim, a slow breath and a drift of
 // foreground dust, exactly as the approved reading preview does. The photo never
 // spins (a flat disc rotating reads as a sticker); life is implied only by light
@@ -2818,7 +2821,10 @@ type RestKind = "rocky" | "gas" | "ice";
 interface RestBody {
   key: string;
   name: string;
-  img: string;
+  /** Real full-disc photo. Absent for calculated points (North Node renders its bespoke glyph). */
+  img?: string;
+  /** Override for bodies whose photo is not literally them (Lilith shows the shadowed Moon). */
+  imgAlt?: string;
   glow: string;
   kind: RestKind;
   place: { pre: string; em: string; post: string };
@@ -2828,22 +2834,16 @@ interface RestBody {
 }
 const REST_SKY: RestBody[] = [
   {
-    key: "mercury", name: "Mercury", img: NASA_IMG.mercury, glow: "#c3b39a", kind: "rocky",
-    place: { pre: "How they read ", em: "you", post: "" },
-    hook: "How they take you in. The signals they catch before words, and the way they answer back.",
-    memHook: "How they took you in. The signals they caught before words, and the way they answered back.",
+    key: "saturn", name: "Saturn", img: NASA_IMG.saturn, glow: "#e6cf9a", kind: "gas",
+    place: { pre: "Their quiet ", em: "backbone", post: "" },
+    hook: "What they fear, and what steadies them against it. The structure that keeps them sure when everything else moves.",
+    memHook: "What they feared, and what steadied them against it. The structure that kept them sure when everything else moved.",
   },
   {
-    key: "venus", name: "Venus", img: NASA_IMG.venus, glow: "#e6bd7a", kind: "gas",
-    place: { pre: "How they ", em: "love", post: "" },
-    hook: "Their language of affection. What they give once they trust you, and how they long for it returned.",
-    memHook: "Their language of affection. What they gave once they trusted you, and how they longed for it returned.",
-  },
-  {
-    key: "mars", name: "Mars", img: NASA_IMG.mars, glow: "#d1785a", kind: "rocky",
-    place: { pre: "What they ", em: "chase", post: "" },
-    hook: "The drive underneath the stillness. What they pursue, what they defend, what they will not drop.",
-    memHook: "The drive underneath the stillness. What they pursued, what they defended, what they would not drop.",
+    key: "chiron", name: "Chiron", img: NASA_IMG.chiron, glow: "#9bb8cc", kind: "ice",
+    place: { pre: "The old ", em: "hurt", post: "" },
+    hook: "What they carry from before you. The tender place that was already there when you met them.",
+    memHook: "What they carried from before you. The tender place that was already there when you met.",
   },
   {
     key: "jupiter", name: "Jupiter", img: NASA_IMG.jupiter, glow: "#e0a86a", kind: "gas",
@@ -2852,33 +2852,34 @@ const REST_SKY: RestBody[] = [
     memHook: "Where they overflowed. The one place their delight had no ceiling and no shame.",
   },
   {
-    key: "saturn", name: "Saturn", img: NASA_IMG.saturn, glow: "#e6cf9a", kind: "gas",
-    place: { pre: "What ", em: "steadies", post: " them" },
-    hook: "Their quiet backbone. The structure that keeps them sure of themselves when everything else moves.",
-    memHook: "Their quiet backbone. The structure that kept them sure of themselves when everything else moved.",
+    key: "pluto", name: "Pluto", img: NASA_IMG.pluto, glow: "#c09080", kind: "rocky",
+    place: { pre: "The deep ", em: "pull", post: "" },
+    hook: "Who they never quite forgive, and who they claim for good. The undertow that decides both.",
+    memHook: "Who they never quite forgave, and who they claimed for good. The undertow that decided both.",
+  },
+  {
+    key: "northNode", name: "North Node", glow: "#cfc0f4", kind: "ice",
+    place: { pre: "The ", em: "job", post: " they came to do" },
+    hook: "Not what they do. What they are for. The one task their whole life keeps circling.",
+    memHook: "Not what they did. What they were for. The one task their whole life kept circling.",
   },
   {
     key: "uranus", name: "Uranus", img: NASA_IMG.uranus, glow: "#9fd8e0", kind: "ice",
-    place: { pre: "The streak nothing ", em: "tames", post: "" },
-    hook: "The wild note in them. The part no routine will ever fully settle, and you would not want it to.",
-    memHook: "The wild note in them. The part no routine ever fully settled, and you never wanted it to.",
+    place: { pre: "The ", em: "strange", post: " streak" },
+    hook: "The habit no one can explain. The odd little ritual that makes no sense and never has to.",
+    memHook: "The habit no one could explain. The odd little ritual that made no sense and never had to.",
   },
   {
     key: "neptune", name: "Neptune", img: NASA_IMG.neptune, glow: "#6f8fe8", kind: "ice",
-    place: { pre: "What they sense ", em: "first", post: "" },
-    hook: "Their sixth sense. What they feel move through a room long before it ever reaches you.",
-    memHook: "Their sixth sense. What they felt move through a room long before it ever reached you.",
+    place: { pre: "The ", em: "dreaming", post: "" },
+    hook: "Where they go when they stare at nothing. The soft fog they drift into, and what finds them there.",
+    memHook: "Where they went when they stared at nothing. The soft fog they drifted into, and what found them there.",
   },
   {
-    key: "pluto", name: "Pluto", img: NASA_IMG.pluto, glow: "#c09080", kind: "rocky",
-    place: { pre: "The deep ", em: "pull", post: "" },
-    hook: "The undertow beneath it all. The bond so deep it quietly rewrote them, and rewrote you.",
-  },
-  {
-    key: "chiron", name: "Chiron", img: NASA_IMG.chiron, glow: "#9bb8cc", kind: "ice",
-    place: { pre: "The wound that became a ", em: "gift", post: "" },
-    hook: "The old ache turned into tenderness. What they quietly heal in you, just by being near.",
-    memHook: "The old ache turned into tenderness. What they quietly healed in you, just by being near.",
+    key: "lilith", name: "Lilith", img: NASA_IMG.lilith, imgAlt: "The real Moon in shadow", glow: "#b9b3c9", kind: "rocky",
+    place: { pre: "The ", em: "wild", post: " streak" },
+    hook: "The note in them nothing tames. The part no routine will ever fully settle, and you would not want it to.",
+    memHook: "The note in them nothing tamed. The part no routine ever fully settled, and you never wanted it to.",
   },
 ];
 
@@ -3011,7 +3012,7 @@ function FullReadingOpens() {
             <>
               <p className="ls-rs-eyebrow ls-rs-rv">The rest of who they are</p>
               <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
-                The sky did not stop at three.
+                The sky did not stop at five.
               </h2>
               <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
                 These worlds stood over them the day they arrived. Each holds a part of them still waiting to be read.
@@ -3030,14 +3031,20 @@ function FullReadingOpens() {
               <div className="ls-rs-stage">
                 <div className="ls-rs-halo" />
                 <div className={`ls-rs-disc is-${body.kind} rs-${body.key}`}>
-                  <img
-                    className="ls-rs-photo"
-                    src={body.img}
-                    alt={`The real ${body.name}`}
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                  />
+                  {body.img ? (
+                    <img
+                      className="ls-rs-photo"
+                      src={body.img}
+                      alt={body.imgAlt ?? `The real ${body.name}`}
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : (
+                    <div className="ls-rs-glyphdisc" aria-hidden="true">
+                      <AstroGlyph name={body.key} />
+                    </div>
+                  )}
                   <div className="ls-rs-term" />
                   <div className="ls-rs-spec" />
                   <div className="ls-rs-rim" />
@@ -3056,11 +3063,17 @@ function FullReadingOpens() {
           ))}
         </div>
 
+        <p className="ls-rs-rising ls-rs-rv">
+          {memorial
+            ? "And the rising, the first face they showed. It turns on the exact minute they arrived."
+            : "And the rising, the first face they show. It turns on the exact minute they arrived."}
+        </p>
+
         {!memorial && (
           <div className="ls-rs-close ls-rs-rv">
             <h2 className="ls-rs-close-title">Break every seal.</h2>
             <p className="ls-rs-close-line">
-              The full reading opens them all, written for this soul alone and no other.
+              The full reading opens all thirteen and reads them as one, written for this soul alone and no other.
             </p>
             <button type="button" className="ls-rs-close-cta" onClick={() => descendTo("#begin")}>
               Open the full reading
@@ -3195,6 +3208,13 @@ function FullReadingOpens() {
         .ls-rs-disc.is-ice::after { box-shadow: inset 0 0 24px 7px rgba(4,2,12,0.42), inset 0 0 10px 1px color-mix(in srgb, var(--glow) 34%, transparent); }
         .ls-rs-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 55%, transparent); }
         .ls-rs-disc.is-gas .ls-rs-rim, .ls-rs-disc.is-ice .ls-rs-rim { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 70%, transparent), inset 0 0 8px 0 color-mix(in srgb, var(--glow) 40%, transparent); }
+        /* calculated points (North Node) - no photograph exists, so the bespoke
+           glyph sits on a dark sphere and the same light machine plays over it */
+        .ls-rs-glyphdisc { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 38% 32%, #191231 0%, #0b0720 62%, #060412 100%); }
+        .ls-rs-glyphdisc svg { width: 44%; height: 44%; color: color-mix(in srgb, var(--glow) 85%, white); opacity: 0.92; filter: drop-shadow(0 0 16px color-mix(in srgb, var(--glow) 50%, transparent)); }
+        /* Lilith - the real Moon held in shadow (the dark Moon). Important so the
+           memorial and reduced-motion photo filters never lift the dark. */
+        .ls-rs-disc.rs-lilith .ls-rs-photo { filter: brightness(0.5) contrast(1.06) saturate(0.7) !important; }
         /* foreground cosmic dust */
         .ls-rs-dust { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
         .ls-rs-dust span { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #efe8ff; opacity: 0; box-shadow: 0 0 6px 1px rgba(224,214,250,0.7); animation: lsRsDust 9s linear infinite; animation-play-state: paused; }
@@ -3219,6 +3239,9 @@ function FullReadingOpens() {
         .ls-rs-hook { margin: 0 auto; max-width: 40ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.14rem); line-height: 1.5; }
         .ls-rs-seal { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
         .ls-rs-seal svg { width: 12px; height: 13px; }
+
+        /* the rising - the ninth seal, named as an honest fact (needs the minute) */
+        .ls-rs-rising { margin: clamp(34px, 6vw, 58px) auto 0; max-width: 46ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.55; }
 
         /* the close - ache only, no price, no button (pricing waits below reviews) */
         .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
@@ -3273,17 +3296,18 @@ function FullReadingOpens() {
         .ls-rs-eyebrow, .ls-rs-seal { font-size: 14px; }
         .ls-rs-lead { font-size: 18px; }
         .ls-rs-hook { font-size: 18px; }
+        .ls-rs-rising { font-size: 18px; }
         .ls-rs-close-line { font-size: 18px; }
         .ls-rs-close-cta { font-size: 18px; }
         @media (min-width: 768px) {
           .ls-rs-eyebrow, .ls-rs-seal { font-size: 14.5px; }
-          .ls-rs-lead, .ls-rs-hook, .ls-rs-close-line { font-size: 18.5px; }
+          .ls-rs-lead, .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 18.5px; }
           .ls-rs-close-cta { font-size: 19px; }
         }
         @media (min-width: 1280px) {
           .ls-rs-eyebrow, .ls-rs-seal { font-size: 15px; }
           .ls-rs-lead { font-size: 19.5px; }
-          .ls-rs-hook, .ls-rs-close-line { font-size: 19px; }
+          .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 19px; }
           .ls-rs-close-cta { font-size: 20px; }
         }
       `}</style>
