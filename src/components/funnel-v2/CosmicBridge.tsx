@@ -668,12 +668,12 @@ export function CosmicBridge() {
           let best = -1, bestA = 0;
           arr.forEach((st, i) => {
             const xr = st.x / dpr / w, yr = st.y / dpr / h;
-            if (xr > 0.6 && xr < 0.93 && yr > y0 && yr < y1 && !heroIdx.includes(i) && st.a > bestA) { best = i; bestA = st.a; }
+            if (xr > 0.6 && xr < 0.86 && yr > y0 && yr < y1 && !heroIdx.includes(i) && st.a > bestA) { best = i; bestA = st.a; }
           });
           if (best < 0) {
             arr.forEach((st, i) => {
-              const xr = st.x / dpr / w;
-              if (xr > 0.55 && !heroIdx.includes(i) && st.a > bestA) { best = i; bestA = st.a; }
+              const xr = st.x / dpr / w, yr = st.y / dpr / h;
+              if (xr > 0.55 && xr < 0.86 && yr > 0.1 && yr < 0.86 && !heroIdx.includes(i) && st.a > bestA) { best = i; bestA = st.a; }
             });
           }
           if (best >= 0) heroIdx.push(best);
