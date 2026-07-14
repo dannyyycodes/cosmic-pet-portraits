@@ -17,11 +17,42 @@ export default function RevealPreview() {
   const reportId = params.get('id');
   const shareToken = params.get('share') || params.get('token') || undefined;
   const code = params.get('code') || undefined;
+  const forceDemo = params.get('demo') === '1';
 
   useEffect(() => {
     let cancelled = false;
+
+    const mapResponse = (res: any): RevealReport => ({
+      petName: res.petName || 'Little Soul',
+      species: res.species,
+      breed: res.breed,
+      gender: res.gender,
+      reportId: reportId || res.reportId,
+      shareToken: res.shareToken || shareToken,
+      petPhotoUrl: res.petPhotoUrl,
+      portraitUrl: res.portraitUrl,
+      occasionMode: res.occasionMode || 'discover',
+      hasActiveHoroscope: res.hasActiveHoroscope,
+      ownerAnswers: res.ownerAnswers,
+      report: res.report,
+    });
+
+    // Bundled sample (same-origin, no CORS). Lets the preview render the real
+    // shaped test reading on ANY origin — e.g. a Vercel branch preview, where
+    // the get-report edge fn's origin lock would otherwise block the fetch.
+    const loadDemo = async () => {
+      const r = await fetch('/reveal-demo-report.json');
+      if (!r.ok) throw new Error('Demo reading unavailable.');
+      return mapResponse(await r.json());
+    };
+
     async function run() {
-      if (!reportId && !code) { setError('Add ?id=<reportId>&token=<shareToken> to preview a reading.'); return; }
+      // explicit demo, or a bare link with nothing to fetch
+      if (forceDemo || (!reportId && !code)) {
+        try { const d = await loadDemo(); if (!cancelled) setData(d); }
+        catch (e) { if (!cancelled) setError(e instanceof Error ? e.message : 'Something went wrong.'); }
+        return;
+      }
       try {
         const { data: res, error: fnErr } = await supabase.functions.invoke('get-report', {
           body: { reportId: reportId || undefined, shareToken, giftCode: code },
@@ -29,29 +60,17 @@ export default function RevealPreview() {
         if (fnErr) throw new Error(fnErr.message || 'Failed to load');
         if (res?.error) throw new Error(res.error);
         if (!res?.report) throw new Error('This reading has no content yet.');
-        if (!cancelled) {
-          setData({
-            petName: res.petName || 'Little Soul',
-            species: res.species,
-            breed: res.breed,
-            gender: res.gender,
-            reportId: reportId || res.reportId,
-            shareToken: res.shareToken || shareToken,
-            petPhotoUrl: res.petPhotoUrl,
-            portraitUrl: res.portraitUrl,
-            occasionMode: res.occasionMode || 'discover',
-            hasActiveHoroscope: res.hasActiveHoroscope,
-            ownerAnswers: res.ownerAnswers,
-            report: res.report,
-          });
-        }
+        if (!cancelled) setData(mapResponse(res));
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Something went wrong.');
+        // live fetch failed (often CORS on a non-production origin) — fall back
+        // to the bundled sample so the reveal still renders for review.
+        try { const d = await loadDemo(); if (!cancelled) setData(d); }
+        catch { if (!cancelled) setError(e instanceof Error ? e.message : 'Something went wrong.'); }
       }
     }
     run();
     return () => { cancelled = true; };
-  }, [reportId, shareToken, code]);
+  }, [reportId, shareToken, code, forceDemo]);
 
   if (error) {
     return (
