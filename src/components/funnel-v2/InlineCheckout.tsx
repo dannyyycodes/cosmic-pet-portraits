@@ -624,6 +624,22 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       console.log("[V2 Checkout] memorial in mixed cart — intake will default per-pet", { basicQty, premiumQty, memorialQty });
     }
 
+    // Per-pet weekly-horoscope consent map for the fail-closed webhook. The
+    // quick funnel's promise ("1 month of weekly horoscopes, free") applies to
+    // every LIVING pet, so we mark every non-memorial row true. Memorial rows
+    // are the LAST memorialQty rows of the cart (mirrors the placeholder order
+    // create-checkout writes), so they stay false — a living pet is enrolled in
+    // the free month, a memorial pet never is. Pure-memorial carts send no map
+    // at all because includeHoroscope is false there, so nobody is enrolled.
+    // The webhook enrolls ONLY the indices flagged true and never falls back to
+    // enroll-all, so this map is what actually delivers the free month.
+    const firstMemorialIndex = petCount - memorialQty;
+    const petHoroscopes: Record<string, boolean> | undefined = shouldForwardMemorial
+      ? undefined
+      : Object.fromEntries(
+          Array.from({ length: petCount }, (_, i) => [String(i), i < firstMemorialIndex])
+        );
+
     try {
       const refCode = getReferralCode();
       const { data, error: invokeError } = await supabase.functions.invoke("create-checkout", {
@@ -655,6 +671,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           // the Stripe subscription for memorial rows — this stops the leak at
           // the source so the description reads cleanly too.
           includeHoroscope: !shouldForwardMemorial,
+          // Explicit per-pet consent map (living pets = true, memorial = false).
+          // create-checkout writes this into the Stripe session metadata as
+          // pet_horoscopes; the webhook reads it to provision the free month for
+          // exactly these pets. Without it the fail-closed webhook enrolls nobody.
+          petHoroscopes,
           // Safety flag for mixed carts (memorial + non-memorial). The webhook
           // uses this to suppress horoscope-sub creation for the ENTIRE session
           // when memorial intent is present — even if individual pet_reports
@@ -957,9 +978,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   ) : isBonus ? (
                     <span>Bonus sections, little surprises written just for them</span>
                   ) : isHoroscope ? (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      Weekly horoscopes, 1 month included
-                      {infoIcon}
+                    <span style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        Weekly horoscopes, 1 month included
+                        {infoIcon}
+                      </span>
+                      <span style={{ fontSize: "0.68rem", fontWeight: 600, color: "#8a7d72", lineHeight: 1.3 }}>
+                        First month free, then {fmt(prices.horoscopeMonthly)}/mo, cancel anytime.
+                      </span>
                     </span>
                   ) : (
                     <span>{feature.label}</span>
@@ -1126,6 +1152,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         <DossierCheckout
           ctaLabel={ctaLabel}
           fmt={fmt}
+          horoscopeMonthly={prices.horoscopeMonthly}
           unitNow={dossierBond ? premiumPrice : basicPrice}
           unitWas={dossierBond ? prices.wasPremium : prices.wasBasic}
           bondDelta={premiumPrice - basicPrice}
@@ -1418,6 +1445,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             font-family: Lato, system-ui, sans-serif;
             font-size: 0.86rem;
             line-height: 1.48;
+          }
+          .cosmic-horo-note {
+            grid-column: 1 / -1;
+            margin: 2px 0 0;
+            color: #c8c8d2;
+            font-family: Lato, system-ui, sans-serif;
+            font-size: 0.8rem;
+            line-height: 1.45;
           }
           .cosmic-preview-link {
             min-height: 36px;
@@ -1857,6 +1892,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           .cosmic-feature-list button { font-size: 17px; }
           .cosmic-feature-list small { font-size: 14px; }
           .cosmic-included-strip p { font-size: 17px; line-height: 1.5; }
+          .cosmic-horo-note { font-size: 15px; }
           .cosmic-preview-link { font-size: 14px; }
           .cosmic-stepper > span { font-size: 14px; }
           .cosmic-tier.is-memorial .cosmic-tier-head p { font-size: 18px; }
@@ -1957,6 +1993,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   <button type="button" className="cosmic-preview-link" onClick={openHoroscope}>
                     Horoscope
                   </button>
+                  <p className="cosmic-horo-note">
+                    First month free, then {fmt(prices.horoscopeMonthly)}/mo, cancel anytime.
+                  </p>
                 </div>
                 <p className="cosmic-checkout-body" style={{ fontSize: "0.9rem", marginTop: 0 }}>
                   {petCount >= 2
@@ -2039,6 +2078,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             <button type="button" className="cosmic-primary-button" onClick={handleCheckout} disabled={isLoading}>
               {isLoading ? "Opening secure checkout..." : `${ctaLabel} · ${fmt(finalPrice + charityBonus * 100)}`}
             </button>
+            {(basicQty + premiumQty) > 0 && (
+              <p className="cosmic-horo-note" style={{ textAlign: "center", gridColumn: "auto" }}>
+                Weekly horoscopes: first month free, then {fmt(prices.horoscopeMonthly)}/mo, cancel anytime.
+              </p>
+            )}
             <a href="/gift" className="cosmic-gift-link" onClick={() => trackFunnelEvent("v2_gift_link_clicked", { path })}>
               Or gift this reading
             </a>

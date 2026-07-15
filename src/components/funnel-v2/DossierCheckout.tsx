@@ -30,6 +30,7 @@ export interface DossierCheckoutProps {
   ctaLabel: string;
   /* pricing (all minor units, user's local currency) */
   fmt: (cents: number) => string;
+  horoscopeMonthly: number; // recurring /mo after the free first month
   unitNow: number;       // bond ? premium : basic
   unitWas: number;       // bond ? wasPremium : wasBasic
   bondDelta: number;     // premium - basic
@@ -233,7 +234,7 @@ function Chevron() {
 
 export function DossierCheckout(props: DossierCheckoutProps) {
   const {
-    ctaLabel, fmt, unitNow, unitWas, finalPrice, discountRate,
+    ctaLabel, fmt, horoscopeMonthly, unitNow, unitWas, finalPrice, discountRate,
     isLocalized, currencyCode, bond, qty, onBondChange, onQtyChange,
     email, onEmailChange, error, isLoading, onCheckout,
     codeOpen, onCodeOpen, codeInput, onCodeInput, codeStatus, codeError,
@@ -659,7 +660,12 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           </li>
           <li>
             <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>
-            <span>A month of <strong>weekly horoscopes</strong><span className="dsr-tag">Free</span></span>
+            <span>
+              A month of <strong>weekly horoscopes</strong><span className="dsr-tag">Free</span>
+              <span style={{ display: "block", fontSize: 13, opacity: 0.72, marginTop: 2, fontWeight: 400, lineHeight: 1.4 }}>
+                First month free, then {fmt(horoscopeMonthly)}/mo, cancel anytime.
+              </span>
+            </span>
           </li>
           <li>
             <svg className="dsr-stack-ck" aria-hidden="true"><use href="#dsr-check" /></svg>

@@ -9,6 +9,7 @@ import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiP
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
+import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -110,6 +111,11 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     setSearchParams(next, { replace: true });
   };
 
+  // Localized pricing so the weekly-horoscope disclosure shows the buyer's own
+  // currency (prices.horoscopeMonthly) instead of a hardcoded dollar amount.
+  const { prices: localizedPrices, fmt: fmtPrice } = useLocalizedPrice();
+  const horoscopeMonthlyLabel = fmtPrice(localizedPrices.horoscopeMonthly);
+
   // Per-pet tier selection - initialize all pets to 'premium' by default
   const allPets = petsData || [petData];
   const [petTiers, setPetTiers] = useState<Record<number, 'basic' | 'premium'>>(() => {
@@ -126,13 +132,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   const nonMemorialPets = allPets.filter(p => p.occasionMode !== 'memorial');
   const [petHoroscopes, setPetHoroscopes] = useState<Record<number, boolean>>(() => {
     const initial: Record<number, boolean> = {};
-    // Billing consent: the recurring $4.99/mo weekly-updates subscription must
-    // be an EXPLICIT per-pet opt-in, never a pre-ticked default. Every pet
-    // starts OFF; the buyer turns it on per pet via the toggle(s) below. This
-    // way the pet_horoscopes map sent to create-checkout (and on to the webhook)
-    // enrolls ONLY the pets the buyer actually chose. Memorial pets can never be
-    // enrolled (guarded here, in create-checkout, and in stripe-webhook).
-    allPets.forEach((_, idx) => { initial[idx] = false; });
+    // Every LIVING pet gets the free first month by default, matching the offer
+    // shown across the funnels ("1 month of weekly horoscopes, free"). The buyer
+    // sees the disclosure below and can turn any pet OFF with the visible toggle,
+    // so this is a clearly-disclosed opt-out, not a hidden default. The
+    // pet_horoscopes map this feeds to create-checkout (and on to the webhook)
+    // enrolls exactly the ticked pets. Memorial pets always start OFF and can
+    // never be enrolled (guarded here, in create-checkout, and in stripe-webhook).
+    allPets.forEach((pet, idx) => { initial[idx] = pet.occasionMode !== 'memorial'; });
     return initial;
   });
   const subscriptionPetCount = Math.max(1, nonMemorialPets.length);
@@ -476,33 +483,39 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       )}
 
-      {/* Weekly updates add-on - simplified single toggle for single pet */}
+      {/* Weekly updates add-on - simplified single toggle for single pet.
+          On by default (visible opt-out); the disclosure states the trial terms. */}
       {allPets.length === 1 && allPets[0].occasionMode !== 'memorial' && (
-        <button
-          onClick={() => setPetHoroscopes(prev => ({ ...prev, 0: !prev[0] }))}
-          className={cn(
-            "w-full p-2 rounded-lg border text-left flex items-center gap-2 transition-all text-sm",
-            petHoroscopes[0]
-              ? "border-nebula-purple/50 bg-nebula-purple/10"
-              : "border-border/30 bg-card/20"
-          )}
-        >
-          <div className={cn(
-            "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0",
-            petHoroscopes[0] ? "border-nebula-purple bg-nebula-purple" : "border-muted-foreground/40"
-          )}>
-            {petHoroscopes[0] && <Check className="w-2.5 h-2.5 text-white" />}
-          </div>
-          <span className="flex-1 text-muted-foreground">Add weekly updates</span>
-          <span className="text-xs text-green-400">1st month FREE</span>
-        </button>
+        <div className="space-y-1">
+          <button
+            onClick={() => setPetHoroscopes(prev => ({ ...prev, 0: !prev[0] }))}
+            className={cn(
+              "w-full p-2 rounded-lg border text-left flex items-center gap-2 transition-all text-sm",
+              petHoroscopes[0]
+                ? "border-nebula-purple/50 bg-nebula-purple/10"
+                : "border-border/30 bg-card/20"
+            )}
+          >
+            <div className={cn(
+              "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0",
+              petHoroscopes[0] ? "border-nebula-purple bg-nebula-purple" : "border-muted-foreground/40"
+            )}>
+              {petHoroscopes[0] && <Check className="w-2.5 h-2.5 text-white" />}
+            </div>
+            <span className="flex-1 text-muted-foreground">Add weekly updates</span>
+            <span className="text-xs text-green-400">1st month FREE</span>
+          </button>
+          <p className="text-[11px] text-muted-foreground/70 px-1 leading-snug">
+            First month free, then {horoscopeMonthlyLabel}/mo, cancel anytime.
+          </p>
+        </div>
       )}
 
-      {/* Weekly updates add-on - explicit per-pet opt-in for multi-pet carts.
-          This is a recurring $4.99/mo charge per pet, so enrollment is chosen
-          per pet here (default OFF) rather than silently defaulted. Memorial
-          pets are excluded. The toggles drive the petHoroscopes map sent to
-          create-checkout, so only ticked pets are ever billed/enrolled. */}
+      {/* Weekly updates add-on - per-pet for multi-pet carts. Every living pet
+          is on by default (matching the funnel offer); each has a visible toggle
+          so the buyer can opt any pet OUT. Memorial pets are excluded and never
+          shown. The toggles drive the petHoroscopes map sent to create-checkout,
+          so only ticked pets are ever billed/enrolled. */}
       {allPets.length > 1 && nonMemorialPets.length > 0 && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between px-1">
@@ -530,10 +543,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   {on && <Check className="w-2.5 h-2.5 text-white" />}
                 </div>
                 <span className="flex-1 text-muted-foreground truncate">{pet.name || `Pet ${petIndex + 1}`}</span>
-                <span className="text-[11px] text-muted-foreground/70 shrink-0">$4.99/mo</span>
+                <span className="text-[11px] text-muted-foreground/70 shrink-0">{horoscopeMonthlyLabel}/mo</span>
               </button>
             );
           })}
+          <p className="text-[11px] text-muted-foreground/70 px-1 leading-snug">
+            First month free, then {horoscopeMonthlyLabel}/mo, cancel anytime.
+          </p>
         </div>
       )}
 

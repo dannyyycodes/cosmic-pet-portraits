@@ -678,6 +678,26 @@ serve(async (req) => {
           occasion_mode: occasionMode,
           include_horoscope: input.includeHoroscope ? "true" : "false",
           horoscope_pet_count: input.includeHoroscope ? petCount.toString() : "0",
+          // Per-pet weekly-horoscope consent for the fail-closed webhook. The
+          // quick funnel promises every LIVING pet a free first month, so every
+          // non-memorial row is opted in. Memorial rows are the LAST
+          // memorialCount rows (see the placeholder loop above), so they stay
+          // false — a second layer over the webhook's own occasion_mode guard.
+          // Built server-side from the placeholder occasions so a client
+          // regression can never break the promise or enroll a memorial pet.
+          // The client sends the same map in input.petHoroscopes; we rebuild it
+          // here as the authoritative source. Empty when horoscopes are off
+          // (pure memorial cart) → webhook enrolls nobody, which is correct.
+          pet_horoscopes: JSON.stringify(
+            input.includeHoroscope
+              ? Object.fromEntries(
+                  Array.from({ length: petCount }, (_, i) => [
+                    String(i),
+                    !(memorialCount > 0 && i >= firstMemorialIndex),
+                  ])
+                )
+              : {}
+          ),
           // Per-line-item memorial count — canonical source. Each pet_reports
           // placeholder row already carries the correct occasion_mode; this
           // metadata is the audit trail so stripe-webhook + verify-payment
