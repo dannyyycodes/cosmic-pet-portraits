@@ -3,6 +3,7 @@ import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
 import { ArrowRight, AudioLines, ChevronDown, Mail, Orbit, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
+import imageCompression from "browser-image-compression";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { InlineCheckout } from "./InlineCheckout";
@@ -1446,15 +1447,23 @@ const TEASE_GLYPH: Record<string, string> = {
 };
 
 type DeckCard =
+  | { kind: "keepsake"; photoUrl: string; name: string | null }
   | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; l1: string; l2: string; l3: string; sealed: string; count: number }
   | { kind: "element"; counts: Record<DeckElement, number>; l1: string; l2: string; l3: string }
   | { kind: "synthesis"; lead: string; wants: string; needs: string; close: string }
   | { kind: "tease"; copy: TeaseCopy };
 
-function buildDeck(chart: PetBirthChart, memorial: boolean): DeckCard[] {
+function buildDeck(chart: PetBirthChart, memorial: boolean, keepsake?: { photoUrl: string; name: string | null } | null): DeckCard[] {
   const voice = memorial ? ("m" as const) : ("d" as const);
   const cards: DeckCard[] = [];
   let count = 0;
+
+  // If they added a photo, the reading opens on them: their own face, framed in
+  // violet, the moment the sky finishes computing. No photo = this card is never
+  // built, so the deck degrades to the chart-only open with nothing missing.
+  if (keepsake?.photoUrl) {
+    cards.push({ kind: "keepsake", photoUrl: keepsake.photoUrl, name: keepsake.name });
+  }
 
   for (const key of DECK_PLANETS) {
     const body = chart[key] as ChartBody | undefined;
@@ -1521,7 +1530,43 @@ function SealMark() {
   );
 }
 
+// One-tap species picks for the free reading. Dog and cat carry their own
+// reading voice; "other" keeps every fish, bird and rabbit welcome. Breed and
+// gender stay in the paid intake, where the friction is earned.
+const SPECIES_PICKS: { value: string; label: string }[] = [
+  { value: "dog", label: "Dog" },
+  { value: "cat", label: "Cat" },
+  { value: "other", label: "Other" },
+];
+
+// Bespoke "add a photo" mark in the same stroke language as SealMark and the
+// astro glyphs, so the upload never leans on a stock/clip-art icon.
+function PhotoMark() {
+  return (
+    <svg className="ls-photo-mark" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.2" y="5" width="17.6" height="14" rx="2.6" />
+      <circle cx="8.5" cy="10.2" r="1.7" />
+      <path d="M3.8 17.4l4.6-4.3a2 2 0 0 1 2.7 0l2.9 2.7m-1.1-1l2-1.9a2 2 0 0 1 2.7 0l1.6 1.5" />
+    </svg>
+  );
+}
+
 function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
+  if (card.kind === "keepsake") {
+    return (
+      <div className="ls-dk-inner ls-dk-keep-inner">
+        <div className="ls-dk-frame">
+          <span className="ls-dk-frame-glow" aria-hidden="true" />
+          <span className="ls-dk-frame-mask">
+            <img src={card.photoUrl} alt={card.name ? card.name : "Their photo"} draggable={false} />
+          </span>
+          <span className="ls-dk-frame-ring" aria-hidden="true" />
+        </div>
+        {card.name && <p className="ls-dk-keepname">{card.name}</p>}
+      </div>
+    );
+  }
+
   if (card.kind === "planet") {
     return (
       <div className="ls-dk-inner">
@@ -1614,6 +1659,19 @@ const DECK_CSS = `
   .ls-dk-inner > * { opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
   @keyframes lsDkIn { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
+  /* The keepsake: their own photo, framed in violet, the reading's warm open. */
+  .ls-dk-keep-inner { gap: clamp(16px, 3svh, 30px); }
+  .ls-dk-frame { position: relative; width: clamp(178px, 34svh, 268px); aspect-ratio: 1; display: grid; place-items: center; animation: lsDkFrameRise 1.1s cubic-bezier(0.22,0.7,0.2,1) both; }
+  @keyframes lsDkFrameRise { from { opacity: 0; transform: scale(0.9); filter: blur(6px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
+  .ls-dk-frame-glow { position: absolute; inset: -20%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.42) 0%, rgba(154,126,230,0.16) 46%, transparent 72%); filter: blur(18px); animation: lsDkFrameBreath 6.5s ease-in-out infinite alternate; }
+  .ls-dk-frame-mask { position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid rgba(185,165,240,0.55); box-shadow: 0 0 0 7px rgba(124,92,214,0.13), 0 0 0 8px rgba(185,165,240,0.16), 0 22px 60px rgba(4,2,12,0.62); }
+  .ls-dk-frame-mask img { width: 100%; height: 100%; object-fit: cover; animation: lsDkFrameZoom 9s ease-in-out infinite alternate; }
+  @keyframes lsDkFrameZoom { from { transform: scale(1); } to { transform: scale(1.05); } }
+  @keyframes lsDkFrameBreath { from { opacity: 0.7; transform: scale(0.98); } to { opacity: 1; transform: scale(1.03); } }
+  .ls-dk-frame-ring { position: absolute; inset: -7%; border-radius: 50%; border: 1px solid rgba(154,126,230,0.32); pointer-events: none; animation: lsDkFrameSpin 34s linear infinite; }
+  @keyframes lsDkFrameSpin { to { transform: rotate(360deg); } }
+  .ls-dk-keepname { margin: 0; max-width: 20ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.9rem); line-height: 1.08; letter-spacing: -0.016em; text-shadow: 0 0 32px rgba(154,126,230,0.42); animation-delay: 0.42s; }
+
   /* The planet card: real disc + hero chip at frame 0, lines dealt beneath. */
   .ls-dk-orb { position: relative; width: clamp(112px, 22svh, 190px); aspect-ratio: 1; display: grid; place-items: center; }
   .ls-dk-halo { position: absolute; inset: -16%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.30) 0%, rgba(154,126,230,0.11) 44%, transparent 70%); filter: blur(12px); }
@@ -1684,11 +1742,13 @@ const DECK_CSS = `
   .ls-dk.is-static .ls-dk-inner { margin: 0 auto; }
   .ls-dk.is-static .ls-dk-inner > *, .ls-dk.is-static .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
   .ls-dk.is-static .ls-dk-chip, .ls-dk.is-static .ls-dk-orb img, .ls-dk.is-static .ls-dk-bar-track i { animation: none !important; }
+  .ls-dk.is-static .ls-dk-frame, .ls-dk.is-static .ls-dk-frame-glow, .ls-dk.is-static .ls-dk-frame-mask img, .ls-dk.is-static .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
   .ls-dk.is-static .ls-dk-tease { overflow: visible; max-height: none; }
 
   @media (prefers-reduced-motion: reduce) {
     .ls-dk-inner > *, .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
     .ls-dk-chip, .ls-dk-orb img, .ls-dk-bar-track i, .ls-dk-nudge { animation: none !important; }
+    .ls-dk-frame, .ls-dk-frame-glow, .ls-dk-frame-mask img, .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
   }
 
   @media (max-height: 640px) {
@@ -1708,7 +1768,7 @@ const DECK_CSS = `
   }
 `;
 
-function FreeDeck({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) {
+function FreeDeck({ chart, reduce, photoUrl, name }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register swaps every card to its remembered-tense twin.
@@ -1721,7 +1781,8 @@ function FreeDeck({ chart, reduce }: { chart: PetBirthChart; reduce: boolean }) 
 
   const reduced = reduce || (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-  const cards = useMemo(() => buildDeck(chart, memorial), [chart, memorial]);
+  const keepsake = useMemo(() => (photoUrl ? { photoUrl, name: name ?? null } : null), [photoUrl, name]);
+  const cards = useMemo(() => buildDeck(chart, memorial, keepsake), [chart, memorial, keepsake]);
   const last = cards.length - 1;
   const [active, setActive] = useState(0);
   const activeRef = useRef(0);
@@ -1910,6 +1971,13 @@ function BirthSkyJourney() {
 
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
+  // One-tap species (dog / cat / other). Required, but a single tap so it does
+  // not cost capture. Species sets the whole voice of the reading, so we take it
+  // here on the free reading instead of waiting for the paid intake. Prefills
+  // from a prior visit.
+  const [species, setSpecies] = useState<string>(() => {
+    try { const s = sessionStorage.getItem("ls_chart_species") || ""; return ["dog", "cat", "other"].includes(s) ? s : ""; } catch { return ""; }
+  });
   // Email lives at the START of the free reading (Danny, 2026-07): the seal
   // card carries it, so the reading is theirs before the sky opens. A prior
   // visit's address prefills quietly.
@@ -1917,9 +1985,19 @@ function BirthSkyJourney() {
     try { return sessionStorage.getItem("ls_chart_email") || ""; } catch { return ""; }
   });
   const [chart, setChart] = useState<PetBirthChart | null>(null);
-  const [status, setStatus] = useState<"idle" | "computing" | "ready" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "computing" | "photo" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
+
+  // Optional pet photo. Uploaded to the same pet-photos bucket the post-purchase
+  // intake uses, so ONE photo carries the whole journey. Prefills from a prior
+  // visit. Never a gate: the reading opens with or without it.
+  const [photo, setPhoto] = useState<string | null>(() => {
+    try { return sessionStorage.getItem("ls_chart_photo") || null; } catch { return null; }
+  });
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoErr, setPhotoErr] = useState("");
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // The memorial register softens the email ask into the "held for you" voice.
   const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
@@ -2034,6 +2112,11 @@ function BirthSkyJourney() {
       setMessage("Choose their birth or adoption date first.");
       return;
     }
+    if (!species) {
+      setStatus("error");
+      setMessage("One tap: are they a dog, a cat, or other?");
+      return;
+    }
     const cleanEmail = email.trim().toLowerCase();
     if (!/.+@.+\..+/.test(cleanEmail)) {
       setStatus("error");
@@ -2057,8 +2140,9 @@ function BirthSkyJourney() {
       // eyebrow). sessionStorage covers later mounts; the event covers the
       // already-mounted checkout further down this same page.
       try {
-        const petPayload = { name: petName.trim() || null, date };
+        const petPayload = { name: petName.trim() || null, date, species: species || null };
         sessionStorage.setItem("ls_chart_pet", JSON.stringify(petPayload));
+        if (species) sessionStorage.setItem("ls_chart_species", species);
         window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: petPayload }));
       } catch { /* ignore */ }
       // Computed signs travel too, so the checkout's sample excerpt can quote a
@@ -2097,7 +2181,10 @@ function BirthSkyJourney() {
     if (!/.+@.+\..+/.test(cleanEmail)) return;
     supabase.functions
       .invoke("track-subscriber", {
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, source, utm: getUtm() },
+        // Species rides in so the drip can speak dog vs cat; the photo rides in
+        // (when a returning visitor already has one) so the drip can greet them
+        // with their own dog before they have opened the full reading.
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: photo || undefined, source, utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
     try {
@@ -2108,12 +2195,81 @@ function BirthSkyJourney() {
     } catch { /* ignore */ }
   };
 
+  // Optional photo upload. Compress to JPEG (handles HEIC / huge files), push to
+  // the shared pet-photos bucket, keep the public URL. Every failure is soft:
+  // the reading never waits on it and never breaks if it fails.
+  const handlePhoto = async (file: File) => {
+    const isImage = file.type.startsWith("image/") || /\.(heic|heif|webp|avif|jfif|bmp|tiff?)$/i.test(file.name);
+    if (!isImage) { setPhotoErr("That file is not an image. Try a photo."); return; }
+    if (file.size > 50 * 1024 * 1024) { setPhotoErr("That image is very large. Try one under 50MB."); return; }
+    setPhotoErr("");
+    setPhotoBusy(true);
+    try {
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+        fileType: "image/jpeg",
+        initialQuality: 0.85,
+      });
+      const filename = `${crypto.randomUUID()}.jpg`;
+      const { error } = await supabase.storage.from("pet-photos").upload(filename, compressed, {
+        cacheControl: "31536000",
+        upsert: false,
+        contentType: "image/jpeg",
+      });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("pet-photos").getPublicUrl(filename);
+      const url = urlData.publicUrl;
+      setPhoto(url);
+      try {
+        sessionStorage.setItem("ls_chart_photo", url);
+        // Live handoff to the checkout + intake mounted lower on this page.
+        window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url } }));
+      } catch { /* ignore */ }
+      // The photo is offered AFTER the email is captured, so the lead already
+      // exists. Enrich it with the photo so the drip can greet them with their
+      // own dog. Fire-and-forget; the reading never waits on it.
+      const em = email.trim().toLowerCase();
+      if (/.+@.+\..+/.test(em)) {
+        supabase.functions
+          .invoke("track-subscriber", {
+            body: { email: em, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: url, source: "free_reading_start", utm: getUtm() },
+          })
+          .catch((e) => console.warn("[Little Souls] photo enrich failed", e));
+      }
+    } catch (err) {
+      console.warn("[Little Souls] photo upload failed", err);
+      setPhotoErr("That did not upload. You can try again, or carry on without it.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhoto(null);
+    setPhotoErr("");
+    try {
+      sessionStorage.removeItem("ls_chart_photo");
+      window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url: null } }));
+    } catch { /* ignore */ }
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
+  // Leave the optional-photo card for the deck. Capture the pre-swap height so
+  // the reveal growth tween (SEAM 3) measures from here, exactly as it did when
+  // the compute screen handed straight into the deck.
+  const proceedToReading = () => {
+    growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
+    setStatus("ready");
+  };
+
   const scrollToCheckout = () => descendTo("#begin");
 
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeDeck chart={chart} reduce={reduce} />
+        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} />
       ) : (
         <>
           <div className="ls-stage">
@@ -2124,11 +2280,63 @@ function BirthSkyJourney() {
                 date={date}
                 reduce={reduce}
                 onDone={() => {
-                  // capture the pre-swap height so the reveal growth can tween
-                  growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
-                  setStatus("ready");
+                  // Email is already captured (the lead fired at submit). Now, and
+                  // only now, offer the optional photo as a non-blocking card on the
+                  // results screen. A returning visitor whose photo we already have
+                  // skips straight into the reading.
+                  if (photo) {
+                    growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
+                    setStatus("ready");
+                  } else {
+                    setStatus("photo");
+                  }
                 }}
               />
+            ) : status === "photo" ? (
+              <div className="ls-seal-card ls-stage-card ls-photo-card">
+                <input
+                  ref={photoInputRef}
+                  id="seal-photo"
+                  type="file"
+                  accept="image/*,.heic,.heif"
+                  className="ls-photo-input"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhoto(f); }}
+                />
+                {photo ? (
+                  <div className="ls-photo-preview ls-reveal is-in">
+                    <span className="ls-photo-thumb">
+                      <span className="ls-photo-thumb-glow" aria-hidden="true" />
+                      <img src={photo} alt={name || "Their photo"} draggable={false} />
+                    </span>
+                    <div className="ls-photo-preview-side">
+                      <p className="ls-photo-ready">Their photo becomes part of the reveal, something to hold on to.</p>
+                      <div className="ls-photo-actions">
+                        <button type="button" className="ls-photo-link" onClick={() => photoInputRef.current?.click()}>Change</button>
+                        <span aria-hidden="true">·</span>
+                        <button type="button" className="ls-photo-link" onClick={removePhoto}>Remove</button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className={`ls-photo-drop ls-photo-drop-lg ls-reveal is-in${photoBusy ? " is-busy" : ""}`}
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={photoBusy}
+                    >
+                      {photoBusy ? <span className="ls-photo-spin" aria-hidden="true" /> : <PhotoMark />}
+                      <span>{photoBusy ? "Adding their photo" : "Add their photo (optional)"}</span>
+                    </button>
+                    <p className="ls-seal-hint ls-photo-info ls-reveal is-in">Their photo becomes part of the reveal, something to hold on to.</p>
+                  </>
+                )}
+                <p className="ls-photo-privacy ls-reveal is-in">Yours only. We never sell it or use it to train anything.</p>
+                {photoErr && <p className="ls-photo-err">{photoErr}</p>}
+                <button type="button" className="ls-seal-cta ls-photo-proceed ls-reveal is-in" onClick={proceedToReading}>
+                  See their reading <ArrowRight size={18} />
+                </button>
+              </div>
             ) : (
               <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen}>
                 <p className="ls-seal-lead ls-reveal">Two facts. You already know both.</p>
@@ -2148,6 +2356,22 @@ function BirthSkyJourney() {
                   <p className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
                 </div>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
+                  <label id="seal-species-label">What are they?</label>
+                  <div className="ls-seal-species" role="group" aria-labelledby="seal-species-label">
+                    {SPECIES_PICKS.map((s) => (
+                      <button
+                        key={s.value}
+                        type="button"
+                        className={`ls-species-btn${species === s.value ? " is-sel" : ""}`}
+                        aria-pressed={species === s.value}
+                        onClick={() => { setSpecies(s.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="ls-seal-field ls-reveal" style={revealDelay(0.24)}>
                   <label htmlFor="seal-email">Your email</label>
                   <input
                     id="seal-email"
@@ -2160,7 +2384,7 @@ function BirthSkyJourney() {
                   />
                   <p className="ls-seal-hint">No account needed.</p>
                 </div>
-                <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.24)}>
+                <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.30)}>
                   Set the chart <ArrowRight size={18} />
                 </button>
                 {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
@@ -5342,6 +5566,72 @@ function CosmicStyles() {
         .ls-seal-card[data-sealed] .ls-seal-cta { animation: none; }
         .ls-seal-cta { transition: none; }
       }
+
+      /* ── One-tap species (free reading) — cosmic violet, no gold ──────── */
+      .ls-seal-species { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+      .ls-species-btn {
+        min-height: 56px; display: flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(167,139,250,0.32); border-radius: 13px;
+        background: rgba(139,123,216,0.05);
+        color: #e9e3ff; font-family: "Newsreader", Georgia, serif; font-size: 18px;
+        cursor: pointer; transition: border-color 220ms ease, background 220ms ease, color 220ms ease, transform 180ms ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .ls-species-btn:hover { border-color: rgba(167,139,250,0.62); background: rgba(139,123,216,0.11); }
+      .ls-species-btn:active { transform: scale(0.98); }
+      .ls-species-btn.is-sel {
+        background: linear-gradient(135deg, #a78bfa, #8b7bd8);
+        color: #0d0a14; border-color: #a78bfa; font-weight: 600;
+        box-shadow: 0 4px 20px rgba(139,123,216,0.32);
+      }
+      .ls-species-btn:focus-visible { outline: 2px solid #f5f2ff; outline-offset: 3px; }
+      @media (prefers-reduced-motion: reduce) { .ls-species-btn { transition: none; } }
+
+      /* ── Optional pet photo (free reading) — cosmic violet, no gold ────── */
+      .ls-seal-photo { position: relative; }
+      .ls-photo-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+      .ls-photo-drop {
+        display: flex; align-items: center; justify-content: center; gap: 11px;
+        width: 100%; min-height: 58px; padding: 15px 18px;
+        border: 1px dashed rgba(167,139,250,0.42); border-radius: 14px;
+        background: rgba(139,123,216,0.06);
+        color: #e9e3ff; font-family: "Newsreader", Georgia, serif; font-size: 17px;
+        cursor: pointer; transition: border-color 300ms ease, background 300ms ease, transform 200ms ease;
+      }
+      .ls-photo-drop:hover { border-color: rgba(167,139,250,0.72); background: rgba(139,123,216,0.11); }
+      .ls-photo-drop:active { transform: scale(0.99); }
+      .ls-photo-drop:focus-visible { outline: 2px solid #a78bfa; outline-offset: 3px; }
+      .ls-photo-drop:disabled { cursor: wait; opacity: 0.85; }
+      .ls-photo-drop .ls-photo-mark { font-size: 22px; color: #b9a5f0; flex: 0 0 auto; }
+      .ls-photo-spin { flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(167,139,250,0.28); border-top-color: #b9a5f0; animation: lsPhotoSpin 0.8s linear infinite; }
+      @keyframes lsPhotoSpin { to { transform: rotate(360deg); } }
+      .ls-photo-info { margin-top: 12px; }
+      .ls-photo-privacy { margin: 7px 0 0; color: rgba(245,242,255,0.42); font-family: "Newsreader", Georgia, serif; font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+      .ls-photo-err { margin: 9px 0 0; color: #c9b8f0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15px; line-height: 1.45; }
+      .ls-photo-preview { display: flex; align-items: center; gap: 15px; padding: 6px 2px 2px; }
+      .ls-photo-thumb { position: relative; flex: 0 0 auto; width: 62px; height: 62px; display: grid; place-items: center; }
+      .ls-photo-thumb-glow { position: absolute; inset: -24%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.42), transparent 70%); filter: blur(9px); }
+      .ls-photo-thumb img { position: relative; width: 62px; height: 62px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(185,165,240,0.6); box-shadow: 0 0 0 4px rgba(124,92,214,0.12), 0 6px 18px rgba(4,2,12,0.5); }
+      .ls-photo-preview-side { flex: 1 1 auto; min-width: 0; }
+      .ls-photo-ready { margin: 0; color: rgba(245,242,255,0.74); font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15.5px; line-height: 1.45; }
+      .ls-photo-actions { display: flex; align-items: center; gap: 10px; margin-top: 7px; color: rgba(245,242,255,0.3); font-size: 14px; }
+      .ls-photo-link { border: 0; background: transparent; padding: 0; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 15px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(185,165,240,0.4); transition: color 200ms ease; }
+      .ls-photo-link:hover { color: #d9cffb; }
+      .ls-photo-link:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; border-radius: 3px; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-photo-spin { animation-duration: 1.4s; }
+        .ls-photo-drop { transition: none; }
+      }
+      /* Results-screen optional photo card (post-email, non-blocking) */
+      .ls-photo-card { text-align: center; }
+      .ls-photo-card .ls-photo-info, .ls-photo-card .ls-photo-privacy { text-align: center; }
+      .ls-photo-drop-lg { min-height: 128px; flex-direction: column; gap: 14px; padding: 26px 20px; border-radius: 18px; font-size: 18px; }
+      .ls-photo-drop-lg .ls-photo-mark { font-size: 34px; }
+      .ls-photo-card .ls-photo-preview { justify-content: center; padding: 8px 2px 4px; }
+      .ls-photo-card .ls-photo-preview-side { flex: 0 1 auto; text-align: left; }
+      .ls-photo-card .ls-photo-actions { justify-content: flex-start; }
+      .ls-photo-card .ls-photo-thumb, .ls-photo-card .ls-photo-thumb img { width: 84px; height: 84px; }
+      .ls-photo-proceed { margin-top: 22px; }
 
       /* loading animation between gate submit and the reveal */
       .ls-seal-loading { display: grid; gap: 16px; justify-items: center; text-align: center; padding: 30px 22px; }

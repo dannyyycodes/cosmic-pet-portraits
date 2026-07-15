@@ -114,18 +114,31 @@ const grainStyle: React.CSSProperties = {
 // instead of re-typing. Every seeded field stays visible and editable — no
 // step is ever silently skipped. Direct buyers who never ran the free reading
 // find the blank form exactly as before.
-interface FreeReadingSeed { name: string; date: string; email: string }
-const EMPTY_SEED: FreeReadingSeed = { name: "", date: "", email: "" };
+interface FreeReadingSeed { name: string; date: string; email: string; photo: string; species: string }
+const EMPTY_SEED: FreeReadingSeed = { name: "", date: "", email: "", photo: "", species: "" };
 function readFreeReadingSeed(): FreeReadingSeed {
   const seed: FreeReadingSeed = { ...EMPTY_SEED };
   try {
     const raw = sessionStorage.getItem("ls_chart_pet");
     if (raw) {
-      const pet = JSON.parse(raw) as { name?: unknown; date?: unknown };
+      const pet = JSON.parse(raw) as { name?: unknown; date?: unknown; species?: unknown };
       if (typeof pet.name === "string") seed.name = pet.name.trim();
       if (typeof pet.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(pet.date)) seed.date = pet.date;
+      if (typeof pet.species === "string") seed.species = pet.species;
     }
   } catch { /* ignore — the blank form is the graceful fallback */ }
+  try {
+    // The species they tapped on the free reading is the SAME species the report
+    // is written for — carry it in so they confirm instead of re-picking.
+    const sp = (sessionStorage.getItem("ls_chart_species") || "").trim();
+    if (sp) seed.species = sp;
+  } catch { /* ignore */ }
+  try {
+    // The photo they added on the free reading is the SAME photo the report
+    // should use — carry it straight in so they never re-upload their own dog.
+    const p = (sessionStorage.getItem("ls_chart_photo") || "").trim();
+    if (/^https?:\/\//.test(p)) seed.photo = p;
+  } catch { /* ignore */ }
   try {
     // Same preference order as InlineCheckout: wheel email wins over chart email.
     const stored = (sessionStorage.getItem("ls_wheel_email") || sessionStorage.getItem("ls_chart_email") || "").trim();
@@ -191,7 +204,9 @@ export function PostPurchaseIntake({
   // a QATEST memorial redeem landed on the occasion picker.
   const [ready, setReady] = useState(false);
   const [petName, setPetName] = useState(seed.name);
-  const [species, setSpecies] = useState("");
+  // Seed the species tapped on the free reading (dog / cat / other all map to an
+  // intake option), so it arrives pre-selected and stays editable.
+  const [species, setSpecies] = useState(["dog", "cat", "rabbit", "bird", "hamster", "guinea_pig", "fish", "reptile", "horse", "other"].includes(seed.species) ? seed.species : "");
   const [gender, setGender] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -205,7 +220,7 @@ export function PostPurchaseIntake({
   const [superpowers, setSuperpowers] = useState<string[]>([]);
   const [strangerReaction, setStrangerReaction] = useState("");
   const [ownerMemory, setOwnerMemory] = useState("");
-  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
+  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(seed.photo || null);
   const [email, setEmail] = useState(sharedEmail ?? seed.email);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -50,6 +50,11 @@ function InvocationHeader({ data, reduced }: { data: RevealReport; reduced: bool
     ? {}
     : { initial: { opacity: 0, y: 18, filter: 'blur(8px)' }, animate: { opacity: 1, y: 0, filter: 'blur(0px)' }, transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] as const } };
 
+  // Their own face, framed in violet, the moment their name is summoned. The
+  // uploaded photo leads; the generated portrait stands in if there is one and
+  // no upload; if neither exists the block simply is not there.
+  const heroPhoto = data.petPhotoUrl || data.portraitUrl;
+
   return (
     <header className="rv-invocation">
       <div className="rv-invocation-bg" aria-hidden="true">
@@ -64,6 +69,20 @@ function InvocationHeader({ data, reduced }: { data: RevealReport; reduced: bool
       <motion.h1 className="rv-petname" {...(done || reduced ? nameEntrance : { initial: { opacity: 0 }, animate: { opacity: 0 } })}>
         {data.petName}
       </motion.h1>
+      {heroPhoto && (
+        <motion.div
+          className="rv-invocation-photo"
+          initial={reduced ? undefined : { opacity: 0, scale: 0.92, filter: 'blur(12px)' }}
+          animate={reduced ? undefined : (done ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : { opacity: 0, scale: 0.92 })}
+          transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1], delay: done ? 0.4 : 0 }}
+        >
+          <span className="rv-invocation-photo-glow" aria-hidden="true" />
+          <span className="rv-invocation-photo-frame">
+            <img src={heroPhoto} alt={data.petName} decoding="async" draggable={false} />
+          </span>
+          <span className="rv-invocation-photo-ring" aria-hidden="true" />
+        </motion.div>
+      )}
       {(sun || moon || rising) && (
         <p className="rv-birthline">
           {[sun && `Sun in ${sun}`, moon && `Moon in ${moon}`, rising && `${rising} Rising`].filter(Boolean).join('  ·  ')}

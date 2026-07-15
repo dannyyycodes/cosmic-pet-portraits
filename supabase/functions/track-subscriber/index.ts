@@ -17,6 +17,8 @@ const trackSchema = z.object({
   email: z.string().email().max(255),
   event: z.enum(["birth_chart_lead", "intake_started", "intake_completed", "purchase_completed", "unsubscribe"]),
   petName: z.string().max(50).nullish(),
+  species: z.string().max(30).nullish(),
+  petPhotoUrl: z.string().url().max(2048).nullish(),
   petReportId: z.string().uuid().nullish(),
   tier: z.enum(["basic", "premium"]).nullish(),
   source: z.enum(["intake", "gift", "referral", "birth_chart_preview", "free_reading_start"]).nullish(),
@@ -73,6 +75,10 @@ serve(async (req) => {
           .from("email_subscribers")
           .update({
             pet_name: input.petName || existing.pet_name,
+            // Never overwrite an existing photo/species with an empty one — the
+            // earliest values they gave us stay with the lead through the drip.
+            pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
+            species: input.species || existing.species,
             source: existing.source || input.source || "birth_chart_preview",
           })
           .eq("id", existing.id);
@@ -80,6 +86,8 @@ serve(async (req) => {
         await supabase.from("email_subscribers").insert({
           email: input.email,
           pet_name: input.petName,
+          pet_photo_url: input.petPhotoUrl || null,
+          species: input.species || null,
           journey_stage: "new_lead",
           source: input.source || "birth_chart_preview",
           referral_code: input.referralCode,
@@ -94,6 +102,7 @@ serve(async (req) => {
           .from("email_subscribers")
           .update({
             pet_name: input.petName || existing.pet_name,
+            pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
             intake_started_at: existing.intake_started_at || now,
             journey_stage: existing.journey_stage === "new_lead" ? "intake_started" : existing.journey_stage,
           })
@@ -103,6 +112,7 @@ serve(async (req) => {
         await supabase.from("email_subscribers").insert({
           email: input.email,
           pet_name: input.petName,
+          pet_photo_url: input.petPhotoUrl || null,
           journey_stage: "intake_started",
           intake_started_at: now,
           source: input.source || "intake",
@@ -117,6 +127,7 @@ serve(async (req) => {
           .from("email_subscribers")
           .update({
             pet_name: input.petName || existing.pet_name,
+            pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
             pet_report_id: input.petReportId || existing.pet_report_id,
             journey_stage: "intake_started", // Still waiting for payment
           })
@@ -125,6 +136,7 @@ serve(async (req) => {
         await supabase.from("email_subscribers").insert({
           email: input.email,
           pet_name: input.petName,
+          pet_photo_url: input.petPhotoUrl || null,
           pet_report_id: input.petReportId,
           journey_stage: "intake_started",
           intake_started_at: now,
@@ -140,6 +152,7 @@ serve(async (req) => {
           .from("email_subscribers")
           .update({
             pet_name: input.petName || existing.pet_name,
+            pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
             pet_report_id: input.petReportId || existing.pet_report_id,
             journey_stage: "purchased",
             purchase_completed_at: now,
@@ -150,6 +163,7 @@ serve(async (req) => {
         await supabase.from("email_subscribers").insert({
           email: input.email,
           pet_name: input.petName,
+          pet_photo_url: input.petPhotoUrl || null,
           pet_report_id: input.petReportId,
           journey_stage: "purchased",
           purchase_completed_at: now,

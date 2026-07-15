@@ -482,6 +482,7 @@ export function CosmicReportViewer({
         archetypeDesc={report.archetype?.description || ''}
         signIcon={signIcon}
         portraitUrl={portraitUrl}
+        petPhotoUrl={petPhotoUrl}
       />
 
       {/* ═══ COSMIC NICKNAME ═══ */}
@@ -2411,6 +2412,7 @@ function HeroSection({
   archetypeDesc,
   signIcon,
   portraitUrl,
+  petPhotoUrl,
 }: {
   petName: string;
   sunSign: string;
@@ -2421,7 +2423,11 @@ function HeroSection({
   archetypeDesc: string;
   signIcon: string;
   portraitUrl?: string;
+  petPhotoUrl?: string;
 }) {
+  // The generated aura portrait leads if it exists; otherwise the pet's own
+  // uploaded photo fills the hero circle, so most readings open on their face.
+  const heroImg = portraitUrl || petPhotoUrl;
   return (
     <div className="relative overflow-hidden">
       {/* Full-width dark cinematic backdrop */}
@@ -2448,7 +2454,7 @@ function HeroSection({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           className="relative mx-auto mb-7"
-          style={{ width: portraitUrl ? 170 : 140, height: portraitUrl ? 170 : 140 }}
+          style={{ width: heroImg ? 170 : 140, height: heroImg ? 170 : 140 }}
         >
           {/* Outer breathing glow */}
           <div
@@ -2469,10 +2475,10 @@ function HeroSection({
             }}
           />
 
-          {portraitUrl ? (
+          {heroImg ? (
             <>
               <img
-                src={portraitUrl}
+                src={heroImg}
                 alt={petName}
                 className="w-full h-full object-cover rounded-full relative z-[1]"
                 style={{

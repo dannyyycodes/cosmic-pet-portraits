@@ -209,12 +209,17 @@ serve(async (req) => {
       });
     }
 
-    // Ensure shareToken exists so the email link bypasses email verification
+    // Ensure shareToken exists so the email link bypasses email verification.
+    // Also pull pet_photo_url so the email can show their photo even when the
+    // caller did not pass it (the drip / recovery paths often only have the id).
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const { data: reportRow } = await fetch(
-      `${supabaseUrl}/rest/v1/pet_reports?id=eq.${reportId}&select=share_token`,
+      `${supabaseUrl}/rest/v1/pet_reports?id=eq.${reportId}&select=share_token,pet_photo_url`,
       { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
     ).then(r => r.json()).then(rows => ({ data: rows?.[0] }));
+
+    // Caller-supplied photo wins; otherwise fall back to the stored one.
+    const photoForEmail = petPhotoUrl || reportRow?.pet_photo_url || undefined;
 
     let shareToken = reportRow?.share_token;
     if (!shareToken) {
@@ -232,7 +237,7 @@ serve(async (req) => {
       from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: `${petName}'s reading is ready to open`,
-      html: getEmailTemplate(petName, reportUrl, sunSign, petPhotoUrl, reportId),
+      html: getEmailTemplate(petName, reportUrl, sunSign, photoForEmail, reportId),
     });
 
     const resendError = (emailResult as any)?.error;
