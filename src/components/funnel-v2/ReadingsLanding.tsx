@@ -31,6 +31,8 @@ import {
   TEASE,
   counterLabel,
   NUDGE_WORD,
+  makeSubject,
+  fill,
 } from "./freeDeck";
 import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
@@ -1448,13 +1450,31 @@ const TEASE_GLYPH: Record<string, string> = {
 
 type DeckCard =
   | { kind: "keepsake"; photoUrl: string; name: string | null }
-  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; l1: string; l2: string; l3: string; sealed: string; count: number }
-  | { kind: "element"; counts: Record<DeckElement, number>; l1: string; l2: string; l3: string }
+  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; essence: string; l1: string; beats: string; tell: string; sealed: string; count: number }
+  | { kind: "element"; counts: Record<DeckElement, number>; dominant: DeckElement; l1: string; beats: string; tell: string }
   | { kind: "synthesis"; lead: string; wants: string; needs: string; close: string }
   | { kind: "tease"; copy: TeaseCopy };
 
-function buildDeck(chart: PetBirthChart, memorial: boolean, keepsake?: { photoUrl: string; name: string | null } | null): DeckCard[] {
+// The planet-in-sign hook is one sentence: "Monty's Sun sits in Cancer, the
+// self under everything." The card also shows the sign as a graphic chip, so we
+// split the essence clause off to sit as a small caption under the chip and
+// keep the full sentence as the reading's opening line.
+const PLANET_ESSENCE: Record<DeckPlanet, string> = {
+  sun: "The self under everything",
+  moon: "What settles them",
+  venus: "How they love you back",
+  mercury: "How they reach for you",
+  mars: "Where the energy goes",
+};
+
+function buildDeck(
+  chart: PetBirthChart,
+  memorial: boolean,
+  subject: { name?: string | null; species?: string | null },
+  keepsake?: { photoUrl: string; name: string | null } | null,
+): DeckCard[] {
   const voice = memorial ? ("m" as const) : ("d" as const);
+  const S = makeSubject(subject.name, subject.species);
   const cards: DeckCard[] = [];
   let count = 0;
 
@@ -1476,10 +1496,11 @@ function buildDeck(chart: PetBirthChart, memorial: boolean, keepsake?: { photoUr
       key,
       sign,
       deg: typeof body?.degree === "number" ? Math.round(body.degree) : null,
-      l1: DECK_L1[key](sign),
-      l2: entry.l2[voice],
-      l3: entry.l3[voice],
-      sealed: DECK_SEALED[key][voice],
+      essence: PLANET_ESSENCE[key],
+      l1: fill(DECK_L1[key](sign), S),
+      beats: fill(entry.beats[voice], S),
+      tell: fill(entry.tell[voice], S),
+      sealed: fill(DECK_SEALED[key][voice], S),
       count,
     });
   }
@@ -1497,9 +1518,10 @@ function buildDeck(chart: PetBirthChart, memorial: boolean, keepsake?: { photoUr
     cards.push({
       kind: "element",
       counts,
-      l1: elementL1(counts[dominant], dominant),
-      l2: ELEMENT_READS[dominant].l2[voice],
-      l3: ELEMENT_READS[dominant].l3[voice],
+      dominant,
+      l1: fill(elementL1(counts[dominant], dominant), S),
+      beats: fill(ELEMENT_READS[dominant].beats[voice], S),
+      tell: fill(ELEMENT_READS[dominant].tell[voice], S),
     });
   }
 
@@ -1511,11 +1533,12 @@ function buildDeck(chart: PetBirthChart, memorial: boolean, keepsake?: { photoUr
       lead: SYNTH_LEAD,
       wants: `${signArticle(sunSign)} ${sunSign} Sun wants ${SUN_WANTS[sunSign]}.`,
       needs: `${signArticle(moonSign)} ${moonSign} Moon needs ${MOON_NEEDS[moonSign]}.`,
-      close: SYNTH_CLOSE[voice],
+      close: fill(SYNTH_CLOSE[voice], S),
     });
   }
 
-  cards.push({ kind: "tease", copy: TEASE[voice] });
+  const teaseCopy = TEASE[voice];
+  cards.push({ kind: "tease", copy: { ...teaseCopy, keep: fill(teaseCopy.keep, S), bridge: fill(teaseCopy.bridge, S) } });
   return cards;
 }
 
@@ -1569,27 +1592,30 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
 
   if (card.kind === "planet") {
     return (
-      <div className="ls-dk-inner">
+      <div className="ls-dk-inner ls-dk-pl">
         <div className="ls-dk-orb" aria-hidden="true">
           <span className="ls-dk-halo" />
           <img src={DECK_PHOTO[card.key]} alt="" draggable={false} />
         </div>
-        <p className="ls-dk-eyebrow">
-          <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
-          {DECK_LABEL[card.key]}
-        </p>
-        <div className="ls-dk-chipwrap">
-          <p className="ls-dk-chip">
-            {card.sign}
-            {card.deg != null && (
-              <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
-            )}
+        <div className="ls-dk-hook">
+          <p className="ls-dk-eyebrow">
+            <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
+            {DECK_LABEL[card.key]}
+            <span className="ls-dk-count">{counterLabel(card.count)}</span>
           </p>
+          <div className="ls-dk-chipwrap">
+            <p className="ls-dk-chip">
+              {card.sign}
+              {card.deg != null && (
+                <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
+              )}
+            </p>
+          </div>
+          <p className="ls-dk-l1">{card.l1}</p>
         </div>
-        <p className="ls-dk-count">{counterLabel(card.count)}</p>
-        <p className="ls-dk-l1">{card.l1}</p>
-        <p className="ls-dk-l2">{card.l2}</p>
-        <p className="ls-dk-l3">{card.l3}</p>
+        <span className="ls-dk-rule" aria-hidden="true" />
+        <p className="ls-dk-beats">{card.beats}</p>
+        <p className="ls-dk-tell"><span className="ls-dk-tell-mark" aria-hidden="true" />{card.tell}</p>
         <p className="ls-dk-seal"><SealMark />{card.sealed}</p>
       </div>
     );
@@ -1597,11 +1623,17 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
 
   if (card.kind === "element") {
     const order: DeckElement[] = ["Fire", "Earth", "Air", "Water"];
+    const domCount = card.counts[card.dominant];
+    const tied = order.filter((e) => e !== card.dominant && card.counts[e] === domCount);
+    const domLabel =
+      tied.length > 0 ? `${card.dominant} and ${tied[0]}` : domCount >= 3 ? `Mostly ${card.dominant}` : `Led by ${card.dominant}`;
     return (
-      <div className="ls-dk-inner">
-        <div className="ls-dk-bars" aria-hidden="true">
+      <div className="ls-dk-inner ls-dk-el">
+        <p className="ls-dk-eyebrow ls-dk-el-eyebrow">The balance of them</p>
+        <p className="ls-dk-el-dom">{domLabel}</p>
+        <div className="ls-dk-bars">
           {order.map((el, i) => (
-            <div key={el} className="ls-dk-bar">
+            <div key={el} className={`ls-dk-bar${card.counts[el] === domCount ? " is-dom" : ""}`}>
               <span className="ls-dk-bar-label">{el}</span>
               <span className="ls-dk-bar-track">
                 <i style={{ transform: `scaleX(${card.counts[el] / 5})`, animationDelay: `${0.2 + i * 0.08}s` }} />
@@ -1610,9 +1642,10 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
             </div>
           ))}
         </div>
-        <p className="ls-dk-l1el">{card.l1}</p>
-        <p className="ls-dk-l2">{card.l2}</p>
-        <p className="ls-dk-l3">{card.l3}</p>
+        <p className="ls-dk-l1 ls-dk-el-meaning">{card.l1}</p>
+        <span className="ls-dk-rule" aria-hidden="true" />
+        <p className="ls-dk-beats">{card.beats}</p>
+        <p className="ls-dk-tell"><span className="ls-dk-tell-mark" aria-hidden="true" />{card.tell}</p>
       </div>
     );
   }
@@ -1672,35 +1705,53 @@ const DECK_CSS = `
   @keyframes lsDkFrameSpin { to { transform: rotate(360deg); } }
   .ls-dk-keepname { margin: 0; max-width: 20ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.9rem); line-height: 1.08; letter-spacing: -0.016em; text-shadow: 0 0 32px rgba(154,126,230,0.42); animation-delay: 0.42s; }
 
-  /* The planet card: real disc + hero chip at frame 0, lines dealt beneath. */
-  .ls-dk-orb { position: relative; width: clamp(112px, 22svh, 190px); aspect-ratio: 1; display: grid; place-items: center; }
+  /* The planet card: real disc, then a HOOK block (label + sign chip + the
+     name sentence), a hairline, the uncanny BEATS, the warm TELL, the SEAL. */
+  .ls-dk-pl { gap: clamp(10px, 1.8svh, 17px); }
+  .ls-dk-orb { position: relative; width: clamp(96px, 18svh, 158px); aspect-ratio: 1; display: grid; place-items: center; }
   .ls-dk-halo { position: absolute; inset: -16%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.30) 0%, rgba(154,126,230,0.11) 44%, transparent 70%); filter: blur(12px); }
   .ls-dk-orb img { position: relative; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 16px 44px rgba(4,2,12,0.62)); animation: lsDkKen 7s ease-in-out infinite alternate; }
   @keyframes lsDkKen { from { transform: scale(1) translate3d(0, 1.4%, 0); } to { transform: scale(1.075) translate3d(0, -1.4%, 0); } }
-  .ls-dk-eyebrow { margin: 0; display: inline-flex; align-items: center; gap: 9px; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase; animation-delay: 0.02s; }
-  .ls-dk-glyphmark { font-size: 17px; filter: drop-shadow(0 0 8px rgba(154,126,230,0.5)); }
+  .ls-dk-hook { display: flex; flex-direction: column; align-items: center; gap: clamp(7px, 1.2svh, 12px); animation-delay: 0.12s; }
+  .ls-dk-eyebrow { margin: 0; display: inline-flex; align-items: center; gap: 10px; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.28em; text-indent: 0.28em; text-transform: uppercase; }
+  .ls-dk-glyphmark { font-size: 16px; filter: drop-shadow(0 0 8px rgba(154,126,230,0.5)); }
+  .ls-dk-count { display: inline-flex; align-items: center; padding-left: 11px; margin-left: 1px; color: rgba(200,200,210,0.62); font-size: 11px; letter-spacing: 0.18em; text-indent: 0.18em; border-left: 1px solid rgba(154,126,230,0.32); }
   .ls-dk-chipwrap { perspective: 680px; animation: none; opacity: 1; }
-  .ls-dk-chip { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; font-size: clamp(2.1rem, 9vw, 3.2rem); line-height: 1.04; color: #ffffff; text-shadow: 0 0 34px rgba(154,126,230,0.35); transform-origin: 50% 115%; animation: lsDkFlip 0.7s cubic-bezier(0.3,1.26,0.44,1) both; }
+  .ls-dk-chip { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; font-size: clamp(2.2rem, 9.4vw, 3.3rem); line-height: 1; color: #ffffff; text-shadow: 0 0 34px rgba(154,126,230,0.35); transform-origin: 50% 115%; animation: lsDkFlip 0.7s cubic-bezier(0.3,1.26,0.44,1) both; }
   @keyframes lsDkFlip { from { transform: rotateX(-92deg); opacity: 0; } to { transform: rotateX(0deg); opacity: 1; } }
-  .ls-dk-deg { color: #b9a5f0; font-size: 0.62em; font-weight: 500; letter-spacing: 0.02em; }
-  .ls-dk-count { margin: 0; color: rgba(200,200,210,0.72); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; animation-delay: 0.28s; }
-  .ls-dk-l1 { margin: 0; max-width: 40ch; color: #ececf2; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 4.1vw, 1.14rem); line-height: 1.45; animation-delay: 0.3s; }
-  .ls-dk-l2 { margin: 2px 0 0; max-width: 34ch; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.16rem, 4.9vw, 1.42rem); line-height: 1.44; animation-delay: 0.45s; }
-  .ls-dk-l3 { margin: 0; max-width: 34ch; color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.13rem, 4.6vw, 1.34rem); line-height: 1.46; animation-delay: 0.7s; }
-  .ls-dk-seal { margin: clamp(2px, 1svh, 10px) 0 0; display: inline-flex; align-items: flex-start; gap: 8px; max-width: 42ch; color: rgba(200,200,210,0.6); font-family: "Newsreader", Georgia, serif; font-size: 14px; line-height: 1.5; text-align: left; animation-delay: 0.95s; }
-  .ls-dk-seal svg { flex: 0 0 auto; margin-top: 2.5px; font-size: 13px; color: rgba(185,165,240,0.55); }
+  .ls-dk-deg { color: #b9a5f0; font-size: 0.5em; font-weight: 500; letter-spacing: 0.02em; vertical-align: 0.35em; }
+  .ls-dk-l1 { margin: 2px 0 0; max-width: 34ch; color: #d9d2ea; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 4vw, 1.14rem); line-height: 1.4; }
+  /* the hairline that separates the placement hook from the reading */
+  .ls-dk-rule { width: clamp(46px, 12vw, 72px); height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5), transparent); animation-delay: 0.34s; }
+  /* the uncanny beats: the hero of the card, largest, brightest */
+  .ls-dk-beats { margin: 0; max-width: 30ch; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.24rem, 5.2vw, 1.5rem); line-height: 1.42; letter-spacing: -0.004em; text-shadow: 0 0 30px rgba(154,126,230,0.22); animation-delay: 0.42s; }
+  /* the warm tell: a distinct violet panel, set off from the beats */
+  .ls-dk-tell { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; max-width: 33ch; color: #cbb8f2; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 4.3vw, 1.24rem); line-height: 1.48; animation-delay: 0.66s; }
+  .ls-dk-tell-mark { width: 26px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #b9a5f0, transparent); }
+  /* the seal: a small locked pill, unmistakably a closed door */
+  .ls-dk-seal { margin: clamp(2px, 1svh, 8px) 0 0; display: inline-flex; align-items: center; gap: 8px; max-width: 40ch; padding: 8px 15px; border-radius: 999px; border: 1px solid rgba(154,126,230,0.26); background: rgba(154,126,230,0.06); color: rgba(206,206,216,0.72); font-family: "Newsreader", Georgia, serif; font-size: 13px; line-height: 1.4; text-align: left; animation-delay: 0.9s; }
+  .ls-dk-seal svg { flex: 0 0 auto; font-size: 13px; color: rgba(185,165,240,0.7); }
 
-  /* The element balance: four slim bars filling to the real counts. */
-  .ls-dk-bars { display: flex; flex-direction: column; gap: 12px; width: min(78vw, 330px); margin-bottom: clamp(4px, 1svh, 12px); }
-  .ls-dk-bar { display: grid; grid-template-columns: 54px 1fr 18px; align-items: center; gap: 12px; }
-  .ls-dk-bar-label { color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; text-align: right; }
+  /* The element card: dominant element named, four bars as one designed unit
+     with the dominant lit, then the meaning, the beats and the tell. */
+  .ls-dk-el { gap: clamp(8px, 1.5svh, 14px); }
+  .ls-dk-el-eyebrow { animation-delay: 0.05s; }
+  .ls-dk-el-dom { margin: 0; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1; letter-spacing: -0.014em; text-shadow: 0 0 32px rgba(154,126,230,0.32); animation-delay: 0.12s; }
+  .ls-dk-bars { display: flex; flex-direction: column; gap: 11px; width: min(80vw, 340px); margin: clamp(4px, 1svh, 10px) 0; padding: clamp(14px, 3vw, 18px) clamp(16px, 4vw, 22px); border-radius: 16px; border: 1px solid rgba(154,126,230,0.18); background: linear-gradient(180deg, rgba(154,126,230,0.07), rgba(154,126,230,0.02)); animation-delay: 0.22s; }
+  .ls-dk-bar { display: grid; grid-template-columns: 52px 1fr 16px; align-items: center; gap: 12px; opacity: 0.62; transition: opacity 0.4s ease; }
+  .ls-dk-bar.is-dom { opacity: 1; }
+  .ls-dk-bar-label { color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; text-align: right; }
+  .ls-dk-bar.is-dom .ls-dk-bar-label { color: #cfc0f4; font-weight: 600; }
   .ls-dk-bar-track { position: relative; height: 6px; border-radius: 99px; background: rgba(154,126,230,0.14); overflow: hidden; }
-  .ls-dk-bar-track i { position: absolute; inset: 0; border-radius: 99px; background: linear-gradient(90deg, #7c5cd6, #b9a5f0); transform-origin: 0 50%; animation: lsDkBar 0.8s cubic-bezier(0.22,0.7,0.2,1) both; }
+  .ls-dk-bar-track i { position: absolute; inset: 0; border-radius: 99px; background: linear-gradient(90deg, rgba(124,92,214,0.55), rgba(185,165,240,0.55)); transform-origin: 0 50%; animation: lsDkBar 0.8s cubic-bezier(0.22,0.7,0.2,1) both; }
+  .ls-dk-bar.is-dom .ls-dk-bar-track i { background: linear-gradient(90deg, #7c5cd6, #cfc0f4); box-shadow: 0 0 12px rgba(185,165,240,0.5); }
   @keyframes lsDkBar { from { transform: scaleX(0); } }
   .ls-dk-bar-n { color: rgba(200,200,210,0.7); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; text-align: left; }
-  .ls-dk-l1el { margin: 0; max-width: 26ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.4rem, 5.8vw, 2rem); line-height: 1.22; letter-spacing: -0.01em; animation-delay: 0.15s; }
-  .ls-dk-inner .ls-dk-l1el ~ .ls-dk-l2 { animation-delay: 0.5s; }
-  .ls-dk-inner .ls-dk-l1el ~ .ls-dk-l3 { animation-delay: 0.75s; }
+  .ls-dk-bar.is-dom .ls-dk-bar-n { color: #cfc0f4; }
+  .ls-dk-el-meaning { max-width: 30ch; color: #d9d2ea; font-style: italic; animation-delay: 0.5s; }
+  .ls-dk-el .ls-dk-rule { animation-delay: 0.6s; }
+  .ls-dk-el .ls-dk-beats { animation-delay: 0.66s; }
+  .ls-dk-el .ls-dk-tell { animation-delay: 0.85s; }
 
   /* The synthesis: two placements multiplying, the one "it is the chart" close. */
   .ls-dk-synmark { color: #b9a5f0; font-size: 30px; filter: drop-shadow(0 0 12px rgba(154,126,230,0.5)); }
@@ -1760,15 +1811,14 @@ const DECK_CSS = `
   /* ==== TYPE FLOORS - tuned per viewport ==== */
   @media (min-width: 1024px) {
     .ls-dk-l1 { font-size: 1.16rem; }
-    .ls-dk-l2 { font-size: 1.44rem; }
-    .ls-dk-l3 { font-size: 1.36rem; }
+    .ls-dk-beats { font-size: 1.5rem; }
+    .ls-dk-tell { font-size: 1.26rem; }
     .ls-dk-seal { font-size: 14.5px; }
-    .ls-dk-count { font-size: 13px; }
-    .ls-dk-eyebrow { font-size: 14px; }
+    .ls-dk-eyebrow { font-size: 13.5px; }
   }
 `;
 
-function FreeDeck({ chart, reduce, photoUrl, name }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null }) {
+function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register swaps every card to its remembered-tense twin.
@@ -1782,7 +1832,7 @@ function FreeDeck({ chart, reduce, photoUrl, name }: { chart: PetBirthChart; red
   const reduced = reduce || (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   const keepsake = useMemo(() => (photoUrl ? { photoUrl, name: name ?? null } : null), [photoUrl, name]);
-  const cards = useMemo(() => buildDeck(chart, memorial, keepsake), [chart, memorial, keepsake]);
+  const cards = useMemo(() => buildDeck(chart, memorial, { name, species }, keepsake), [chart, memorial, name, species, keepsake]);
   const last = cards.length - 1;
   const [active, setActive] = useState(0);
   const activeRef = useRef(0);
@@ -2269,7 +2319,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} />
+        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} />
       ) : (
         <>
           <div className="ls-stage">
@@ -3221,6 +3271,8 @@ function FullReadingOpens() {
   }, [memorial, pet, reduce]);
 
   if (!pet) return null;
+  const nm = (pet.name || "").trim() || "them";
+  const nmPoss = (pet.name || "").trim() ? `${(pet.name || "").trim()}'s` : "their";
 
   return (
     <section ref={rootRef} id="the-rest" className={`ls-rs ls-parallax-band${memorial ? " is-memorial" : ""}`} aria-labelledby="ls-rs-title">
@@ -3241,10 +3293,10 @@ function FullReadingOpens() {
             <>
               <p className="ls-rs-eyebrow ls-rs-rv">The rest of who they are</p>
               <h2 id="ls-rs-title" className="ls-rs-title ls-rs-rv" style={revealDelay(0.05)}>
-                The sky did not stop at five.
+                What you just read was the glance.
               </h2>
               <p className="ls-rs-lead ls-rs-rv" style={revealDelay(0.1)}>
-                These worlds stood over them the day they arrived. Each holds a part of them still waiting to be read.
+                Those five placements were one line each. The full reading takes every one of them all the way down, and opens the eight still sealed below.
               </p>
             </>
           )}
@@ -3300,12 +3352,12 @@ function FullReadingOpens() {
 
         {!memorial && (
           <div className="ls-rs-close ls-rs-rv">
-            <h2 className="ls-rs-close-title">Break every seal.</h2>
+            <h2 className="ls-rs-close-title">All thirteen, read as one.</h2>
             <p className="ls-rs-close-line">
-              The full reading opens all thirteen and reads them as one, written for this soul alone and no other.
+              The full reading opens every seal and reads them together, written for {nm} alone and no other soul.
             </p>
-            <button type="button" className="ls-rs-close-cta" onClick={() => descendTo("#begin")}>
-              Open the full reading
+            <button type="button" className="ls-rs-close-cta" onClick={() => descendTo("#the-more")}>
+              See everything it holds
               <ChevronDown size={20} strokeWidth={1.6} />
             </button>
           </div>
@@ -3554,9 +3606,9 @@ function FullReadingOpens() {
 const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; Icon?: typeof AudioLines; photo?: string }[] = [
   {
     key: "placements",
-    label: "Thirteen placements",
-    name: "All thirteen, read in full.",
-    line: "The eight still dark on the wheel, every one of them opened and read.",
+    label: "The written reading",
+    name: "Thirteen chapters, one soul.",
+    line: "Every placement opened all the way down and written in full, the way you just saw begun.",
     Icon: Orbit,
   },
   {
@@ -3569,15 +3621,15 @@ const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; I
   {
     key: "soulspeak",
     label: "SoulSpeak",
-    name: "Hear them in their own voice.",
-    line: "The words they never had a mouth for, spoken at last in a voice that is theirs.",
+    name: "Sit and talk with their soul.",
+    line: "Ask them anything, in their own voice. The questions you never got to, answered at last.",
     Icon: AudioLines,
   },
   {
     key: "horoscope",
-    label: "Monthly Horoscope",
+    label: "Monthly horoscopes",
     name: "Their year, as it turns.",
-    line: "Each month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
+    line: "Every month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
     Icon: Mail,
   },
 ];
@@ -3592,7 +3644,7 @@ function ValueMoments() {
   if (memorialIntent) return null;
 
   return (
-    <section className="ls-vm ls-parallax-band" aria-labelledby="ls-vm-title">
+    <section id="the-more" className="ls-vm ls-parallax-band" aria-labelledby="ls-vm-title">
       <div className="ls-vm-inner">
         <header className="ls-vm-head ls-reveal">
           <p className="ls-vm-eyebrow">Inside the full reading</p>
@@ -3767,7 +3819,17 @@ function ReviewsWall() {
                           </svg>
                         ))}
                       </div>
-                      <figcaption className="ls-rev-attr">{r.attr}</figcaption>
+                      <figcaption className="ls-rev-attr">
+                        {(() => {
+                          const [who, ...rest] = r.attr.split(" · ");
+                          return (
+                            <>
+                              <span className="ls-rev-who">{who}</span>
+                              {rest.length > 0 && <span className="ls-rev-pet">{rest.join(" · ")}</span>}
+                            </>
+                          );
+                        })()}
+                      </figcaption>
                     </div>
                   </div>
                   <blockquote className={`ls-rev-quote${open ? "" : " is-clamp"}`}>{r.quote}</blockquote>
@@ -3819,31 +3881,48 @@ function ReviewsWall() {
         }
         .ls-rev-fig::before {
           content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(165deg, rgba(154,126,230,0.32) 0%, rgba(154,126,230,0.16) 46%, rgba(154,126,230,0.28) 100%);
+          background: linear-gradient(165deg, rgba(185,165,240,0.34) 0%, rgba(154,126,230,0.14) 46%, rgba(185,165,240,0.28) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
         }
+        /* an editorial quote-mark watermark, unmistakably a testimonial */
+        .ls-rev-fig::after {
+          content: "\\201C"; position: absolute; top: 2px; right: 16px; z-index: 0; pointer-events: none;
+          font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 78px; line-height: 1;
+          color: rgba(154,126,230,0.13);
+        }
+        .ls-rev-top, .ls-rev-quote, .ls-rev-label, .ls-rev-more { position: relative; z-index: 1; }
         .ls-rev-top { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
         .ls-rev-ph {
           position: relative; flex: none; width: 58px; height: 58px; border-radius: 14px; overflow: hidden;
           background: ${C.cosmos3};
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(154,126,230,0.10);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(154,126,230,0.14);
         }
-        .ls-rev-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        /* Warm pet photos get pulled into the cosmic world: gently desaturated,
+           with a violet soft-light wash so they sit beside the planet discs. */
+        .ls-rev-ph img { position: relative; z-index: 0; display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(0.82) brightness(0.9) contrast(1.04); }
+        .ls-rev-ph::before {
+          content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+          background: linear-gradient(155deg, rgba(124,92,214,0.32), rgba(20,12,44,0.10) 55%, rgba(124,92,214,0.22));
+          mix-blend-mode: soft-light;
+        }
         .ls-rev-ph::after {
-          content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(165deg, rgba(154,126,230,0.40) 0%, rgba(154,126,230,0.14) 46%, rgba(154,126,230,0.32) 100%);
+          content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: 1px; pointer-events: none;
+          background: linear-gradient(165deg, rgba(185,165,240,0.55) 0%, rgba(154,126,230,0.16) 46%, rgba(185,165,240,0.42) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
         }
         .ls-rev-meta { min-width: 0; }
-        .ls-rev-stars { display: flex; gap: 4px; margin-bottom: 7px; }
-        .ls-rev-stars svg { width: 15px; height: 15px; display: block; fill: ${C.gold}; }
-        .ls-rev-stars svg.off { fill: rgba(200,195,216,0.26); }
-        .ls-rev-attr {
-          color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
-          font-size: 16px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.35;
-        }
+        /* Stars read as a real rating: luminous cream, a soft violet glow, off in a
+           quiet muted violet. On-palette, never gold. */
+        .ls-rev-stars { display: flex; gap: 4px; margin-bottom: 8px; }
+        .ls-rev-stars svg { width: 16px; height: 16px; display: block; fill: #efe9ff; filter: drop-shadow(0 0 4px rgba(185,165,240,0.55)); }
+        .ls-rev-stars svg.off { fill: rgba(196,190,220,0.22); filter: none; }
+        /* Attribution: the person's name in warm cream, the pet + breed a quiet
+           line beneath. Legible, unhurried, sentence case. */
+        .ls-rev-attr { display: flex; flex-direction: column; gap: 2px; }
+        .ls-rev-who { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 16px; line-height: 1.2; letter-spacing: -0.006em; }
+        .ls-rev-pet { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 13.5px; line-height: 1.3; opacity: 0.86; }
         .ls-rev-quote {
           margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic;
           font-size: 1.02rem; line-height: 1.6;

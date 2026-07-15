@@ -1,310 +1,710 @@
-/* The free reading deck: Danny-approved copy for the tap-advance card deck
-   (2026-07-14). Every line here is VERBATIM from the approved copy deck; do
-   not edit without a copy approval. Discovery L2 lines marked KEPT in the
-   approval reference SIGN_LINES so the deck and the checkout excerpt can
-   never drift. Memorial voice: past tense for the pet's behaviour, present
-   tense for what stays true, zero instructions. */
-
-import { SIGN_LINES } from "./signLines";
+/* The free reading deck: Danny-approved "strangely accurate" voice (2026-07-15).
+   Every card names the pet and fuses ONE real placement fact with two or three
+   uncannily-true cold-reading observations, then a warm true-of-any-pet tell.
+   The name is woven in through tokens ({self} {name} {Name} {poss} {Poss}); a
+   pet with no name falls back gracefully to "your dog" / "your cat" / "them".
+   Grammar rule that keeps every case correct: the name only ever appears in an
+   appositive ({self} = "a Monty" / "a side of your dog") or possessive slot,
+   never as a bare verb-subject. The uncanny verbs hang off "the one who ..."
+   (always singular) and follow-on clauses use singular-they. So "Monty",
+   "your dog" and "them" all read grammatically.
+   Memorial voice: past tense for the pet's behaviour, present tense for what
+   stays true, zero care instructions, no grief tropes. No em-dashes anywhere,
+   no sell-words, honour the astrology. */
 
 export const DECK_PLANETS = ["sun", "moon", "venus", "mercury", "mars"] as const;
 export type DeckPlanet = (typeof DECK_PLANETS)[number];
 
 export type Voiced = { d: string; m: string };
-export type DeckSignEntry = { l2: Voiced; l3: Voiced };
+/* Each planet-in-sign card: the uncanny beats (the hero) + the warm tell. */
+export type DeckSignEntry = { beats: Voiced; tell: Voiced };
 
-/* L1 NAME IT frames. Fixed per planet, only the sign swaps. Identical in
-   both voices: the chart does not change. */
+/* ── The subject resolver ──────────────────────────────────────────────────
+   Turns the pet's name + species into every grammatical form the copy needs,
+   then fill() splices them into the token strings. */
+export type Subject = {
+  self: string; // appositive: "a Monty" | "a side of your dog" | "a side of them"
+  name: string; // mid-sentence object: "Monty" | "your dog" | "them"
+  Name: string; // sentence-start (non-verb) object: "Monty" | "Your dog" | "They"
+  poss: string; // mid-sentence possessive: "Monty's" | "your dog's" | "their"
+  Poss: string; // sentence-start possessive: "Monty's" | "Your dog's" | "Their"
+};
+
+export function makeSubject(name?: string | null, species?: string | null): Subject {
+  const n = (name || "").trim();
+  if (n) {
+    return { self: `a ${n}`, name: n, Name: n, poss: `${n}'s`, Poss: `${n}'s` };
+  }
+  if (species === "dog") {
+    return { self: "a side of your dog", name: "your dog", Name: "Your dog", poss: "your dog's", Poss: "Your dog's" };
+  }
+  if (species === "cat") {
+    return { self: "a side of your cat", name: "your cat", Name: "Your cat", poss: "your cat's", Poss: "Your cat's" };
+  }
+  return { self: "a side of them", name: "them", Name: "They", poss: "their", Poss: "Their" };
+}
+
+export function fill(t: string, S: Subject): string {
+  return t
+    .replace(/\{self\}/g, S.self)
+    .replace(/\{Name\}/g, S.Name)
+    .replace(/\{name\}/g, S.name)
+    .replace(/\{Poss\}/g, S.Poss)
+    .replace(/\{poss\}/g, S.poss);
+}
+
+/* L1 NAME IT: the placement fact hook. Name + real sign + what the planet
+   governs. Identical shape in both voices (the chart does not change). */
 export const DECK_L1: Record<DeckPlanet, (sign: string) => string> = {
-  sun: (s) => `Their Sun is in ${s}. That is who they are underneath everything.`,
-  moon: (s) => `Their Moon is in ${s}. The Moon is what settles them when the day has been too much.`,
-  venus: (s) => `Their Venus is in ${s}. Venus is how they love you back.`,
-  mercury: (s) => `Their Mercury is in ${s}. Mercury is how they talk to you.`,
-  mars: (s) => `Their Mars is in ${s}. Mars is where the energy goes.`,
+  sun: (s) => `{Poss} Sun sits in ${s}, the self under everything.`,
+  moon: (s) => `{Poss} Moon sits in ${s}, what settles them when the day has been too much.`,
+  venus: (s) => `{Poss} Venus sits in ${s}, how they love you back.`,
+  mercury: (s) => `{Poss} Mercury sits in ${s}, how they reach for you.`,
+  mars: (s) => `{Poss} Mars sits in ${s}, where all that energy goes.`,
 };
 
 /* Sealed-depth footers, one per planet, both voices. */
 export const DECK_SEALED: Record<DeckPlanet, Voiced> = {
   sun: {
-    d: "Their Sun's exact degree, and the one job it gives them, stays sealed.",
+    d: "{Poss} exact degree, and the single job their Sun hands them, stays sealed.",
     m: "The one thing their Sun sent them here to be for you stays sealed.",
   },
   moon: {
-    d: "What they fear, and what steadies them, stays sealed in the full reading.",
-    m: "What they feared, and what always steadied them, stays sealed in the full reading.",
+    d: "What they fear, and what steadies them against it, stays sealed.",
+    m: "What they feared, and what always steadied them, stays sealed.",
   },
   venus: {
-    d: "What their love asks for in return stays sealed in the full reading.",
+    d: "What {poss} love asks for in return stays sealed in the full reading.",
     m: "How they knew you loved them back stays sealed in the full reading.",
   },
   mercury: {
-    d: "The full reading holds the signal you keep missing, and how to answer it.",
-    m: "The full reading holds what they were telling you all along, in their words.",
+    d: "The one signal you keep missing, and how to answer it, stays sealed.",
+    m: "What they were telling you all along, in their own words, stays sealed.",
   },
   mars: {
-    d: "The full reading holds what sets their temper off, and what settles it.",
-    m: "The full reading holds what they were protecting, every time they stood firm.",
+    d: "What sets them off, and what settles it again, stays sealed.",
+    m: "What they were protecting, every time they stood firm, stays sealed.",
   },
 };
 
-const S = SIGN_LINES;
-
-/* L2 (MEAN IT) + L3 (USE IT), all 12 signs x 5 planets, both voices. */
+/* L2 (MEAN IT: the uncanny beats) + L3 (the warm tell), all 12 signs x 5
+   planets, both voices, name-woven with tokens. Discovery may carry one gentle
+   noticing in the tell; memorial carries only remembrance, never instruction. */
 export const DECK_READS: Record<DeckPlanet, Record<string, DeckSignEntry>> = {
   sun: {
     Aries: {
-      l2: { d: S.sun.Aries, m: "There was never a gap between wanting and doing. First through the door, first at the food, halfway into the thing before they had thought it through." },
-      l3: { d: "Let them be first at the small things today. The door, the greeting, the food. Being first is how this one knows who they are.", m: "It is why they reached every door before you did. Rushing ahead was never bad manners. It was them being most fully themselves." },
+      beats: {
+        d: "There's {self} only you see, the one already moving before the thought has finished, first through the door, first at the food. Waiting is the one thing that has never once come naturally to them.",
+        m: "There was {self} only you saw, the one already moving before the thought had finished, first through the door, first at the food. Waiting was the one thing that never once came naturally to them.",
+      },
+      tell: {
+        d: "Under all that go is a soul that only ever wanted to be met head-on. Arriving at everything first is {poss} whole way of loving you.",
+        m: "Under all that go was a soul that only ever wanted to be met head-on. Arriving at everything first was {poss} whole way of loving you.",
+      },
     },
     Taurus: {
-      l2: { d: S.sun.Taurus, m: "Slow, certain, and impossible to hurry. Comfort was a need, not a treat, and once they had picked their spot the rest of the world could wait." },
-      l3: { d: "Let one thing today take as long as they want. Hurry them and you trade the sweetest hour of their day for two saved minutes.", m: "It is why they took their time with everything. The slowness was never stubbornness. It was them savouring a life they trusted completely." },
+      beats: {
+        d: "There's {self} only you see, the one who cannot be hurried and has never tried to be, who picks a single spot and makes the whole rest of the world wait for it. Rushing them only ever slows them down.",
+        m: "There was {self} only you saw, the one who could not be hurried and never tried to be, who picked a single spot and made the whole rest of the world wait for it. Rushing them only ever slowed them down.",
+      },
+      tell: {
+        d: "That steadiness is not stubbornness. It is a soul that trusts {poss} life completely and wants to take its sweet time inside it.",
+        m: "That steadiness was never stubbornness. It was a soul that trusted {poss} life completely and took its sweet time inside it.",
+      },
     },
     Gemini: {
-      l2: { d: S.sun.Gemini, m: "Two thoughts running before they finished the first, curious about anything that moved. They took in the whole room at a glance, then needed something new to do with it." },
-      l3: { d: "Change one small thing today and let them find it. For this one, a new puzzle is worth more than a full bowl.", m: "It is why they were into everything before you had even set it down. The curiosity was never mischief. It was a quick mind asking the world to keep up." },
+      beats: {
+        d: "There's {self} only you see, the one with two thoughts running before the first is finished, into everything before you have set it down. A quiet, empty room is the one thing that truly unsettles them.",
+        m: "There was {self} only you saw, the one with two thoughts running before the first was finished, into everything before you had set it down. A quiet, empty room was the one thing that truly unsettled them.",
+      },
+      tell: {
+        d: "All that busy is a mind asking the world to keep up. For {name}, a new thing to puzzle over is worth more than a full bowl.",
+        m: "All that busy was a mind asking the world to keep up. A new thing to puzzle over was always worth more to them than a full bowl.",
+      },
     },
     Cancer: {
-      l2: { d: S.sun.Cancer, m: "Their whole self was built around the ones they loved. Soft at the center, watchful of the door, happiest when everyone they belonged to was home." },
-      l3: { d: "Come home the same way at the same time when you can. Your return is the ritual this one builds the whole day around.", m: "It is why they always knew when someone was missing. The watching at the door was never worry for nothing. It was love doing a headcount." },
+      beats: {
+        d: "There's {self} only you see, the one who clocks you leaving a room before you have moved, who doesn't settle until everyone they count as theirs is home.",
+        m: "There was {self} only you saw, the one who clocked you leaving a room before you had moved, who did not settle until everyone they counted as theirs was home.",
+      },
+      tell: {
+        d: "There is a quiet worry in them about being left, even when they seem sure of you. Your coming home is the moment {poss} whole day is built around.",
+        m: "There was a quiet worry in them about being left, even when they seemed sure of you. Your coming home was the moment {poss} whole day was built around.",
+      },
     },
     Leo: {
-      l2: { d: S.sun.Leo, m: "Made for the warm middle of the room, and they knew when their seat was taken. The affection was real and generous, and it wanted one pair of eyes on it. Yours." },
-      l3: { d: "Once today, put everything down and just watch them. For this one, your full attention is the whole point of the performance.", m: "It is why they always found the middle of the room. Taking the spotlight was never vanity. It was them giving you the best seat." },
+      beats: {
+        d: "There's {self} only you see, the one who finds the warm middle of the room and knows the exact second their seat is taken. The affection is real and generous, and it wants one pair of eyes on it. Yours.",
+        m: "There was {self} only you saw, the one who found the warm middle of the room and knew the exact second their seat was taken. The affection was real and generous, and it wanted one pair of eyes on it. Yours.",
+      },
+      tell: {
+        d: "Being seen is not vanity in them. It is how they check, over and over, that they still matter to you. They always will.",
+        m: "Being seen was never vanity in them. It was how they checked, over and over, that they still mattered to you. They always did.",
+      },
     },
     Virgo: {
-      l2: { d: S.sun.Virgo, m: "Watchful and precise, quietly running a routine nobody assigned them. They noticed the thing you moved and the second you changed your mind, and they let you know they saw." },
-      l3: { d: "Keep the small things where they were. The bowl, the bed, the order of the morning. This one relaxes when the details behave.", m: "It is why they noticed every little thing you moved. The fussing was never criticism. It was them keeping the house right for the people in it." },
+      beats: {
+        d: "There's {self} only you see, the one running a routine nobody ever assigned, who notices the thing you moved and the exact second you changed your mind. Nothing small gets past them.",
+        m: "There was {self} only you saw, the one running a routine nobody ever assigned, who noticed the thing you moved and the exact second you changed your mind. Nothing small got past them.",
+      },
+      tell: {
+        d: "All that noticing is love keeping the house right for you. When the small things behave, so does the worry.",
+        m: "All that noticing was love keeping the house right for you. When the small things behaved, so did the worry.",
+      },
     },
     Libra: {
-      l2: { d: S.sun.Libra, m: "Only fully themselves when the room was calm and the bond felt even. They read your mood and handed it back a shade softer." },
-      l3: { d: "Settle the room before you try to settle them. Lower your own voice first and they soften a beat behind you.", m: "It is why the house felt calmer with them in it. Handing your mood back a shade softer was never an accident. It was how they loved." },
+      beats: {
+        d: "There's {self} only you see, the one who is only fully themselves when the room is calm and the bond feels even, who reads your mood and hands it back a shade softer. A tense house becomes a tense them within minutes.",
+        m: "There was {self} only you saw, the one who was only fully themselves when the room was calm and the bond felt even, who read your mood and handed it back a shade softer.",
+      },
+      tell: {
+        d: "That is why the room feels gentler with them in it. Settle yourself first and watch them soften a beat behind you.",
+        m: "That is why the house felt gentler with them in it. Handing your mood back softer was never an accident. It was how they loved.",
+      },
     },
     Scorpio: {
-      l2: { d: S.sun.Scorpio, m: "All in or not at all, and they were the one who decided which. What they gave, they gave completely, and they forgot nothing that passed between you." },
-      l3: { d: "Do not trick them, even as a game. This one forgets nothing, so make sure what they remember is you keeping your word.", m: "It is why they chose you completely and never once wavered. The intensity was not a phase. It was a whole heart with only one setting." },
+      beats: {
+        d: "There's {self} only you see, the one who is all in or not at all and decides which, who gives everything completely and forgets nothing that passes between you. What they chose, they chose for keeps.",
+        m: "There was {self} only you saw, the one who was all in or not at all and decided which, who gave everything completely and forgot nothing that passed between you. What they chose, they chose for keeps.",
+      },
+      tell: {
+        d: "That intensity is not a phase. It is a whole heart with a single setting, and it settled on you a long time ago.",
+        m: "That intensity was never a phase. It was a whole heart with a single setting, and it never once wavered from you.",
+      },
     },
     Sagittarius: {
-      l2: { d: S.sun.Sagittarius, m: "Born mid-adventure with their nose already to the wind. The horizon was the whole point, a shut gate was a dare, and the world was theirs to go and read." },
-      l3: { d: "Give them a new horizon today, even if it is just an open window or a room they rarely see. Small adventures still count as adventures.", m: "It is why no fence ever quite held them. The wandering was never running from you. It was them trusting the world you shared was safe to go and read." },
+      beats: {
+        d: "There's {self} only you see, the one born mid-adventure with their nose to the wind, who reads a shut gate as a dare and the horizon as the whole point. No fence has ever quite held them.",
+        m: "There was {self} only you saw, the one born mid-adventure with their nose to the wind, who read a shut gate as a dare and the horizon as the whole point. No fence ever quite held them.",
+      },
+      tell: {
+        d: "The wandering was never running from you. It is a soul that trusts the world you share is safe to go and read.",
+        m: "The wandering was never running from you. It was a soul that trusted the world you shared was safe to go and read.",
+      },
     },
     Capricorn: {
-      l2: { d: S.sun.Capricorn, m: "Serious past their years, steady when everything else wobbled. They did not beg for their place, they earned it quietly, then held it like it was always theirs." },
-      l3: { d: "Skip the fuss and keep the schedule. For this one, you being reliable is the love, not the extras.", m: "It is why they kept the same place in the house for years. The seriousness was never distance. It was them quietly holding the family steady." },
+      beats: {
+        d: "There's {self} only you see, the one serious past their years, steady when everything else wobbles, who never begs for a place but earns it quietly and holds it like it was always theirs.",
+        m: "There was {self} only you saw, the one serious past their years, steady when everything else wobbled, who never begged for a place but earned it quietly and held it like it was always theirs.",
+      },
+      tell: {
+        d: "The seriousness was never distance. It is a soul quietly holding the whole family steady, you included.",
+        m: "The seriousness was never distance. It was a soul quietly holding the whole family steady, you included.",
+      },
     },
     Aquarius: {
-      l2: { d: S.sun.Aquarius, m: "Their own creature on their own odd clock, and coaxing never changed it. The loyalty was real, it just arrived sideways, on terms only they understood." },
-      l3: { d: "Let them come to you today instead of calling them over. The loyalty runs on their clock, and it is worth the wait every time.", m: "It is why the affection arrived at odd hours, on their terms. The distance was never coldness. It was a private creature deciding you were the exception." },
+      beats: {
+        d: "There's {self} only you see, their own creature on their own odd clock, who cannot be coaxed and arrives at loyalty sideways, on terms only they understand. The affection comes at strange hours and means all the more for it.",
+        m: "There was {self} only you saw, their own creature on their own odd clock, who could not be coaxed and arrived at loyalty sideways, on terms only they understood.",
+      },
+      tell: {
+        d: "That small distance is not coldness. It is a private soul deciding, again and again, that you are the exception.",
+        m: "That small distance was never coldness. It was a private soul deciding, again and again, that you were the exception.",
+      },
     },
     Pisces: {
-      l2: { d: S.sun.Pisces, m: "Soft to the edges and tuned to whatever the room was feeling. Yours before they were their own, waiting at the door and meaning every minute of it." },
-      l3: { d: "On your heavy days, give them a quiet room and your company in it. This one carries whatever the house is feeling, so lighten the house first.", m: "It is why they appeared at your worst moments without being called. The timing was never coincidence. It was their soul, tuned to yours, doing the quiet work." },
+      beats: {
+        d: "There's {self} only you see, the one soft to the edges and tuned to whatever the room is feeling, yours before they were their own. They appear at your worst moments without being called.",
+        m: "There was {self} only you saw, the one soft to the edges and tuned to whatever the room was feeling, yours before they were their own. They appeared at your worst moments without being called.",
+      },
+      tell: {
+        d: "That timing is never coincidence. It is a soul tuned to yours, carrying whatever the house is feeling and staying close through it.",
+        m: "That timing was never coincidence. It was a soul tuned to yours, carrying whatever the house was feeling and staying close through it.",
+      },
     },
   },
   moon: {
     Aries: {
-      l2: { d: S.moon.Aries, m: "They settled by burning it off, never by being asked to sit still. Once the energy was out, the calm arrived on its own, every time." },
-      l3: { d: "On a hard day, movement comes first and softness second. Ten wild minutes buy you a whole calm evening.", m: "It is why the mad dashes always came before the deep sleeps. They were not being difficult. That was how they emptied the day out." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who cannot be soothed into stillness and never could, who has to burn the day off before the calm will come. Told to settle, they only wind tighter.",
+        m: "There was {self} the hard days brought out, the one who could not be soothed into stillness, who had to burn the day off before the calm would come. Told to settle, they only wound tighter.",
+      },
+      tell: {
+        d: "Once the racing is out of them, the quiet arrives on its own, every time. Movement first, softness second, is the whole secret of them.",
+        m: "Once the racing was out of them, the quiet arrived on its own, every time. The mad dashes always came before the deepest sleeps.",
+      },
     },
     Taurus: {
-      l2: { d: S.moon.Taurus, m: "Safe meant warm, fed, and in the exact spot they always slept. Nothing in the house belonged to them more than that one place." },
-      l3: { d: "On a hard day, put the ordinary back first. The usual meal in the usual spot settles them faster than any amount of fuss.", m: "It is why they kept returning to that one spot, year after year. Comfort was never boring to them. It was the whole point." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one for whom safe means warm, fed, and in the exact spot they always sleep. Move that one place a foot and you will hear about it for a week.",
+        m: "There was {self} the hard days brought out, the one for whom safe meant warm, fed, and in the exact spot they always slept. Nothing in the house belonged to them more than that one place.",
+      },
+      tell: {
+        d: "Put the ordinary back and they steady faster than any fuss could manage. For {name}, the usual is not boring. It is the whole point.",
+        m: "Putting the ordinary back steadied them faster than any fuss could. The usual was never boring to them. It was the whole point.",
+      },
     },
     Gemini: {
-      l2: { d: S.moon.Gemini, m: "Calm came from something to watch and someone to answer. A quiet, empty room unsettled them, so they invented a game to fill it." },
-      l3: { d: "So tire the mind, not the legs. A treat they must work for drains them faster than an hour of running ever will.", m: "It is why they made a game out of nothing at all. A busy mind was never restlessness. It was how they kept themselves company." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who cannot settle in a quiet, empty room and invents a game to fill it. Calm comes from something to watch and someone to answer, never from nothing.",
+        m: "There was {self} the hard days brought out, the one who could not settle in a quiet, empty room and invented a game to fill it. Calm came from something to watch and someone to answer.",
+      },
+      tell: {
+        d: "Tire the mind, not the legs, and they go quiet. A busy head was never restlessness in them. It is how they keep themselves company.",
+        m: "A tired mind settled them faster than tired legs ever did. The busy head was never restlessness. It was how they kept themselves company.",
+      },
     },
     Cancer: {
-      l2: { d: S.moon.Cancer, m: "They felt safe only with you close and the day in its usual order. The sound of you coming home put the whole day right, every time." },
-      l3: { d: "On a hard day, come back to them first, before the coat is even off. Two minutes of hello undoes an entire afternoon of waiting.", m: "It is why the greeting at the door mattered so much to them. You were the routine. Everything else was just the frame around you." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who feels safe only with you close and the day in its usual order, tipped into a small wounded quiet by a skipped goodbye. The sound of you coming home puts the whole day right.",
+        m: "There was {self} the hard days brought out, the one who felt safe only with you close and the day in its usual order. The sound of you coming home put the whole day right, every time.",
+      },
+      tell: {
+        d: "You are the routine. Everything else is only the frame around you, and they have always known it.",
+        m: "You were the routine. Everything else was only the frame around you, and they always knew it.",
+      },
     },
     Leo: {
-      l2: { d: S.moon.Leo, m: "They felt safest the moment they were seen. A word of praise reset their whole day, and they placed themselves where yours could always find them." },
-      l3: { d: "On a hard day, give the attention before they ask for it. Say their name like it is good news and watch the whole body loosen.", m: "It is why they always placed themselves where you could not miss them. Being seen was not vanity. It was how they knew they were safe." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who feels safest the moment they are seen, whom a word of praise resets and being overlooked stings far more than they let on. They place themselves exactly where your eyes will land.",
+        m: "There was {self} the hard days brought out, the one who felt safest the moment they were seen, whom a word of praise reset and being overlooked stung far more than they let on.",
+      },
+      tell: {
+        d: "Being seen is not vanity in them. It is how they know they are safe. Say their name like good news and watch the whole body loosen.",
+        m: "Being seen was never vanity in them. It was how they knew they were safe. They placed themselves where you could never miss them.",
+      },
     },
     Virgo: {
-      l2: { d: S.moon.Virgo, m: "They calmed when everything sat in its right place. The same bowl in the same corner, the routine kept, and that anxious edge finally went quiet." },
-      l3: { d: "On a hard day, tidy the room before you tend to them. Put things back where they live and the worry runs out of jobs to do.", m: "It is why they noticed the smallest change before anyone else did. Keeping watch over the little things was their way of holding the house steady." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who cannot settle until everything sits in its right place, the same bowl in the same corner, the routine kept. Then the anxious edge finally goes quiet.",
+        m: "There was {self} the hard days brought out, the one who could not settle until everything sat in its right place. The same bowl in the same corner, the routine kept, and the anxious edge finally went quiet.",
+      },
+      tell: {
+        d: "Tidy the room before you tend to them and the worry runs out of jobs to do. Keeping the little things right is how they hold the whole house steady.",
+        m: "Putting things back where they lived ran the worry out of jobs to do. Keeping the little things right was how they held the whole house steady.",
+      },
     },
     Libra: {
-      l2: { d: S.moon.Libra, m: "They steadied in company and frayed alone. Their calm was borrowed straight from yours, so a peaceful evening made a peaceful them." },
-      l3: { d: "On a hard day, settle yourself first. Sit down, slow your voice, and they will match you breath for breath.", m: "It is why they always drifted to whoever was calmest in the room. They were not choosing favourites. They were finding their balance." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who steadies in company and frays alone, who borrows their calm straight from you. A tense room becomes a tense them within minutes.",
+        m: "There was {self} the hard days brought out, the one who steadied in company and frayed alone, who borrowed their calm straight from you. A peaceful evening made a peaceful them.",
+      },
+      tell: {
+        d: "Settle yourself first and they match you breath for breath. They were never choosing favourites. They were finding their balance in you.",
+        m: "They always drifted to whoever was calmest in the room. It was never favouritism. It was them finding their balance.",
+      },
     },
     Scorpio: {
-      l2: { d: "Watches from a safe distance before they trust the room. Once they decide you are the one who stays, that trust is total and does not come undone.", m: "They watched from a safe distance before they trusted a room. Once they decided you were the one who stays, that trust was total and never came undone." },
-      l3: { d: "On a hard day, do not coax them out of hiding. Stay where they can see you and let them close the distance themselves.", m: "It is why they kept that one lookout spot their whole life. They were not being distant. They were deciding, again and again, that you were safe." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who watches from a safe distance before trusting a room. Once they decide you are the one who stays, that trust is total and does not come undone.",
+        m: "There was {self} the hard days brought out, the one who watched from a safe distance before trusting a room. Once they decided you were the one who stays, that trust was total and never came undone.",
+      },
+      tell: {
+        d: "Do not coax them out of hiding. Stay where they can see you and let them close the distance. That lookout spot is them deciding, again and again, that you are safe.",
+        m: "They kept that one lookout spot their whole life. It was never distance. It was them deciding, again and again, that you were safe.",
+      },
     },
     Sagittarius: {
-      l2: { d: S.moon.Sagittarius, m: "They needed room and a horizon more than a soft place to lie. Open ground did more for them than any blanket ever could." },
-      l3: { d: "On a hard day, open the space up before anything else. A change of scenery does what no amount of soothing can.", m: "It is why they always faced the widest view they could find. Being able to see far was their version of being held." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who needs room and a horizon more than a soft place to lie. Open ground does more for them than any blanket could.",
+        m: "There was {self} the hard days brought out, the one who needed room and a horizon more than a soft place to lie. Open ground did more for them than any blanket ever could.",
+      },
+      tell: {
+        d: "Open the space up before anything else and watch a change of scenery do what no soothing can. Seeing far was always their version of being held.",
+        m: "They always faced the widest view they could find. Being able to see far was their version of being held.",
+      },
     },
     Capricorn: {
-      l2: { d: S.moon.Capricorn, m: "They steadied on a schedule they could count on. Surprises were no gift to this one, and a day that ran to plan was a day they could finally relax into." },
-      l3: { d: "On a hard day, hold the timetable steady. Feed on time, quiet at the usual hour, and let the day itself do the reassuring.", m: "It is why the whole house ended up running on their clock. Order was how they took care of everyone, including themselves." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one who steadies on a schedule they can count on, for whom surprises are no gift. A day that runs to plan is a day they can finally relax into.",
+        m: "There was {self} the hard days brought out, the one who steadied on a schedule they could count on. A day that ran to plan was a day they could finally relax into.",
+      },
+      tell: {
+        d: "Hold the timetable and let the day itself do the reassuring. Order was how they took care of everyone, themselves included.",
+        m: "The whole house ended up running on their clock. Order was how they took care of everyone, themselves included.",
+      },
     },
     Aquarius: {
-      l2: { d: S.moon.Aquarius, m: "They were comforted by room to breathe, not by being held close. They came to you when they were ready, and it always meant more that way." },
-      l3: { d: "On a hard day, give space first and comfort second. The cuddle lands, but only after the room opens up.", m: "It is why they settled one step away instead of pressed against you. Nearby was their whole heart. They just carried it at their own distance." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one comforted by room to breathe rather than being held close, who comes to you when they are ready and means it more that way. Reach too soon and they step back.",
+        m: "There was {self} the hard days brought out, the one comforted by room to breathe rather than being held close, who came to you when they were ready and meant it more that way.",
+      },
+      tell: {
+        d: "Give the space first and the closeness second. They settle one step away, and that small distance is their whole heart, carried at its own length.",
+        m: "They settled one step away instead of pressed against you. Nearby was their whole heart. They just carried it at their own distance.",
+      },
     },
     Pisces: {
-      l2: { d: S.moon.Pisces, m: "They were soothed by quiet and the plain fact of you nearby. They soaked up the whole mood of the house, and a loud day sent them somewhere small and safe to wait it out." },
-      l3: { d: "On a hard day, quiet the house before you offer anything else. Your calm, in the same room, is the comfort itself.", m: "It is why they always knew when something was wrong before you said a word. They were not reading your face. They were feeling the room." },
+      beats: {
+        d: "There's {self} the hard days bring out, the one soothed by quiet and the plain fact of you nearby, who soaks up the whole mood of the house. A loud day sends them somewhere small and safe to wait it out.",
+        m: "There was {self} the hard days brought out, the one soothed by quiet and the plain fact of you nearby, who soaked up the whole mood of the house. A loud day sent them somewhere small and safe to wait it out.",
+      },
+      tell: {
+        d: "Quiet the house before you offer anything else. Your calm, in the same room, is the comfort itself. They always know something is wrong before you say a word.",
+        m: "They always knew something was wrong before you said a word. They were not reading your face. They were feeling the room.",
+      },
     },
   },
   venus: {
     Aries: {
-      l2: { d: "Loves head-on. Crashes into you first, then waits right there for the same back.", m: "Loved head-on. Crashed into you first, then waited right there for the same back." },
-      l3: { d: "So greet them the way they greet you. Big, first thing, before the coat is even off. Held-back hellos read as no to this one.", m: "It is why every hello was a collision. Holding back was never in them. Each greeting was the whole heart, handed over all at once." },
+      beats: {
+        d: "There's {self} in how they love you, the one who comes at it head-on, who crashes into you first and waits right there for the same back. A held-back hello reads as a no to them.",
+        m: "There was {self} in how they loved you, the one who came at it head-on, who crashed into you first and waited right there for the same back.",
+      },
+      tell: {
+        d: "Every greeting is the whole heart handed over at once. Meet them big, before the coat is even off, and you speak their exact language.",
+        m: "Every hello was a collision. Holding back was never in them. Each greeting was the whole heart, handed over all at once.",
+      },
     },
     Taurus: {
-      l2: { d: S.venus.Taurus, m: "Showed love by leaning their whole weight on you and refusing to move." },
-      l3: { d: "So lean back. Stay put an extra minute when they settle against you. To them, not moving is the whole conversation.", m: "It is why you remember the weight of them more than anything. Leaning in was how they said it. Staying put was the point." },
+      beats: {
+        d: "There's {self} in how they love you, the one who says it by leaning their whole weight on you and refusing to move. To them, not moving is the entire conversation.",
+        m: "There was {self} in how they loved you, the one who said it by leaning their whole weight on you and refusing to move.",
+      },
+      tell: {
+        d: "Stay put an extra minute when they settle against you and you have answered them completely. It is the weight of them you will always remember.",
+        m: "It is the weight of them you remember more than anything. Leaning in was how they said it. Staying put was the point.",
+      },
     },
     Gemini: {
-      l2: { d: S.venus.Gemini, m: "Brought you things and talked the whole time. Attention was the love language." },
-      l3: { d: "So answer the noise. Chat back, take the thing they bring, ask what it is. Being ignored is the only thing that stings.", m: "It is why they never once came to you quietly. Every offering, every odd little sound, was a question aimed at you. Your answer was the prize." },
+      beats: {
+        d: "There's {self} in how they love you, the one who brings you things and keeps up a running commentary while they do it. Attention is the love language, and being ignored is the only thing that stings.",
+        m: "There was {self} in how they loved you, the one who brought you things and kept up a running commentary while they did it. Attention was the love language.",
+      },
+      tell: {
+        d: "Answer the noise. Take the thing they bring, ask what it is. Every odd little sound is a question aimed straight at you.",
+        m: "They never once came to you quietly. Every offering, every odd little sound, was a question aimed at you. Your answer was the prize.",
+      },
     },
     Cancer: {
-      l2: { d: S.venus.Cancer, m: "Loved by guarding. Followed you room to room and fretted when you left." },
-      l3: { d: "So let them keep you in sight. Leave the door open while you get ready. Nearness is the reassurance, not the fuss.", m: "It is why they were always one room behind you, always in the doorway. Keeping you in sight was the love, and they never wanted a day off from it." },
+      beats: {
+        d: "There's {self} in how they love you, the one who loves by guarding, who follows you room to room and frets the moment you leave. Keeping you in sight is the whole reassurance.",
+        m: "There was {self} in how they loved you, the one who loved by guarding, who followed you room to room and fretted the moment you left.",
+      },
+      tell: {
+        d: "Leave the door open while you get ready and you have given them everything. They never wanted a single day off from watching over you.",
+        m: "They were always one room behind you, always in the doorway. Keeping you in sight was the love, and they never wanted a day off from it.",
+      },
     },
     Leo: {
-      l2: { d: S.venus.Leo, m: "Loved out loud and expected it back with interest. Generous, and a little theatrical." },
-      l3: { d: "So be their audience. Say their name warmly and make the fuss where others can see. Praise in front of company counts double.", m: "It is why every hello felt like a performance. The show was real. You were the audience they did it all for." },
+      beats: {
+        d: "There's {self} in how they love you, the one who loves out loud and expects it back with interest, generous and a little theatrical. Every hello is a small performance, and you are the audience.",
+        m: "There was {self} in how they loved you, the one who loved out loud and expected it back with interest, generous and a little theatrical.",
+      },
+      tell: {
+        d: "Say their name warmly, make the fuss where others can see, and you have paid them in full. The show was always real. It was for you.",
+        m: "Every hello felt like a performance. The show was real. You were the audience they did it all for.",
+      },
     },
     Virgo: {
-      l2: { d: S.venus.Virgo, m: "Showed love by staying close while you worked. Missing nothing, asking for nothing." },
-      l3: { d: "So notice them back. A quiet word, a hand resting on them mid-task. Small and often beats grand and rare with this one.", m: "It is why they were always within reach and never in the way. Quiet company was the gift. They loved you in the small hours of ordinary days." },
+      beats: {
+        d: "There's {self} in how they love you, the one who shows it by staying close while you work, missing nothing and asking for nothing. Small and often beats grand and rare, every time.",
+        m: "There was {self} in how they loved you, the one who showed it by staying close while you worked, missing nothing and asking for nothing.",
+      },
+      tell: {
+        d: "A quiet word, a hand resting on them mid-task, is all they were ever after. They love you in the small hours of ordinary days.",
+        m: "They were always within reach and never in the way. Quiet company was the gift. They loved you in the small hours of ordinary days.",
+      },
     },
     Libra: {
-      l2: { d: "Loves to be near and in tune. Gives the softness first, hoping you match it.", m: "Loved to be near and in tune. Gave the softness first, hoping you would match it." },
-      l3: { d: "So meet them softly. Lower your voice, slow your hands. They love in matched moods, so give them a good one to match.", m: "It is why they seemed to feel what you felt a beat before you said it. Meeting you halfway was the love. The house sat gentler with them keeping the balance." },
+      beats: {
+        d: "There's {self} in how they love you, the one who loves to be near and in tune, who gives the softness first and hopes you match it. They seem to feel what you feel a beat before you say it.",
+        m: "There was {self} in how they loved you, the one who loved to be near and in tune, who gave the softness first and hoped you would match it.",
+      },
+      tell: {
+        d: "Meet them softly, lower your voice, slow your hands. The house sits gentler with them keeping the balance, and that balancing is the love itself.",
+        m: "They seemed to feel what you felt a beat before you said it. Meeting you halfway was the love. The house sat gentler with them keeping the balance.",
+      },
     },
     Scorpio: {
-      l2: { d: S.venus.Scorpio, m: "Picked one person and kept picking them. That was you, and it was for life." },
-      l3: { d: "So keep your promises to them, even tiny ones. Come back when you said you would. Loyalty answered with loyalty is the only language they trust.", m: "It is why they were different with you than with anyone else. Not aloof. Chosen. They decided on you early and never once changed the answer." },
+      beats: {
+        d: "There's {self} in how they love you, the one who picks a single person and keeps picking them. That is you, and it is for life. They are different with you than with anyone else.",
+        m: "There was {self} in how they loved you, the one who picked a single person and kept picking them. That was you, and it was for life.",
+      },
+      tell: {
+        d: "Keep your promises to them, even the tiny ones. Loyalty answered with loyalty is the only language they trust, and they chose you early.",
+        m: "They were different with you than with anyone else. Not aloof. Chosen. They decided on you early and never once changed the answer.",
+      },
     },
     Sagittarius: {
-      l2: { d: S.venus.Sagittarius, m: "Loved by including you in the fun. Every open door came with an invitation: come on, keep up." },
-      l3: { d: "So say yes more than you say no. Join the game, even for five minutes. Being in it with them is worth more than any cuddle.", m: "It is why the best memories are the ones where you went along. The adventure was never the point. Having you in it was." },
+      beats: {
+        d: "There's {self} in how they love you, the one who loves by including you, whose every open door comes with the same invitation: come on, keep up. Being in it with them beats any cuddle.",
+        m: "There was {self} in how they loved you, the one who loved by including you, whose every open door came with the same invitation: come on, keep up.",
+      },
+      tell: {
+        d: "Say yes more than you say no, and join the game even for five minutes. The adventure was never the point. Having you in it was.",
+        m: "The best memories are the ones where you went along. The adventure was never the point. Having you in it was.",
+      },
     },
     Capricorn: {
-      l2: { d: S.venus.Capricorn, m: "Undemonstrative and completely dependable. The love was in the showing up." },
-      l3: { d: "So be dependable back. Same time, same ritual, kept without fail. A kept routine tells them more than a hundred cuddles.", m: "It is why the love never looked dramatic and never once wavered. They were there every single day, in the same quiet way. That was the whole vow." },
+      beats: {
+        d: "There's {self} in how they love you, the one who is undemonstrative and completely dependable, whose love is in the showing up. A kept routine tells them more than a hundred cuddles.",
+        m: "There was {self} in how they loved you, the one who was undemonstrative and completely dependable, whose love was in the showing up.",
+      },
+      tell: {
+        d: "Be dependable back, same time, same ritual, kept without fail. The love never looks dramatic and never once wavers. That is the whole vow.",
+        m: "The love never looked dramatic and never once wavered. They were there every single day, in the same quiet way. That was the whole vow.",
+      },
     },
     Aquarius: {
-      l2: { d: S.venus.Aquarius, m: "Loved on a slant. Sat one cushion away, which from them was devotion." },
-      l3: { d: "So let the cushion count. Do not pull them closer. Sit where they can see you and let them arrive on their own clock.", m: "It is why they were near you far more often than they were on you. Choosing the same room was the declaration. In their language, that small distance was closeness." },
+      beats: {
+        d: "There's {self} in how they love you, the one who loves on a slant and sits one cushion away, which from them is pure devotion. Choosing the same room as you is the declaration.",
+        m: "There was {self} in how they loved you, the one who loved on a slant and sat one cushion away, which from them was pure devotion.",
+      },
+      tell: {
+        d: "Let the cushion count. Do not pull them closer. In their language, that small distance is the closest thing to closeness there is.",
+        m: "They were near you far more often than they were on you. Choosing the same room was the declaration. In their language, that small distance was closeness.",
+      },
     },
     Pisces: {
-      l2: { d: S.venus.Pisces, m: "Loved by melting into you. There was no edge between their mood and yours." },
-      l3: { d: "So bring them your softest hour. Sit down, slow your breathing, and let them settle into it. Your calm is the affection they read best.", m: "It is why they appeared on your hardest days without being called. Your feelings were their feelings. Loving you and knowing you were never two different things." },
+      beats: {
+        d: "There's {self} in how they love you, the one who loves by melting into you, with no edge between their mood and yours. They appear on your hardest days without being called.",
+        m: "There was {self} in how they loved you, the one who loved by melting into you, with no edge between their mood and yours.",
+      },
+      tell: {
+        d: "Bring them your softest hour and let them settle into it. Your calm is the affection they read best. Loving you and knowing you were never two different things.",
+        m: "They appeared on your hardest days without being called. Your feelings were their feelings. Loving you and knowing you were never two different things.",
+      },
     },
   },
   mercury: {
     Aries: {
-      l2: { d: "They want it now and they tell you fast. One sharp sound, a stare, a nudge, and you are already moving for them.", m: "They wanted it now and they told you fast. One sharp sound, one stare, and you were already up before you knew why." },
-      l3: { d: "Answer the first ask, even if the answer is no. Being heard fast matters more to this one than getting the yes.", m: "It is why they never learned to wait. They trusted you to answer, so they never had to. That was faith, not impatience." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who wants it now and tells you fast, one sharp sound and a stare and you are already moving before you know why. Being heard quickly matters more than the yes.",
+        m: "There was {self} in the way they talked to you, the one who wanted it now and told you fast, one sharp sound and a stare and you were already up before you knew why.",
+      },
+      tell: {
+        d: "Answer the first ask, even when the answer is no. They never learned to wait because they trusted you to hear them. That was faith, not impatience.",
+        m: "They never learned to wait. They trusted you to answer, so they never had to. That was faith, not impatience.",
+      },
     },
     Taurus: {
-      l2: { d: S.mercury.Taurus, m: "This one thought slow and meant it. Ask twice and you got the same calm answer, usually a look toward the food bowl." },
-      l3: { d: "Say it once, then count to ten. The answer is already on its way, just on their clock. Asking again only resets it.", m: "It is why they never startled at your bad days. They decided about you slowly, once, and it held. Steady was their whole vocabulary." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who thinks slow and means every word of it. Ask twice and you get the same calm answer, usually a long look toward the food.",
+        m: "There was {self} in the way they talked to you, the one who thought slow and meant every word of it. Ask twice and you got the same calm answer.",
+      },
+      tell: {
+        d: "Say it once, then count to ten. The answer is already on its way, just on their clock. Steady was always their whole vocabulary.",
+        m: "They never startled at your bad days. They decided about you slowly, once, and it held. Steady was their whole vocabulary.",
+      },
     },
     Gemini: {
-      l2: { d: S.mercury.Gemini, m: "A chatterbox brain, always two thoughts ahead. They read your tone before your words and answered with their whole body." },
-      l3: { d: "So talk to them in tone, not vocabulary. Warm the sound of your voice and watch the whole body answer before the sentence ends.", m: "It is why they knew you were leaving before you picked up the keys. They read the shift in you, not the routine. Nothing in you ever got past them." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one two thoughts ahead, who reads your tone long before your words and answers with the whole body. Nothing in your voice ever gets past them.",
+        m: "There was {self} in the way they talked to you, the one two thoughts ahead, who read your tone long before your words and answered with the whole body.",
+      },
+      tell: {
+        d: "Talk to them in tone, not vocabulary. Warm the sound of it and the whole body answers before your sentence ends. They knew you were leaving before you touched the keys.",
+        m: "They knew you were leaving before you picked up the keys. They read the shift in you, not the routine. Nothing in you ever got past them.",
+      },
     },
     Cancer: {
-      l2: { d: "They speak in moods. A small sound, a lean into you, and you know exactly how their day went.", m: "They spoke in moods. A small sound, a lean into you, and you knew exactly how their day went." },
-      l3: { d: "Keep the hellos and goodbyes, even the rushed ones. To this one, the greeting is the whole conversation, and skipping one says more than you meant to.", m: "It is why your arrivals mattered so much to them. The greeting was the whole conversation, and they never once missed it. They kept count in love, not grudges." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who speaks in moods, a small sound and a lean into you telling you exactly how the day went. The greeting is the whole conversation.",
+        m: "There was {self} in the way they talked to you, the one who spoke in moods, a small sound and a lean into you telling you exactly how the day went.",
+      },
+      tell: {
+        d: "Keep the hellos and goodbyes, even the rushed ones. Skipping one says more than you mean it to. They kept count in love, never in grudges.",
+        m: "Your arrivals mattered so much to them. The greeting was the whole conversation, and they never once missed it. They kept count in love, not grudges.",
+      },
     },
     Leo: {
-      l2: { d: S.mercury.Leo, m: "Everything they wanted came with flair. The dramatic sigh, the head turned just so, an audience expected and usually granted." },
-      l3: { d: "Say what they are doing out loud, like it is news. An audience is the reward this one works for, and it costs you nothing.", m: "It is why the sighs got louder when you looked away. Being watched was their word for being loved, and you gave them a lifetime in the front row." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who does everything with flair, the dramatic sigh, the head turned just so, an audience expected and usually granted. The sighs get louder the moment you look away.",
+        m: "There was {self} in the way they talked to you, the one who did everything with flair, the dramatic sigh, the head turned just so, an audience expected and usually granted.",
+      },
+      tell: {
+        d: "Say what they are doing out loud, like it is news. Being watched is their word for being loved, and it costs you nothing to give.",
+        m: "The sighs got louder when you looked away. Being watched was their word for being loved, and you gave them a lifetime in the front row.",
+      },
     },
     Virgo: {
-      l2: { d: S.mercury.Virgo, m: "A noticer. This one clocked the new bag, the rearranged shoes, the half-second you paused, and let you know they saw." },
-      l3: { d: "When something in the house changes, show it to them on purpose. Once it has been inspected, the new thing stops being a problem.", m: "It is why nothing in that house changed without their inspection. Keeping track of your world was how they kept you. Every small check was a kind of care." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who notices the new bag, the rearranged shoes, the half-second you paused, and lets you know they saw. Nothing changes in the house without their inspection.",
+        m: "There was {self} in the way they talked to you, the one who noticed the new bag, the rearranged shoes, the half-second you paused, and let you know they saw.",
+      },
+      tell: {
+        d: "When something changes, show it to them on purpose. Once it has been checked, the new thing stops being a problem. Every small inspection is a kind of care.",
+        m: "Nothing in that house changed without their inspection. Keeping track of your world was how they kept you. Every small check was a kind of care.",
+      },
     },
     Libra: {
-      l2: { d: S.mercury.Libra, m: "They negotiated. A look at you, a look at the door, a polite pause until you both agreed on the plan." },
-      l3: { d: "Give them the small yes out loud. They are not asking permission, they are asking for agreement, and agreement is the treat.", m: "It is why they always waited for your nod before the good part. They never wanted the thing as much as they wanted the two of you deciding it together." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who negotiates, a look at you, a look at the door, a polite pause until you both agree on the plan. They wait for your nod before the good part.",
+        m: "There was {self} in the way they talked to you, the one who negotiated, a look at you, a look at the door, a polite pause until you both agreed on the plan.",
+      },
+      tell: {
+        d: "Give them the small yes out loud. They are not asking permission, they are asking for agreement, and the agreement is the treat.",
+        m: "They always waited for your nod before the good part. They never wanted the thing as much as they wanted the two of you deciding it together.",
+      },
     },
     Scorpio: {
-      l2: { d: S.mercury.Scorpio, m: "Quiet and watchful, this one said little and meant all of it. When they finally asked, you did not say no." },
-      l3: { d: "Treat their rare ask as urgent. This one edits out every small want, so the one that reaches you has already passed a hundred tests.", m: "It is why the quiet never meant distance. They were saving their words for the things that counted, and every one of them was aimed at you." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who says little and means the whole of it. When they finally ask, you do not say no, because the ask has already passed a hundred quiet tests.",
+        m: "There was {self} in the way they talked to you, the one who said little and meant the whole of it. When they finally asked, you did not say no.",
+      },
+      tell: {
+        d: "Treat their rare request as urgent. The quiet was never distance. They were saving their words for the things that counted, and every one was aimed at you.",
+        m: "The quiet never meant distance. They were saving their words for the things that counted, and every one of them was aimed at you.",
+      },
     },
     Sagittarius: {
-      l2: { d: "Big loud opinions about everything outside. They announce the neighbor, the delivery, the change in the weather before you have looked up.", m: "Big loud opinions about everything outside. They announced the neighbor, the delivery, the whole world going by, in case you missed it." },
-      l3: { d: "Go see what they are announcing. Two seconds of looking together turns the noise into a conversation, and the conversation is what they wanted.", m: "It is why they told you about everything, even the things you could plainly see. The news was never the point. Sharing the world with you was." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one with big loud opinions about everything outside, announcing the visitor, the delivery, the whole world going by in case you missed it.",
+        m: "There was {self} in the way they talked to you, the one with big loud opinions about everything outside, announcing the visitor, the delivery, the whole world going by in case you missed it.",
+      },
+      tell: {
+        d: "Go and see what they are announcing. Two seconds of looking together turns the noise into a conversation, and the conversation was what they wanted all along.",
+        m: "They told you about everything, even the things you could plainly see. The news was never the point. Sharing the world with you was.",
+      },
     },
     Capricorn: {
-      l2: { d: S.mercury.Capricorn, m: "A serious communicator. One firm look that meant business, and they held your eye until the message landed." },
-      l3: { d: "When you get the long stare, stop and take inventory. Water, food, door, routine. This one only files a complaint once, and it is always about something real.", m: "It is why one look from them could stop you mid-sentence. They never asked twice, because they trusted you to hear it the first time. And you did." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who communicates in one firm look that means business and holds your eye until the message lands. They only ever file a complaint once.",
+        m: "There was {self} in the way they talked to you, the one who communicated in one firm look that meant business and held your eye until the message landed.",
+      },
+      tell: {
+        d: "When you get the long stare, stop and take inventory: water, food, door, routine. They trusted you to hear it the first time, and you did.",
+        m: "One look from them could stop you mid-sentence. They never asked twice, because they trusted you to hear it the first time. And you did.",
+      },
     },
     Aquarius: {
-      l2: { d: "This one invents their own signals. An odd tap, a sound all their own, a routine only the two of you understand.", m: "This one invented their own signals. An odd tap, a sound all their own, a routine only the two of you understood." },
-      l3: { d: "Answer the weird signal the same way every time. You are not training them, you are keeping up your half of a language they built for you.", m: "It is why nobody else could quite read them. The language was built for an audience of one, and it was you. It was never meant to translate." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who invents their own signals, an odd tap, a sound all their own, a routine only the two of you understand. Nobody else can quite read them.",
+        m: "There was {self} in the way they talked to you, the one who invented their own signals, an odd tap, a sound all their own, a routine only the two of you understood.",
+      },
+      tell: {
+        d: "Answer the strange signal the same way every time. You are not training them, you are keeping up your half of a language built for an audience of one. You.",
+        m: "Nobody else could quite read them. The language was built for an audience of one, and it was you. It was never meant to translate.",
+      },
     },
     Pisces: {
-      l2: { d: "They read the room before you do. A change in your voice and they are already beside you, asking nothing, offering everything.", m: "They read the room before you did. A change in your voice and they were already beside you, asking nothing, offering everything." },
-      l3: { d: "You do not have to hide a hard day from this one. They already know, so let them sit close while you have it. Pretending is the only thing that confuses them.", m: "It is why they always appeared before the tears did. They felt the weather change in you first, and being near was the only answer they thought you needed. They were right." },
+      beats: {
+        d: "There's {self} in the way they talk to you, the one who reads the room before you do, already beside you at the smallest change in your voice, asking nothing and offering everything.",
+        m: "There was {self} in the way they talked to you, the one who read the room before you did, already beside you at the smallest change in your voice, asking nothing and offering everything.",
+      },
+      tell: {
+        d: "You never have to hide a hard day from them. They already know, so let them sit close while you have it. Pretending is the only thing that ever confuses them.",
+        m: "They always appeared before the tears did. They felt the weather change in you first, and being near was the only answer they thought you needed. They were right.",
+      },
     },
   },
   mars: {
     Aries: {
-      l2: { d: "First out the door, last to quit. This one plays rough, forgives fast, and treats anything that moves as a personal challenge.", m: "First out the door, last to quit. They played rough, forgave fast, and treated anything that moved as a personal challenge." },
-      l3: { d: "So give the burst somewhere to land the moment it arrives. Ten flat-out minutes early buys you a calm afternoon.", m: "It is why they went from still to full speed with no warning. The energy arrived all at once and left the same way. None of it was ever held against you." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one first out the door and last to quit, who plays rough, forgives fast, and treats anything that moves as a personal challenge.",
+        m: "There was {self} the moment the energy took over, the one first out the door and last to quit, who played rough, forgave fast, and treated anything that moved as a personal challenge.",
+      },
+      tell: {
+        d: "Give the burst somewhere to land the moment it arrives and you buy a calm afternoon. The energy came all at once and left the same way, and none of it was ever held against you.",
+        m: "They went from still to full speed with no warning. The energy arrived all at once and left the same way. None of it was ever held against you.",
+      },
     },
     Taurus: {
-      l2: { d: S.mars.Taurus, m: "Slow to rile, impossible to budge once they were. They wanted what they wanted and leaned their whole weight into getting it." },
-      l3: { d: "So never rush the energy out of them. One long, unhurried game at their pace does more than ten quick ones at yours.", m: "It is why pushing never worked and waiting always did. They moved when it made sense to them. That was the only clock they ever kept." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one slow to rile and impossible to budge once they are, who wants what they want and leans their whole weight into getting it.",
+        m: "There was {self} the moment the energy took over, the one slow to rile and impossible to budge once they were, who wanted what they wanted and leaned their whole weight into getting it.",
+      },
+      tell: {
+        d: "Never rush the energy out of them. One long, unhurried game at their pace does more than ten quick ones at yours. That was the only clock they ever kept.",
+        m: "Pushing never worked and waiting always did. They moved when it made sense to them. That was the only clock they ever kept.",
+      },
     },
     Gemini: {
-      l2: { d: "Energy comes in quick bursts and switches targets halfway there. This one would rather outsmart you than out-muscle you.", m: "Energy came in quick bursts and switched targets halfway there. They always chose outsmarting you over out-muscling you." },
-      l3: { d: "So change the game before they get bored of it. Three short puzzles drain this one deeper than one long chase ever will.", m: "It is why no game lasted long, and no boredom did either. They were never being difficult. The target moved because their mind got there first." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one whose energy comes in quick bursts and switches targets halfway there, who would always rather outsmart you than out-muscle you.",
+        m: "There was {self} the moment the energy took over, the one whose energy came in quick bursts and switched targets halfway there, who always chose outsmarting you over out-muscling you.",
+      },
+      tell: {
+        d: "Change the game before they tire of it. Three short puzzles drain them deeper than one long chase. The target moved because their mind got there first.",
+        m: "No game lasted long, and no boredom did either. They were never being difficult. The target moved because their mind got there first.",
+      },
     },
     Cancer: {
-      l2: { d: S.mars.Cancer, m: "Defended their people before themselves. Gentle until something they loved was threatened, then suddenly very brave." },
-      l3: { d: "So let them keep watch without giving them a job. A spot beside you where they can see the door drains more out of them than any game.", m: "It is why they put themselves between you and anything strange. The bravery only ever showed up when you needed it. That was the whole design." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who defends their people before themselves, gentle until something they love is threatened and then suddenly very brave.",
+        m: "There was {self} the moment the energy took over, the one who defended their people before themselves, gentle until something they loved was threatened and then suddenly very brave.",
+      },
+      tell: {
+        d: "Let them keep watch without giving them a job. A spot beside you where they can see the door drains more from them than any game. The bravery only ever showed up when you needed it.",
+        m: "They put themselves between you and anything strange. The bravery only ever showed up when you needed it. That was the whole design.",
+      },
     },
     Leo: {
-      l2: { d: "Plays to an audience and fights for the spotlight. Bold, a little dramatic, and no win counts until you have seen it.", m: "Played to an audience and fought for the spotlight. Bold, a little dramatic, and no win counted until you had seen it." },
-      l3: { d: "So watch them play, out loud. The same game with your eyes on it counts double, and praise empties the tank faster than effort does.", m: "It is why they saved their best moves for when you were looking. The showing off was never vanity. It was for you." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who plays to an audience and fights for the spotlight, bold and a little dramatic, for whom no win counts until you have seen it.",
+        m: "There was {self} the moment the energy took over, the one who played to an audience and fought for the spotlight, bold and a little dramatic, for whom no win counted until you had seen it.",
+      },
+      tell: {
+        d: "Watch them play, out loud. The same game with your eyes on it counts double, and praise empties the tank faster than effort does. The showing off was always for you.",
+        m: "They saved their best moves for when you were looking. The showing off was never vanity. It was for you.",
+      },
     },
     Virgo: {
-      l2: { d: S.mars.Virgo, m: "Went after what they wanted with quiet precision, not noise. They studied the problem, then solved it on the third try." },
-      l3: { d: "So give them a problem, not a party. One tricky thing to work out, and let them fail twice before they crack it. That is the whole workout.", m: "It is why they studied a thing before they touched it. The pause was never hesitation. It was the plan being finished." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who goes after what they want with quiet precision instead of noise, who studies the problem and then solves it on the third try.",
+        m: "There was {self} the moment the energy took over, the one who went after what they wanted with quiet precision instead of noise, who studied the problem and then solved it on the third try.",
+      },
+      tell: {
+        d: "Give them a problem, not a party, and let them fail twice before they crack it. The pause before they touch a thing was never hesitation. It was the plan being finished.",
+        m: "They studied a thing before they touched it. The pause was never hesitation. It was the plan being finished.",
+      },
     },
     Libra: {
-      l2: { d: S.mars.Libra, m: "Hated a real fight, loved a fair game. They charmed their way to the treat long before they ever wrestled for it." },
-      l3: { d: "So play with them, never at them. Take turns, keep it even, and stop while it is still friendly. A one-sided game stops being fun for this one at once.", m: "It is why they never fought for anything they could charm their way to. Peace was never weakness in them. It was the strategy, and it worked on you daily." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who hates a real fight and loves a fair game, who will charm their way to the treat long before they ever wrestle for it.",
+        m: "There was {self} the moment the energy took over, the one who hated a real fight and loved a fair game, who charmed their way to the treat long before they ever wrestled for it.",
+      },
+      tell: {
+        d: "Play with them, never at them. Take turns, keep it even, stop while it is still friendly. Peace was never weakness in them. It was the strategy, and it worked on you daily.",
+        m: "They never fought for anything they could charm their way to. Peace was never weakness in them. It was the strategy, and it worked on you daily.",
+      },
     },
     Scorpio: {
-      l2: { d: S.mars.Scorpio, m: "All or nothing, and they remembered. This one locked onto a goal with a focus that was a little intense." },
-      l3: { d: "So give them one goal and do not interrupt it. Half-finished games leave the engine running. Let this one see it through to the end.", m: "It is why once they wanted a thing, the wanting did not stop. The focus you laughed about was the truest part of them. Nothing they aimed at was casual, including you." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who is all or nothing and remembers, who locks onto a goal with a focus that runs a little intense. Once they want a thing, the wanting does not stop.",
+        m: "There was {self} the moment the energy took over, the one who was all or nothing and remembered, who locked onto a goal with a focus that ran a little intense.",
+      },
+      tell: {
+        d: "Give them one goal and do not interrupt it. A half-finished game leaves the engine running. Nothing they aimed at was ever casual, you included.",
+        m: "Once they wanted a thing, the wanting did not stop. The focus you laughed about was the truest part of them. Nothing they aimed at was casual, including you.",
+      },
     },
     Sagittarius: {
-      l2: { d: S.mars.Sagittarius, m: "Ran first, thought later, and the whole world was the playing field. Restless, fearless, happiest in full sprint." },
-      l3: { d: "So make space the reward. Open ground, somewhere new, anywhere the edges sit further away. Distance drains this one, not repetition.", m: "It is why the far corner always beat the near one. They were built for open ground, and any open door was an offer they had to take." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who runs first and thinks later, for whom the whole world is the playing field. Restless, fearless, happiest in a full sprint.",
+        m: "There was {self} the moment the energy took over, the one who ran first and thought later, for whom the whole world was the playing field. Restless, fearless, happiest in a full sprint.",
+      },
+      tell: {
+        d: "Make space the reward: open ground, somewhere new, anywhere the edges sit further away. They were built for open ground, and any open door was an offer they had to take.",
+        m: "The far corner always beat the near one. They were built for open ground, and any open door was an offer they had to take.",
+      },
     },
     Capricorn: {
-      l2: { d: S.mars.Capricorn, m: "Patient and relentless. They paced themselves, never wasted a move, and quietly won the long game." },
-      l3: { d: "So do not expect the energy to come out in bursts. Give them one steady job to see through, start to finish. Effort with a point is the only effort they respect.", m: "It is why they never rushed and never gave up. What they wanted, they waited for. And what they waited for, they got." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one patient and relentless, who paces themselves, never wastes a move, and quietly wins the long game.",
+        m: "There was {self} the moment the energy took over, the one patient and relentless, who paced themselves, never wasted a move, and quietly won the long game.",
+      },
+      tell: {
+        d: "Give them one steady job to see through, start to finish. Effort with a point is the only effort they respect. What they wanted, they waited for, and then they got.",
+        m: "They never rushed and never gave up. What they wanted, they waited for. And what they waited for, they got.",
+      },
     },
     Aquarius: {
-      l2: { d: S.mars.Aquarius, m: "Picked their own fights for their own reasons. Stubborn in odd moments, unbothered in the ones you expected to spook them." },
-      l3: { d: "So offer the game, then step back. This one spends energy on their own schedule, and the fastest way to stall it is to insist.", m: "It is why they braved the strange things and dodged the easy ones. Their courage kept its own list. It never needed yours to make sense." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who picks their own fights for their own reasons, stubborn in odd moments and unbothered in the ones you expect to spook them.",
+        m: "There was {self} the moment the energy took over, the one who picked their own fights for their own reasons, stubborn in odd moments and unbothered in the ones you expected to spook them.",
+      },
+      tell: {
+        d: "Offer the game, then step back. They spend energy on their own schedule, and insisting only stalls it. Their courage always kept its own list.",
+        m: "They braved the strange things and dodged the easy ones. Their courage kept its own list. It never needed yours to make sense.",
+      },
     },
     Pisces: {
-      l2: { d: "Goes soft and sideways rather than head-on. Their drive runs on feeling, so a sulk from this one hits harder than any fight would.", m: "Went soft and sideways rather than head-on. Their drive ran on feeling, so a sulk from them hit harder than any fight ever would." },
-      l3: { d: "So check the mood before the game. On a soft day, gentle play close to you empties them out. Pushing for more just fills them back up.", m: "It is why they never met anything head-on. Their strength lived in the feeling of things, so the retreat was never fear. It was them answering the room." },
+      beats: {
+        d: "There's {self} the moment the energy takes over, the one who goes soft and sideways rather than head-on, whose drive runs on feeling, so a sulk from them lands harder than any fight.",
+        m: "There was {self} the moment the energy took over, the one who went soft and sideways rather than head-on, whose drive ran on feeling, so a sulk from them landed harder than any fight.",
+      },
+      tell: {
+        d: "Check the mood before the game. On a soft day, gentle play close to you empties them out, while pushing for more just fills them back up. The retreat was never fear. It was them answering the room.",
+        m: "They never met anything head-on. Their strength lived in the feeling of things, so the retreat was never fear. It was them answering the room.",
+      },
     },
   },
 };
 
 /* Element card. L1 is fixed and identical in both voices (the chart does not
-   change); the verb goes singular when the count is one. */
+   change); the verb goes singular when the count is one. Name woven via {poss}. */
 export type DeckElement = "Fire" | "Earth" | "Air" | "Water";
 
 export const ELEMENT_TAIL: Record<DeckElement, string> = {
@@ -318,25 +718,49 @@ const COUNT_WORD = ["", "One", "Two", "Three", "Four", "Five"] as const;
 
 export function elementL1(count: number, element: DeckElement): string {
   const n = Math.max(1, Math.min(5, count));
-  return `${COUNT_WORD[n]} of their five planets ${n === 1 ? "stands" : "stand"} in ${element}. ${ELEMENT_TAIL[element]}`;
+  return `${COUNT_WORD[n]} of {poss} five planets ${n === 1 ? "stands" : "stand"} in ${element}. ${ELEMENT_TAIL[element]}`;
 }
 
 export const ELEMENT_READS: Record<DeckElement, DeckSignEntry> = {
   Fire: {
-    l2: { d: "Quick to light, quick to burn through it. Big bursts, then the deepest sleep in the house.", m: "Quick to light, quick to burn through it. Big bursts, then the deepest sleep in the house. That never changed." },
-    l3: { d: "Give the fire somewhere to go before you need them calm. The burst is coming either way, so choose when it happens.", m: "Their days ran on bursts and deep rests, and both were exactly right. The sudden racing about, the heavy sleep after. That was the fire keeping its own time." },
+    beats: {
+      d: "This is the part of {name} that runs hot: quick to light, quick to burn through it, big bursts and then the deepest sleep in the house.",
+      m: "This was the part of {name} that ran hot: quick to light, quick to burn through it, big bursts and then the deepest sleep in the house. That never changed.",
+    },
+    tell: {
+      d: "The burst is coming either way, so the kindest thing is to give it somewhere to go before you need them calm.",
+      m: "Their days ran on bursts and deep rests, and both were exactly right. The sudden racing about, the heavy sleep after. That was the fire keeping its own time.",
+    },
   },
   Earth: {
-    l2: { d: "Steady as furniture. They pick a place and the place becomes theirs.", m: "Steady as furniture. They picked a place and the place became theirs." },
-    l3: { d: "Keep dinner at the same hour before anything else. The clockwork is the comfort. The fuss is extra.", m: "It is why the same spot mattered so much. The same hour, the same corner, the same small rituals. Their days were built to hold, and they held." },
+    beats: {
+      d: "This is the part of {name} that stays put: steady as furniture, the one who picks a place and makes the place theirs.",
+      m: "This was the part of {name} that stayed put: steady as furniture, the one who picked a place and made the place theirs.",
+    },
+    tell: {
+      d: "Keep dinner at the same hour before anything else. The clockwork is the comfort. The fuss is only ever extra.",
+      m: "It is why the same spot mattered so much. The same hour, the same corner, the same small rituals. Their days were built to hold, and they held.",
+    },
   },
   Air: {
-    l2: { d: "A busy head in a quiet body. Nothing that moves in the room gets past them.", m: "A busy head in a quiet body. Nothing that moved in the room ever got past them." },
-    l3: { d: "Change one small thing each day. A moved toy, a new box, a different game. A fed mind is a quiet one.", m: "It is why they noticed everything. The long watching, the small experiments, the games they invented for themselves. Their days were spent thinking, and it showed." },
+    beats: {
+      d: "This is the part of {name} that never stops thinking: a busy head in a quiet body, where nothing that moves in the room gets past them.",
+      m: "This was the part of {name} that never stopped thinking: a busy head in a quiet body, where nothing that moved in the room ever got past them.",
+    },
+    tell: {
+      d: "Change one small thing each day, a moved toy, a new box, a different game. A fed mind is a quiet one.",
+      m: "It is why they noticed everything. The long watching, the small experiments, the games they invented for themselves. Their days were spent thinking, and it showed.",
+    },
   },
   Water: {
-    l2: { d: "Soft to the edges. No wall between the weather of the house and theirs.", m: "Soft to the edges. There was no wall between the weather of the house and theirs." },
-    l3: { d: "Steady yourself before you comfort them. Your calm reaches them first, and it is the only comfort that fully works.", m: "It is why they always found you on the hard days. They felt the house before anyone said a word. Staying close was never an accident." },
+    beats: {
+      d: "This is the part of {name} that feels everything: soft to the edges, with no wall between the weather of the house and their own.",
+      m: "This was the part of {name} that felt everything: soft to the edges, with no wall between the weather of the house and their own.",
+    },
+    tell: {
+      d: "Steady yourself before you comfort them. Your calm reaches them first, and it is the only comfort that fully works.",
+      m: "It is why they always found you on the hard days. They felt the house before anyone said a word. Staying close was never an accident.",
+    },
   },
 };
 
@@ -344,7 +768,7 @@ export const ELEMENT_READS: Record<DeckElement, DeckSignEntry> = {
    Sun/Moon clauses stay present tense in both voices (the chart still wants
    and needs); only the close shifts. "not a habit. It is the chart." lives
    here and nowhere else. */
-export const SYNTH_LEAD = "Now watch two of these work together.";
+export const SYNTH_LEAD = "Now watch two of these work as one.";
 
 export const SUN_WANTS: Record<string, string> = {
   Aries: "to be first, always",
@@ -377,8 +801,8 @@ export const MOON_NEEDS: Record<string, string> = {
 };
 
 export const SYNTH_CLOSE: Voiced = {
-  d: "The spot they always pick is not a habit. It is the chart.",
-  m: "The spot they always chose was never a habit. It was the chart.",
+  d: "The place {poss} whole self keeps returning to is not a habit. It is the chart.",
+  m: "The place {poss} whole self kept returning to was never a habit. It was the chart.",
 };
 
 /* "A" becomes "An" before Aries and Aquarius. */
@@ -398,7 +822,7 @@ export type TeaseCopy = {
 
 export const TEASE: { d: TeaseCopy; m: TeaseCopy } = {
   d: {
-    keep: "Five of thirteen, yours to keep. A chart does not change. These five hold for life.",
+    keep: "Five of {poss} thirteen, yours to keep. A chart does not change. These five hold for life.",
     deeper: "The eight still dark run deeper. What they fear. What they carry from before you. The job they came to do.",
     ledger: [
       { body: "Saturn", line: "What they fear, and what steadies them." },
@@ -411,11 +835,11 @@ export const TEASE: { d: TeaseCopy; m: TeaseCopy } = {
       { body: "Lilith", line: "The wild streak." },
     ],
     rising: "And the rising. It turns on the exact minute they arrived.",
-    bridge: "The full reading opens all thirteen and reads them as one. The reason they pick the exact spot on you they always pick is in there.",
+    bridge: "The full reading opens all thirteen and reads them as one. The reason for the exact spot on you they always pick is in there.",
     cta: "Meet the rest of who they are",
   },
   m: {
-    keep: "Five of thirteen, yours to keep. A chart does not change. These five held for the whole of their life.",
+    keep: "Five of {poss} thirteen, yours to keep. A chart does not change. These five held for the whole of their life.",
     deeper: "The eight still dark run deeper. What they feared. What they carried from before you. The job they came to do.",
     ledger: [
       { body: "Saturn", line: "What they feared, and what steadied them." },
@@ -428,7 +852,7 @@ export const TEASE: { d: TeaseCopy; m: TeaseCopy } = {
       { body: "Lilith", line: "The wild streak." },
     ],
     rising: "And the rising. It turns on the exact minute they arrived.",
-    bridge: "The full reading opens all thirteen and reads them as one. The reason they picked the exact spot on you they always picked is in there.",
+    bridge: "The full reading opens all thirteen and reads them as one. The reason for the exact spot on you they always picked is in there.",
     cta: "Meet the rest of who they are",
   },
 };
