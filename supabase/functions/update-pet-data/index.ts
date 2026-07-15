@@ -161,6 +161,30 @@ serve(async (req) => {
       }
     }
 
+    // Sync the real pet identity onto any active horoscope_subscriptions row
+    // for this pet. The horoscope sub is created at stripe-webhook time, when
+    // quick-checkout placeholders still read pet_name "Pending" and email
+    // "pending@checkout.temp". The weekly generator emails FROM
+    // horoscope_subscriptions.pet_name/email, so without this sync a bundled
+    // buyer would receive "Pending's weekly horoscope" at the wrong address.
+    // Non-destructive: scoped to this pet_report_id and never touches a
+    // cancelled row (so a memorial pet cancelled just above stays cancelled).
+    if (occasionMode !== "memorial") {
+      const subSync: Record<string, unknown> = { pet_name: safePetName };
+      if (occasionMode) subSync.occasion_mode = occasionMode;
+      if (email) subSync.email = email.toLowerCase().trim();
+      const { error: subSyncErr } = await supabaseClient
+        .from("horoscope_subscriptions")
+        .update(subSync)
+        .eq("pet_report_id", reportId)
+        .neq("status", "cancelled");
+      if (subSyncErr) {
+        console.warn("[UPDATE-PET-DATA] Failed to sync pet identity to horoscope sub (non-fatal):", subSyncErr);
+      } else {
+        console.log("[UPDATE-PET-DATA] Synced pet identity to horoscope sub for:", reportId);
+      }
+    }
+
     // Sync email to chat_credits if email was updated (e.g. redeem flow where email starts as placeholder)
     if (email) {
       const normalizedEmail = email.toLowerCase().trim();

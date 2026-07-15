@@ -93,9 +93,13 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
   </div>
 
   <div style="text-align:center;margin-top:36px;">
-    <p style="color:${muted};font-size:12px;line-height:1.7;margin:0;">
+    <p style="color:${muted};font-size:12px;line-height:1.7;margin:0 0 12px;">
       Your first horoscope arrives this Sunday at 9am UTC.<br>
       Questions? Just reply to this email.
+    </p>
+    <p style="color:${muted};font-size:12px;line-height:1.7;margin:0;">
+      Your first month is free. After 30 days it continues at &pound;4.99/month &mdash; cancel anytime, no questions asked.<br>
+      <a href="https://littlesouls.app/unsubscribe?email=${encodeURIComponent(email)}" style="color:${violet};text-decoration:underline;">Stop ${petName}'s weekly horoscopes</a>
     </p>
   </div>
 
@@ -280,12 +284,39 @@ serve(async (req) => {
             details: { credits, error: rpcError, amount_paid: session.amount_total },
           });
         } else {
-          // Defensive check: confirm credits actually landed
-          const { data: confirmRow } = await supabaseClient
-            .from("chat_credits")
-            .select("credits_total_purchased")
-            .eq("order_id", orderId)
+          // Defensive check: confirm credits actually landed on the row
+          // soul-chat reads. increment_chat_credits reconciles by HOUSEHOLD
+          // email (order_id NULL) for real-email reports and only falls back
+          // to the per-order row (order_id = reportId) for placeholder/
+          // token-only reports — so we must confirm the same way, else we log
+          // a false "no row" failure on every successful top-up.
+          const { data: rptRow } = await supabaseClient
+            .from("pet_reports")
+            .select("email")
+            .eq("id", orderId)
             .maybeSingle();
+          const confirmEmail = (rptRow?.email || "").trim().toLowerCase();
+          const isPlaceholderEmail = !confirmEmail
+            || confirmEmail.startsWith("pending@")
+            || confirmEmail.endsWith(".temp");
+          let confirmRow: { credits_total_purchased?: number } | null = null;
+          if (!isPlaceholderEmail) {
+            const { data } = await supabaseClient
+              .from("chat_credits")
+              .select("credits_total_purchased")
+              .eq("email", confirmEmail)
+              .is("order_id", null)
+              .maybeSingle();
+            confirmRow = data;
+          }
+          if (!confirmRow) {
+            const { data } = await supabaseClient
+              .from("chat_credits")
+              .select("credits_total_purchased")
+              .eq("order_id", orderId)
+              .maybeSingle();
+            confirmRow = data;
+          }
           if (!confirmRow) {
             console.error("[STRIPE-WEBHOOK] Credits RPC succeeded but row missing:", orderId);
             await supabaseClient.from("webhook_failures").insert({
@@ -479,7 +510,237 @@ serve(async (req) => {
               console.error("[STRIPE-WEBHOOK] Referral tracking failed:", refErr);
             }
           }
-          
+
+          // ═══════════════════════════════════════════════════════════════
+          // AUTHORITATIVE HOROSCOPE ENROLLMENT — the SINGLE source of truth.
+          //
+          // Runs on checkout.session.completed REGARDLESS of who generated the
+          // report (verify-payment may have triggered generation first) and
+          // BEFORE the idempotency early-return below — so it always executes
+          // even when verify-payment already flipped the reports to paid (the
+          // common race). It is self-idempotent: any row already carrying a
+          // stripe_subscription_id is skipped, so webhook retries never create a
+          // second Stripe sub.
+          //
+          // For every non-memorial pet, when include_horoscope is set, we create
+          // a REAL Stripe subscription with a 30-day free trial that auto-charges
+          // £4.99/mo on day 30 (opt-out — cancel anytime via the unsubscribe fn,
+          // which cancels the linked Stripe sub). If a billable card cannot be
+          // resolved (no Customer or no saved off-session PaymentMethod) we DO
+          // NOT insert an unbillable trial — we log a webhook_failures row for
+          // manual fulfilment, matching the pattern used elsewhere in this file.
+          //
+          // Memorial exclusion (part of the 5-layer guard): pets whose
+          // occasion_mode is 'memorial' are skipped here; update-pet-data also
+          // cancels any sub if the buyer flips a pet to memorial during intake.
+          // ═══════════════════════════════════════════════════════════════
+          if (session.metadata?.include_horoscope === "true") {
+            // Resolve the card saved off-session via setup_future_usage at
+            // checkout, and make it the Customer's invoice default so the
+            // recurring fee can charge after the trial.
+            let horoscopeDefaultPaymentMethod: string | null = null;
+            if (session.customer && session.payment_intent) {
+              try {
+                const savedPiId = typeof session.payment_intent === "string"
+                  ? session.payment_intent
+                  : session.payment_intent.id;
+                const savedPi = await stripe.paymentIntents.retrieve(savedPiId);
+                horoscopeDefaultPaymentMethod = typeof savedPi.payment_method === "string"
+                  ? savedPi.payment_method
+                  : (savedPi.payment_method?.id ?? null);
+                if (horoscopeDefaultPaymentMethod) {
+                  await stripe.customers.update(session.customer as string, {
+                    invoice_settings: { default_payment_method: horoscopeDefaultPaymentMethod },
+                  });
+                  console.log("[STRIPE-WEBHOOK] Saved card set as default for horoscope billing:", horoscopeDefaultPaymentMethod);
+                }
+              } catch (pmErr) {
+                console.error("[STRIPE-WEBHOOK] Failed to resolve saved payment method:", pmErr);
+              }
+            }
+
+            const buyerEmail = (session.customer_details?.email || session.customer_email || "").toLowerCase().trim();
+
+            for (const hReportId of reportIds) {
+              try {
+                const { data: hReport } = await supabaseClient
+                  .from("pet_reports")
+                  .select("email, pet_name, occasion_mode")
+                  .eq("id", hReportId)
+                  .maybeSingle();
+
+                if (!hReport) {
+                  console.warn("[STRIPE-WEBHOOK] Horoscope pass: report not found:", hReportId);
+                  continue;
+                }
+                // Memorial pets NEVER get horoscopes (forward-looking "week ahead"
+                // emails for a pet who has passed would be a serious care failure).
+                if (hReport.occasion_mode === "memorial") {
+                  console.log("[STRIPE-WEBHOOK] Horoscope pass: skipping memorial pet:", hReportId, hReport.pet_name);
+                  continue;
+                }
+
+                const enrollEmail = (hReport.email && hReport.email !== "pending@checkout.temp")
+                  ? hReport.email.toLowerCase().trim()
+                  : buyerEmail;
+
+                // Existing enrollment for this pet?
+                const { data: existingSub } = await supabaseClient
+                  .from("horoscope_subscriptions")
+                  .select("id, stripe_subscription_id, trial_ends_at")
+                  .eq("pet_report_id", hReportId)
+                  .maybeSingle();
+
+                // Already billable — nothing to do (idempotent across retries).
+                if (existingSub?.stripe_subscription_id) {
+                  console.log("[STRIPE-WEBHOOK] Horoscope pass: Stripe sub already linked for:", hReportId);
+                  continue;
+                }
+
+                // We MUST be able to bill after the trial. Without a Customer +
+                // saved card, record a failure rather than an unbillable trial.
+                if (!session.customer || !horoscopeDefaultPaymentMethod) {
+                  console.error("[STRIPE-WEBHOOK] Horoscope pass: no billable card — logging webhook_failure:", hReportId);
+                  await supabaseClient.from("webhook_failures").insert({
+                    source: "stripe-webhook",
+                    event_type: "horoscope_enrollment_unbillable",
+                    stripe_session_id: session.id,
+                    order_id: hReportId,
+                    details: {
+                      reason: !session.customer ? "no_customer" : "no_saved_payment_method",
+                      pet_report_id: hReportId,
+                      pet_name: hReport.pet_name,
+                      email: enrollEmail,
+                      has_existing_trial_row: !!existingSub,
+                    },
+                  });
+                  continue;
+                }
+
+                // Trial window: honour an existing row's original trial_ends_at
+                // (so days already elapsed from purchase count) else a fresh 30.
+                const nowMs = Date.now();
+                let trialArg: { trial_end: number } | { trial_period_days: number };
+                let dbTrialEndsAt: string;
+                if (existingSub?.trial_ends_at) {
+                  const origMs = new Date(existingSub.trial_ends_at).getTime();
+                  // Stripe needs trial_end in the future; 2-day floor so a
+                  // legacy/expired trial row isn't charged the instant we link it.
+                  const minMs = nowMs + 2 * 24 * 60 * 60 * 1000;
+                  const effMs = Math.max(origMs, minMs);
+                  trialArg = { trial_end: Math.floor(effMs / 1000) };
+                  dbTrialEndsAt = new Date(effMs).toISOString();
+                } else {
+                  trialArg = { trial_period_days: 30 };
+                  const t = new Date();
+                  t.setDate(t.getDate() + 30);
+                  dbTrialEndsAt = t.toISOString();
+                }
+
+                // Create the recurring £4.99/mo Stripe subscription.
+                let stripeSubId: string | null = null;
+                try {
+                  const stripeSub = await stripe.subscriptions.create({
+                    customer: session.customer as string,
+                    items: [{ price: "price_1Sfi1vEFEZSdxrGttpk4iUEa" }],
+                    ...trialArg,
+                    default_payment_method: horoscopeDefaultPaymentMethod,
+                    metadata: { pet_name: hReport.pet_name, pet_report_id: hReportId },
+                  });
+                  stripeSubId = stripeSub.id;
+                  console.log("[STRIPE-WEBHOOK] Horoscope pass: Stripe sub created:", stripeSubId, "for", hReportId);
+                } catch (subErr: any) {
+                  console.error("[STRIPE-WEBHOOK] Horoscope pass: Stripe sub create failed:", subErr?.message);
+                  await supabaseClient.from("webhook_failures").insert({
+                    source: "stripe-webhook",
+                    event_type: "horoscope_stripe_sub_create_failed",
+                    stripe_session_id: session.id,
+                    order_id: hReportId,
+                    details: { pet_report_id: hReportId, pet_name: hReport.pet_name, email: enrollEmail, error: subErr?.message },
+                  });
+                  continue;
+                }
+
+                if (existingSub) {
+                  // Link the real Stripe sub onto the pre-existing (unbillable) row.
+                  const { error: linkErr } = await supabaseClient
+                    .from("horoscope_subscriptions")
+                    .update({
+                      stripe_subscription_id: stripeSubId,
+                      stripe_customer_id: session.customer as string,
+                      status: "active",
+                      plan: "trial",
+                      trial_ends_at: dbTrialEndsAt,
+                    })
+                    .eq("id", existingSub.id);
+                  if (linkErr) {
+                    console.error("[STRIPE-WEBHOOK] Horoscope pass: failed to link sub to existing row:", linkErr);
+                    await supabaseClient.from("webhook_failures").insert({
+                      source: "stripe-webhook",
+                      event_type: "horoscope_row_link_failed",
+                      stripe_session_id: session.id,
+                      order_id: hReportId,
+                      details: { pet_report_id: hReportId, stripe_subscription_id: stripeSubId, error: linkErr },
+                    });
+                  } else {
+                    console.log("[STRIPE-WEBHOOK] Horoscope pass: linked Stripe sub to existing row:", hReportId);
+                  }
+                } else {
+                  // Fresh enrollment — first send next Sunday 9am UTC + SoulSpeak credits.
+                  const nextSunday = new Date();
+                  const daysUntilSunday = (7 - nextSunday.getDay()) % 7 || 7;
+                  nextSunday.setDate(nextSunday.getDate() + daysUntilSunday);
+                  nextSunday.setHours(9, 0, 0, 0);
+
+                  await supabaseClient
+                    .from("chat_credits")
+                    .upsert({
+                      report_id: hReportId,
+                      email: enrollEmail,
+                      credits_remaining: 80,
+                      plan: "free",
+                    }, { onConflict: "report_id" });
+
+                  const { error: insErr } = await supabaseClient
+                    .from("horoscope_subscriptions")
+                    .insert({
+                      email: enrollEmail,
+                      pet_name: hReport.pet_name,
+                      pet_report_id: hReportId,
+                      status: "active",
+                      next_send_at: nextSunday.toISOString(),
+                      plan: "trial",
+                      trial_ends_at: dbTrialEndsAt,
+                      occasion_mode: hReport.occasion_mode || "discover",
+                      stripe_subscription_id: stripeSubId,
+                      stripe_customer_id: session.customer as string,
+                    });
+                  if (insErr) {
+                    console.error("[STRIPE-WEBHOOK] Horoscope pass: row insert failed:", insErr);
+                    await supabaseClient.from("webhook_failures").insert({
+                      source: "stripe-webhook",
+                      event_type: "horoscope_row_insert_failed",
+                      stripe_session_id: session.id,
+                      order_id: hReportId,
+                      details: { pet_report_id: hReportId, stripe_subscription_id: stripeSubId, error: insErr },
+                    });
+                  } else {
+                    console.log("[STRIPE-WEBHOOK] Horoscope pass: enrollment created + linked for:", hReportId);
+                    // Welcome email only when we already have a real pet name.
+                    // Quick-checkout rows are "Pending" until post-pay intake;
+                    // those buyers are covered by the checkout-time disclosure,
+                    // the first weekly horoscope, and the trial-ending reminder.
+                    if (hReport.pet_name && hReport.pet_name !== "Pending" && enrollEmail) {
+                      await sendHoroscopeWelcomeEmail(enrollEmail, hReport.pet_name, "cosmic", hReportId);
+                    }
+                  }
+                }
+              } catch (hErr) {
+                console.error("[STRIPE-WEBHOOK] Horoscope pass: unexpected error for", hReportId, hErr);
+              }
+            }
+          }
+
           // Idempotency check: skip if already processed this session
           const { data: alreadyProcessed } = await supabaseClient
             .from("pet_reports")
@@ -748,34 +1009,11 @@ serve(async (req) => {
           // certificates still flow through the `type === "gift_certificate"`
           // branch above, which is the only remaining gift codepath.
 
-          // ── Resolve the saved card for horoscope billing ─────────────────
-          // Quick + standard checkout now set setup_future_usage:'off_session',
-          // so Stripe saves the buyer's card to the Customer via the
-          // PaymentIntent. Read that PaymentMethod here and (a) set it as the
-          // Customer's default and (b) pass it as the horoscope subscription's
-          // default_payment_method, so the recurring fee can actually charge
-          // after the 30-day trial. Without a default PM the sub trials, then
-          // the first real invoice has nothing to bill and never charges.
-          let horoscopeDefaultPaymentMethod: string | null = null;
-          if (session.metadata?.include_horoscope === "true" && session.customer && session.payment_intent) {
-            try {
-              const savedPiId = typeof session.payment_intent === "string"
-                ? session.payment_intent
-                : session.payment_intent.id;
-              const savedPi = await stripe.paymentIntents.retrieve(savedPiId);
-              horoscopeDefaultPaymentMethod = typeof savedPi.payment_method === "string"
-                ? savedPi.payment_method
-                : (savedPi.payment_method?.id ?? null);
-              if (horoscopeDefaultPaymentMethod) {
-                await stripe.customers.update(session.customer as string, {
-                  invoice_settings: { default_payment_method: horoscopeDefaultPaymentMethod },
-                });
-                console.log("[STRIPE-WEBHOOK] Saved card set as default for horoscope billing:", horoscopeDefaultPaymentMethod);
-              }
-            } catch (pmErr) {
-              console.error("[STRIPE-WEBHOOK] Failed to resolve saved payment method:", pmErr);
-            }
-          }
+          // Horoscope billing (Stripe sub + saved-card resolution) has been
+          // hoisted OUT of this per-report generation loop into the dedicated
+          // authoritative pass that runs above (before the idempotency
+          // early-return), so enrollment happens regardless of who generated
+          // the report or whether verify-payment already marked reports paid.
 
           // Generate reports and send emails for each report
           for (const reportId of reportIds) {
@@ -823,114 +1061,15 @@ serve(async (req) => {
                   
                    // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
                    // (pet_photo_url is stored on the report and used in the frontend.)
-                  
-                  // Create horoscope subscription only when explicitly opted in — hardcover does NOT get free horoscopes.
-                  // Memorial pets are excluded — weekly "what's ahead" emails for a pet who has
-                  // crossed the rainbow bridge would be a serious care failure.
                   //
-                  // Per-pet occasion_mode is now authoritative (create-checkout writes memorial
-                  // on the correct rows at placeholder creation time via memorialCount). We
-                  // judge each row on its own occasion, so non-memorial pets in a mixed cart
-                  // correctly receive their horoscope and memorial pets are skipped. The
-                  // has_memorial session flag is retained as an audit log only — NOT used
-                  // to suppress non-memorial rows.
-                  const includeHoroscope = session.metadata?.include_horoscope === "true";
-                  const hasMemorialInCart = session.metadata?.has_memorial === "true";
-                  const isMemorial = report.occasion_mode === "memorial";
-                  const thisPetGetsHoroscope = includeHoroscope && !isMemorial;
-                  if (isMemorial && includeHoroscope) {
-                    console.log("[STRIPE-WEBHOOK] Skipping horoscope subscription for memorial pet:", reportId, report.pet_name, { hasMemorialInCart });
-                  }
+                  // Horoscope enrollment used to live HERE, buried inside
+                  // `if (!report.report_content)` + `if (genResponse.ok)` +
+                  // `if (!existingSub)` + `if (session.customer)`. By the time
+                  // this loop ran, verify-payment had already triggered
+                  // generation (report_content set) and/or inserted a trial row,
+                  // so the Stripe sub was never created. It has been hoisted to
+                  // the dedicated authoritative pass above.
 
-                  if (thisPetGetsHoroscope && report.email) {
-                    console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { includeHoroscope });
-
-                    // Check if subscription already exists
-                    const { data: existingSub } = await supabaseClient
-                      .from("horoscope_subscriptions")
-                      .select("id")
-                      .eq("email", report.email)
-                      .eq("pet_report_id", reportId)
-                      .maybeSingle();
-
-                    if (!existingSub) {
-                      // Calculate next Sunday 9am UTC for first horoscope
-                      const nextSunday = new Date();
-                      const daysUntilSunday = (7 - nextSunday.getDay()) % 7 || 7;
-                      nextSunday.setDate(nextSunday.getDate() + daysUntilSunday);
-                      nextSunday.setHours(9, 0, 0, 0);
-
-                      // Determine occasion mode from report
-                      const petOccasionMode = report.occasion_mode || "discover";
-
-                      const plan = "trial";
-                      // 30-day trial window mirrored into our DB. The weekly
-                      // batch lapses trial rows past this date that never linked
-                      // a Stripe sub; converted rows (stripe_subscription_id set)
-                      // are always sent regardless, so this is safe for both.
-                      const horoscopeTrialEndsAt = new Date();
-                      horoscopeTrialEndsAt.setDate(horoscopeTrialEndsAt.getDate() + 30);
-
-                      // Create Stripe recurring subscription with 30-day free trial
-                      let stripeSubId: string | null = null;
-                      if (session.customer) {
-                        try {
-                          const stripeSub = await stripe.subscriptions.create({
-                            customer: session.customer as string,
-                            items: [{ price: "price_1Sfi1vEFEZSdxrGttpk4iUEa" }],
-                            trial_period_days: 30,
-                            // Bill the card the buyer saved at checkout after the
-                            // trial. Falls back to the Customer default we set above.
-                            ...(horoscopeDefaultPaymentMethod ? { default_payment_method: horoscopeDefaultPaymentMethod } : {}),
-                            metadata: {
-                              pet_name: report.pet_name,
-                              pet_report_id: reportId,
-                            },
-                          });
-                          stripeSubId = stripeSub.id;
-                          console.log("[STRIPE-WEBHOOK] Stripe horoscope subscription created:", stripeSubId);
-                        } catch (stripeSubError: any) {
-                          console.error("[STRIPE-WEBHOOK] Failed to create Stripe horoscope subscription:", stripeSubError?.message);
-                        }
-                      }
-
-                      // SoulSpeak credits for horoscope subscribers
-                      await supabaseClient
-                        .from("chat_credits")
-                        .upsert({
-                          report_id: reportId,
-                          email: report.email,
-                          credits_remaining: 80,
-                          plan: "free",
-                        }, { onConflict: "report_id" });
-
-                      const { error: subError } = await supabaseClient
-                        .from("horoscope_subscriptions")
-                        .insert({
-                          email: report.email,
-                          pet_name: report.pet_name,
-                          pet_report_id: reportId,
-                          status: "active",
-                          next_send_at: nextSunday.toISOString(),
-                          plan,
-                          trial_ends_at: horoscopeTrialEndsAt.toISOString(),
-                          occasion_mode: petOccasionMode,
-                          ...(stripeSubId ? { stripe_subscription_id: stripeSubId } : {}),
-                        });
-
-                      if (subError) {
-                        console.error("[STRIPE-WEBHOOK] Failed to create horoscope subscription:", subError);
-                      } else {
-                        console.log("[STRIPE-WEBHOOK] Horoscope subscription created for:", report.email, report.pet_name, { plan, occasionMode: petOccasionMode });
-
-                        // Send horoscope welcome email
-                        await sendHoroscopeWelcomeEmail(report.email, report.pet_name, genData?.report?.sunSign || 'cosmic', reportId);
-                      }
-                    } else {
-                      console.log("[STRIPE-WEBHOOK] Horoscope subscription already exists for:", reportId);
-                    }
-                  }
-                  
                   // Determine email recipient - if gift, send to recipient
                   const emailTo = isGift && recipientEmail ? recipientEmail : report.email;
                   const emailContext = isGift ? { 

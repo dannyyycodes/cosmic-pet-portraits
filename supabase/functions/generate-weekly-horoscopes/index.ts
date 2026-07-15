@@ -322,6 +322,58 @@ function renderGiftReminderEmail(opts: {
 </body></html>`;
 }
 
+// Bundled/reading-buyer trial-ending reminder. Sent ~2-3 days before the
+// day-30 auto-charge on subscriptions created at purchase (stripe-webhook).
+// UNLIKE the gift reminder this is OPT-OUT: the card is already on file and the
+// sub auto-continues at £4.99/mo unless the buyer cancels — so this is a gentle
+// heads-up (never a surprise charge) with a one-click cancel link, not an
+// opt-in upsell. The cancel link hits /unsubscribe?email= which cancels the
+// linked Stripe sub + flips the DB row.
+function renderTrialEndingEmail(opts: {
+  petName: string;
+  daysLeft: number;
+  email: string;
+}): string {
+  const { petName, daysLeft, email } = opts;
+  const cancelUrl = `https://littlesouls.app/unsubscribe?email=${encodeURIComponent(email)}`;
+  const mist = '#f3f0fb', card = '#ffffff', ink = '#241a3d', body2 = '#4a4363',
+        muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', line = '#e9e2f7';
+  const SIG = 'https://content.littlesouls.app/viral-pet-media/grace-signature.png';
+  const daysLabel = `${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:${mist};font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:22px;">
+      <a href="https://www.littlesouls.app" style="text-decoration:none;display:inline-block;">
+        <img src="https://content.littlesouls.app/viral-pet-media/little-souls-logo-email.png" alt="Little Souls" width="200" style="display:block;width:200px;height:auto;margin:0 auto 12px;border:0;outline:none;" />
+      </a>
+      <p style="font-size:12px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:${violet};margin:0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">Little Souls</p>
+    </div>
+    <div style="background:${card};border-radius:18px;border:1px solid ${line};padding:38px 28px;text-align:center;box-shadow:0 10px 34px rgba(90,62,200,0.08);">
+      <p style="font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:${violet};margin:0 0 14px 0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">A Quick Heads-Up</p>
+      <h1 style="color:${ink};font-size:24px;font-weight:400;margin:0 0 14px 0;line-height:1.35;">${petName}'s free month ends in ${daysLabel}.</h1>
+      <p style="color:${body2};font-size:15px;line-height:1.75;margin:0 0 22px 0;">
+        We hope ${petName}'s weekly cosmic forecasts have been a little bright spot in your week. Your free month is nearly up. After it ends, ${petName}'s horoscopes simply keep arriving for &pound;4.99 a month &mdash; nothing else to do.
+      </p>
+      <p style="color:${body2};font-size:15px;line-height:1.75;margin:0 0 26px 0;">
+        Rather not continue? No hard feelings &mdash; you can stop it in one click and you won't be charged.
+      </p>
+      <div style="margin:8px 0 18px 0;">
+        <a href="${cancelUrl}" style="display:inline-block;background:#ffffff;color:${violet};text-decoration:none;padding:15px 34px;border-radius:999px;font-weight:600;font-size:14px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:0.4px;border:1.5px solid ${violet};">Cancel ${petName}'s horoscopes</a>
+      </div>
+      <p style="color:${muted};font-size:12px;line-height:1.6;margin:0 0 26px;">Keep them coming? You don't need to do a thing &mdash; ${petName}'s stars will just keep arriving every Sunday.</p>
+      <div style="width:44px;height:1px;background:linear-gradient(90deg,transparent,${soft},transparent);margin:0 auto 20px;"></div>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;font-style:italic;color:${body2};margin:0 0 8px;">With love,</p>
+      <img src="${SIG}" alt="Grace" width="112" style="display:inline-block;width:112px;height:auto;margin:0 0 3px;">
+      <p style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:${muted};margin:0;">Grace &middot; Little Souls</p>
+    </div>
+    <p style="text-align:center;color:${muted};font-size:11px;margin:20px 0 0 0;">Little Souls &middot; <a href="https://www.littlesouls.app" style="color:${muted};text-decoration:none;">littlesouls.app</a></p>
+  </div>
+</body></html>`;
+}
+
 function generateHoroscopeEmail(
   petName: string,
   content: any,
@@ -330,6 +382,7 @@ function generateHoroscopeEmail(
   occasionMode: string,
   reportId: string,
   weekDateRange: string,
+  subscriberEmail: string,
   petPhotoUrl?: string
 ): string {
   const isMemorial = occasionMode === "memorial";
@@ -511,7 +564,7 @@ function generateHoroscopeEmail(
     <!-- Footer -->
     <div style="text-align:center; padding:22px 20px 6px;">
       <p style="color:${muted}; font-size:11px; margin:0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">
-        <a href="https://littlesouls.app/unsubscribe?id=${reportId}" style="color:${muted}; text-decoration:underline;">Unsubscribe from ${petName}'s weekly stars</a>
+        <a href="https://littlesouls.app/unsubscribe?email=${encodeURIComponent(subscriberEmail)}" style="color:${muted}; text-decoration:underline;">Unsubscribe from ${petName}'s weekly stars</a>
       </p>
     </div>
 
@@ -797,6 +850,7 @@ Return only valid JSON.`,
           occasionMode,
           sub.pet_report_id,
           weekDateRange,
+          sub.email,
           petReport.pet_photo_url || undefined
         );
 
@@ -883,6 +937,42 @@ Return only valid JSON.`,
             }
           } catch (reminderErr) {
             console.error(`[WEEKLY-HOROSCOPE] Gift reminder failed for ${sub.email}:`, reminderErr);
+          }
+        }
+
+        // Bundled/reading-buyer trial-ending reminder — fire ~2-3 days before
+        // the day-30 auto-charge so the £4.99/mo is NEVER a surprise (protects
+        // against chargebacks and is the right thing for a trial-to-paid).
+        // These subs are the mirror image of gift trials: NOT is_gift, and they
+        // DO have a stripe_subscription_id (created at purchase with a 30-day
+        // trial that auto-charges). We reuse reminder_sent_at_week4 as the
+        // once-only "trial-ending reminder sent" flag — bundled subs never enter
+        // the gift block above (is_gift=false), so the column is free here.
+        if (!sub._testMode && !sub.is_gift && sub.stripe_subscription_id && sub.trial_ends_at && !sub.reminder_sent_at_week4) {
+          try {
+            const trialEndsMs = new Date(sub.trial_ends_at).getTime();
+            const daysLeft = Math.ceil((trialEndsMs - Date.now()) / (24 * 60 * 60 * 1000));
+            // Fire in the final stretch of the trial (1-3 days left).
+            if (daysLeft <= 3 && daysLeft > 0) {
+              const reminderHtml = renderTrialEndingEmail({
+                petName: sub.pet_name,
+                daysLeft,
+                email: sub.email,
+              });
+              await resend.emails.send({
+                from: "Little Souls <hello@littlesouls.app>",
+                to: [sub.email],
+                subject: `${sub.pet_name}'s free month ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
+                html: reminderHtml,
+              });
+              await supabase
+                .from("horoscope_subscriptions")
+                .update({ reminder_sent_at_week4: new Date().toISOString() })
+                .eq("id", sub.id);
+              console.log(`[WEEKLY-HOROSCOPE] Sent trial-ending reminder to ${sub.email} (${daysLeft}d left)`);
+            }
+          } catch (trialReminderErr) {
+            console.error(`[WEEKLY-HOROSCOPE] Trial-ending reminder failed for ${sub.email}:`, trialReminderErr);
           }
         }
 

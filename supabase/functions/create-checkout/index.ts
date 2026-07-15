@@ -1050,6 +1050,15 @@ serve(async (req) => {
     const anyPetHasPortrait = Object.values(petTiers).some(t => t === 'premium') ||
       input.selectedTier === 'premium' || input.includesBook;
 
+    // Card-save intent MUST equal bill intent. stripe-webhook creates the
+    // horoscope Stripe sub whenever the include_horoscope metadata is "true".
+    // If we only saved the card when horoscopePetCount>0 but set the metadata
+    // "true" on input.includeHoroscope alone, the webhook would try to bill a
+    // card that was never saved → an unbillable trial. Gate BOTH the
+    // setup_future_usage card-save AND the include_horoscope metadata on this
+    // single boolean so they can never diverge.
+    const wantsHoroscopeBilling = horoscopePetCount > 0 || input.includeHoroscope;
+
     try {
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
@@ -1083,7 +1092,8 @@ serve(async (req) => {
       // Required so the $4.99/month horoscope subscription can charge after the 30-day trial.
       // Klarna/Afterpay don't support off_session — Stripe will filter them out automatically
       // when horoscopes are included, which is correct (recurring billing needs a saved card).
-      ...(horoscopePetCount > 0 ? { payment_intent_data: { setup_future_usage: "off_session" } } : {}),
+      // Gated on wantsHoroscopeBilling so it matches the include_horoscope metadata exactly.
+      ...(wantsHoroscopeBilling ? { payment_intent_data: { setup_future_usage: "off_session" } } : {}),
       allow_promotion_codes: false,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
       cancel_url: `${origin}/`,
@@ -1104,7 +1114,7 @@ serve(async (req) => {
         coupon_id: input.couponId || "",
         gift_certificate_id: giftCertificateId || "",
         referral_code: input.referralCode || "",
-        include_horoscope: (horoscopePetCount > 0 || input.includeHoroscope) ? "true" : "false",
+        include_horoscope: wantsHoroscopeBilling ? "true" : "false",
         horoscope_pet_count: horoscopePetCount.toString(),
         pet_horoscopes: JSON.stringify(petHoroscopes),
         pet_photo_url: input.petPhotoUrl || "",
