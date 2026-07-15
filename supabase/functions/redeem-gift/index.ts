@@ -62,6 +62,22 @@ serve(async (req) => {
       });
     }
 
+    // SECURITY: refuse any code whose Stripe payment never completed. Codes are
+    // minted at purchase-gift-certificate BEFORE payment (payment_status
+    // 'pending') and only flipped to 'paid' by stripe-webhook on
+    // checkout.session.completed. Without this, an abandoned checkout yields a
+    // free, fully redeemable code. (Closes the free-reading gift exploit.)
+    if (gift.payment_status !== "paid") {
+      console.warn("[REDEEM-GIFT] Rejected unpaid gift code:", input.giftCode, "status:", gift.payment_status);
+      return new Response(JSON.stringify({
+        error: "This gift code is not valid yet. If you just purchased it, please wait a moment and try again.",
+        success: false
+      }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     // Check if already redeemed
     if (gift.is_redeemed) {
       console.log("[REDEEM-GIFT] Gift already redeemed:", input.giftCode);
@@ -115,6 +131,7 @@ serve(async (req) => {
       })
       .eq("id", gift.id)
       .eq("is_redeemed", false) // Only flips if still unredeemed
+      .eq("payment_status", "paid") // Never consume an unpaid/pending code
       .select("id");
 
     if (updateError) {

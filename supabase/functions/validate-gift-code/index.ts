@@ -39,11 +39,22 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from("gift_certificates")
-      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count, gift_pets_json")
+      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count, gift_pets_json, payment_status")
       .eq("code", input.code.toUpperCase())
       .single();
 
     if (error || !data) {
+      return new Response(JSON.stringify({ error: "Invalid gift code", valid: false }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // SECURITY: only honour codes whose Stripe payment completed. Codes are
+    // minted pre-payment as 'pending' and flipped to 'paid' by stripe-webhook.
+    // Treat a pending/unpaid code as invalid so an abandoned checkout can't be
+    // redeemed. (Closes the free-reading gift exploit.)
+    if (data.payment_status !== "paid") {
       return new Response(JSON.stringify({ error: "Invalid gift code", valid: false }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,

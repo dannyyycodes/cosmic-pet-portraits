@@ -421,6 +421,12 @@ serve(async (req) => {
           gift_pets_json: group.pets,
           stripe_session_id: session.id,
           expires_at: expiresAt.toISOString(),
+          // SECURITY: codes are minted BEFORE payment. Start every row as
+          // 'pending' and only flip to 'paid' from stripe-webhook on
+          // checkout.session.completed. redeem-gift + validate-gift-code both
+          // refuse any code that is not 'paid', so an abandoned checkout leaves
+          // a worthless code behind. (Closes the free-reading gift exploit.)
+          payment_status: "pending",
         });
 
       if (insertError) {
@@ -436,11 +442,14 @@ serve(async (req) => {
       });
     }
 
+    // SECURITY: do NOT return the gift code(s) here. They are minted before
+    // payment; returning them pre-payment let anyone POST this endpoint, copy
+    // the code, abandon checkout and redeem free readings. The code is only
+    // delivered AFTER payment — via the /gift-success page (which reads it from
+    // the Stripe success_url once the session is paid) and the webhook email.
     return new Response(
       JSON.stringify({
         url: session.url,
-        giftCode: primaryGiftCode,
-        giftCodes,
         recipientCount: recipientGroups.length,
       }),
       {

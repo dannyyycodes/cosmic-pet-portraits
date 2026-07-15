@@ -443,6 +443,34 @@ serve(async (req) => {
           return new Response(JSON.stringify({ error: "Resource not found" }), { status: 404 });
         }
 
+        // SECURITY: activate the code. Gift rows are minted as payment_status
+        // 'pending' at purchase-gift-certificate (before payment). This is the
+        // ONLY place they become 'paid'. redeem-gift + validate-gift-code both
+        // refuse any non-'paid' code, so an abandoned checkout leaves a dead
+        // code. Flip every code from this session (multi-recipient orders share
+        // one session id) so all recipient codes activate together.
+        const { error: activateErr } = await supabaseClient
+          .from("gift_certificates")
+          .update({
+            payment_status: "paid",
+            paid: true,
+            paid_at: new Date().toISOString(),
+          })
+          .eq("stripe_session_id", session.id)
+          .eq("payment_status", "pending");
+        if (activateErr) {
+          console.error("[STRIPE-WEBHOOK] Failed to activate gift certificate(s):", giftCode, activateErr);
+          await supabaseClient.from("webhook_failures").insert({
+            source: "stripe-webhook",
+            event_type: "gift_certificate_activation_failed",
+            stripe_session_id: session.id,
+            order_id: giftCert.id,
+            details: { gift_code: giftCode, error: activateErr },
+          });
+        } else {
+          console.log("[STRIPE-WEBHOOK] Gift certificate(s) activated (paid) for session:", session.id);
+        }
+
         // Call the email sending function
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -578,7 +606,38 @@ serve(async (req) => {
             // is missing/unsupported.
             const enrollCurrency = normalizeCurrency(session.currency);
 
-            for (const hReportId of reportIds) {
+            // ── Per-pet horoscope selection (blocker #3) ──────────────────
+            // The buyer pays one month of horoscope only for the pets they
+            // ticked. create-checkout writes `pet_horoscopes` as a JSON map
+            // keyed by pet INDEX ("0","1",...) matching the order of
+            // report_ids (report_ids = allReportIds.join(",")). Enroll ONLY
+            // the selected pets — never every pet in the order. Fall back to
+            // all non-memorial pets ONLY when the map is absent or empty
+            // (legacy single-pet orders that predate the per-pet map).
+            let horoscopeReportIds = reportIds;
+            const petHoroscopesRaw = session.metadata?.pet_horoscopes;
+            if (petHoroscopesRaw) {
+              try {
+                const petHoroscopeMap = JSON.parse(petHoroscopesRaw) as Record<string, unknown>;
+                if (petHoroscopeMap && typeof petHoroscopeMap === "object" && Object.keys(petHoroscopeMap).length > 0) {
+                  horoscopeReportIds = reportIds.filter((_, i) => petHoroscopeMap[String(i)] === true);
+                  console.log("[STRIPE-WEBHOOK] Horoscope pass: per-pet selection", {
+                    total: reportIds.length,
+                    selected: horoscopeReportIds.length,
+                    selectedIds: horoscopeReportIds,
+                  });
+                } else {
+                  console.log("[STRIPE-WEBHOOK] Horoscope pass: empty pet_horoscopes map — falling back to all non-memorial pets");
+                }
+              } catch (mapErr) {
+                console.error("[STRIPE-WEBHOOK] Horoscope pass: failed to parse pet_horoscopes, falling back to all non-memorial:", mapErr);
+                horoscopeReportIds = reportIds;
+              }
+            } else {
+              console.log("[STRIPE-WEBHOOK] Horoscope pass: no pet_horoscopes map — legacy fallback to all non-memorial pets");
+            }
+
+            for (const hReportId of horoscopeReportIds) {
               try {
                 const { data: hReport } = await supabaseClient
                   .from("pet_reports")
