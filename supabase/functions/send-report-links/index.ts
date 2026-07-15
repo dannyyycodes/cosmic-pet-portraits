@@ -46,9 +46,15 @@ function getEmailTemplate(reports: ReportRow[]) {
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin: 0; padding: 0; background-color: ${mist}; font-family: Georgia, 'Times New Roman', serif;">
   <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+    <!-- Brand logo -->
+    <div style="text-align: center; margin-bottom: 22px;">
+      <a href="https://www.littlesouls.app" style="text-decoration: none; display: inline-block;">
+        <img src="https://content.littlesouls.app/viral-pet-media/little-souls-logo-email.png" alt="Little Souls" width="200" style="display: block; width: 200px; height: auto; margin: 0 auto 12px; border: 0; outline: none;" />
+      </a>
+      <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
+    </div>
     <div style="background: ${card}; border-radius: 18px; border: 1px solid ${line}; padding: 40px 28px; box-shadow: 0 10px 34px rgba(90,62,200,0.08);">
       <div style="text-align: center; margin-bottom: 26px;">
-        <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0 0 16px 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
         <h1 style="color: ${ink}; font-size: 26px; font-weight: 400; margin: 0 0 10px 0; line-height: 1.3; font-family: Georgia, 'Times New Roman', serif;">
           Your readings, all in one place
         </h1>

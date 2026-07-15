@@ -43,8 +43,10 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
 <body style="margin:0;padding:0;background-color:${mist};font-family:Georgia,'Times New Roman',serif;">
 <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
 
-  <div style="text-align:center;margin-bottom:36px;">
-    <p style="font-size:28px;margin:0 0 8px 0;">&#10024;</p>
+  <div style="text-align:center;margin-bottom:30px;">
+    <a href="https://www.littlesouls.app" style="text-decoration:none;display:inline-block;">
+      <img src="https://content.littlesouls.app/viral-pet-media/little-souls-logo-email.png" alt="Little Souls" width="200" style="display:block;width:200px;height:auto;margin:0 auto 12px;border:0;outline:none;" />
+    </a>
     <p style="font-size:11px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:${violet};margin:0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">Little Souls</p>
   </div>
 

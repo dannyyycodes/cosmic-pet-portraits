@@ -37,11 +37,18 @@ const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: str
 <body style="margin: 0; padding: 0; background-color: ${mist}; font-family: Georgia, 'Times New Roman', serif;">
   <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
 
+    <!-- Brand logo -->
+    <div style="text-align: center; margin-bottom: 22px;">
+      <a href="https://www.littlesouls.app" style="text-decoration: none; display: inline-block;">
+        <img src="https://content.littlesouls.app/viral-pet-media/little-souls-logo-email.png" alt="Little Souls" width="200" style="display: block; width: 200px; height: auto; margin: 0 auto 12px; border: 0; outline: none;" />
+      </a>
+      <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
+    </div>
+
     <div style="background: ${card}; border-radius: 18px; border: 1px solid ${line}; padding: 40px 30px; box-shadow: 0 10px 34px rgba(90,62,200,0.08);">
 
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 26px;">
-        <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0 0 14px 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">Little Souls</p>
         <div style="display:inline-block; padding:7px 22px; background:${panel}; border:1px solid ${line}; border-radius:999px;">
           <span style="color:${violet}; font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">VIP Member</span>
         </div>

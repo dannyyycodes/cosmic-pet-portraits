@@ -37,8 +37,11 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
 
   <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
 
-    <!-- Header -->
-    <div style="text-align: center; margin-bottom: 20px;">
+    <!-- Header / Brand logo -->
+    <div style="text-align: center; margin-bottom: 22px;">
+      <a href="https://www.littlesouls.app" style="text-decoration: none; display: inline-block;">
+        <img src="https://content.littlesouls.app/viral-pet-media/little-souls-logo-email.png" alt="Little Souls" width="200" style="display: block; width: 200px; height: auto; margin: 0 auto 12px; border: 0; outline: none;" />
+      </a>
       <p style="font-size: 12px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: ${violet}; margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;">
         Little Souls
       </p>
