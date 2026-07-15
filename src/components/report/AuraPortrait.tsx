@@ -128,9 +128,9 @@ export function AuraPortrait({
       variants={s.variants}
       className="mx-4 my-6 max-w-[520px] sm:mx-auto relative"
       style={{
-        background: '#ffffff',
+        background: '#1a1430',
         borderRadius: '18px',
-        border: '1px solid #e2dbf3',
+        border: '1px solid rgba(167,139,250,0.22)',
         boxShadow: '0 2px 12px rgba(42,36,64,0.07)',
         padding: '36px 24px 28px',
         textAlign: 'center',
@@ -144,7 +144,7 @@ export function AuraPortrait({
           fontWeight: 700,
           letterSpacing: '2.5px',
           textTransform: 'uppercase',
-          color: '#8b7bd8',
+          color: '#a78bfa',
           marginBottom: '6px',
         }}
       >
@@ -155,7 +155,7 @@ export function AuraPortrait({
         style={{
           fontSize: '1.35rem',
           fontFamily: 'DM Serif Display, serif',
-          color: '#2a2440',
+          color: '#f2eeff',
           margin: '0 0 28px',
           lineHeight: 1.3,
         }}
@@ -191,7 +191,7 @@ export function AuraPortrait({
           className="absolute inset-2 rounded-full"
           style={{
             padding: 2,
-            background: `conic-gradient(from 0deg, #8b7bd8, ${primaryColor}, #8b7bd8aa, ${secondaryColor}, #8b7bd8)`,
+            background: `conic-gradient(from 0deg, #a78bfa, ${primaryColor}, #a78bfaaa, ${secondaryColor}, #a78bfa)`,
             animation: 'aura-portrait-rotate 18s linear infinite',
             WebkitMask:
               'radial-gradient(circle, transparent 52%, black 53%, black 55%, transparent 56%)',
@@ -275,7 +275,7 @@ export function AuraPortrait({
               top: 14,
               right: 18,
               fontSize: 28,
-              color: '#8b7bd8',
+              color: '#a78bfa',
               textShadow: `0 0 12px ${primaryColor}66`,
               filter: 'drop-shadow(0 0 6px rgba(139,123,216,0.4))',
             }}
@@ -290,7 +290,7 @@ export function AuraPortrait({
         style={{
           fontSize: '0.9rem',
           lineHeight: 1.8,
-          color: '#4a4560',
+          color: '#c7bfe0',
           maxWidth: 380,
           margin: '0 auto 20px',
           fontStyle: 'italic',
@@ -311,16 +311,16 @@ export function AuraPortrait({
           .map((p) => (
             <div
               key={p.label}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#f2eeff] border border-[#e2dbf3] px-3 py-1"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(167,139,250,0.06)] border border-[rgba(167,139,250,0.22)] px-3 py-1"
             >
               <span
                 className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ background: p.color, boxShadow: `0 0 4px ${p.color}80` }}
               />
-              <span className="text-[0.68rem] font-semibold tracking-wider uppercase text-[#928aa8]">
+              <span className="text-[0.68rem] font-semibold tracking-wider uppercase text-[#a29ab8]">
                 {p.label}
               </span>
-              <span className="text-[0.78rem] font-medium text-[#2a2440] capitalize">
+              <span className="text-[0.78rem] font-medium text-[#f2eeff] capitalize">
                 {p.name}
               </span>
             </div>

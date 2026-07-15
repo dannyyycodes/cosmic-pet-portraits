@@ -107,15 +107,15 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
         <div
           className="px-5 py-4 relative"
           style={{
-            background: 'linear-gradient(135deg, #e8d5b8 0%, #d4c0a0 100%)',
-            borderBottom: '2px solid #8b7bd8',
+            background: 'linear-gradient(135deg, #2a2348 0%, #1e1838 100%)',
+            borderBottom: '2px solid #a78bfa',
           }}
         >
-          <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#6b5a45]">
+          <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#a29ab8]">
             Classified Dossier
           </div>
           <h3
-            className="text-[1.05rem] text-[#2a2440] mt-0.5"
+            className="text-[1.05rem] text-[#f2eeff] mt-0.5"
             style={{ fontFamily: 'DM Serif Display, serif' }}
           >
             Subject: {petName}&rsquo;s Human
@@ -138,20 +138,20 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
         </div>
 
         {/* Dossier body */}
-        <div className="bg-white px-5 py-4">
+        <div className="bg-[#1a1430] px-5 py-4">
           {/* Avatar */}
-          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: '1px dashed #d4c5b0' }}>
+          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: '1px dashed rgba(167,139,250,0.2)' }}>
             <div
               className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[1.5rem] flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #8b7bd8, #8b6f3a)' }}
+              style={{ background: 'linear-gradient(135deg, #a78bfa, #6E45D8)' }}
             >
               {signIcon}
             </div>
             <div>
-              <div className="text-[0.62rem] font-bold tracking-[1.5px] uppercase text-[#928aa8]">
+              <div className="text-[0.62rem] font-bold tracking-[1.5px] uppercase text-[#a29ab8]">
                 Profile Assessment
               </div>
-              <div className="text-[0.78rem] text-[#4a4560] mt-0.5">
+              <div className="text-[0.78rem] text-[#c7bfe0] mt-0.5">
                 As observed by {petName}
               </div>
             </div>
@@ -163,16 +163,16 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
             return (
               <div key={trait} className="flex items-baseline gap-2 py-2.5">
                 <span
-                  className="text-[0.68rem] font-semibold text-[#928aa8] w-[95px] flex-shrink-0 uppercase tracking-[0.5px]"
+                  className="text-[0.68rem] font-semibold text-[#a29ab8] w-[95px] flex-shrink-0 uppercase tracking-[0.5px]"
                   style={{ fontFamily: 'monospace' }}
                 >
                   {trait}
                 </span>
                 <span
-                  className="flex-1 border-b border-dotted border-[#d4c5b0] mx-1 mb-1 self-end"
+                  className="flex-1 border-b border-dotted border-[rgba(167,139,250,0.2)] mx-1 mb-1 self-end"
                   style={{ minWidth: '12px' }}
                 />
-                <span className="text-[0.8rem] text-[#2a2440] max-w-[55%] text-right leading-[1.45]">{value}</span>
+                <span className="text-[0.8rem] text-[#f2eeff] max-w-[55%] text-right leading-[1.45]">{value}</span>
               </div>
             );
           })}

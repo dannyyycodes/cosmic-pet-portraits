@@ -63,12 +63,12 @@ export function PlanetSection({
           <div className="mt-3 text-center">
             <div
               className="text-[0.55rem] font-bold tracking-[2.5px] uppercase"
-              style={{ color: planet.color }}
+              style={{ color: '#a78bfa' }}
             >
               {label}
             </div>
             <div
-              className="text-[0.78rem] mt-0.5 text-[#2a2440]/70 italic max-w-[180px]"
+              className="text-[0.78rem] mt-0.5 text-[#c7bfe0]/70 italic max-w-[180px]"
               style={{ fontFamily: 'Cormorant, serif' }}
             >
               {title}

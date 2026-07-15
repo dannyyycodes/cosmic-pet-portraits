@@ -77,25 +77,25 @@ export function GoogleSearches({ petName, report }: GoogleSearchesProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-5 bg-white rounded-[14px] border border-[#e2dbf3] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-5 bg-[#1a1430] rounded-[14px] border border-[rgba(167,139,250,0.22)] max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#8b7bd8] mb-1">
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#a78bfa] mb-1">
         🔍 Things {petName} Would Google
       </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#2a2440] mb-2.5">Late Night Search History</h3>
+      <h3 className="font-dm-serif text-[1.05rem] text-[#f2eeff] mb-2.5">Late Night Search History</h3>
 
       {searches.map((search, i) => (
         <div
           key={i}
-          className="flex items-start gap-2.5 px-3.5 py-2.5 my-1.5 rounded-3xl text-[0.82rem] text-[#202124] transition-colors duration-150 cursor-default hover:bg-[#eef1f6]"
-          style={{ background: '#f8f9fa', border: '1px solid #dfe1e5' }}
+          className="flex items-start gap-2.5 px-3.5 py-2.5 my-1.5 rounded-3xl text-[0.82rem] text-[#e7e2f5] transition-colors duration-150 cursor-default hover:bg-[rgba(255,255,255,0.08)]"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,139,250,0.15)' }}
         >
           <div className="mt-0.5">
             <GoogleIcon />
           </div>
           <div className="flex-1">
             <span>{search}</span>
-            <div className="text-[0.6rem] text-[#70757a] mt-0.5">About 0 results</div>
+            <div className="text-[0.6rem] text-[#a29ab8] mt-0.5">About 0 results</div>
           </div>
         </div>
       ))}

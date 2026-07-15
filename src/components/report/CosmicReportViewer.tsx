@@ -927,12 +927,12 @@ export function CosmicReportViewer({
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-0.5 rounded-full text-[0.68rem] font-medium"
-                            style={{ background: sb.elementalHarmony.petElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.petElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.petElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#c7bfe0' }}>
+                            style={{ background: sb.elementalHarmony.petElement === 'Fire' ? 'rgba(239,68,68,0.16)' : sb.elementalHarmony.petElement === 'Earth' ? 'rgba(34,197,94,0.16)' : sb.elementalHarmony.petElement === 'Air' ? 'rgba(56,189,248,0.16)' : 'rgba(167,139,250,0.16)', color: '#c7bfe0' }}>
                             {sb.elementalHarmony.petElement}
                           </span>
                           <span className="text-[0.7rem] text-[#a29ab8]">&amp;</span>
                           <span className="px-2 py-0.5 rounded-full text-[0.68rem] font-medium"
-                            style={{ background: sb.elementalHarmony.ownerElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.ownerElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.ownerElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#c7bfe0' }}>
+                            style={{ background: sb.elementalHarmony.ownerElement === 'Fire' ? 'rgba(239,68,68,0.16)' : sb.elementalHarmony.ownerElement === 'Earth' ? 'rgba(34,197,94,0.16)' : sb.elementalHarmony.ownerElement === 'Air' ? 'rgba(56,189,248,0.16)' : 'rgba(167,139,250,0.16)', color: '#c7bfe0' }}>
                             {sb.elementalHarmony.ownerElement}
                           </span>
                         </div>
@@ -2049,14 +2049,14 @@ function AccuracyPredictions({
             onClick={() => toggle(i)}
             className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all ${
               checked[i]
-                ? 'bg-[#f0fdf4] border-green-200'
+                ? 'bg-[rgba(167,139,250,0.14)] border-[rgba(167,139,250,0.5)]'
                 : 'bg-[#1a1430] border-[rgba(167,139,250,0.4)] hover:border-[#a78bfa]/40'
             }`}
           >
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
                 checked[i]
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-[#a78bfa] text-[#0d0a14]'
                   : 'border-2 border-[#a78bfa]/30'
               }`}
             >
@@ -2066,7 +2066,7 @@ function AccuracyPredictions({
                 </svg>
               )}
             </div>
-            <span className={`text-[0.82rem] leading-[1.5] ${checked[i] ? 'text-green-700' : 'text-[#c7bfe0]'}`}>
+            <span className={`text-[0.82rem] leading-[1.5] ${checked[i] ? 'text-[#f2eeff]' : 'text-[#c7bfe0]'}`}>
               {prediction}
             </span>
           </button>
@@ -2288,10 +2288,10 @@ function DreamJobCard({
           <div
             className="absolute top-4 right-4 text-[2.2rem] font-black tracking-[3px] uppercase pointer-events-none select-none"
             style={{
-              color: 'rgba(34, 197, 94, 0.12)',
+              color: 'rgba(167, 139, 250, 0.16)',
               transform: 'rotate(-12deg)',
               fontFamily: 'sans-serif',
-              border: '3px solid rgba(34, 197, 94, 0.12)',
+              border: '3px solid rgba(167, 139, 250, 0.16)',
               borderRadius: '8px',
               padding: '2px 12px',
               lineHeight: 1.2,
@@ -2319,9 +2319,9 @@ function DreamJobCard({
             <span
               className="inline-block text-[0.78rem] font-semibold px-3 py-1.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-                color: '#166534',
-                border: '1px solid #bbf7d0',
+                background: 'linear-gradient(135deg, rgba(167,139,250,0.16), rgba(110,69,216,0.16))',
+                color: '#e7defb',
+                border: '1px solid rgba(167,139,250,0.4)',
               }}
             >
               {salary}
@@ -2539,7 +2539,7 @@ function HeroSection({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.7 }}
-            className="text-[0.88rem] text-[#a29ab8] italic leading-[1.6] max-w-[340px] mx-auto mb-5"
+            className="text-[0.88rem] text-[#cfc5ea] italic leading-[1.6] max-w-[340px] mx-auto mb-5"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
             {archetypeDesc}
@@ -2567,9 +2567,9 @@ function HeroSection({
               }}
               className="px-3.5 py-1.5 rounded-full text-[#c7bfe0] font-medium"
               style={{
-                background: 'rgba(255,255,255,0.8)',
-                border: '1px solid rgba(167,139,250,0.2)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                background: 'rgba(167,139,250,0.12)',
+                border: '1px solid rgba(167,139,250,0.35)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                 backdropFilter: 'blur(4px)',
               }}
             >

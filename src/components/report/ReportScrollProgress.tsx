@@ -70,7 +70,7 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
           <button
             key={c.anchor}
             onClick={() => scrollTo(c.anchor)}
-            className="pointer-events-auto group relative flex items-center justify-center w-6 h-6 -mx-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b7bd8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf8ff]"
+            className="pointer-events-auto group relative flex items-center justify-center w-6 h-6 -mx-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0a14]"
             aria-label={`Jump to ${c.title}`}
             aria-current={i === active ? 'true' : undefined}
           >
@@ -82,7 +82,7 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
                   : 'w-1.5 h-1.5 bg-[#8b7bd8]/40 group-hover:bg-[#8b7bd8]/70')
               }
             />
-            <span className="absolute right-5 whitespace-nowrap text-[0.68rem] tracking-wider uppercase text-[#4a4560]/70 opacity-0 group-hover:opacity-100 transition-opacity font-sans bg-[#faf8ff]/90 px-2 py-1 rounded border border-[#8b7bd8]/20">
+            <span className="absolute right-5 whitespace-nowrap text-[0.68rem] tracking-wider uppercase text-[#c7bfe0]/90 opacity-0 group-hover:opacity-100 transition-opacity font-sans bg-[#1a1430]/95 px-2 py-1 rounded border border-[#a78bfa]/30">
               {String(c.number).padStart(2, '0')} · {c.title}
             </span>
           </button>

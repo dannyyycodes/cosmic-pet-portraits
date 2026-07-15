@@ -20,7 +20,7 @@ interface ReportSectionCardProps {
 }
 
 const cleanWhiteStyle = {
-  container: 'bg-white rounded-[18px] border border-[#e2dbf3]',
+  container: 'bg-[#1a1430] rounded-[18px] border border-[rgba(167,139,250,0.22)]',
   containerStyle: { boxShadow: '0 2px 12px rgba(0,0,0,0.04)' } as React.CSSProperties,
 };
 
@@ -92,10 +92,10 @@ export function ReportSectionCard({
             {icon}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#8b7bd8]">
+            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
               {label}
             </div>
-            <h3 className="text-[1.1rem] text-[#2a2440] mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h3>
+            <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h3>
           </div>
           {collapsible && (
             <button
@@ -107,7 +107,7 @@ export function ReportSectionCard({
               }}
             >
               <ChevronDown
-                className={`w-4 h-4 text-[#8b7bd8] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-[#a78bfa] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
               />
             </button>
           )}
@@ -115,7 +115,7 @@ export function ReportSectionCard({
 
         {/* Collapsed preview */}
         {collapsible && !isExpanded && (
-          <p className="text-[0.82rem] text-[#928aa8] leading-[1.6] mt-3">
+          <p className="text-[0.82rem] text-[#a29ab8] leading-[1.6] mt-3">
             {getPreview(content)}
           </p>
         )}
@@ -140,7 +140,7 @@ export function ReportSectionCard({
                       style={{
                         background: showWhy ? 'rgba(139,123,216,0.12)' : 'rgba(139,123,216,0.06)',
                         border: '1px solid rgba(139,123,216,0.2)',
-                        color: '#8b7bd8',
+                        color: '#a78bfa',
                       }}
                     >
                       {whyBoxIcon && <span className="text-[0.75rem]">{whyBoxIcon}</span>}
@@ -156,8 +156,8 @@ export function ReportSectionCard({
                           transition={{ duration: 0.2 }}
                           style={{ overflow: 'hidden' }}
                         >
-                          <div className="mt-2 pl-4 border-l-2 border-[#8b7bd8]/30">
-                            <p className="text-[0.78rem] text-[#564a66] leading-[1.6] italic"
+                          <div className="mt-2 pl-4 border-l-2 border-[#a78bfa]/30">
+                            <p className="text-[0.78rem] text-[#c7bfe0] leading-[1.6] italic"
                               style={{ fontFamily: 'Cormorant, serif' }}
                             >
                               <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(whyText) }} />
@@ -171,23 +171,23 @@ export function ReportSectionCard({
 
                 {/* Content */}
                 <div
-                  className="text-[0.86rem] leading-[1.85] text-[#4a4560]"
+                  className="text-[0.86rem] leading-[1.85] text-[#c7bfe0]"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanContent(content)) }}
                 />
 
                 {/* Tip box */}
                 {tipBox && (
-                  <div className="mt-5 p-4 rounded-[12px] bg-[#f6f3ff] border-l-[3px] border-[#8b7bd8]">
-                    <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#8b7bd8] mb-1">
+                  <div className="mt-5 p-4 rounded-[12px] bg-[rgba(167,139,250,0.08)] border-l-[3px] border-[#a78bfa]">
+                    <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#a78bfa] mb-1">
                       {tipBox.icon} {tipBox.label}
                     </div>
-                    <p className="text-[0.82rem] text-[#4a4560] leading-[1.6]">{tipBox.text}</p>
+                    <p className="text-[0.82rem] text-[#c7bfe0] leading-[1.6]">{tipBox.text}</p>
                   </div>
                 )}
 
                 {/* Fun fact */}
                 {funFact && (
-                  <p className="mt-4 text-[0.78rem] text-[#928aa8] italic leading-[1.6]"
+                  <p className="mt-4 text-[0.78rem] text-[#a29ab8] italic leading-[1.6]"
                     style={{ fontFamily: 'Cormorant, serif' }}
                   >
                     {funFact}

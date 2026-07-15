@@ -594,6 +594,7 @@
 }
 .rv-card-btn {
   all: unset;
+  box-sizing: border-box; /* all:unset resets to content-box → width:100% + padding overflowed the card (413px on 390 screen), clipping text. Restore border-box so the button fits inside the card. */
   display: block; width: 100%;
   cursor: pointer;
   padding: 26px 22px;
@@ -665,7 +666,7 @@
   font-style: italic;
   font-size: clamp(1.2rem, 5vw, 1.5rem);
   line-height: 1.4;
-  color: var(--rv-lavender);
+  color: #cfc5ea; /* brightened for legibility of the emotional pull-quote on near-black */
 }
 .rv-quote cite { display: block; margin-top: 8px; font-style: normal; font-family: var(--rv-sans); font-size: 12px; letter-spacing: 0.06em; color: var(--rv-mist); }
 .rv-labeled { }
@@ -767,7 +768,7 @@
   max-width: 30rem; margin: 4px auto 0;
   font-family: var(--rv-quote); font-style: italic;
   font-size: clamp(1.3rem, 5.4vw, 1.7rem); line-height: 1.4;
-  color: var(--rv-lavender);
+  color: #cfc5ea; /* brightened for legibility of the emotional pull-quote on near-black */
 }
 .rv-hero-more {
   align-self: center; margin-top: 8px;
