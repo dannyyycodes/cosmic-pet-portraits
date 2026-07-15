@@ -809,7 +809,32 @@ serve(async (req) => {
       console.log("[CREATE-CHECKOUT] coupon capped by stack rule. raw=", couponDiscount, "capped=", capped, "volume=", volumeDiscount, "baseTotal=", baseTotal);
       couponDiscount = capped;
     }
-    
+
+    // ── ATOMIC coupon reservation (oversell fix, blocker #9) ──────────────
+    // Reserve the coupon's limited/single use HERE, at checkout, via one
+    // conditional UPDATE that only succeeds while capacity remains — mirroring
+    // the quick-checkout path. This create-checkout call is the SOLE counter
+    // for the coupon on the standard path:
+    //   • the free-order branch below does NOT re-reserve, and
+    //   • stripe-webhook does NOT re-increment current_uses (it only finalizes
+    //     wheel bonuses / marks the wheel lead purchased).
+    // Guarded on couponDiscount > 0 so gift-only rejections and stack-cap
+    // zeroes never burn the budget. If the reservation is lost (coupon
+    // exhausted / raced), charge full price rather than block the sale.
+    if (input.couponId && couponDiscount > 0) {
+      const { data: reserved, error: reserveErr } = await supabaseClient
+        .rpc("reserve_coupon_use", { p_coupon_id: input.couponId });
+      if (reserveErr) {
+        console.error("[CREATE-CHECKOUT] Standard checkout coupon reserve error:", reserveErr);
+      }
+      if (reserved === true) {
+        console.log("[CREATE-CHECKOUT] Standard checkout coupon reserved + applied:", input.couponId, "discount:", couponDiscount);
+      } else {
+        console.log("[CREATE-CHECKOUT] Standard checkout coupon exhausted, not applied:", input.couponId);
+        couponDiscount = 0;
+      }
+    }
+
     let giftCertificateDiscount = 0;
     let giftCertificateId: string | null = input.giftCertificateId || null;
     
@@ -819,6 +844,10 @@ serve(async (req) => {
         .select("*")
         .eq("code", input.giftCode.toUpperCase())
         .eq("is_redeemed", false)
+        // Only PAID gift certificates can be spent. A cert is minted 'pending'
+        // and only flips to 'paid' in stripe-webhook on checkout.session.completed,
+        // so an unpaid cert must never be applied as a discount here.
+        .eq("payment_status", "paid")
         .single();
       
       if (!codeError && giftByCode) {
@@ -835,6 +864,8 @@ serve(async (req) => {
         .select("*")
         .eq("id", giftCertificateId)
         .eq("is_redeemed", false)
+        // Only PAID gift certificates can be spent (see note above).
+        .eq("payment_status", "paid")
         .single();
       
       if (!giftError && giftCert) {
@@ -907,6 +938,9 @@ serve(async (req) => {
           })
           .eq("id", giftCertificateId)
           .eq("is_redeemed", false)
+          // Belt-and-braces: a pending (unpaid) cert can never be consumed even
+          // if one slipped past the lookups above.
+          .eq("payment_status", "paid")
           .select("id");
 
         if (redeemErr) {
@@ -962,20 +996,12 @@ serve(async (req) => {
           }, { onConflict: "report_id" });
       }
 
-      // Increment coupon usage — only when the coupon actually discounted
-      // something. Gift-only rejections + stack-cap zeroes leave couponDiscount
-      // at 0, and those shouldn't burn the coupon's single-use budget.
-      // Atomic reserve (blocker #9): a single conditional UPDATE so two
-      // concurrent free orders on the same limited coupon can't both pass the
-      // cap. This free-order path is terminal (no Stripe, no webhook), so the
-      // reserve here is the authoritative and final count.
-      if (input.couponId && couponDiscount > 0) {
-        const { error: reserveErr } = await supabaseClient
-          .rpc("reserve_coupon_use", { p_coupon_id: input.couponId });
-        if (reserveErr) {
-          console.error("[CREATE-CHECKOUT] Free order coupon reserve error:", reserveErr);
-        }
-      }
+      // Coupon usage was already reserved atomically ABOVE (right after the
+      // stack cap, guarded on couponDiscount > 0) via reserve_coupon_use — a
+      // single conditional UPDATE that two concurrent free orders on the same
+      // limited coupon can't both win. This free-order path is terminal (no
+      // Stripe, no webhook), so that earlier reserve is the authoritative and
+      // final count. Re-reserving here would double-count, so it's gone.
 
       // Gift certificate was already redeemed atomically at the TOP of this
       // free-order block (before any report was marked paid). Redeeming here a

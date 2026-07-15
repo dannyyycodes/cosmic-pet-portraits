@@ -958,25 +958,27 @@ serve(async (req) => {
             // Never fail the webhook over donation bookkeeping — the order is real.
           }
 
-          // Handle coupon usage — increment + apply any wheel bonus
-          // (soul_speak_credits / tier_upgrade / horoscope_month) and
-          // mark the wheel-lead subscriber as purchased so the marketing
-          // pipeline stops nurturing them.
+          // Idempotent coupon FINALIZE — apply any wheel bonus
+          // (soul_speak_credits / tier_upgrade / horoscope_month) and mark the
+          // wheel-lead subscriber as purchased so the marketing pipeline stops
+          // nurturing them.
+          //
+          // The usage COUNTER is NOT touched here. create-checkout now reserves
+          // the coupon atomically at checkout via reserve_coupon_use (blocker #9)
+          // — the sole, authoritative counter. Re-incrementing current_uses on
+          // this webhook would double-count (and the old read-then-write here was
+          // itself non-atomic). So this block only finalizes bonuses; it never
+          // increments current_uses.
           const couponId = session.metadata?.coupon_id;
           if (couponId) {
             try {
               const { data: couponData } = await supabaseClient
                 .from("coupons")
-                .select("current_uses, bonus_type, bonus_value, tier_upgrade_target, wheel_email, wheel_prize_label")
+                .select("bonus_type, bonus_value, tier_upgrade_target, wheel_email, wheel_prize_label")
                 .eq("id", couponId)
                 .single();
 
               if (couponData) {
-                await supabaseClient
-                  .from("coupons")
-                  .update({ current_uses: couponData.current_uses + 1 })
-                  .eq("id", couponId);
-
                 // Wheel-bonus handler — only fires when bonus_type is set.
                 // Discount-only codes fall through with no extra work.
                 if (couponData.bonus_type === "soul_speak_credits") {

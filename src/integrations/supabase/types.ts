@@ -1169,6 +1169,9 @@ export type Database = {
           gift_tier: string | null
           id: string
           is_redeemed: boolean
+          paid: boolean
+          paid_at: string | null
+          payment_status: string
           pet_count: number
           purchaser_email: string
           recipient_email: string | null
@@ -1187,6 +1190,9 @@ export type Database = {
           gift_tier?: string | null
           id?: string
           is_redeemed?: boolean
+          paid?: boolean
+          paid_at?: string | null
+          payment_status?: string
           pet_count?: number
           purchaser_email: string
           recipient_email?: string | null
@@ -1205,6 +1211,9 @@ export type Database = {
           gift_tier?: string | null
           id?: string
           is_redeemed?: boolean
+          paid?: boolean
+          paid_at?: string | null
+          payment_status?: string
           pet_count?: number
           purchaser_email?: string
           recipient_email?: string | null

@@ -171,15 +171,30 @@ serve(async (req) => {
         .eq("is_active", true)
         .single();
       if (coupon) {
-        const afterVolume = baseTotal - discountAmount;
-        if (coupon.discount_type === 'percentage') {
-          couponDiscount = Math.round(afterVolume * (coupon.discount_value / 100));
-        } else {
-          couponDiscount = coupon.discount_value;
+        // ── ATOMIC coupon reservation (oversell fix, blocker #9) ──────────
+        // Reserve the coupon's limited/single use via one conditional UPDATE
+        // that only succeeds while capacity remains, and apply the discount
+        // ONLY when the reservation is won. Replaces the old non-atomic
+        // read-then-(current_uses + 1) write, which let two concurrent gift
+        // purchases both pass the cap on a limited coupon. This is the sole
+        // counter for the gift-purchase path (no coupon_id is written to the
+        // Stripe session metadata, so stripe-webhook never re-increments it).
+        const { data: reserved, error: reserveErr } = await supabaseClient
+          .rpc("reserve_coupon_use", { p_coupon_id: coupon.id });
+        if (reserveErr) {
+          console.error("[GIFT] Coupon reserve error:", reserveErr);
         }
-        // Increment usage
-        await supabaseClient.from("coupons").update({ current_uses: coupon.current_uses + 1 }).eq("id", coupon.id);
-        logStep("Coupon applied", { code: coupon.code, discount: couponDiscount });
+        if (reserved === true) {
+          const afterVolume = baseTotal - discountAmount;
+          if (coupon.discount_type === 'percentage') {
+            couponDiscount = Math.round(afterVolume * (coupon.discount_value / 100));
+          } else {
+            couponDiscount = coupon.discount_value;
+          }
+          logStep("Coupon applied", { code: coupon.code, discount: couponDiscount });
+        } else {
+          logStep("Coupon exhausted, not applied", { code: coupon.code });
+        }
       }
     }
 

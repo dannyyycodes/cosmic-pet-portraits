@@ -126,10 +126,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   const nonMemorialPets = allPets.filter(p => p.occasionMode !== 'memorial');
   const [petHoroscopes, setPetHoroscopes] = useState<Record<number, boolean>>(() => {
     const initial: Record<number, boolean> = {};
-    allPets.forEach((pet, idx) => {
-      // Only enable by default for non-memorial pets
-      initial[idx] = pet.occasionMode !== 'memorial';
-    });
+    // Billing consent: the recurring $4.99/mo weekly-updates subscription must
+    // be an EXPLICIT per-pet opt-in, never a pre-ticked default. Every pet
+    // starts OFF; the buyer turns it on per pet via the toggle(s) below. This
+    // way the pet_horoscopes map sent to create-checkout (and on to the webhook)
+    // enrolls ONLY the pets the buyer actually chose. Memorial pets can never be
+    // enrolled (guarded here, in create-checkout, and in stripe-webhook).
+    allPets.forEach((_, idx) => { initial[idx] = false; });
     return initial;
   });
   const subscriptionPetCount = Math.max(1, nonMemorialPets.length);
@@ -493,6 +496,45 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <span className="flex-1 text-muted-foreground">Add weekly updates</span>
           <span className="text-xs text-green-400">1st month FREE</span>
         </button>
+      )}
+
+      {/* Weekly updates add-on - explicit per-pet opt-in for multi-pet carts.
+          This is a recurring $4.99/mo charge per pet, so enrollment is chosen
+          per pet here (default OFF) rather than silently defaulted. Memorial
+          pets are excluded. The toggles drive the petHoroscopes map sent to
+          create-checkout, so only ticked pets are ever billed/enrolled. */}
+      {allPets.length > 1 && nonMemorialPets.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-medium text-muted-foreground">Add weekly updates</span>
+            <span className="text-[10px] text-green-400">1st month FREE per pet</span>
+          </div>
+          {allPets.map((pet, petIndex) => {
+            if (pet.occasionMode === 'memorial') return null;
+            const on = petHoroscopes[petIndex] || false;
+            return (
+              <button
+                key={petIndex}
+                onClick={() => setPetHoroscopes(prev => ({ ...prev, [petIndex]: !prev[petIndex] }))}
+                className={cn(
+                  "w-full p-2 rounded-lg border text-left flex items-center gap-2 transition-all text-sm",
+                  on
+                    ? "border-nebula-purple/50 bg-nebula-purple/10"
+                    : "border-border/30 bg-card/20"
+                )}
+              >
+                <div className={cn(
+                  "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0",
+                  on ? "border-nebula-purple bg-nebula-purple" : "border-muted-foreground/40"
+                )}>
+                  {on && <Check className="w-2.5 h-2.5 text-white" />}
+                </div>
+                <span className="flex-1 text-muted-foreground truncate">{pet.name || `Pet ${petIndex + 1}`}</span>
+                <span className="text-[11px] text-muted-foreground/70 shrink-0">$4.99/mo</span>
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {/* SoulSpeak by Little Souls - included with every reading */}
