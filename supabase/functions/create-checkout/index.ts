@@ -1124,7 +1124,16 @@ serve(async (req) => {
       customer_email: sanitizedEmail,
       line_items: lineItems,
       mode: checkoutMode,
-      payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
+      // Card-save for the recurring horoscope sub uses setup_future_usage:
+      // "off_session" (below). Klarna/Afterpay/other BNPL wallets do NOT support
+      // off-session saving, and Stripe REJECTS the whole Checkout Session if they
+      // are listed alongside setup_future_usage. Mirror the quick-checkout branch:
+      // narrow to card + Link whenever horoscope billing is wanted, else offer the
+      // full BNPL set. Without this narrowing, any standard checkout with a pet
+      // opted into weekly updates would fail to create a session at all.
+      payment_method_types: wantsHoroscopeBilling
+        ? ["card", "link"]
+        : ["card", "link", "klarna", "afterpay_clearpay"],
       ...(input.includesBook ? {
         shipping_address_collection: {
           allowed_countries: ["US", "GB", "CA", "AU", "IE", "NZ", "DE", "FR", "NL", "SE", "NO", "DK", "FI", "ES", "IT", "PT", "BE", "CH", "AT", "SG", "HK", "JP"],

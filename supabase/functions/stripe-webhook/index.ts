@@ -606,15 +606,21 @@ serve(async (req) => {
             // is missing/unsupported.
             const enrollCurrency = normalizeCurrency(session.currency);
 
-            // ── Per-pet horoscope selection (blocker #3) ──────────────────
-            // The buyer pays one month of horoscope only for the pets they
-            // ticked. create-checkout writes `pet_horoscopes` as a JSON map
-            // keyed by pet INDEX ("0","1",...) matching the order of
-            // report_ids (report_ids = allReportIds.join(",")). Enroll ONLY
-            // the selected pets — never every pet in the order. Fall back to
-            // all non-memorial pets ONLY when the map is absent or empty
-            // (legacy single-pet orders that predate the per-pet map).
-            let horoscopeReportIds = reportIds;
+            // ── Per-pet horoscope selection (billing consent, FAIL-CLOSED) ──
+            // The recurring £4.99/mo weekly-updates sub must ONLY ever be created
+            // for pets the buyer EXPLICITLY opted into. create-checkout writes
+            // `pet_horoscopes` as a JSON map keyed by pet INDEX ("0","1",...)
+            // matching the order of report_ids (report_ids = allReportIds.join(",")).
+            // Enroll ONLY the pets flagged `true` in that map.
+            //
+            // FAIL-CLOSED: if the consent map is absent, empty, or unparseable we
+            // enroll NOBODY — we never fall back to "all non-memorial pets". The
+            // old enroll-all fallback let quick checkout (which sets
+            // include_horoscope=true but sends NO per-pet map) silently sign every
+            // pet up for an auto-converting paid subscription without consent. Any
+            // surface that wants to enroll pets MUST send an explicit pet_horoscopes
+            // map. Standard checkout always sends the map, so it is unaffected.
+            let horoscopeReportIds: string[] = [];
             const petHoroscopesRaw = session.metadata?.pet_horoscopes;
             if (petHoroscopesRaw) {
               try {
@@ -627,14 +633,14 @@ serve(async (req) => {
                     selectedIds: horoscopeReportIds,
                   });
                 } else {
-                  console.log("[STRIPE-WEBHOOK] Horoscope pass: empty pet_horoscopes map — falling back to all non-memorial pets");
+                  console.log("[STRIPE-WEBHOOK] Horoscope pass: empty pet_horoscopes map — fail-closed, enrolling nobody (explicit consent required)");
                 }
               } catch (mapErr) {
-                console.error("[STRIPE-WEBHOOK] Horoscope pass: failed to parse pet_horoscopes, falling back to all non-memorial:", mapErr);
-                horoscopeReportIds = reportIds;
+                console.error("[STRIPE-WEBHOOK] Horoscope pass: failed to parse pet_horoscopes — fail-closed, enrolling nobody:", mapErr);
+                horoscopeReportIds = [];
               }
             } else {
-              console.log("[STRIPE-WEBHOOK] Horoscope pass: no pet_horoscopes map — legacy fallback to all non-memorial pets");
+              console.log("[STRIPE-WEBHOOK] Horoscope pass: no pet_horoscopes map — fail-closed, enrolling nobody (explicit consent required)");
             }
 
             for (const hReportId of horoscopeReportIds) {
