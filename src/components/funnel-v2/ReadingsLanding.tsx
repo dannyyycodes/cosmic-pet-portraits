@@ -2339,7 +2339,7 @@ function BirthSkyJourney() {
               </div>
             ) : (
               <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen}>
-                <p className="ls-seal-lead ls-reveal">Two facts. You already know both.</p>
+                <p className="ls-seal-lead ls-reveal">Just what you already know about them.</p>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
                   <label htmlFor="seal-name">Their name <span>optional</span></label>
                   <input id="seal-name" type="text" autoComplete="off" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
@@ -2356,7 +2356,7 @@ function BirthSkyJourney() {
                   <p className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
                 </div>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
-                  <label id="seal-species-label">What are they?</label>
+                  <label id="seal-species-label">Are they…</label>
                   <div className="ls-seal-species" role="group" aria-labelledby="seal-species-label">
                     {SPECIES_PICKS.map((s) => (
                       <button

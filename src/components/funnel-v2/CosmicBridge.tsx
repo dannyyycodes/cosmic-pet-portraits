@@ -274,6 +274,8 @@ const LCB_CSS = `
   --lcb-white:#f5f2ff;
   --lcb-body:rgba(245,242,255,.78);
   --lcb-dim:rgba(245,242,255,.55);
+  --lcb-mute:rgba(245,242,255,.66);
+  --lcb-frag:rgba(245,242,255,.86);
   --c2-spine:24px; --c2-padl:60px; --c2-padr:22px;
   position:relative;
   overflow-x:clip;
@@ -346,7 +348,7 @@ const LCB_CSS = `
 .c2-b3:not(.is-drawn) .c2-lxl.c2-rv{opacity:0;transform:translate3d(0,34px,0)}
 
 /* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
-.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:17px;color:var(--lcb-dim);max-width:34ch;line-height:1.6;margin:0}
+.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:19px;color:var(--lcb-mute);max-width:35ch;line-height:1.62;margin:0}
 .c2-lm{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.3rem,2.4vw + .6rem,1.8rem);line-height:1.38;color:var(--lcb-body);margin:0;letter-spacing:-0.008em}
 .c2-ll{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.7rem,3.4vw + .7rem,2.5rem);line-height:1.24;color:var(--lcb-white);letter-spacing:-0.014em;margin:0;text-wrap:balance}
 .c2-lxl{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.05rem,4.6vw + .8rem,3.15rem);line-height:1.18;color:var(--lcb-white);letter-spacing:-0.016em;margin:0;text-wrap:balance}
@@ -357,7 +359,7 @@ const LCB_CSS = `
   text-shadow:0 1px 30px rgba(4,3,10,.5);text-wrap:balance;
 }
 .c2-peak-v{color:var(--lcb-violet-br)}
-.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:20px;line-height:1.5;color:var(--lcb-dim);position:relative;max-width:34ch;margin:0}
+.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:22px;line-height:1.52;color:var(--lcb-frag);position:relative;max-width:34ch;margin:0}
 .c2-peak em,.c2-ll em{font-style:italic}
 
 /* ---- station nodes riding the thread ---- */
@@ -538,16 +540,18 @@ const LCB_CSS = `
   .c2-node.lit::before{width:20px !important}
 }
 
-/* ---- TYPE FLOORS: tuned per viewport (2026-07-14). Base above = mobile
-   390-767 (whisper 17 / frag 20 / wdeg 16 SVG units, >=15px rendered at
-   the 304px mobile wheel and 20px at the 400px desktop wheel). ---- */
+/* ---- TYPE FLOORS: tuned per viewport (raised 2026-07-15 for legibility).
+   Base above = mobile 390-767 (whisper 19 / frag 22 / wdeg 16 SVG units,
+   >=15px rendered at the 304px mobile wheel and 20px at the 400px desktop
+   wheel). Fragments carry a lifted contrast token (--lcb-frag) so the
+   recognition beats read cleanly on the dark stage. ---- */
 @media (min-width:768px){
-  .c2-whisper{font-size:17.5px}
-  .c2-frag{font-size:21px}
+  .c2-whisper{font-size:20px}
+  .c2-frag{font-size:24px}
 }
 @media (min-width:1280px){
-  .c2-whisper{font-size:18px}
-  .c2-frag{font-size:24px}
+  .c2-whisper{font-size:21px}
+  .c2-frag{font-size:26px}
 }
 `;
 
@@ -1106,6 +1110,20 @@ export function CosmicBridge() {
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
       const sx = spineX();
+      // pin every station dot's centre exactly onto the plumb line (x = sx),
+      // measured through the offsetParent chain (layout, not rects) so reveal
+      // transforms never corrupt it and no node can drift off the thread,
+      // whatever its parent - self-heals on every resize/refresh rebuild
+      const offLeftInCol = (el: HTMLElement) => {
+        let x = 0; let n: HTMLElement | null = el;
+        while (n && n !== col) { x += n.offsetLeft; n = n.offsetParent as HTMLElement | null; }
+        return x;
+      };
+      nodes.forEach((nd) => {
+        const el = nd as HTMLElement;
+        const parentLeft = offLeftInCol(el) - el.offsetLeft;
+        el.style.left = `${(sx - el.offsetWidth / 2 - parentLeft).toFixed(2)}px`;
+      });
       const rel = (r: DOMRect) => ({ x: r.left - colLeft, y: r.top - colR.top, w: r.width, h: r.height });
 
       // born under the chosen path (the chooser toggle), then swings onto the spine
@@ -1317,8 +1335,11 @@ export function CosmicBridge() {
         drawn = Math.max(drawn, Math.min(env, totalLen));
       } else {
         const t = targetLen();
-        drawn += (t - drawn) * 0.09;
-        if (Math.abs(t - drawn) < 0.5) drawn = t;
+        // frame-rate-independent exponential smoothing (dt-based): the thread
+        // tracks Lenis buttery-smooth and identically at 60/120Hz, so no
+        // rubber-band and no scroll-speed jitter
+        drawn += (t - drawn) * (1 - Math.exp(-dt * 8));
+        if (Math.abs(t - drawn) < 0.4) drawn = t;
       }
       if (path && glowP && totalLen > 0) {
         const off = totalLen - drawn;
@@ -1655,7 +1676,7 @@ export function CosmicBridge() {
         {/* ── Beat 4 · release: two lines, straight into the form ── */}
         <section className="c2-beat c2-b4">
           <span className="c2-node" data-node data-for="c2-st-set" aria-hidden="true" />
-          <p className="c2-lm c2-rv">It opens with two facts you already know.</p>
+          <p className="c2-lm c2-rv">It opens with what you already know about them.</p>
           <p className="c2-peak c2-peak-v c2-rv" id="c2-st-set">Set the chart.</p>
         </section>
       </div>
