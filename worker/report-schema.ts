@@ -101,14 +101,30 @@ export const reportSchema = z.object({
   celestialChoreography: sectionContent,
   earthlyExpression: sectionContent,
   luminousField: sectionContent,
-  celestialGem: sectionContent.extend({
-    crystalName: z.string(),
-  }),
-  eternalArchetype: sectionContent.extend({
-    archetypeName: z.string(),
-    archetypeDescription: z.string(),
+  celestialGem: z.object({
+    title: z.string().min(2),
+    crystalName: z.string().min(2),
+    crystalMeaning: minSentence(100),
+    crystalColor: z.string().optional(),
+    // The live generator + viewer use crystalMeaning, NOT `content`. Keep
+    // `content` optional so a fully-populated gem no longer trips a false
+    // _needsReview. (QC fix 2026-07-14 — schema false-positive.)
+    content: z.string().optional(),
+    howToUse: z.string().optional(),
+    placement: z.string().optional(),
+  }).passthrough(),
+  eternalArchetype: z.object({
+    title: z.string().min(2),
+    archetypeName: z.string().min(2),
     archetypeStory: minSentence(200),
-  }),
+    // Generator emits archetypeStory / archetypeLesson (viewer renders these),
+    // never `content`. Keep `content` + description optional so a fully-
+    // populated section no longer false-flags. (QC fix 2026-07-14.)
+    archetypeDescription: z.string().optional(),
+    archetypeLesson: z.string().optional(),
+    soulSignature: z.string().optional(),
+    content: z.string().optional(),
+  }).passthrough(),
   keepersBond: sectionContent,
 
   // ─── Fun & shareable (Chapter 3) ── all optional so single missing one

@@ -16,6 +16,7 @@ import {
 } from "./ephemeris-v2.ts";
 import { resolveBirthUTC } from "./timezone.ts";
 import { resolveSpeciesRules, findBannedIngredients } from "./species-recipe-rules.ts";
+import { jsonrepair } from "https://esm.sh/jsonrepair@3.12.0";
 import { verifyReport, type VerificationIssue } from "./verifier.ts";
 import { validateReport } from "./report-schema.ts";
 import {
@@ -31,6 +32,15 @@ import {
 const BRIDGE_URL = Deno.env.get("BRIDGE_URL") || "https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/n8n-bridge";
 const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY")!;
 const N8N_BRIDGE_SECRET = Deno.env.get("N8N_BRIDGE_SECRET")!;
+
+// Shopify Soul Reading flow — set by server.ts only when n8n provides them.
+// When unset the worker behaves identically to the legacy direct-checkout flow.
+const SOUL_READING_JOB_ID = Deno.env.get("SOUL_READING_JOB_ID") || "";
+const SOUL_READING_VIEWER_URL = Deno.env.get("SOUL_READING_VIEWER_URL") || "";
+const VERCEL_BASE = Deno.env.get("VERCEL_BASE") || "https://littlesouls.app";
+const READING_EMAIL_SECRET = Deno.env.get("READING_EMAIL_SECRET") || "";
+const SUPABASE_URL_FOR_JOBS = Deno.env.get("SUPABASE_URL") || "https://aduibsyrnenzobuyetmn.supabase.co";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
 const reportId = Deno.args[0];
 if (!reportId) {
@@ -79,6 +89,34 @@ async function saveError(message: string) {
   } catch (_) { /* best-effort */ }
   // Report to Sentry via HTTP (no SDK needed for Deno)
   await reportToSentry(message);
+}
+
+// Soul Reading state-machine update — uses Supabase REST + service role.
+// Bypasses the n8n-bridge edge function (which only knows about pet_reports).
+// Idempotent; PATCH returns the updated row when accept header set.
+async function patchSoulReadingJob(
+  jobId: string,
+  patch: Record<string, unknown>,
+): Promise<{ status: number }> {
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY missing on droplet");
+  }
+  const url = `${SUPABASE_URL_FOR_JOBS}/rest/v1/soul_reading_jobs?id=eq.${encodeURIComponent(jobId)}`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_SERVICE_ROLE_KEY,
+      "Authorization": "Bearer " + SUPABASE_SERVICE_ROLE_KEY,
+      "Prefer": "return=minimal",
+    },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`patchSoulReadingJob ${res.status}: ${text.slice(0, 300)}`);
+  }
+  return { status: res.status };
 }
 
 const SENTRY_DSN = Deno.env.get("SENTRY_DSN") || "";
@@ -138,41 +176,94 @@ const vibrationMeanings: Record<number, string> = {
   33: "Master Teacher",
 };
 
-function getElementalBalance(positions: PlanetaryPositions): Record<string, number> {
-  const elements = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
-  const relevantPlanets = ['sun', 'moon', 'mercury', 'venus', 'mars'] as const;
-
-  relevantPlanets.forEach(planet => {
-    const sign = positions[planet].sign;
-    elements[getElement(sign) as keyof typeof elements]++;
-  });
-
-  if (positions.ascendant) {
+function getElementCounts(positions: PlanetaryPositions): Record<string, number> {
+  // Count element by sign across EVERY placement the reveal wheel plots
+  // (src/components/reveal/astro.ts PLANETS) so the element balance can never
+  // contradict the glyphs the owner can literally count on the wheel.
+  const elements: Record<string, number> = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  const bodies = [
+    "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
+    "uranus", "neptune", "pluto", "chiron", "lilith", "northNode",
+  ];
+  for (const b of bodies) {
+    const p = positions[b as keyof PlanetaryPositions] as { sign?: string } | undefined;
+    if (p?.sign) elements[getElement(p.sign) as keyof typeof elements]++;
+  }
+  // Only count a REAL (birth-time) ascendant. The estimated ascendant is just a
+  // copy of the Sun sign and would double-weight the Sun's element.
+  if (positions.ascendant?.sign) {
     elements[getElement(positions.ascendant.sign) as keyof typeof elements]++;
   }
+  return elements;
+}
 
-  const total = positions.ascendant ? 6 : 5;
-  const raw = {
-    Fire: Math.round((elements.Fire / total) * 100),
-    Earth: Math.round((elements.Earth / total) * 100),
-    Air: Math.round((elements.Air / total) * 100),
-    Water: Math.round((elements.Water / total) * 100),
+function getElementalBalance(positions: PlanetaryPositions): Record<string, number> {
+  // Weight ALL placements (not just the 5 personal planets). An element that
+  // holds real placements can never be floored to "absent" here, and the
+  // narrative is bound (via the ELEMENT ACCURACY RULES prompt block) to agree
+  // with these numbers.
+  const counts = getElementCounts(positions);
+  const total = counts.Fire + counts.Earth + counts.Air + counts.Water || 1;
+  const raw: Record<string, number> = {
+    Fire: Math.round((counts.Fire / total) * 100),
+    Earth: Math.round((counts.Earth / total) * 100),
+    Air: Math.round((counts.Air / total) * 100),
+    Water: Math.round((counts.Water / total) * 100),
   };
-  // Ensure minimum 5% for every element — no being has zero of any element
-  const MIN = 5;
-  const keys = ['Fire', 'Earth', 'Air', 'Water'] as const;
-  const zeros = keys.filter(k => raw[k] === 0);
-  if (zeros.length > 0 && zeros.length < 4) {
-    const borrowed = zeros.length * MIN;
-    const nonZeros = keys.filter(k => raw[k] > 0);
-    zeros.forEach(k => raw[k] = MIN);
-    // Subtract proportionally from non-zero elements
-    const nonZeroTotal = nonZeros.reduce((s, k) => s + raw[k], 0);
-    nonZeros.forEach(k => {
-      raw[k] = Math.max(MIN, Math.round(raw[k] - (borrowed * raw[k] / nonZeroTotal)));
-    });
+  // Correct rounding drift so the four percentages sum to exactly 100.
+  const keys = ["Fire", "Earth", "Air", "Water"] as const;
+  const drift = 100 - keys.reduce((s, k) => s + raw[k], 0);
+  if (drift !== 0) {
+    const biggest = keys.reduce((a, b) => (raw[b] > raw[a] ? b : a));
+    raw[biggest] += drift;
   }
   return raw;
+}
+
+// ─── Natal aspect computation (mirrors the visible NatalWheel) ───────────────
+// The reveal wheel (src/components/reveal/NatalWheel.tsx) only draws aspect
+// lines between these 7 bodies, with these orbs. We compute the SAME set (plus
+// conjunction, which the wheel shows as adjacent glyphs) so the prose can only
+// claim aspects that are BOTH mathematically real AND visible on the wheel.
+const NATAL_ASPECT_BODIES: { key: string; label: string }[] = [
+  { key: "sun", label: "Sun" },
+  { key: "moon", label: "Moon" },
+  { key: "mercury", label: "Mercury" },
+  { key: "venus", label: "Venus" },
+  { key: "mars", label: "Mars" },
+  { key: "jupiter", label: "Jupiter" },
+  { key: "saturn", label: "Saturn" },
+];
+const ASPECT_DEFS: { type: string; angle: number; orb: number }[] = [
+  { type: "conjunct", angle: 0, orb: 8 },
+  { type: "sextile", angle: 60, orb: 5 },
+  { type: "square", angle: 90, orb: 5 },
+  { type: "trine", angle: 120, orb: 6 },
+  { type: "opposite", angle: 180, orb: 6 },
+];
+interface NatalAspect { a: string; b: string; type: string; orb: number; }
+
+function computeNatalAspects(positions: PlanetaryPositions): NatalAspect[] {
+  const out: NatalAspect[] = [];
+  const bodies = NATAL_ASPECT_BODIES;
+  for (let i = 0; i < bodies.length; i++) {
+    for (let j = i + 1; j < bodies.length; j++) {
+      const la = positions[bodies[i].key as keyof PlanetaryPositions] as { longitude?: number } | undefined;
+      const lb = positions[bodies[j].key as keyof PlanetaryPositions] as { longitude?: number } | undefined;
+      if (!la || !lb || typeof la.longitude !== "number" || typeof lb.longitude !== "number") continue;
+      let d = Math.abs(la.longitude - lb.longitude) % 360;
+      if (d > 180) d = 360 - d;
+      let best: { type: string; delta: number } | null = null;
+      for (const asp of ASPECT_DEFS) {
+        const delta = Math.abs(d - asp.angle);
+        if (delta <= asp.orb && (!best || delta < best.delta)) best = { type: asp.type, delta };
+      }
+      if (best) {
+        out.push({ a: bodies[i].label, b: bodies[j].label, type: best.type, orb: Math.round(best.delta * 10) / 10 });
+      }
+    }
+  }
+  return out;
 }
 
 function getCrystal(rulingPlanet: string, element: string): { name: string; meaning: string; color: string } {
@@ -288,7 +379,7 @@ export function modelForOccasion(
     case "discover":
     case "gift":
     default:
-      return "anthropic/claude-opus-4.6";
+      return "anthropic/claude-opus-4.8";
   }
 }
 
@@ -299,7 +390,7 @@ export function modelForOccasion(
 async function fetchOpenRouter(
   systemPrompt: string,
   userPrompt: string,
-  model: string = "anthropic/claude-opus-4.6",
+  model: string = "anthropic/claude-opus-4.8",
 ): Promise<Response> {
   const body = JSON.stringify({
     model,
@@ -323,7 +414,14 @@ async function fetchOpenRouter(
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       console.log(`[WORKER] Calling OpenRouter (attempt ${attempt}/${MAX_ATTEMPTS})...`);
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers, body });
+      const __ctl = new AbortController();
+      const __to = setTimeout(() => __ctl.abort(), 180_000);
+      let res;
+      try {
+        res = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers, body, signal: __ctl.signal });
+      } finally {
+        clearTimeout(__to);
+      }
       if (res.ok) return res;
       const errText = await res.clone().text().catch(() => "<no body>");
       console.warn(`[WORKER] OpenRouter HTTP ${res.status} on attempt ${attempt}: ${errText.slice(0, 300)}`);
@@ -445,7 +543,7 @@ try {
           "X-Title": "Little Souls Vision",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "google/gemini-2.5-flash",
           max_tokens: 300,
           messages: [{
             role: "user",
@@ -538,11 +636,41 @@ try {
   const rulingPlanet = getRulingPlanet(sunSign);
   const nameVibration = calculateNameVibration(name);
   const elementalBalance = getElementalBalance(positions);
+  const elementCounts = getElementCounts(positions);
   // Dominant element = highest percentage in the actual chart balance (not just Sun sign)
   const element = Object.entries(elementalBalance).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0];
   const crystal = getCrystal(rulingPlanet, element);
   const aura = getAuraColor(element, rulingPlanet);
   const archetype = getSoulArchetype(sunSign, element, gender, species);
+
+  // Real natal aspects (the ONLY aspects the prose is allowed to name) + the
+  // two accuracy prompt-blocks injected into the system prompt below.
+  const natalAspects = computeNatalAspects(positions);
+  const aspectListStr = natalAspects.length
+    ? natalAspects.map((a) => `- ${a.a} ${a.type} ${a.b} (orb ${a.orb}°)`).join("\n")
+    : "- (No major aspects between these planets in this chart.)";
+  const aspectPromptBlock =
+`COMPUTED NATAL ASPECTS (the COMPLETE and ONLY aspect list for ${name}'s chart):
+${aspectListStr}
+
+ASPECT ACCURACY RULES (MANDATORY — a fabricated aspect destroys the reader's trust):
+- Use ONLY the aspects listed above. Do NOT write "conjunct", "conjunction", "opposite", "opposition", "trine", "square", or "sextile" for ANY planet pair that is not on that list.
+- If two planets simply share the same zodiac sign but are NOT listed as an aspect, say "both in <sign>". NEVER call that a "conjunction".
+- Aspects only exist between Sun, Moon, Mercury, Venus, Mars, Jupiter and Saturn here. Do NOT claim aspects to or between Uranus, Neptune, Pluto, Chiron, Lilith, the North Node or the Rising sign.
+- ${natalAspects.length ? "Reference these real aspects where they add insight, but never invent a new one." : "This chart has NO major aspects, so do NOT use any aspect words (conjunct/opposite/trine/square/sextile) anywhere in the reading."}`;
+
+  const elemKeys = ["Fire", "Earth", "Air", "Water"];
+  const elemPresent1 = elemKeys.filter((k) => elementCounts[k] >= 1);
+  const elemPresent2 = elemKeys.filter((k) => elementCounts[k] >= 2);
+  const elemAbsent0 = elemKeys.filter((k) => elementCounts[k] === 0);
+  const elemCountsStr = elemKeys.map((k) => `${k} ${elementCounts[k]}`).join(", ");
+  const elementPromptBlock =
+`ELEMENT ACCURACY RULES (MANDATORY — must agree with the wheel the owner can see):
+- Placement counts by element (from ALL of ${name}'s placements, authoritative): ${elemCountsStr}.
+- Elements present on the wheel — NEVER call any of these "absent", "missing", "empty", "none", or "lacking": ${elemPresent1.join(", ") || "none"}.
+- Elements with 2 or more placements — NEVER call any of these "thinnest", "weakest", "barely there", or "the least": ${elemPresent2.join(", ") || "none"}.
+- ${elemAbsent0.length ? `Only these are genuinely absent (0 placements) and may be described as low/missing: ${elemAbsent0.join(", ")}.` : "Every element is represented, so do NOT describe any element as absent, missing, or lacking."}
+- The dominant element is ${element}. Do NOT crown a different element as dominant.`;
 
   // Chart placements (all 14 bodies)
   const chartPlacements = {
@@ -958,6 +1086,10 @@ ASC RISING: ${ascendant} ${positions.ascendant?.degree || 0}° ${hasRealAscendan
 Element: ${element} | Modality: ${modality} | Ruling Planet: ${rulingPlanet}
 Elemental Balance: Fire ${elementalBalance.Fire}%, Earth ${elementalBalance.Earth}%, Air ${elementalBalance.Air}%, Water ${elementalBalance.Water}%
 
+${aspectPromptBlock}
+
+${elementPromptBlock}
+
 KEY TRAITS for ${sunSign}: ${signTraits[sunSign]}
 Moon in ${moonSign} traits: ${signTraits[moonSign]}
 Rising ${ascendant} traits: ${signTraits[ascendant]}
@@ -1006,7 +1138,7 @@ BANNED WORDS & PATTERNS (using these makes the report feel fake):
 - NEVER use "here's the thing" or "but here's where it gets interesting" — these are AI crutches. Just say the interesting thing.
 - NEVER use ALL CAPS for emphasis more than 3 times in the ENTIRE report. Use italics-style phrasing instead: "really", "so", "genuinely" or just let strong words carry themselves
 - NEVER start sentences with "Now," or "So," or "And here's"
-- NEVER use em dashes (—) more than 5 times total. Use commas, periods, or parentheses instead
+- NEVER use em dashes (—). Not once. ZERO em dashes in the entire reading. Use commas, periods, colons, or parentheses instead. This is a hard brand rule.
 - NEVER say "let's be honest" or "let's talk about" — just talk about it
 
 WHAT TO DO INSTEAD:
@@ -1026,6 +1158,7 @@ ABSOLUTE DATA ACCURACY RULES (NEVER VIOLATE THESE):
 - The lucky number MUST be ${nameVibration}. Do not change it to any other number.
 - NEVER write "your owner", "the owner", or "their owner" — the reader IS the owner. Always address the reader as "you/your".
 - Every zodiac sign mentioned in narrative text MUST match the calculated chartPlacements exactly. Do not swap or invent placements.
+- Whenever you name a planet together with a sign (e.g. "Mercury in ___", a "Gemini Moon", or any planet-sign phrasing like "Gemini-Mercury" / "Cancer Mars"), the sign MUST be THAT planet's actual sign from chartPlacements above. NEVER pair a planet with a sign it is not in — check chartPlacements before writing any planet+sign phrase.
 - When referencing a planet's degree in prose, it MUST match the degree in chartPlacements (±1° tolerance for rounding only).`;
 
   const cosmicUserPrompt = `Generate a comprehensive cosmic portrait for ${name} the ${breed || species} with this JSON structure.
@@ -1248,7 +1381,7 @@ JSON Structure:
     "title": "💌 The One Thing They Most Want You to Know",
     "preamble": "A single short sentence introducing the message — e.g. 'If ${name} could say it just once, clearly, out loud, ${pronouns.subject} would say this:'",
     "message": "EXACTLY 3 short lines, written from ${name}'s perspective, in first person. Each line its own line — NOT a paragraph. Designed to be displayed as a pullquote or shared as a standalone graphic. Line 1: a truth about YOU (the owner) that ${name} has observed and never had words for. Line 2: a secret about ${pronouns.object} ${pronouns.subject} wishes you understood. Line 3: a promise, grounded in ${pronouns.possessive} ${venus} Venus or ${moonSign} Moon, that is specific enough to make the owner stop scrolling. No clichés. No 'you are my everything'. Earn every word. This is the most shareable single moment in the report — treat it like a poem.",
-    "signoff": "A one-line sign-off that feels like ${name} actually signed a note — e.g. '— ${name}, from under the kitchen table' or '— ${name}, at 3:47am, watching you sleep'. Must reference a real behaviour or location."
+    "signoff": "A one-line sign-off that feels like ${name} actually signed a note (no em dash anywhere), e.g. '${name}, from under the kitchen table' or '${name}, at 3:47am, watching you sleep'. Must reference a real behaviour or location."
   },
 
   "shadowSelf": {
@@ -1450,18 +1583,18 @@ ${hasSoulBondData ? `
       "A specific social behavior prediction based on their ${ascendant} Rising sign. Use ${pronouns.subject}/${pronouns.possessive} pronouns ONLY. ${isMemorial ? 'PAST TENSE.' : ''}",
       "A specific comfort-seeking behavior based on their ${venus} Venus sign. Use ${pronouns.subject}/${pronouns.possessive} pronouns ONLY. ${isMemorial ? 'PAST TENSE.' : ''}"
     ],
-    "callToAction": "Share which ones were scarily accurate — tag us @mypetssoul"
+    "callToAction": "Share which ones were scarily accurate, tag us @mypetssoul"
   },
 
   "epilogue": "A 5-6 sentence closing that weaves together ${name}'s key placements into a final, powerful message. Reference their ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising specifically. ${occasionMode === 'memorial' ? 'Use PAST TENSE. End with a message about eternal connection that provides genuine comfort.' : 'Use PRESENT TENSE — not \"came into your life\" but \"is in your life RIGHT NOW\". Not \"chose you\" but \"is here because...\". This is a culmination of everything they just discovered.'} For discover mode: end with a line that makes the owner see their pet differently — more deeply, more magically. For birthday: end with a cosmic blessing for the year ahead. For gift: end with a message about the cosmic bond between ${name} and their person. The last sentence should be the most quotable line in the entire report — something they'd put on a wall. NEVER write 'your owner' — the reader IS the owner. Address them as 'you'.",
 
   "compatibilityNotes": {
     "bestPlaymates": [
-      "FORMAT STRICTLY: 'SignName — chart-justified reason (one sentence)'. The sign name MUST be the FIRST word, followed by ' — ' (space em-dash space), then the reason. The reason must reference at least ONE specific placement from ${name}'s chart (Sun, Moon, Venus, Mars, Lilith) and a real behaviour. Example pattern: 'Libra — their harmony-first energy settles ${name}'s ${mars} Mars intensity into side-by-side naps without territorial drama.' Pick the sign that most deeply complements ${name}'s ${moonSign} Moon or ${venus} Venus. Never just list a sign name alone. Never sun-sign match.",
-      "FORMAT IDENTICAL to above. Must reference a DIFFERENT chart placement than the first entry — rotate through Sun, Moon, Venus, Mars, Rising, Lilith so each playmate highlights a different facet of ${name}. Example: 'Aquarius — matches ${name}'s ${uranus} Uranus weirdness, so their zoomies align instead of collide.'"
+      "FORMAT STRICTLY: 'SignName: chart-justified reason (one sentence)'. The sign name MUST be the FIRST word, followed by ': ' (colon space), then the reason. Do NOT use an em dash anywhere. The reason must reference at least ONE specific placement from ${name}'s chart (Sun, Moon, Venus, Mars, Lilith) and a real behaviour. Example pattern: 'Libra: their harmony-first energy settles ${name}'s ${mars} Mars intensity into side-by-side naps without territorial drama.' Pick the sign that most deeply complements ${name}'s ${moonSign} Moon or ${venus} Venus. Never just list a sign name alone. Never sun-sign match.",
+      "FORMAT IDENTICAL to above (SignName then a colon then the reason, no em dash). Must reference a DIFFERENT chart placement than the first entry, rotating through Sun, Moon, Venus, Mars, Rising, Lilith so each playmate highlights a different facet of ${name}. Example: 'Aquarius: matches ${name}'s ${uranus} Uranus weirdness, so their zoomies align instead of collide.'"
     ],
     "challengingEnergies": [
-      "FORMAT STRICTLY: 'SignName — chart-grounded reason.' Justify by a specific elemental conflict or aspect, not vibes. Example: 'Capricorn — their need for structured routine collides with ${name}'s ${mars} Mars improv-mode, and neither backs down when dinner time shifts.' Never generic."
+      "FORMAT STRICTLY: 'SignName: chart-grounded reason.' (colon after the sign name, no em dash). Justify by a specific elemental conflict, not vibes. Example: 'Capricorn: their need for structured routine collides with ${name}'s ${mars} Mars improv-mode, and neither backs down when dinner time shifts.' Never generic."
     ],
     "humanCompatibility": "3-4 sentences naming WHICH human chart signatures ${name} bonds most deeply with, and WHY — using at least TWO specific placements from ${name}'s own chart. Forbidden: listing sun signs without justification ('vibes with Gemini, Aries, and Sagittarius' = banned). Required: connect ${name}'s ${moonSign} Moon or ${ascendant} Rising to the kind of human energy that regulates them. Include one concrete daily-life example the owner will recognise. Address the reader as 'you' if the chart matches — that's the magic moment. End with why ${name} chose a human like you in particular.",
     "relationshipGift": "1-2 sentences naming the specific gift ${name} brings into any close relationship (human or animal), grounded in ${pronouns.possessive} Venus in ${venus} + ${moonSign} Moon combination. Not generic ('loyalty'). Something only THIS combination gives."
@@ -1948,14 +2081,25 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
 
   // ─── Parse response — fail loudly on any problem, never ship a template ────
 
-  let reportContent: Record<string, unknown>;
+  // Delivery-reliability guards (launch-blocker fix 2026-07-14).
+  // deliveryHeld = the reading is NOT a safe paid deliverable (memorial
+  // placeholder, or final schema invalid on customer-visible sections). When
+  // held we persist the row for ops but keep it OFF the "ready" path and send
+  // a delay-apology instead of the reading-ready email. memorialFallbackUsed
+  // records that the placeholder builder was used.
+  let memorialFallbackUsed = false;
+  let deliveryHeld = false;
+  let holdReason = "";
+
+  let reportContent!: Record<string, unknown>;
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "<no body>");
     if (memorialReading) {
-      console.warn(`[WORKER] Memorial run — OpenRouter HTTP ${response.status}. Serving memorial fallback. Body: ${errorText.slice(0, 300)}`);
+      console.warn(`[WORKER] Memorial run — OpenRouter HTTP ${response.status}. Building memorial placeholder (delivery will be HELD). Body: ${errorText.slice(0, 300)}`);
       await reportToSentry(`Memorial fallback served (HTTP ${response.status})`, { reportId, body: errorText.slice(0, 300) });
       reportContent = createMemorialFallbackReport();
+      memorialFallbackUsed = true;
     } else {
       throw new Error(`OpenRouter returned HTTP ${response.status}: ${errorText.slice(0, 500)}`);
     }
@@ -1964,15 +2108,19 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
     let rawContent: string | undefined = json.choices?.[0]?.message?.content;
     if (!rawContent) {
       if (memorialReading) {
-        console.warn("[WORKER] Memorial run — OpenRouter returned empty content. Serving memorial fallback.");
+        console.warn("[WORKER] Memorial run — OpenRouter returned empty content. Building memorial placeholder (delivery will be HELD).");
         await reportToSentry("Memorial fallback served (empty content)", { reportId });
         reportContent = createMemorialFallbackReport();
+        memorialFallbackUsed = true;
       } else {
         throw new Error(`OpenRouter returned empty content. Full response: ${JSON.stringify(json).slice(0, 500)}`);
       }
     } else {
       console.log("[WORKER] Received", rawContent.length, "chars from AI");
-      rawContent = rawContent.replace(/^```json\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      rawContent = rawContent.trim();
+      { const _f = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/i); if (_f) rawContent = _f[1].trim();
+        const _a = rawContent.indexOf("{"); const _b = rawContent.lastIndexOf("}");
+        if (_a >= 0 && _b > _a) rawContent = rawContent.slice(_a, _b + 1); }
 
       try {
         reportContent = JSON.parse(rawContent);
@@ -1998,17 +2146,53 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
           reportContent = JSON.parse(repaired);
           console.log("[WORKER] Repaired truncated JSON successfully");
         } catch (repairError) {
-          if (memorialReading) {
-            console.warn("[WORKER] Memorial run — JSON parse + repair both failed. Serving memorial fallback.");
-            await reportToSentry("Memorial fallback served (parse failure)", {
-              reportId,
-              parseError: String(parseError).slice(0, 200),
-              repairError: String(repairError).slice(0, 200),
-              head: rawContent.slice(0, 200),
-            });
-            reportContent = createMemorialFallbackReport();
-          } else {
-            throw new Error(`JSON parse + repair both failed. Parse: ${parseError}. Repair: ${repairError}. Head of content: ${rawContent.slice(0, 300)}`);
+          // Robustness (2026-06-04): Opus 4.8 et al intermittently emit JSON with
+          // unquoted keys / trailing commas the brace-repair cannot fix. Layered
+          // recovery: tolerant jsonrepair -> one full regeneration -> fallback/throw.
+          let recovered = false;
+          try {
+            reportContent = JSON.parse(jsonrepair(rawContent));
+            console.log("[WORKER] jsonrepair recovered malformed JSON");
+            recovered = true;
+          } catch (_jr) { /* fall through to regeneration */ }
+
+          if (!recovered) {
+            console.warn("[WORKER] parse+brace+jsonrepair failed — regenerating once...");
+            try {
+              const retryResp = await fetchOpenRouter(systemPrompt, userPrompt, selectedModel);
+              if (retryResp.ok) {
+                const retryJson = await retryResp.json();
+                let retryRaw = String(retryJson.choices?.[0]?.message?.content ?? "")
+                  .replace(/^```json\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+                try { reportContent = JSON.parse(retryRaw); recovered = true; }
+                catch { reportContent = JSON.parse(jsonrepair(retryRaw)); recovered = true; }
+                if (recovered) console.log("[WORKER] regeneration recovered JSON");
+              }
+            } catch (regenErr) {
+              console.warn("[WORKER] regeneration attempt failed:", regenErr);
+            }
+          }
+
+          if (!recovered) {
+            // Persist raw model output so failures are inspectable (Codex #1).
+            try {
+              Deno.mkdirSync("/opt/littlesouls/failures", { recursive: true });
+              Deno.writeTextFileSync(`/opt/littlesouls/failures/${reportId}.txt`, rawContent);
+              console.warn("[WORKER] raw output saved to /opt/littlesouls/failures/" + reportId + ".txt");
+            } catch (_e) { /* best-effort */ }
+            if (memorialReading) {
+              console.warn("[WORKER] Memorial run — all JSON recovery failed. Building memorial placeholder (delivery will be HELD).");
+              await reportToSentry("Memorial fallback served (parse failure)", {
+                reportId,
+                parseError: String(parseError).slice(0, 200),
+                repairError: String(repairError).slice(0, 200),
+                head: rawContent.slice(0, 200),
+              });
+              reportContent = createMemorialFallbackReport();
+              memorialFallbackUsed = true;
+            } else {
+              throw new Error(`JSON parse + brace-repair + jsonrepair + regeneration all failed. Parse: ${parseError}. Head: ${rawContent.slice(0, 300)}`);
+            }
           }
         }
       }
@@ -2200,7 +2384,10 @@ Return: { "${sectionName}": { ...replacement... } }`;
       const j = await res.json();
       const txt: string | undefined = j.choices?.[0]?.message?.content;
       if (!txt) return null;
-      const cleaned = txt.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      let cleaned = txt.trim();
+      { const _f = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i); if (_f) cleaned = _f[1].trim();
+        const _a = cleaned.indexOf("{"); const _b = cleaned.lastIndexOf("}");
+        if (_a >= 0 && _b > _a) cleaned = cleaned.slice(_a, _b + 1); }
       const parsed = JSON.parse(cleaned) as Record<string, unknown>;
       if (!parsed[sectionName]) {
         console.warn(`[REGEN] ${sectionName} response missing expected key. Keys: ${Object.keys(parsed).join(",")}`);
@@ -2318,7 +2505,25 @@ Return: { "${sectionName}": { ...replacement... } }`;
     }
   }
 
-  // ── Final schema check — if still invalid, flag for review but ship ──────
+  // ── Final schema check — flag for review; HOLD only if genuinely broken ──
+  // Substance check: how much real text a section actually carries. Used to
+  // separate a GENUINELY broken/empty customer-visible section (hold delivery)
+  // from a schema false-positive. The schema requires a `content` field on
+  // celestialGem / eternalArchetype, but the live generator fills those
+  // sections with differently-named fields (crystalMeaning / archetypeStory),
+  // so they trip `content: Required` on nearly every report while being fully
+  // populated and rendering fine. Holding on those would block virtually all
+  // deliveries — so we only hold when a failed section carries almost no text.
+  const sectionTextLen = (v: unknown): number => {
+    if (v == null) return 0;
+    if (typeof v === "string") return v.trim().length;
+    if (Array.isArray(v)) return v.reduce((n: number, x) => n + sectionTextLen(x), 0);
+    if (typeof v === "object") {
+      return Object.values(v as Record<string, unknown>).reduce((n: number, x) => n + sectionTextLen(x), 0);
+    }
+    return 0;
+  };
+
   const finalSchema = memorialReading
     ? validateMemorialReport(reportContent)
     : validateReport(reportContent);
@@ -2334,6 +2539,20 @@ Return: { "${sectionName}": { ...replacement... } }`;
         failedSections: regenerableFails,
         errors: finalSchema.errors.slice(0, 10),
       });
+      // HOLD delivery ONLY when a failed customer-visible section is actually
+      // missing/empty (near-zero real text) — never for the schema
+      // false-positive on otherwise fully-written sections. An empty required
+      // section = a genuinely broken paid reading; never ship it as success.
+      const emptyFails = regenerableFails.filter(
+        (s) => sectionTextLen((reportContent as Record<string, unknown>)[s]) < 120,
+      );
+      if (emptyFails.length > 0) {
+        deliveryHeld = true;
+        holdReason = holdReason || `schema_invalid_empty: ${emptyFails.join(", ")}`;
+        console.error(`[SCHEMA] Empty/missing customer-visible sections — HOLDING delivery: ${emptyFails.join(", ")}`);
+      } else {
+        console.warn(`[SCHEMA] Failed sections are populated (schema false-positive) — shipping with _needsReview, not held.`);
+      }
     }
   }
 
@@ -2379,7 +2598,192 @@ Return: { "${sectionName}": { ...replacement... } }`;
     }
   }
 
+  // ─── Accuracy scrub: fabricated aspects + em dashes (deterministic) ────────
+  // Runs on the FINISHED report as the last content transform before delivery.
+  // (1) Any "X conjunct/opposite/trine/square/sextile Y" claim naming a pair
+  //     that is not in the computed natal-aspect list is corrected to the real
+  //     aspect, downgraded to "both in <sign>" when they only share a sign, or
+  //     neutralised to "X and Y". (2) Every em dash is removed (hard brand rule).
+  {
+    const bodySignByLabel: Record<string, string> = {};
+    const allBodies: { key: string; label: string }[] = [
+      { key: "sun", label: "sun" }, { key: "moon", label: "moon" },
+      { key: "mercury", label: "mercury" }, { key: "venus", label: "venus" },
+      { key: "mars", label: "mars" }, { key: "jupiter", label: "jupiter" },
+      { key: "saturn", label: "saturn" }, { key: "uranus", label: "uranus" },
+      { key: "neptune", label: "neptune" }, { key: "pluto", label: "pluto" },
+      { key: "chiron", label: "chiron" }, { key: "lilith", label: "lilith" },
+      { key: "northNode", label: "north node" }, { key: "ascendant", label: "rising" },
+    ];
+    for (const b of allBodies) {
+      const p = positions[b.key as keyof PlanetaryPositions] as { sign?: string } | undefined;
+      if (p?.sign) bodySignByLabel[b.label] = p.sign;
+    }
+    // "ascendant" / "asc" are aliases of "rising"
+    if (bodySignByLabel["rising"]) { bodySignByLabel["ascendant"] = bodySignByLabel["rising"]; bodySignByLabel["asc"] = bodySignByLabel["rising"]; }
+    const aspectByPair = new Map<string, string>();
+    for (const a of natalAspects) {
+      aspectByPair.set([a.a.toLowerCase(), a.b.toLowerCase()].sort().join("|"), a.type);
+    }
+    const nameToLabel = (n: string): string => {
+      const s = n.trim().toLowerCase();
+      if (s === "ascendant" || s === "asc") return "rising";
+      return s;
+    };
+    const normRel = (w: string): string => {
+      const x = w.toLowerCase();
+      if (x.startsWith("conjunct") || x.startsWith("conjunction")) return "conjunct";
+      if (x.startsWith("opposit") || x.startsWith("oppos")) return "opposite";
+      if (x.startsWith("trine")) return "trine";
+      if (x.startsWith("square")) return "square";
+      if (x.startsWith("sextile")) return "sextile";
+      return x;
+    };
+    const PL = "(Sun|Moon|Mercury|Venus|Mars|Jupiter|Saturn|Uranus|Neptune|Pluto|Chiron|Lilith|North Node|Rising|Ascendant)";
+    const RELV = "(conjuncts?|conjunction|opposite|opposition|opposes|opposing|opposed|trines?|squares?|sextiles?)";
+    const RELN = "(conjunction|opposition|trine|square|sextile)";
+    const formA = new RegExp(`\\b${PL}\\s+${RELV}\\s+(?:(?:to|with|the)\\s+)?${PL}\\b`, "gi");
+    const formB = new RegExp(`\\b${PL}[-\\u2013]${PL}\\s+${RELN}\\b`, "gi");
+    const formC = new RegExp(`\\b${RELN}\\s+between\\s+${PL}\\s+and\\s+${PL}\\b`, "gi");
+
+    const aspectFixes: { from: string; to: string }[] = [];
+    const resolve = (aName: string, bName: string, relN: string): { verdict: "keep" | "retype" | "sign" | "neutral"; realType?: string; sign?: string } => {
+      const la = nameToLabel(aName), lb = nameToLabel(bName);
+      const key = [la, lb].sort().join("|");
+      const real = aspectByPair.get(key);
+      if (real) return real === relN ? { verdict: "keep" } : { verdict: "retype", realType: real };
+      const sA = bodySignByLabel[la], sB = bodySignByLabel[lb];
+      if (sA && sB && sA === sB) return { verdict: "sign", sign: sA };
+      return { verdict: "neutral" };
+    };
+
+    const fixAspects = (str: string): string => {
+      let t = str.replace(formA, (m, a, rel, b) => {
+        const r = resolve(a, b, normRel(rel));
+        if (r.verdict === "keep") return m;
+        const to = r.verdict === "retype" ? `${a} ${r.realType} ${b}`
+          : r.verdict === "sign" ? `${a} and ${b} (both in ${r.sign})`
+          : `${a} and ${b}`;
+        aspectFixes.push({ from: m, to }); return to;
+      });
+      t = t.replace(formB, (m, a, b, rel) => {
+        const r = resolve(a, b, normRel(rel));
+        if (r.verdict === "keep") return m;
+        const to = r.verdict === "retype" ? `${a}-${b} ${r.realType}`
+          : r.verdict === "sign" ? `${a}-${b} pairing (both in ${r.sign})`
+          : `${a}-${b} pairing`;
+        aspectFixes.push({ from: m, to }); return to;
+      });
+      t = t.replace(formC, (m, rel, a, b) => {
+        const r = resolve(a, b, normRel(rel));
+        if (r.verdict === "keep") return m;
+        const to = r.verdict === "retype" ? `${r.realType} between ${a} and ${b}`
+          : r.verdict === "sign" ? `pairing between ${a} and ${b} (both in ${r.sign})`
+          : `pairing between ${a} and ${b}`;
+        aspectFixes.push({ from: m, to }); return to;
+      });
+      return t;
+    };
+
+    let emDashBefore = 0, emDashRemaining = 0;
+    const stripDashes = (s: string): string => {
+      emDashBefore += (s.match(/—/g) || []).length;
+      let t = s.replace(/\s*[‒–—―]\s*/g, ", ");
+      t = t.replace(/^\s*,\s*/, "");
+      t = t.replace(/,\s*,/g, ",");
+      t = t.replace(/,\s*([.!?;:])/g, "$1");
+      t = t.replace(/([.!?;:])\s*,(?=\s|$)/g, "$1");
+      t = t.replace(/\(\s*,\s*/g, "(");
+      t = t.replace(/\s+,/g, ",");
+      t = t.replace(/[ \t]{2,}/g, " ");
+      emDashRemaining += (t.match(/—/g) || []).length;
+      return t;
+    };
+
+    const processStr = (s: string): string => stripDashes(fixAspects(s));
+    const walk = (node: unknown): void => {
+      if (Array.isArray(node)) {
+        for (let i = 0; i < node.length; i++) {
+          const v = node[i];
+          if (typeof v === "string") (node as unknown[])[i] = processStr(v);
+          else walk(v);
+        }
+      } else if (node && typeof node === "object") {
+        const rec = node as Record<string, unknown>;
+        for (const k of Object.keys(rec)) {
+          const v = rec[k];
+          if (typeof v === "string") rec[k] = processStr(v);
+          else walk(v);
+        }
+      }
+    };
+    walk(reportContent);
+    console.log(`[SCRUB] em-dashes removed=${emDashBefore} remaining=${emDashRemaining} | fabricated-aspect fixes=${aspectFixes.length}`);
+    for (const f of aspectFixes.slice(0, 25)) console.log(`  [aspect-fix] "${f.from}" -> "${f.to}"`);
+  }
+
   console.log("[WORKER] Post-generation validation complete");
+
+  // Memorial fallback is a placeholder ("still being prepared"), never a
+  // deliverable £49 reading — hold it for manual review + delay-apology.
+  if (memorialFallbackUsed) {
+    deliveryHeld = true;
+    holdReason = holdReason || "memorial_generation_failed";
+  }
+
+  // ── Delivery HOLD gate (bugs b + c) ─────────────────────────────────────
+  // When held we STILL persist the row (inspectable by ops) but:
+  //   • force report_content.status = "generating" so the legacy reveal
+  //     poller never surfaces a bad/placeholder reading (it shows the calm
+  //     "we'll email you" screen instead of a broken reveal),
+  //   • flag _needsReview / _deliveryHeld / _needsReviewReason for ops,
+  //   • mark any Soul Reading job NOT delivered (status=failed + reason),
+  //   • send the DELAY-APOLOGY email (NOT the reading-ready email),
+  //   • Sentry + Telegram alert, then exit non-zero so the run is retryable.
+  if (deliveryHeld) {
+    console.error(`[DELIVERY] HELD — not delivering as a finished reading. reason=${holdReason}`);
+    (reportContent as Record<string, unknown>)._needsReview = true;
+    (reportContent as Record<string, unknown>)._needsReviewReason = holdReason;
+    (reportContent as Record<string, unknown>)._deliveryHeld = true;
+    (reportContent as Record<string, unknown>).status = "generating";
+    try {
+      await bridgePatch({ reportId, reportContent });
+      console.log("[DELIVERY] Held report persisted for review (not delivered).");
+    } catch (e) {
+      console.error("[DELIVERY] held-save bridgePatch failed:", e instanceof Error ? e.message : String(e));
+    }
+    if (SOUL_READING_JOB_ID) {
+      try {
+        await patchSoulReadingJob(SOUL_READING_JOB_ID, {
+          status: "failed",
+          error_text: `delivery_held: ${holdReason}`.slice(0, 500),
+        });
+      } catch (e) {
+        console.error("[DELIVERY] held soul-reading patch failed:", e instanceof Error ? e.message : String(e));
+      }
+    }
+    // Delay-apology so the customer is never left in silence — but never hand
+    // them the placeholder as their finished reading.
+    if (_customerEmail) {
+      try {
+        await fetch(`${BRIDGE_URL.replace('/n8n-bridge', '/send-failure-email')}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + N8N_BRIDGE_SECRET },
+          body: JSON.stringify({ email: _customerEmail, petName: _customerPetName, reportId }),
+        });
+        console.log("[DELIVERY] Delay-apology email sent to:", _customerEmail);
+      } catch (e) {
+        console.error("[DELIVERY] Delay-apology email failed:", e instanceof Error ? e.message : String(e));
+      }
+    }
+    await reportToSentry(`Delivery HELD (${holdReason})`, { reportId, petName: name, holdReason });
+    await sendTelegramAlert({
+      reportId, petName: name, email: _customerEmail || "(unknown)", species,
+      reason: `Delivery HELD — ${holdReason}. Report saved but NOT delivered; needs manual review + re-run.`,
+      stage: "delivery hold",
+    });
+    Deno.exit(1);
+  }
 
   // 9. Save report_content via bridge
   console.log("[WORKER] Saving report content...");
@@ -2497,29 +2901,147 @@ Return: { "${sectionName}": { ...replacement... } }`;
     }
   }
 
-  // Send report email
-  try {
-    const emailRes = await fetch(
-      `${BRIDGE_URL.replace('/n8n-bridge', '/send-report-email')}`,
-      {
+  // Send report email — Shopify Soul Reading flow vs legacy direct-checkout flow.
+  // The Shopify path (Phase 7) is taken only when server.ts forwarded the
+  // SOUL_READING_JOB_ID + SOUL_READING_VIEWER_URL env vars (n8n populates them
+  // from the Vercel orders/paid webhook). Otherwise we fall back to the legacy
+  // /send-report-email Supabase edge function unchanged.
+  // ── Email marker helper (bug a) ─────────────────────────────────────────
+  // The report is already saved + viewable, so DON'T wipe/hold it — but the
+  // customer never got the link. Persist a recoverable email_failed marker on
+  // report_content (merge, never clobber the good reading; never touch the
+  // `status`/`error` fields the reveal poller reads) so ops can query + re-send.
+  const persistEmailFailed = async (msg: string) => {
+    try {
+      await bridgePatch({
+        reportId,
+        reportContent: {
+          ...(reportContent as Record<string, unknown>),
+          _emailFailed: true,
+          _emailError: String(msg).slice(0, 300),
+          _emailFailedAt: new Date().toISOString(),
+        },
+      });
+      console.error("[WORKER] Persisted email_failed marker on report.");
+    } catch (e) {
+      console.error("[WORKER] Failed to persist email_failed marker:", e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  if (SOUL_READING_JOB_ID && SOUL_READING_VIEWER_URL) {
+    // Shopify Soul Reading flow — the email carries the ONLY link the customer
+    // ever gets, so a swallowed send = paid customer, no reading. Never mark
+    // delivered unless the send is actually 2xx.
+    let emailOk = false;
+    let emailErr = "";
+    try {
+      // 1. Mark soul_reading_jobs as generated + link to the pet_reports row.
+      const patch1 = await patchSoulReadingJob(SOUL_READING_JOB_ID, {
+        status: "generated",
+        generated_reading_id: reportId,
+      });
+      console.log("[WORKER] Soul Reading row -> generated:", patch1.status);
+
+      // 2. Send the brand-locked reading-ready email via the Vercel route.
+      if (!READING_EMAIL_SECRET) {
+        throw new Error("READING_EMAIL_SECRET not configured on droplet");
+      }
+      const vercelRes = await fetch(`${VERCEL_BASE}/api/soul-reading?action=email-ready`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + N8N_BRIDGE_SECRET,
+          "Authorization": "Bearer " + READING_EMAIL_SECRET,
         },
         body: JSON.stringify({
-          reportId,
-          email: reportRow.email,
+          jobId: SOUL_READING_JOB_ID,
+          customerEmail: reportRow.email,
           petName: name,
-          sunSign,
+          readingUrl: SOUL_READING_VIEWER_URL,
           petPhotoUrl,
+          sunSign,
         }),
+      });
+      const okBody = await vercelRes.text();
+      console.log("[WORKER] Soul Reading email:", vercelRes.status, okBody.slice(0, 300));
+      if (vercelRes.ok) {
+        // 3. ONLY now mark delivered.
+        await patchSoulReadingJob(SOUL_READING_JOB_ID, { status: "delivered" });
+        console.log("[WORKER] Soul Reading row -> delivered");
+        emailOk = true;
+      } else {
+        emailErr = `email route ${vercelRes.status}: ${okBody.slice(0, 200)}`;
       }
-    );
-    const emailBody = await emailRes.text();
-    console.log("[WORKER] Email trigger:", emailRes.status, emailBody);
-  } catch (e) {
-    console.error("[WORKER] Email failed:", e);
+    } catch (e) {
+      emailErr = e instanceof Error ? e.message : String(e);
+      console.error("[WORKER] Soul Reading post-generate failed:", emailErr);
+    }
+
+    if (!emailOk) {
+      // Recoverable email_failed state — NOT delivered. Job stays at
+      // status=generated (valid enum, means done-but-undelivered) + error_text
+      // records the failure; report gets an email_failed marker; loud alert;
+      // exit 1 so the run is retryable (re-fire regenerates + re-sends).
+      console.error("[WORKER] Soul Reading email FAILED — flagging email_failed, NOT delivered:", emailErr);
+      try {
+        await patchSoulReadingJob(SOUL_READING_JOB_ID, {
+          error_text: `email_failed: ${emailErr}`.slice(0, 500),
+        });
+      } catch (e) {
+        console.error("[WORKER] error_text patch failed:", e instanceof Error ? e.message : String(e));
+      }
+      await persistEmailFailed(emailErr);
+      await reportToSentry(`Soul Reading email delivery failed: ${emailErr}`, { reportId, jobId: SOUL_READING_JOB_ID });
+      await sendTelegramAlert({
+        reportId, petName: name, email: reportRow.email || "(unknown)", species,
+        reason: `Reading generated + saved but the DELIVERY EMAIL failed (${emailErr}). Job left NOT delivered (status=generated, email_failed). Re-run to retry delivery.`,
+        stage: "email delivery",
+      });
+      Deno.exit(1);
+    }
+  } else {
+    // Legacy direct-checkout flow — customer polls on-site, but a closed tab
+    // relies on this email. Check res.ok; on failure persist a recoverable
+    // email_failed marker + alert + exit 1 (never swallow).
+    let emailOk = false;
+    let emailErr = "";
+    try {
+      const emailRes = await fetch(
+        `${BRIDGE_URL.replace('/n8n-bridge', '/send-report-email')}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + N8N_BRIDGE_SECRET,
+          },
+          body: JSON.stringify({
+            reportId,
+            email: reportRow.email,
+            petName: name,
+            sunSign,
+            petPhotoUrl,
+          }),
+        }
+      );
+      const emailBody = await emailRes.text();
+      console.log("[WORKER] Email trigger:", emailRes.status, emailBody.slice(0, 300));
+      emailOk = emailRes.ok;
+      if (!emailOk) emailErr = `email route ${emailRes.status}: ${emailBody.slice(0, 200)}`;
+    } catch (e) {
+      emailErr = e instanceof Error ? e.message : String(e);
+      console.error("[WORKER] Email failed:", emailErr);
+    }
+
+    if (!emailOk) {
+      console.error("[WORKER] Legacy email FAILED — flagging email_failed (report still saved + viewable):", emailErr);
+      await persistEmailFailed(emailErr);
+      await reportToSentry(`Legacy report email delivery failed: ${emailErr}`, { reportId });
+      await sendTelegramAlert({
+        reportId, petName: name, email: reportRow.email || "(unknown)", species,
+        reason: `Reading saved but the notification email FAILED (${emailErr}). Report is viewable on-site; re-run to retry the email.`,
+        stage: "email delivery",
+      });
+      Deno.exit(1);
+    }
   }
 
 } catch (error) {
