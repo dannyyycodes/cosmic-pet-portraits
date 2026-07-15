@@ -417,11 +417,30 @@ serve(async (req) => {
               discount = cappedCouponDiscount;
             }
 
-            totalAmount = totalAmount - discount;
-            console.log("[CREATE-CHECKOUT] Quick checkout coupon applied:", coupon.code, "discount:", discount, "new total:", totalAmount);
-            // Increment usage (only if the coupon actually discounted something)
+            // ── ATOMIC coupon reservation (oversell fix, blocker #9) ──
+            // The old code did a non-atomic read-then-increment
+            // (current_uses + 1). Two concurrent quick-checkouts could both read
+            // current_uses < max_uses and both increment → a limited coupon gets
+            // spent more times than allowed. Reserve via a single conditional
+            // UPDATE that only succeeds while capacity remains, and only apply
+            // the discount if the reservation was actually won. Quick-checkout is
+            // the sole counter for its coupon (it is NOT re-incremented in
+            // stripe-webhook — no coupon_id in the session metadata below), so a
+            // single atomic reserve here is the correct, non-double-counting fix.
             if (discount > 0) {
-              await supabaseClient.from("coupons").update({ current_uses: coupon.current_uses + 1 }).eq("id", coupon.id);
+              const { data: reserved, error: reserveErr } = await supabaseClient
+                .rpc("reserve_coupon_use", { p_coupon_id: coupon.id });
+              if (reserveErr) {
+                console.error("[CREATE-CHECKOUT] Quick checkout coupon reserve error:", reserveErr);
+              }
+              if (reserved === true) {
+                totalAmount = totalAmount - discount;
+                console.log("[CREATE-CHECKOUT] Quick checkout coupon reserved + applied:", coupon.code, "discount:", discount, "new total:", totalAmount);
+              } else {
+                // Lost the race / coupon exhausted — charge full price rather
+                // than block the sale. Frontend already validated; this is rare.
+                console.log("[CREATE-CHECKOUT] Quick checkout coupon exhausted, not applied:", coupon.code);
+              }
             }
           }
         }
@@ -946,17 +965,15 @@ serve(async (req) => {
       // Increment coupon usage — only when the coupon actually discounted
       // something. Gift-only rejections + stack-cap zeroes leave couponDiscount
       // at 0, and those shouldn't burn the coupon's single-use budget.
+      // Atomic reserve (blocker #9): a single conditional UPDATE so two
+      // concurrent free orders on the same limited coupon can't both pass the
+      // cap. This free-order path is terminal (no Stripe, no webhook), so the
+      // reserve here is the authoritative and final count.
       if (input.couponId && couponDiscount > 0) {
-        const { data: couponData } = await supabaseClient
-          .from("coupons")
-          .select("current_uses")
-          .eq("id", input.couponId)
-          .single();
-        if (couponData) {
-          await supabaseClient
-            .from("coupons")
-            .update({ current_uses: couponData.current_uses + 1 })
-            .eq("id", input.couponId);
+        const { error: reserveErr } = await supabaseClient
+          .rpc("reserve_coupon_use", { p_coupon_id: input.couponId });
+        if (reserveErr) {
+          console.error("[CREATE-CHECKOUT] Free order coupon reserve error:", reserveErr);
         }
       }
 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit, getClientIp } from "../_shared/rate-limit.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -81,21 +82,28 @@ serve(async (req) => {
     const normalizedCode = code.trim().toUpperCase();
     console.log("[REDEEM] Validating code:", normalizedCode);
 
-    // Rate limiting: max 10 redemptions per minute from same IP
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-    const { count: recentRedemptions } = await supabase
-      .from("pet_reports")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", oneMinuteAgo)
-      .eq("payment_status", "paid")
-      .not("redeem_code", "is", null);
-
-    if ((recentRedemptions || 0) > 20) {
-      console.log("[REDEEM] Global rate limit hit");
+    // ── PER-IDENTIFIER rate limiting (blocker #10) ──
+    // The old limit counted ALL paid redeem-code reports created in the last
+    // minute across every user and every code (a single GLOBAL bucket). That
+    // both let one attacker starve everyone by tripping the shared ceiling, and
+    // let a distributed attacker slip under it. Rate-limit per IP AND per code
+    // instead, so abuse of one code/IP can't spill onto legitimate users of
+    // another. 10 attempts / 60s each.
+    const clientIp = getClientIp(req);
+    const rlIp = await checkRateLimit(supabase, "redeem-free-code:ip", clientIp, 10, 60);
+    if (!rlIp.ok) {
+      console.log("[REDEEM] Per-IP rate limit hit:", clientIp);
       return new Response(JSON.stringify({ error: "Too many redemptions. Please try again in a moment." }), {
         status: 429,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "Retry-After": String(rlIp.retryAfterSeconds) },
+      });
+    }
+    const rlCode = await checkRateLimit(supabase, "redeem-free-code:code", normalizedCode, 20, 60);
+    if (!rlCode.ok) {
+      console.log("[REDEEM] Per-code rate limit hit:", normalizedCode);
+      return new Response(JSON.stringify({ error: "Too many redemptions. Please try again in a moment." }), {
+        status: 429,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "Retry-After": String(rlCode.retryAfterSeconds) },
       });
     }
 
@@ -169,14 +177,36 @@ serve(async (req) => {
             ])
       : [codeTier as PetTier];
 
-    // Refuse to burn a usage if we can't service the whole cart.
-    const remainingUses = (redeemCode.max_uses ?? Infinity) - (redeemCode.current_uses ?? 0);
-    if (remainingUses < petTiers.length) {
+    // ── ATOMIC capacity reservation (blocker #10) ──
+    // The old flow read current_uses, checked remaining capacity, created the
+    // reports, and ONLY THEN incremented current_uses — a check-then-act race.
+    // Two concurrent redemptions of the same near-exhausted code could both pass
+    // the capacity check and both create paid reports, overselling the code.
+    // Reserve capacity FIRST via a single conditional UPDATE that increments
+    // current_uses by exactly petTiers.length and only succeeds while
+    // current_uses + N <= max_uses. If it fails, no reports are created. If a
+    // later step (report insert) fails, we release the reservation.
+    const reserveCount = petTiers.length;
+    const { data: reservedRows, error: reserveError } = await supabase
+      .rpc("reserve_redeem_code_uses", { p_code: normalizedCode, p_count: reserveCount });
+    if (reserveError) {
+      console.error("[REDEEM] Reservation RPC error:", reserveError);
+      throw new Error("Failed to reserve redeem code");
+    }
+    if (!reservedRows || (Array.isArray(reservedRows) ? reservedRows.length === 0 : !reservedRows)) {
+      console.log("[REDEEM] Reservation failed (exhausted/inactive/expired):", normalizedCode);
       return new Response(JSON.stringify({ error: "Not enough uses left on this code for your cart" }), {
         status: 400,
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
+    // Capacity is now reserved. Any early return past this point that does NOT
+    // create the reports MUST release the reservation.
+    const releaseReservation = async () => {
+      const { error: relErr } = await supabase
+        .rpc("release_redeem_code_uses", { p_id: redeemCode.id, p_count: reserveCount });
+      if (relErr) console.error("[REDEEM] Failed to release reservation:", relErr);
+    };
 
     const isMemorial = occasionMode === "memorial";
     // Only apply the extra intake fields when we're redeeming a single pet.
@@ -233,6 +263,9 @@ serve(async (req) => {
 
     if (insertError || !inserted || inserted.length !== rowsToInsert.length) {
       console.error("[REDEEM] Failed to create reports:", insertError);
+      // Roll back the capacity we reserved so a failed insert doesn't silently
+      // burn uses off the code.
+      await releaseReservation();
       throw new Error("Failed to create reports");
     }
 
@@ -265,11 +298,10 @@ serve(async (req) => {
       }
     }
 
-    // Increment usage count by the number of reports created.
-    await supabase
-      .from("redeem_codes")
-      .update({ current_uses: (redeemCode.current_uses ?? 0) + reportIds.length })
-      .eq("id", redeemCode.id);
+    // Usage was already consumed atomically by reserve_redeem_code_uses BEFORE
+    // the reports were created (see the reservation block above). Do NOT
+    // increment again here — that was the old check-then-act race and would
+    // double-count. reserveCount === reportIds.length on the success path.
 
     console.log("[REDEEM] Code redeemed successfully:", normalizedCode, "pets:", reportIds.length);
 

@@ -44,15 +44,26 @@ serve(async (req) => {
 
     const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Per-IP rate limit so an attacker who guesses or scrapes reportIds
-    // cannot spam this endpoint and burn our generation budget.
-    const ip = getClientIp(req);
-    const rl = await checkRateLimit(supabaseClient, "generate-report-background", ip, RATE_LIMIT_COUNT, RATE_LIMIT_WINDOW_SECONDS);
-    if (!rl.ok) {
-      return new Response(JSON.stringify({ error: "Too many requests" }), {
-        status: 429,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "Retry-After": String(rl.retryAfterSeconds) },
-      });
+    // Internal callers (verify-payment, redeem trigger, the stale-report
+    // backfill cron) authenticate with the service role key. They must NOT be
+    // throttled by the public per-IP limit — internal calls carry no
+    // x-forwarded-for so they all collapse onto the "unknown" bucket and would
+    // starve each other / the cron. Only browser traffic (anon key, real IP)
+    // is rate-limited.
+    const authHeader = req.headers.get("Authorization") || "";
+    const isServiceCall = authHeader === `Bearer ${serviceRoleKey}`;
+
+    if (!isServiceCall) {
+      // Per-IP rate limit so an attacker who guesses or scrapes reportIds
+      // cannot spam this endpoint and burn our generation budget.
+      const ip = getClientIp(req);
+      const rl = await checkRateLimit(supabaseClient, "generate-report-background", ip, RATE_LIMIT_COUNT, RATE_LIMIT_WINDOW_SECONDS);
+      if (!rl.ok) {
+        return new Response(JSON.stringify({ error: "Too many requests" }), {
+          status: 429,
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "Retry-After": String(rl.retryAfterSeconds) },
+        });
+      }
     }
 
     // Fetch the report data
@@ -138,15 +149,73 @@ serve(async (req) => {
     if (N8N_WEBHOOK) {
       console.log("[BACKGROUND-GEN] Sending to n8n worker:", reportId);
 
-      fetch(N8N_WEBHOOK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reportId }),
-      }).catch(err => console.error("[BACKGROUND-GEN] n8n error:", err));
+      // ── RELIABILITY FIX (blocker #7) ──
+      // The old code fire-and-forgot this POST (`fetch(...).catch()`) and then
+      // returned success unconditionally. If n8n was down / the webhook 404'd,
+      // the PAID report stayed marked status='generating' forever — no failure
+      // row, no retry, a customer stuck with nothing. Now we AWAIT the trigger
+      // with a hard timeout and require a 2xx. On any failure we flip the report
+      // to a retryable 'failed' marker and record a webhook_failures row, so the
+      // stale-report backfill cron (and support) can see and retry it.
+      const N8N_TRIGGER_TIMEOUT_MS = 15000;
+      let triggerOk = false;
+      let triggerDetail = "";
+      try {
+        const ac = new AbortController();
+        const timer = setTimeout(() => ac.abort(), N8N_TRIGGER_TIMEOUT_MS);
+        let n8nResp: Response;
+        try {
+          n8nResp = await fetch(N8N_WEBHOOK, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reportId }),
+            signal: ac.signal,
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+        triggerOk = n8nResp.ok;
+        if (!triggerOk) {
+          triggerDetail = `n8n returned ${n8nResp.status}`;
+          console.error("[BACKGROUND-GEN] n8n trigger non-2xx:", reportId, triggerDetail);
+        }
+      } catch (err) {
+        triggerDetail = err instanceof Error ? (err.name === "AbortError" ? `timeout after ${N8N_TRIGGER_TIMEOUT_MS}ms` : err.message) : String(err);
+        console.error("[BACKGROUND-GEN] n8n trigger failed:", reportId, triggerDetail);
+      }
 
-      return new Response(JSON.stringify({ success: true, reportId, worker: "n8n" }), {
+      if (triggerOk) {
+        return new Response(JSON.stringify({ success: true, reportId, worker: "n8n" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      // Trigger failed — mark report retryable + log a visible failure row.
+      await supabaseClient
+        .from("pet_reports")
+        .update({
+          report_content: {
+            status: "failed",
+            retryable: true,
+            attempt,
+            failed_at: new Date().toISOString(),
+            error: `n8n trigger failed: ${triggerDetail}`,
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
+
+      await supabaseClient.from("webhook_failures").insert({
+        source: "generate-report-background",
+        event_type: "n8n_trigger_failed",
+        order_id: reportId,
+        details: { reportId, attempt, error: triggerDetail },
+      });
+
+      return new Response(JSON.stringify({ success: false, reportId, error: "Generation trigger failed", retryable: true }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-        status: 200,
+        status: 502,
       });
     }
 
@@ -169,8 +238,58 @@ serve(async (req) => {
       });
       const genResult = await genResponse.text();
       console.log("[BACKGROUND-GEN] Generation completed:", genResponse.status);
+      if (!genResponse.ok) {
+        // Don't leave the report stuck on the 'generating' marker — flip it to a
+        // retryable failed state and log it so the backfill cron can retry.
+        await supabaseClient
+          .from("pet_reports")
+          .update({
+            report_content: {
+              status: "failed",
+              retryable: true,
+              attempt,
+              failed_at: new Date().toISOString(),
+              error: `direct generation returned ${genResponse.status}`,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", reportId);
+        await supabaseClient.from("webhook_failures").insert({
+          source: "generate-report-background",
+          event_type: "direct_generation_failed",
+          order_id: reportId,
+          details: { reportId, attempt, status: genResponse.status, body: genResult?.slice(0, 500) },
+        });
+        return new Response(JSON.stringify({ success: false, reportId, error: "Generation failed", retryable: true }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 502,
+        });
+      }
     } catch (err) {
       console.error("[BACKGROUND-GEN] Generation failed:", err);
+      await supabaseClient
+        .from("pet_reports")
+        .update({
+          report_content: {
+            status: "failed",
+            retryable: true,
+            attempt,
+            failed_at: new Date().toISOString(),
+            error: `direct generation threw: ${err instanceof Error ? err.message : String(err)}`,
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
+      await supabaseClient.from("webhook_failures").insert({
+        source: "generate-report-background",
+        event_type: "direct_generation_failed",
+        order_id: reportId,
+        details: { reportId, attempt, error: err instanceof Error ? err.message : String(err) },
+      });
+      return new Response(JSON.stringify({ success: false, reportId, error: "Generation failed", retryable: true }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 502,
+      });
     }
 
     // Send confirmation email in background (will arrive after report is ready)
