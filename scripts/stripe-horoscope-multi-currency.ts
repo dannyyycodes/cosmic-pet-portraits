@@ -16,11 +16,12 @@ if (!STRIPE_KEY) {
   Deno.exit(1);
 }
 
-const MONTHLY_PRICE_ID = "price_1Sfi1vEFEZSdxrGttpk4iUEa"; // existing USD $4.99/mo
+const MONTHLY_PRICE_ID = "price_1TtRT6EFEZSdxrGtSLA0dJGA"; // GBP-primary £4.99/mo
 const YEARLY_PRICE_ID  = "price_1SgAP6EFEZSdxrGtiHMgxqx2"; // existing USD $39.99/yr
 
-// Minor-unit amounts — MIRROR of src/lib/pricing.ts
-const MONTHLY = { gbp: 499, eur: 599, aud: 899, cad: 799, nzd: 999 };
+// Minor-unit amounts — MIRROR of src/lib/pricing.ts. The monthly Price is
+// GBP-primary (base £4.99); usd/eur/aud/cad/nzd are its localized options.
+const MONTHLY = { usd: 599, eur: 599, aud: 899, cad: 799, nzd: 999 };
 const YEARLY  = { gbp: 3999, eur: 4799, aud: 7999, cad: 6999, nzd: 7999 };
 
 async function addCurrencyOptions(priceId: string, opts: Record<string, number>) {

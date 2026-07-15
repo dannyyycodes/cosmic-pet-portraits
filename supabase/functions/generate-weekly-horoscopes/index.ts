@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { calculateAllPositions } from "./ephemeris.ts";
+import { formatHoroscopeMonthly, normalizeCurrency, isSupportedCurrency } from "../_shared/pricing.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -333,8 +334,9 @@ function renderTrialEndingEmail(opts: {
   petName: string;
   daysLeft: number;
   email: string;
+  priceLabel: string;
 }): string {
-  const { petName, daysLeft, email } = opts;
+  const { petName, daysLeft, email, priceLabel } = opts;
   const cancelUrl = `https://littlesouls.app/unsubscribe?email=${encodeURIComponent(email)}`;
   const mist = '#f3f0fb', card = '#ffffff', ink = '#241a3d', body2 = '#4a4363',
         muted = '#6b6488', violet = '#6a55c0', soft = '#b9a5f0', line = '#e9e2f7';
@@ -355,7 +357,7 @@ function renderTrialEndingEmail(opts: {
       <p style="font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:${violet};margin:0 0 14px 0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">A Quick Heads-Up</p>
       <h1 style="color:${ink};font-size:24px;font-weight:400;margin:0 0 14px 0;line-height:1.35;">${petName}'s free month ends in ${daysLabel}.</h1>
       <p style="color:${body2};font-size:15px;line-height:1.75;margin:0 0 22px 0;">
-        We hope ${petName}'s weekly cosmic forecasts have been a little bright spot in your week. Your free month is nearly up. After it ends, ${petName}'s horoscopes simply keep arriving for &pound;4.99 a month &mdash; nothing else to do.
+        We hope ${petName}'s weekly cosmic forecasts have been a little bright spot in your week. Your free month is nearly up. After it ends, ${petName}'s horoscopes simply keep arriving for ${priceLabel} a month &mdash; nothing else to do.
       </p>
       <p style="color:${body2};font-size:15px;line-height:1.75;margin:0 0 26px 0;">
         Rather not continue? No hard feelings &mdash; you can stop it in one click and you won't be charged.
@@ -954,10 +956,33 @@ Return only valid JSON.`,
             const daysLeft = Math.ceil((trialEndsMs - Date.now()) / (24 * 60 * 60 * 1000));
             // Fire in the final stretch of the trial (1-3 days left).
             if (daysLeft <= 3 && daysLeft > 0) {
+              // Show the exact amount Stripe will charge. The GBP-primary Price
+              // carries a per-currency amount; the subscription's currency was
+              // set at creation from the buyer's funnel currency. Read it back
+              // from Stripe; fall back to the GBP base if unavailable.
+              let reminderCurrency = "gbp";
+              try {
+                const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+                if (stripeKey && sub.stripe_subscription_id) {
+                  const sr = await fetch(
+                    `https://api.stripe.com/v1/subscriptions/${sub.stripe_subscription_id}`,
+                    { headers: { Authorization: `Bearer ${stripeKey}` } },
+                  );
+                  if (sr.ok) {
+                    const sd = await sr.json();
+                    if (sd?.currency && isSupportedCurrency(String(sd.currency).toLowerCase())) {
+                      reminderCurrency = String(sd.currency).toLowerCase();
+                    }
+                  }
+                }
+              } catch (curErr) {
+                console.error(`[WEEKLY-HOROSCOPE] Could not resolve sub currency for ${sub.email}:`, curErr);
+              }
               const reminderHtml = renderTrialEndingEmail({
                 petName: sub.pet_name,
                 daysLeft,
                 email: sub.email,
+                priceLabel: formatHoroscopeMonthly(normalizeCurrency(reminderCurrency)),
               });
               await resend.emails.send({
                 from: "Little Souls <hello@littlesouls.app>",

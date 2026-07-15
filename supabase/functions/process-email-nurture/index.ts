@@ -390,7 +390,7 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
           <strong>Weekly Cosmic Updates</strong>: a personalised mini-reading for ${petName} delivered to your inbox every Sunday morning. Their energy for the week, what to watch for, and how to make the most of your time together.
         </p>
         <div style="background:#faf4e8;border-radius:12px;padding:18px;border:1px solid #e8ddd0;margin:20px 0;text-align:center">
-          <p style="color:#141210;font-size:18px;font-weight:600;margin:0 0 4px">$4.99/month</p>
+          <p style="color:#141210;font-size:18px;font-weight:600;margin:0 0 4px">&pound;4.99/month</p>
           <p style="color:#958779;font-size:13px;margin:0">Cancel anytime. First week free.</p>
         </div>
         <div style="text-align:center;margin:24px 0">

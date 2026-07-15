@@ -41,7 +41,11 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-const HOROSCOPE_PRICE = "price_1Sfi1vEFEZSdxrGttpk4iUEa"; // £4.99 / mo
+// GBP-primary £4.99/mo Price (base currency GBP + localized currency_options).
+// Gift recipients convert here without a resolved funnel currency, so the
+// Checkout Session omits `currency` and Stripe charges the GBP base £4.99 —
+// which is exactly what the /keep-horoscopes page shows them.
+const HOROSCOPE_PRICE = "price_1TtRT6EFEZSdxrGtSLA0dJGA"; // £4.99 / mo (GBP primary)
 
 serve(async (req) => {
   const cors = getCorsHeaders(req);

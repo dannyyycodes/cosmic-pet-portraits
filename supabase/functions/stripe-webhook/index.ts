@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { formatHoroscopeMonthly, normalizeCurrency } from "../_shared/pricing.ts";
+
+// GBP-primary £4.99/mo horoscope Price (base currency GBP + localized
+// currency_options for usd/eur/aud/cad/nzd). Passing `currency` when creating
+// the subscription tells Stripe which localized amount to charge.
+const HOROSCOPE_MONTHLY_PRICE = "price_1TtRT6EFEZSdxrGtSLA0dJGA";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -24,13 +30,16 @@ function getNextWeekDate(): string {
   return d.toISOString();
 }
 
-async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign: string, reportId: string) {
+async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign: string, reportId: string, currency: string = "gbp") {
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) {
     console.error("[STRIPE-WEBHOOK] No RESEND_API_KEY for welcome email");
     return;
   }
   const resend = new Resend(resendKey);
+
+  // Price shown must match what Stripe will actually charge this customer.
+  const priceLabel = formatHoroscopeMonthly(normalizeCurrency(currency));
 
   // Violet celestial palette (matches the shipped funnel + nurture emails)
   const mist = "#f3f0fb", card = "#ffffff", ink = "#241a3d", body = "#4a4363",
@@ -98,7 +107,7 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
       Questions? Just reply to this email.
     </p>
     <p style="color:${muted};font-size:12px;line-height:1.7;margin:0;">
-      Your first month is free. After 30 days it continues at &pound;4.99/month &mdash; cancel anytime, no questions asked.<br>
+      Your first month is free. After 30 days it continues at ${priceLabel}/month &mdash; cancel anytime, no questions asked.<br>
       <a href="https://littlesouls.app/unsubscribe?email=${encodeURIComponent(email)}" style="color:${violet};text-decoration:underline;">Stop ${petName}'s weekly horoscopes</a>
     </p>
   </div>
@@ -219,8 +228,11 @@ serve(async (req) => {
       // Check if this is a horoscope subscription
       if (session.metadata?.type === "horoscope_subscription") {
         const { petReportId, petName, email, plan } = session.metadata;
-        
-        console.log("[STRIPE-WEBHOOK] Horoscope subscription completed:", { email, petName, plan });
+        // Currency the buyer was charged in (create-horoscope-subscription
+        // stamps it on the session). Falls back to the session currency, then gbp.
+        const subCurrency = session.metadata?.currency || session.currency || "gbp";
+
+        console.log("[STRIPE-WEBHOOK] Horoscope subscription completed:", { email, petName, plan, currency: subCurrency });
         
         // Create the subscription record in database
         const { error: subError } = await supabaseClient
@@ -241,7 +253,7 @@ serve(async (req) => {
           console.log("[STRIPE-WEBHOOK] Horoscope subscription created successfully");
 
           // Send welcome email
-          await sendHoroscopeWelcomeEmail(email, petName, plan || "cosmic", petReportId);
+          await sendHoroscopeWelcomeEmail(email, petName, plan || "cosmic", petReportId, subCurrency);
 
           // Trigger immediate first horoscope generation
           const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -560,6 +572,11 @@ serve(async (req) => {
             }
 
             const buyerEmail = (session.customer_details?.email || session.customer_email || "").toLowerCase().trim();
+            // Charge the recurring horoscope in the SAME currency the buyer paid
+            // the reading in — the GBP-primary Price carries a currency_options
+            // amount for each. Falls back to the GBP base if the session currency
+            // is missing/unsupported.
+            const enrollCurrency = normalizeCurrency(session.currency);
 
             for (const hReportId of reportIds) {
               try {
@@ -637,12 +654,14 @@ serve(async (req) => {
                   dbTrialEndsAt = t.toISOString();
                 }
 
-                // Create the recurring £4.99/mo Stripe subscription.
+                // Create the recurring GBP-primary £4.99/mo Stripe subscription,
+                // billed in the buyer's currency via the Price's currency_options.
                 let stripeSubId: string | null = null;
                 try {
                   const stripeSub = await stripe.subscriptions.create({
                     customer: session.customer as string,
-                    items: [{ price: "price_1Sfi1vEFEZSdxrGttpk4iUEa" }],
+                    items: [{ price: HOROSCOPE_MONTHLY_PRICE }],
+                    currency: enrollCurrency,
                     ...trialArg,
                     default_payment_method: horoscopeDefaultPaymentMethod,
                     metadata: { pet_name: hReport.pet_name, pet_report_id: hReportId },
@@ -731,7 +750,7 @@ serve(async (req) => {
                     // those buyers are covered by the checkout-time disclosure,
                     // the first weekly horoscope, and the trial-ending reminder.
                     if (hReport.pet_name && hReport.pet_name !== "Pending" && enrollEmail) {
-                      await sendHoroscopeWelcomeEmail(enrollEmail, hReport.pet_name, "cosmic", hReportId);
+                      await sendHoroscopeWelcomeEmail(enrollEmail, hReport.pet_name, "cosmic", hReportId, enrollCurrency);
                     }
                   }
                 }

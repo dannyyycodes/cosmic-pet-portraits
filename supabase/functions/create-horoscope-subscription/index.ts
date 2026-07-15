@@ -14,10 +14,12 @@ function getCorsHeaders(req: Request) {
 }
 
 // Stripe Price IDs — multi-currency is handled via currency_options on each
-// Price (set once via scripts/stripe-horoscope-multi-currency.ts). Passing
-// `currency: "gbp"` in the session tells Stripe to use the GBP option.
+// Price. The monthly Price is GBP-primary (base £4.99) with localized
+// currency_options (usd 5.99, eur 5.99, aud 8.99, cad 7.99, nzd 9.99).
+// Passing `currency` in the session tells Stripe which option to charge;
+// with none it falls back to the GBP base.
 const PRICES = {
-  monthly: "price_1Sfi1vEFEZSdxrGttpk4iUEa", // $4.99/mo + currency_options
+  monthly: "price_1TtRT6EFEZSdxrGtSLA0dJGA", // £4.99/mo GBP-primary + currency_options
   yearly: "price_1SgAP6EFEZSdxrGtiHMgxqx2",   // $39.99/yr + currency_options
 };
 

@@ -94,3 +94,27 @@ export function normalizeCurrency(raw: unknown): SupportedCurrency {
   }
   return DEFAULT_CURRENCY;
 }
+
+/** Format a minor-unit (pence/cents) amount as native retail money, e.g.
+ *  "£4.99", "$5.99", "€5.99", "A$8.99". Mirrors the funnel's Intl.NumberFormat
+ *  style so emails and the on-site price read the same way. Server-side (no
+ *  visitor locale), so we anchor to en-GB for stable symbol placement. */
+export function formatMinor(minor: number, currency: SupportedCurrency): string {
+  try {
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(minor / 100);
+  } catch {
+    return `${currency.toUpperCase()} ${(minor / 100).toFixed(2)}`;
+  }
+}
+
+/** The horoscope monthly price shown to a customer in their currency, e.g.
+ *  "£4.99" for gbp, "$5.99" for usd. GBP is the primary; the others are the
+ *  localized currency_options amounts on the Stripe Price. */
+export function formatHoroscopeMonthly(currency: SupportedCurrency): string {
+  return formatMinor(PRICING[currency].horoscopeMonthly, currency);
+}
