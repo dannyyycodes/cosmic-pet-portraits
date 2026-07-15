@@ -14,7 +14,10 @@
 --     and Day-7 pawtrait sell emails. The drip now calls this RPC before Emails
 --     2/3/4 via an HTTP node + IF gate; if the lead already has a paid pet_report
 --     the remaining sell emails are skipped. The RPC is SECURITY DEFINER and
---     granted to anon so the n8n HTTP node can call it with the public anon key.
+--     locked to service_role ONLY — the n8n HTTP node calls it with the
+--     SERVICE-ROLE key (not the public anon key). Granting anon would turn the
+--     public anon key into an email -> has-paid oracle (anyone could enumerate
+--     who bought), so anon/authenticated/PUBLIC are explicitly revoked.
 --     Fail-open: the n8n HTTP node uses onError:continueRegularOutput, so a check
 --     failure routes to the send branch rather than blocking delivery.
 
@@ -32,9 +35,20 @@ as $$
   ));
 $$;
 
-grant execute on function public.lead_has_paid_report(text) to anon, authenticated, service_role;
+-- Lock it down: only the service role may call it. Revoke the default PUBLIC
+-- EXECUTE and any anon/authenticated grant so the anon key cannot be used as a
+-- purchase-enumeration oracle.
+revoke all on function public.lead_has_paid_report(text) from public;
+revoke all on function public.lead_has_paid_report(text) from anon;
+revoke all on function public.lead_has_paid_report(text) from authenticated;
+grant execute on function public.lead_has_paid_report(text) to service_role;
 
--- ── #6 fix the dead nurture scheduler (inline url + key, not app.settings) ────
+-- ── #6 fix the dead nurture scheduler ────────────────────────────────────────
+-- app.settings.* GUCs are NULL on Supabase-hosted Postgres, so the service key
+-- is read from Supabase Vault (vault.decrypted_secrets, secret name
+-- 'service_role_key') instead of being hardcoded. Bootstrap once per project:
+--   select vault.create_secret('<service-role-jwt>', 'service_role_key', 'pg_cron edge-fn auth');
+-- Rotate the key in the Vault + edge-fn env together; no secret lives in git.
 select cron.schedule(
   'email-nurture-processing',
   '*/30 * * * *',
@@ -43,7 +57,7 @@ select cron.schedule(
     url := 'https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/process-email-nurture',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo'
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
     ),
     body := '{}'::jsonb,
     timeout_milliseconds := 55000

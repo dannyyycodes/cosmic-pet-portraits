@@ -9,10 +9,11 @@
 -- Every Monday run from 2026-03-16 onward returned:
 --   ERROR: unrecognized configuration parameter "app.settings.supabase_url"
 --
--- Fix: drop the old cron and reschedule with the URL + service role key
--- inlined into the command. The project URL is public; the service role JWT
--- already lives in edge function env vars, so inlining in a cron command (which
--- is only visible to postgres-level roles) is an acceptable trade-off.
+-- Fix: drop the old cron and reschedule. The project URL is public; the service
+-- role key is read from Supabase Vault (vault.decrypted_secrets, secret name
+-- 'service_role_key') at run time instead of being hardcoded, so no secret lives
+-- in git. Bootstrap once per project:
+--   select vault.create_secret('<service-role-jwt>', 'service_role_key', 'pg_cron edge-fn auth');
 
 SELECT cron.unschedule('weekly-chat-credit-refresh');
 
@@ -24,7 +25,7 @@ SELECT cron.schedule(
     url := 'https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/refresh-chat-credits',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo'
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
     ),
     body := '{}'::jsonb
   ) AS request_id;

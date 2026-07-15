@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """One-off backfill: add 2 inline Pexels images to the first 2 posts."""
 import json
+import os
 import subprocess
 
 SITE = "https://aduibsyrnenzobuyetmn.supabase.co"
-JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo"
-PEXELS = "okUyRy6l876v4eV0vh42MAay9MRNrb3iPNBIoR7Qqii5MGaJv4oVNeWA"
+JWT = os.environ.get("SUPABASE_SERVICE_KEY")
+if not JWT:
+    raise SystemExit("Set SUPABASE_SERVICE_KEY in the environment (no secrets in source).")
+PEXELS = os.environ.get("PEXELS_API_KEY", "")
 
 # Hand-curated pairs — section-specific Pexels queries chosen to match content
 PLANS = []  # manual-splice branch below for post 2

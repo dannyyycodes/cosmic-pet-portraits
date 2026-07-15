@@ -104,10 +104,12 @@ GRANT EXECUTE ON FUNCTION release_redeem_code_uses(uuid, int) TO service_role;
 -- 'generating' and re-fires the n8n trigger. Bounded: only paid reports, only
 -- those older than ~10 min, capped attempts (<5), LIMIT 20 per tick.
 --
--- Follows the inlined-config pattern of weekly-chat-credit-refresh /
--- gelato-worker-tick (app.settings.* GUCs are NULL on Supabase-hosted PG, so
--- the URL + service JWT are inlined; the command is only visible to
--- postgres-level roles). The service JWT bypasses the endpoint's per-IP limit.
+-- app.settings.* GUCs are NULL on Supabase-hosted PG, so the service key is
+-- read from Supabase Vault (vault.decrypted_secrets, secret name
+-- 'service_role_key') instead of being hardcoded — no secret lives in git.
+-- Bootstrap once per project:
+--   select vault.create_secret('<service-role-jwt>', 'service_role_key', 'pg_cron edge-fn auth');
+-- The service key bypasses the endpoint's per-IP limit.
 -- ─────────────────────────────────────────────────────────────────────────
 DO $$
 BEGIN
@@ -124,7 +126,7 @@ SELECT cron.schedule(
     url := 'https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/generate-report-background',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo'
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
     ),
     body := jsonb_build_object(
       'reportId', pr.id,

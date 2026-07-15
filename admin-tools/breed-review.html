@@ -98,7 +98,13 @@ body { background: var(--cream); font-family: 'Cormorant', Georgia, serif; color
 
 <script>
 const SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo';
+// Service-role key is never committed. It is entered at runtime and kept only in
+// this tab's sessionStorage. Paste the current service-role key when prompted.
+let SUPABASE_KEY = sessionStorage.getItem('sb_service_key') || '';
+if (!SUPABASE_KEY) {
+  SUPABASE_KEY = (window.prompt('Paste the Supabase service-role key for this admin session:') || '').trim();
+  if (SUPABASE_KEY) sessionStorage.setItem('sb_service_key', SUPABASE_KEY);
+}
 
 let queue = [];
 let currentIndex = 0;

@@ -14,10 +14,9 @@ KIE_KEY = os.environ.get("KIE_API_KEY", "b6950bc9ee85f941ecb523ce34efb4a0")
 PROJECT_REF = "aduibsyrnenzobuyetmn"
 SUPABASE_URL = f"https://{PROJECT_REF}.supabase.co"
 # Service role JWT (PostgREST PATCH — more reliable than Management API for row updates)
-SERVICE_ROLE_JWT = os.environ.get(
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo",
-)
+SERVICE_ROLE_JWT = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+if not SERVICE_ROLE_JWT:
+    raise SystemExit("Set SUPABASE_SERVICE_ROLE_KEY in the environment (no secrets in source).")
 
 PROMPTS = {
     "elena-whitaker": "Little Souls author portrait series — Dr. Elena Whitaker, consistent character. Realistic editorial photograph, warm natural window light from camera-left, shallow depth of field. A 45-year-old white woman with ash-brown shoulder-length hair loosely tucked behind one ear, subtle grey at the temples, minimal makeup, calm hazel eyes, a faint smile with a slight asymmetry on the right. Small silver hoop earrings, no other jewelry. Wearing a soft oatmeal-colored linen shirt under an unbuttoned faded navy exam coat. Background: a softly blurred veterinary exam room with warm wood shelves, a potted pothos, and a cream-colored wall — cream and sage palette, not clinical white. Mood: grounded, competent, kind. Photographic style: muted film look, Kodak Portra 400 aesthetic, grain subtle, no HDR. Square crop, framed from mid-chest up.",

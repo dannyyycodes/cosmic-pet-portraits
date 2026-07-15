@@ -8,9 +8,11 @@ const { writeFileSync } = require('node:fs');
 const { join } = require('node:path');
 
 const SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
-const SERVICE_KEY =
-  process.env.SUPABASE_SERVICE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+if (!SERVICE_KEY) {
+  console.error('Set SUPABASE_SERVICE_KEY in the environment (no secrets in source).');
+  process.exit(1);
+}
 
 async function main() {
   const reportId = process.argv[2];
