@@ -6,10 +6,8 @@ import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDo
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { OccasionMode } from '@/lib/occasionMode';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 
 // Types
 import type { ReportContent, ReportData, ChartPlacement, SectionContent } from './types';
@@ -299,9 +297,6 @@ export function CosmicReportViewer({
   hasActiveHoroscope = false,
   species,
 }: CosmicReportViewerProps) {
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const { currency } = useLocalizedPrice();
-
   const hasMultipleReports = allReports && allReports.length > 1;
 
   // Derive sign data
@@ -315,27 +310,10 @@ export function CosmicReportViewer({
   // Check if comprehensive report
   const isComprehensiveReport = !!report.chartPlacements;
 
-  const handleSubscribeWeekly = async () => {
-    if (!reportId) {
-      toast.error('Report ID required for subscription');
-      return;
-    }
-    setIsSubscribing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-horoscope-subscription', {
-        body: { email: '', petReportId: reportId, petName, currency },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      toast.error('Could not start subscription. Try again.');
-    } finally {
-      setIsSubscribing(false);
-    }
-  };
+  // Blocker #11: the standalone "subscribe to weekly horoscope" CTA was
+  // removed. It invoked create-horoscope-subscription with a blank email and
+  // always errored, and the endpoint had no ownership/payment/duplicate guard.
+  // Weekly horoscopes are now enrolled at checkout (per-pet) via stripe-webhook.
 
   // Legacy fallback
   if (!isComprehensiveReport) {

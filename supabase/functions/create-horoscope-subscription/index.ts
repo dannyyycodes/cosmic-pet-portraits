@@ -29,10 +29,81 @@ serve(async (req) => {
   }
 
   try {
-    const { email, petReportId, petName, plan = "monthly", currency: rawCurrency } = await req.json();
+    const { petReportId, plan = "monthly", currency: rawCurrency } = await req.json();
 
-    if (!email || !petReportId || !petName) {
-      throw new Error("Missing required fields: email, petReportId, petName");
+    if (!petReportId) {
+      return new Response(JSON.stringify({ error: "Missing required field: petReportId" }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // ── Ownership / payment / memorial / duplicate guards (blocker #11) ──────
+    // This endpoint used to trust the caller's email + petName blindly and had
+    // NO checks — anyone could spin up a Stripe checkout for any report id, and
+    // the standalone CTA even called it with a blank email (always errored).
+    // The report row is now the single source of truth: it must exist, be PAID,
+    // be non-memorial, and have no active horoscope sub already.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
+
+    const { data: report, error: reportErr } = await supabaseAdmin
+      .from("pet_reports")
+      .select("id, email, pet_name, occasion_mode, payment_status")
+      .eq("id", petReportId)
+      .maybeSingle();
+
+    if (reportErr || !report) {
+      console.warn("[HOROSCOPE-SUB] Report not found:", petReportId, reportErr?.message);
+      return new Response(JSON.stringify({ error: "Report not found" }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 404,
+      });
+    }
+
+    if (report.payment_status !== "paid") {
+      console.warn("[HOROSCOPE-SUB] Report not paid:", petReportId, report.payment_status);
+      return new Response(JSON.stringify({ error: "This reading has not been unlocked yet." }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    if (report.occasion_mode === "memorial") {
+      console.warn("[HOROSCOPE-SUB] Refusing memorial horoscope sub:", petReportId);
+      return new Response(JSON.stringify({ error: "Weekly horoscopes are not available for memorial readings." }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 409,
+      });
+    }
+
+    // Authoritative email comes from the paid report, never the request body.
+    const email = (report.email || "").trim().toLowerCase();
+    const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || email === "pending@checkout.temp" || !EMAIL_PATTERN.test(email)) {
+      console.warn("[HOROSCOPE-SUB] Report has no usable email:", petReportId, report.email);
+      return new Response(JSON.stringify({ error: "No verified email on this reading yet." }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 409,
+      });
+    }
+    const petName = report.pet_name || "your pet";
+
+    // Duplicate guard: don't create a second sub for a pet already enrolled.
+    const { data: existingSub } = await supabaseAdmin
+      .from("horoscope_subscriptions")
+      .select("id, status")
+      .eq("pet_report_id", petReportId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (existingSub) {
+      console.log("[HOROSCOPE-SUB] Already enrolled:", petReportId, existingSub.id);
+      return new Response(JSON.stringify({ error: `${petName} already has weekly horoscopes.`, alreadyEnrolled: true }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 409,
+      });
     }
 
     const currency = normalizeCurrency(rawCurrency);

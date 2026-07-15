@@ -18,7 +18,12 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
 
 // ── Transit helpers ─────────────────────────────────────────────
 
-function getGlobalTransits(): { text: string; positions: ReturnType<typeof calculateAllPositions> } {
+// A computed aspect between two bodies (base planet names, lowercased).
+// Used both to LOCK the AI prompt and to SCRUB fabricated aspects after
+// generation (blocker #12). Mirrors the reading worker's approach.
+type AspectPair = { a: string; b: string; type: string };
+
+function getGlobalTransits(): { text: string; positions: ReturnType<typeof calculateAllPositions>; aspects: AspectPair[] } {
   const now = new Date();
   const positions = calculateAllPositions(now);
 
@@ -40,19 +45,24 @@ function getGlobalTransits(): { text: string; positions: ReturnType<typeof calcu
 
   // Note aspects between transiting planets
   const aspects: string[] = [];
+  const aspectPairs: AspectPair[] = [];
   const keys = planets.map((p) => p.key);
   for (let i = 0; i < keys.length; i++) {
     for (let j = i + 1; j < keys.length; j++) {
       const diff = Math.abs(positions[keys[i]].longitude - positions[keys[j]].longitude);
       const d = diff > 180 ? 360 - diff : diff;
-      if (d < 8) {
-        aspects.push(`${planets[i].label} conjunct ${planets[j].label} in ${positions[keys[i]].sign}`);
-      } else if (Math.abs(d - 180) < 8) {
-        aspects.push(`${planets[i].label} opposite ${planets[j].label}`);
-      } else if (Math.abs(d - 90) < 6) {
-        aspects.push(`${planets[i].label} square ${planets[j].label}`);
-      } else if (Math.abs(d - 120) < 6) {
-        aspects.push(`${planets[i].label} trine ${planets[j].label}`);
+      let type: string | null = null;
+      if (d < 8) type = "conjunct";
+      else if (Math.abs(d - 180) < 8) type = "opposite";
+      else if (Math.abs(d - 90) < 6) type = "square";
+      else if (Math.abs(d - 120) < 6) type = "trine";
+      if (type) {
+        aspects.push(
+          type === "conjunct"
+            ? `${planets[i].label} conjunct ${planets[j].label} in ${positions[keys[i]].sign}`
+            : `${planets[i].label} ${type} ${planets[j].label}`,
+        );
+        aspectPairs.push({ a: planets[i].label.toLowerCase(), b: planets[j].label.toLowerCase(), type });
       }
     }
   }
@@ -61,15 +71,16 @@ function getGlobalTransits(): { text: string; positions: ReturnType<typeof calcu
     lines.push(`\nKey Aspects: ${aspects.join(", ")}`);
   }
 
-  return { text: lines.join("\n"), positions };
+  return { text: lines.join("\n"), positions, aspects: aspectPairs };
 }
 
 // FIX 3: Calculate natal chart aspects against current transits
 function getNatalAspects(
   transitPositions: ReturnType<typeof calculateAllPositions>,
   natalPositions: { sun: number; moon: number; mercury?: number; venus?: number; mars?: number }
-): string {
+): { text: string; aspects: AspectPair[] } {
   const aspects: string[] = [];
+  const aspectPairs: AspectPair[] = [];
 
   const transitPlanets = [
     { key: "sun", label: "Transiting Sun", lon: transitPositions.sun.longitude },
@@ -81,30 +92,35 @@ function getNatalAspects(
     { key: "saturn", label: "Transiting Saturn", lon: transitPositions.saturn.longitude },
   ];
 
-  const natalPoints: Array<{ label: string; lon: number }> = [
-    { label: "natal Sun", lon: natalPositions.sun },
-    { label: "natal Moon", lon: natalPositions.moon },
+  const natalPoints: Array<{ key: string; label: string; lon: number }> = [
+    { key: "sun", label: "natal Sun", lon: natalPositions.sun },
+    { key: "moon", label: "natal Moon", lon: natalPositions.moon },
   ];
-  if (natalPositions.mercury) natalPoints.push({ label: "natal Mercury", lon: natalPositions.mercury });
-  if (natalPositions.venus) natalPoints.push({ label: "natal Venus", lon: natalPositions.venus });
-  if (natalPositions.mars) natalPoints.push({ label: "natal Mars", lon: natalPositions.mars });
+  if (natalPositions.mercury) natalPoints.push({ key: "mercury", label: "natal Mercury", lon: natalPositions.mercury });
+  if (natalPositions.venus) natalPoints.push({ key: "venus", label: "natal Venus", lon: natalPositions.venus });
+  if (natalPositions.mars) natalPoints.push({ key: "mars", label: "natal Mars", lon: natalPositions.mars });
 
   for (const transit of transitPlanets) {
     for (const natal of natalPoints) {
       const diff = Math.abs(transit.lon - natal.lon);
       const d = diff > 180 ? 360 - diff : diff;
 
-      if (d < 8) aspects.push(`${transit.label} conjunct ${natal.label} (powerful alignment — core energy activated)`);
-      else if (Math.abs(d - 60) < 5) aspects.push(`${transit.label} sextile ${natal.label} (opportunity for growth)`);
-      else if (Math.abs(d - 90) < 6) aspects.push(`${transit.label} square ${natal.label} (tension, but productive tension)`);
-      else if (Math.abs(d - 120) < 6) aspects.push(`${transit.label} trine ${natal.label} (natural harmony and flow)`);
-      else if (Math.abs(d - 180) < 8) aspects.push(`${transit.label} opposite ${natal.label} (awareness and balance needed)`);
+      let type: string | null = null;
+      if (d < 8) { aspects.push(`${transit.label} conjunct ${natal.label} (powerful alignment — core energy activated)`); type = "conjunct"; }
+      else if (Math.abs(d - 60) < 5) { aspects.push(`${transit.label} sextile ${natal.label} (opportunity for growth)`); type = "sextile"; }
+      else if (Math.abs(d - 90) < 6) { aspects.push(`${transit.label} square ${natal.label} (tension, but productive tension)`); type = "square"; }
+      else if (Math.abs(d - 120) < 6) { aspects.push(`${transit.label} trine ${natal.label} (natural harmony and flow)`); type = "trine"; }
+      else if (Math.abs(d - 180) < 8) { aspects.push(`${transit.label} opposite ${natal.label} (awareness and balance needed)`); type = "opposite"; }
+      // Keyed by base planet names so the scrub matches free-prose references
+      // like "the Moon trines Jupiter" regardless of transiting/natal wording.
+      if (type) aspectPairs.push({ a: transit.key, b: natal.key, type });
     }
   }
 
-  return aspects.length > 0
+  const text = aspects.length > 0
     ? `\nNatal Aspects (transits hitting ${natalPoints.length > 2 ? "the pet's" : "their"} chart):\n  - ${aspects.join("\n  - ")}`
     : "\nNo major natal aspects this week — a neutral, steady period.";
+  return { text, aspects: aspectPairs };
 }
 
 // ── AI prompt builders ──────────────────────────────────────────
@@ -670,7 +686,7 @@ serve(async (req) => {
     console.log(`[WEEKLY-HOROSCOPE] Found ${subscriptions.length} active subscriptions`);
 
     // Calculate global transits once (shared across all pets)
-    const { text: globalTransits, positions: currentPositions } = getGlobalTransits();
+    const { text: globalTransits, positions: currentPositions, aspects: globalAspectPairs } = getGlobalTransits();
     console.log("[WEEKLY-HOROSCOPE] Current transits:\n", globalTransits);
 
     const weekStart = new Date();
@@ -722,20 +738,44 @@ serve(async (req) => {
         const breed = petReport.breed || "";
         const occasionMode = sub.occasion_mode || petReport.occasion_mode || "discover";
 
-        // FIX 3: Build per-pet transit text with natal aspects
+        // FIX 3: Build per-pet transit text with natal aspects.
+        // Collect the COMPLETE structured aspect list for this pet's week
+        // (global transit-transit + this pet's transit-natal) to (1) LOCK the
+        // AI prompt and (2) SCRUB fabricated aspects afterward — blocker #12.
         let petTransits = globalTransits;
+        const petAspectPairs: AspectPair[] = [...globalAspectPairs];
         const petDob = new Date(petReport.birth_date);
         if (!isNaN(petDob.getTime())) {
           const natalPositions = calculateAllPositions(petDob);
-          const natalAspectText = getNatalAspects(currentPositions, {
+          const natal = getNatalAspects(currentPositions, {
             sun: natalPositions.sun.longitude,
             moon: natalPositions.moon.longitude,
             mercury: natalPositions.mercury.longitude,
             venus: natalPositions.venus.longitude,
             mars: natalPositions.mars.longitude,
           });
-          petTransits += natalAspectText;
+          petTransits += natal.text;
+          petAspectPairs.push(...natal.aspects);
         }
+
+        // ── Aspect LOCK (blocker #12) ─────────────────────────────────────
+        // Bind the model to the computed aspect list. Mirrors worker.ts: the
+        // ONLY aspects the prose may name are the ones below. Same-sign-but-
+        // not-aspected pairs must be phrased "both in <sign>", never as an
+        // aspect. A deterministic scrub after generation enforces this.
+        const uniqAspectStrs = Array.from(
+          new Set(petAspectPairs.map((p) => `${p.a} ${p.type} ${p.b}`)),
+        );
+        const aspectLockBlock = `
+
+COMPUTED ASPECTS (the COMPLETE and ONLY aspect list for ${sub.pet_name} this week):
+${uniqAspectStrs.length ? uniqAspectStrs.map((s) => `  - ${s}`).join("\n") : "  - (No major aspects this week — a steady, neutral period.)"}
+
+ASPECT ACCURACY RULES (MANDATORY — a fabricated aspect destroys trust):
+- Use ONLY the aspects listed directly above. Do NOT write "conjunct", "conjunction", "opposite", "opposition", "trine", "square", "sextile", or "quincunx" for ANY planet pair that is not on that list.
+- If two planets merely share the same zodiac sign but are NOT listed above, say "both in <sign>". NEVER call that an aspect.
+- ${uniqAspectStrs.length ? "Reference these real aspects where they add insight, but never invent a new one and never rename one (a square is never a trine)." : "There are NO major aspects this week, so do NOT use any aspect words (conjunct/opposite/trine/square/sextile/quincunx) anywhere in the reading."}`;
+        petTransits += aspectLockBlock;
 
         // Build prompt based on occasion mode
         const userPrompt = occasionMode === "memorial"
@@ -825,6 +865,82 @@ Return only valid JSON.`,
           console.error(`[WEEKLY-HOROSCOPE] Parse error for ${sub.pet_name}:`, parseError);
           results.push({ pet: sub.pet_name, status: "error", reason: "parse_failed", detail: parseError?.message });
           continue;
+        }
+
+        // ── Accuracy scrub: fabricated aspects (blocker #12, mirrors worker.ts).
+        // Any "X <aspect> Y" claim naming a planet pair that is NOT in the
+        // computed aspect list is corrected to the real aspect type, or (when
+        // no real aspect exists) neutralised to "X and Y" so an impossible
+        // aspect (e.g. calling a quincunx a "trine") can never ship.
+        try {
+          const aspectByPair = new Map<string, string>();
+          for (const a of petAspectPairs) {
+            aspectByPair.set([a.a, a.b].sort().join("|"), a.type);
+          }
+          const normRel = (w: string): string => {
+            const x = w.toLowerCase();
+            if (x.startsWith("conjunct")) return "conjunct";
+            if (x.startsWith("oppos")) return "opposite";
+            if (x.startsWith("trine")) return "trine";
+            if (x.startsWith("square")) return "square";
+            if (x.startsWith("sextile")) return "sextile";
+            if (x.startsWith("quincunx") || x.startsWith("inconjunct")) return "quincunx";
+            return x;
+          };
+          const PL = "(Sun|Moon|Mercury|Venus|Mars|Jupiter|Saturn)";
+          const RELV = "(conjuncts?|conjunction|opposite|opposition|opposes|opposing|opposed|trines?|squares?|squaring|sextiles?|quincunx(?:es)?|inconjuncts?)";
+          const RELN = "(conjunction|opposition|trine|square|sextile|quincunx|inconjunct)";
+          const formA = new RegExp(`\\b${PL}\\s+${RELV}\\s+(?:(?:to|with|the|its?|their|your|a|an|natal|transiting)\\s+)*${PL}\\b`, "gi");
+          const formC = new RegExp(`\\b${RELN}\\s+between\\s+${PL}\\s+and\\s+(?:(?:the|its?|their|your|natal|transiting)\\s+)*${PL}\\b`, "gi");
+          const aspectFixes: { from: string; to: string }[] = [];
+          const resolve = (aName: string, bName: string, relN: string): { verdict: "keep" | "retype" | "neutral"; realType?: string } => {
+            const key = [aName.toLowerCase(), bName.toLowerCase()].sort().join("|");
+            const real = aspectByPair.get(key);
+            if (real) return real === relN ? { verdict: "keep" } : { verdict: "retype", realType: real };
+            return { verdict: "neutral" };
+          };
+          const fixAspects = (str: string): string => {
+            let t = str.replace(formA, (m, a, rel, b) => {
+              // Same-body self-reference (e.g. "Moon ... Moon") is transit-to-
+              // natal on the same planet; treat by base name below.
+              const r = resolve(a, b, normRel(rel));
+              if (r.verdict === "keep") return m;
+              const to = r.verdict === "retype" ? `${a} ${r.realType} ${b}` : `${a} and ${b}`;
+              aspectFixes.push({ from: m, to });
+              return to;
+            });
+            t = t.replace(formC, (m, rel, a, b) => {
+              const r = resolve(a, b, normRel(rel));
+              if (r.verdict === "keep") return m;
+              const to = r.verdict === "retype" ? `${r.realType} between ${a} and ${b}` : `alignment between ${a} and ${b}`;
+              aspectFixes.push({ from: m, to });
+              return to;
+            });
+            return t;
+          };
+          const walk = (node: unknown): void => {
+            if (Array.isArray(node)) {
+              for (let i = 0; i < node.length; i++) {
+                const v = node[i];
+                if (typeof v === "string") (node as unknown[])[i] = fixAspects(v);
+                else walk(v);
+              }
+            } else if (node && typeof node === "object") {
+              const rec = node as Record<string, unknown>;
+              for (const k of Object.keys(rec)) {
+                const v = rec[k];
+                if (typeof v === "string") rec[k] = fixAspects(v);
+                else walk(v);
+              }
+            }
+          };
+          walk(horoscopeContent);
+          if (aspectFixes.length > 0) {
+            console.log(`[WEEKLY-HOROSCOPE] Aspect scrub for ${sub.pet_name}: ${aspectFixes.length} fabricated-aspect fix(es)`);
+            for (const f of aspectFixes.slice(0, 15)) console.log(`  [aspect-fix] "${f.from}" -> "${f.to}"`);
+          }
+        } catch (scrubErr) {
+          console.error(`[WEEKLY-HOROSCOPE] Aspect scrub failed for ${sub.pet_name} (non-fatal):`, scrubErr);
         }
 
         // Save horoscope to database (skip in test mode)
@@ -954,8 +1070,13 @@ Return only valid JSON.`,
           try {
             const trialEndsMs = new Date(sub.trial_ends_at).getTime();
             const daysLeft = Math.ceil((trialEndsMs - Date.now()) / (24 * 60 * 60 * 1000));
-            // Fire in the final stretch of the trial (1-3 days left).
-            if (daysLeft <= 3 && daysLeft > 0) {
+            // Fire any time in the final week of the trial (blocker #4).
+            // The cron runs ONCE weekly (Sunday), so a 1-3 day window misses
+            // ~4/7 buyer cohorts whose day-30 lands Mon-Thu after a Sunday run,
+            // auto-charging them with ZERO warning. Widen to <=7 && >0 (matching
+            // the gift week4 path) so one weekly run always catches every buyer.
+            // The reminder_sent_at_week4 flag keeps it idempotent (once-only).
+            if (daysLeft <= 7 && daysLeft > 0) {
               // Show the exact amount Stripe will charge. The GBP-primary Price
               // carries a per-currency amount; the subscription's currency was
               // set at creation from the buyer's funnel currency. Read it back

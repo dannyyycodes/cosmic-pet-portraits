@@ -620,7 +620,7 @@ serve(async (req) => {
               try {
                 const petHoroscopeMap = JSON.parse(petHoroscopesRaw) as Record<string, unknown>;
                 if (petHoroscopeMap && typeof petHoroscopeMap === "object" && Object.keys(petHoroscopeMap).length > 0) {
-                  horoscopeReportIds = reportIds.filter((_, i) => petHoroscopeMap[String(i)] === true);
+                  horoscopeReportIds = reportIds.filter((_: string, i: number) => petHoroscopeMap[String(i)] === true);
                   console.log("[STRIPE-WEBHOOK] Horoscope pass: per-pet selection", {
                     total: reportIds.length,
                     selected: horoscopeReportIds.length,
