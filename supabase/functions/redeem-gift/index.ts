@@ -99,25 +99,46 @@ serve(async (req) => {
       });
     }
 
-    // Mark gift as redeemed IMMEDIATELY (prevent race conditions)
-    const { error: updateError } = await supabase
+    // Mark gift as redeemed ATOMICALLY (prevent double-spend / race conditions).
+    // The conditional UPDATE ... WHERE is_redeemed=false ... RETURNING id is the
+    // single source of truth here: Postgres serialises it, so exactly one
+    // concurrent caller can flip the row from false->true. The is_redeemed read
+    // above (line ~66) is a TOCTOU check and cannot be trusted on its own — two
+    // requests can both pass it. We must consume the cert HERE and only grant
+    // the reading if THIS request is the one row that changed.
+    const { data: redeemedRows, error: updateError } = await supabase
       .from("gift_certificates")
-      .update({ 
-        is_redeemed: true, 
+      .update({
+        is_redeemed: true,
         redeemed_at: new Date().toISOString(),
         redeemed_by_report_id: primaryReportId,
       })
       .eq("id", gift.id)
-      .eq("is_redeemed", false); // Double-check it wasn't redeemed in a race
+      .eq("is_redeemed", false) // Only flips if still unredeemed
+      .select("id");
 
     if (updateError) {
       console.error("[REDEEM-GIFT] Failed to mark gift as redeemed:", updateError);
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: "Failed to redeem gift. Please try again.",
-        success: false 
+        success: false
       }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 500,
+      });
+    }
+
+    // Zero rows changed => a concurrent/earlier redemption already consumed this
+    // cert. Reject BEFORE marking any report paid so the second attempt grants
+    // nothing (this is the double-spend fix).
+    if (!redeemedRows || redeemedRows.length !== 1) {
+      console.warn("[REDEEM-GIFT] Gift already redeemed (lost race), granting nothing:", input.giftCode);
+      return new Response(JSON.stringify({
+        error: "This gift has already been redeemed",
+        success: false
+      }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
       });
     }
 

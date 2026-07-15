@@ -534,21 +534,43 @@ serve(async (req) => {
           quantity: 1,
         });
       } else {
-        // DIGITAL: Soul Reading and/or Soul Bond. For mixed-tier orders, name reflects the mix.
+        // DIGITAL: name each line item from the REAL tier + occasion.
+        // Photo upload is now included on every tier, so includes_portrait no
+        // longer distinguishes tiers — deriving the name from it made a £29
+        // Soul Reading and a £49 Memorial both read "Soul Bond". Build the
+        // name from the actual per-tier counts instead:
+        //   basic                     -> Soul Reading
+        //   premium (non-memorial)    -> Soul Bond   (the portrait/premium bump)
+        //   memorial (premium-priced) -> Memorial Reading
+        // Memorial rows are the last `memorialCount` rows and share the premium
+        // Stripe price, so they live inside premiumTotal.
+        const premiumTotal = hasPerTierCounts ? premiumCount : (tierKey === 'premium' ? petCount : 0);
+        const basicTotal = hasPerTierCounts ? basicCount : (tierKey === 'basic' ? petCount : 0);
+        const memorialQty = Math.min(memorialCount, premiumTotal);
+        const soulBondQty = premiumTotal - memorialQty;
+        const soulReadingQty = basicTotal;
+
+        const segments: string[] = [];
+        if (soulReadingQty > 0) segments.push(`${soulReadingQty}× Soul Reading`);
+        if (soulBondQty > 0) segments.push(`${soulBondQty}× Soul Bond`);
+        if (memorialQty > 0) segments.push(`${memorialQty}× Memorial Reading`);
+
         let productName: string;
         let productDescription: string | undefined;
-        if (hasPerTierCounts && basicCount > 0 && premiumCount > 0) {
-          productName = `Little Souls — ${petCount} readings`;
-          const parts = [];
-          if (basicCount > 0) parts.push(`${basicCount}× Soul Reading`);
-          if (premiumCount > 0) parts.push(`${premiumCount}× Soul Bond`);
-          productDescription = parts.join(' + ');
-        } else {
-          const tierName = includesPortrait ? 'Soul Bond' : 'Soul Reading';
-          productName = petCount > 1 ? `${petCount}× Little Souls — ${tierName}` : `Little Souls — ${tierName}`;
-          productDescription = input.includeHoroscope
+        if (segments.length <= 1) {
+          // Single tier in the cart — name it directly.
+          const single = soulReadingQty > 0 ? 'Soul Reading'
+            : soulBondQty > 0 ? 'Soul Bond'
+            : 'Memorial Reading';
+          productName = petCount > 1 ? `${petCount}× Little Souls — ${single}` : `Little Souls — ${single}`;
+          // Memorial pets never receive horoscopes — don't advertise them on a
+          // memorial-only order.
+          productDescription = (input.includeHoroscope && memorialQty < petCount)
             ? `Includes 1 month of weekly horoscopes — free (then ${horoscopeMonthlyLabel}/month, cancel anytime)`
             : undefined;
+        } else {
+          productName = `Little Souls — ${petCount} readings`;
+          productDescription = segments.join(' + ');
         }
         lineItems.push({
           price_data: {
@@ -593,12 +615,28 @@ serve(async (req) => {
         // Sessions (Stripe only honours automatic_payment_methods for Payment
         // Intents, not Checkout). Stripe still filters by country/currency/amount
         // so UK buyers won't see Klarna in USD etc.
-        payment_method_types: [
-          "card", "link",
-          "klarna", "afterpay_clearpay",
-          "amazon_pay", "revolut_pay",
-          "bancontact", "eps",
-        ],
+        // When horoscopes are included we save the card off-session for the
+        // recurring sub (setup_future_usage below). Wallet/BNPL methods
+        // (Amazon Pay, Revolut, Bancontact, EPS, Klarna, Afterpay) can't be
+        // saved off_session — Stripe rejects the whole session if they're
+        // listed alongside setup_future_usage — so narrow to card + Link, the
+        // only methods here that support off-session recurring billing.
+        payment_method_types: input.includeHoroscope
+          ? ["card", "link"]
+          : [
+              "card", "link",
+              "klarna", "afterpay_clearpay",
+              "amazon_pay", "revolut_pay",
+              "bancontact", "eps",
+            ],
+        // Horoscope billing: save the card so the recurring horoscope sub can
+        // charge off-session after the 30-day trial. Without setup_future_usage
+        // the Checkout Session stays guest-mode (no Stripe Customer, no saved
+        // card), so the webhook's `if (session.customer)` guard never fires,
+        // the subscription is never created, and the monthly fee can never
+        // bill. Stripe auto-filters Klarna/Afterpay/etc (no off-session support)
+        // when this is set, leaving card/link — which is correct for recurring.
+        ...(input.includeHoroscope ? { payment_intent_data: { setup_future_usage: "off_session" } } : {}),
         allow_promotion_codes: false,
         ...(includesBook ? {
           shipping_address_collection: {
@@ -830,6 +868,50 @@ serve(async (req) => {
     if (calculatedTotal === 0) {
       console.log("[CREATE-CHECKOUT] Free order detected — skipping Stripe");
 
+      // ── ATOMIC gift-certificate redemption (double-spend / TOCTOU fix) ──
+      // When a gift certificate covers the whole order, it MUST be consumed in
+      // a single conditional UPDATE before we grant anything. The lookups above
+      // (is_redeemed=false at ~line 802/818) are TOCTOU reads: two requests can
+      // both read the cert as unredeemed, both hit calculatedTotal===0, and —
+      // under the old code that marked reports paid first and redeemed the cert
+      // last with no guard — both would get a free reading off one cert. Redeem
+      // FIRST: UPDATE ... WHERE is_redeemed=false RETURNING id. Only the one
+      // request that flips exactly one row is allowed to proceed; any loser is
+      // rejected before a single report is marked paid.
+      if (giftCertificateId) {
+        const { data: redeemedRows, error: redeemErr } = await supabaseClient
+          .from("gift_certificates")
+          .update({
+            is_redeemed: true,
+            redeemed_at: new Date().toISOString(),
+            redeemed_by_report_id: primaryReportId,
+          })
+          .eq("id", giftCertificateId)
+          .eq("is_redeemed", false)
+          .select("id");
+
+        if (redeemErr) {
+          console.error("[CREATE-CHECKOUT] Free order: gift cert redeem failed:", redeemErr);
+          return new Response(JSON.stringify({
+            error: "We couldn't apply that gift certificate. Please try again.",
+          }), {
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+            status: 500,
+          });
+        }
+
+        if (!redeemedRows || redeemedRows.length !== 1) {
+          console.warn("[CREATE-CHECKOUT] Free order: gift cert already redeemed (lost race), granting nothing:", giftCertificateId);
+          return new Response(JSON.stringify({
+            error: "This gift certificate has already been redeemed.",
+          }), {
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+        console.log("[CREATE-CHECKOUT] Free order: gift cert atomically redeemed:", giftCertificateId);
+      }
+
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
         const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
@@ -878,17 +960,11 @@ serve(async (req) => {
         }
       }
 
-      // Mark gift certificate as redeemed
-      if (giftCertificateId) {
-        await supabaseClient
-          .from("gift_certificates")
-          .update({
-            is_redeemed: true,
-            redeemed_at: new Date().toISOString(),
-            redeemed_by_report_id: primaryReportId,
-          })
-          .eq("id", giftCertificateId);
-      }
+      // Gift certificate was already redeemed atomically at the TOP of this
+      // free-order block (before any report was marked paid). Redeeming here a
+      // second time would be a no-op at best and, without the is_redeemed guard,
+      // would stomp the real redeemed_at/redeemed_by on a losing race — so it's
+      // intentionally gone. See the ATOMIC redemption block above.
 
       return new Response(JSON.stringify({
         free: true,
@@ -1026,7 +1102,7 @@ serve(async (req) => {
         recipient_email: input.recipientEmail,
         gift_message: input.giftMessage,
         coupon_id: input.couponId || "",
-        gift_certificate_id: input.giftCertificateId || "",
+        gift_certificate_id: giftCertificateId || "",
         referral_code: input.referralCode || "",
         include_horoscope: (horoscopePetCount > 0 || input.includeHoroscope) ? "true" : "false",
         horoscope_pet_count: horoscopePetCount.toString(),

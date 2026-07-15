@@ -2909,18 +2909,22 @@ async function loadCredits() {
       isUnlimited = data[0].is_unlimited || false;
     } else {
       // First time visitor — display the starter amount. The server (soul-chat function)
-      // will create the row on the first message using the order's includes_book flag.
+      // will create the row on the first message using the reading's includes_book flag
+      // (and only if payment_status is 'paid').
+      // NOTE: the reading lives on pet_reports — there is no `orders` table. The old
+      // /rest/v1/orders lookup 404'd, so unlimited never displayed for book buyers.
+      // pet_reports has no `includes_horoscope` column; hasActiveHoroscope is sourced
+      // from the report-load endpoint (data.hasActiveHoroscope) instead.
       var startUnlimited = false;
       try {
-        var orderRes = await fetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + readingId + '&select=includes_book,includes_horoscope', {
+        var orderRes = await fetch(SUPABASE_URL + '/rest/v1/pet_reports?id=eq.' + readingId + '&select=includes_book,payment_status', {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
         var orderData = await orderRes.json();
         if (orderData && orderData.length) {
-          if (orderData[0].includes_book) startUnlimited = true;
-          if (orderData[0].includes_horoscope) hasActiveHoroscope = true;
+          if (orderData[0].includes_book && orderData[0].payment_status === 'paid') startUnlimited = true;
         }
-      } catch(e) { console.error('Order check error:', e); }
+      } catch(e) { console.error('Reading check error:', e); }
 
       creditsRemaining = startUnlimited ? 9999 : 400;
       isUnlimited = startUnlimited;

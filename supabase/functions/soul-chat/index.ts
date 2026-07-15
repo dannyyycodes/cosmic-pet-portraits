@@ -260,7 +260,7 @@ Additional engagement rules:
 - Create the feeling of an unfolding conversation, not a Q&A session.
 
 RULES:
-- LENGTH DISCIPLINE: 2-4 sentences, ~60-100 words. Only the very first message goes longer (~120-150 words max). Brevity is part of your voice — if you're rambling, you're drifting. Cut, then cut again, then add the hook.
+- LENGTH DISCIPLINE: 2-4 sentences, ~60-100 words. Only the very first message goes longer (~120-150 words max). Brevity is part of your voice — if you're rambling, you're drifting. Cut, then cut again, then add the hook. ALWAYS finish your final sentence — never stop mid-thought or mid-word. Land cleanly on a complete sentence even if it means being a touch shorter.
 - Never use bullet points or lists. Always flowing natural pet talk.
 - Never mention "reading" or "report" — you just know these things because you ARE this pet
 - Never recommend they talk to a vet or professional — stay in the soul space
@@ -539,12 +539,16 @@ serve(async (req) => {
     }
 
     if (!row) {
-      // First-time visitor for this household — verify the order exists,
+      // First-time visitor for this household — verify the reading exists,
       // then mint a pooled starter allowance sized to their pet count so
       // multi-pet buyers aren't short-changed.
+      //
+      // The reading lives on pet_reports (there is no `orders` table — the old
+      // .from("orders") lookup 404'd on every first message, which is what
+      // killed SoulSpeak). pet_reports.id IS the orderId used everywhere else.
       const { data: order } = await supabase
-        .from("orders")
-        .select("id, includes_book")
+        .from("pet_reports")
+        .select("id, includes_book, payment_status")
         .eq("id", orderId)
         .maybeSingle();
 
@@ -552,6 +556,18 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Invalid order" }), {
           status: 404, headers: corsJson,
         });
+      }
+
+      // SECURITY: only a PAID reading may mint starter credits. pet_reports
+      // holds unpaid draft rows (payment_status='pending'), so without this
+      // gate the repoint above would hand 8 free messages to anyone who owns
+      // (by email/token, already checked above) an unpaid report UUID.
+      if (order.payment_status !== "paid") {
+        return new Response(JSON.stringify({
+          error: "payment_required",
+          reply: null,
+          paywall: true,
+        }), { status: 402, headers: corsJson });
       }
 
       const isUnlimited = !!order.includes_book;
@@ -741,7 +757,12 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
             { role: "system", content: finalSystem },
             ...messages.slice(-20),
           ],
-          max_tokens: isFirstMessage ? 360 : 230,
+          // Non-first replies were capped at 230, which truncated 2-4 sentence
+          // replies mid-word ("...caught me sn"). Raised to 400 so a reply within
+          // the LENGTH DISCIPLINE (2-4 sentences) can always finish naturally.
+          // The system-prompt length rule — not this cap — governs actual length,
+          // so this is a safety headroom, not a licence to ramble.
+          max_tokens: isFirstMessage ? 360 : 400,
           temperature,
         }),
       });

@@ -32,35 +32,40 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
   }
   const resend = new Resend(resendKey);
 
+  // Violet celestial palette (matches the shipped funnel + nurture emails)
+  const mist = "#f3f0fb", card = "#ffffff", ink = "#241a3d", body = "#4a4363",
+        muted = "#6b6488", violet = "#6a55c0", soft = "#b9a5f0", cta = "#5a3ec8", line = "#e9e2f7";
+  const SIG = "https://content.littlesouls.app/viral-pet-media/grace-signature.png";
+
   const html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#faf6f1;font-family:Georgia,'Times New Roman',serif;">
+<body style="margin:0;padding:0;background-color:${mist};font-family:Georgia,'Times New Roman',serif;">
 <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
 
   <div style="text-align:center;margin-bottom:36px;">
     <p style="font-size:28px;margin:0 0 8px 0;">&#10024;</p>
-    <p style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c4a265;margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Little Souls</p>
+    <p style="font-size:11px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:${violet};margin:0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">Little Souls</p>
   </div>
 
-  <div style="background:#ffffff;border-radius:16px;border:1px solid #e8ddd0;padding:40px 32px;text-align:center;">
-    <p style="font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#c4a265;margin:0 0 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="background:${card};border-radius:18px;border:1px solid ${line};padding:40px 32px;text-align:center;box-shadow:0 10px 34px rgba(90,62,200,0.08);">
+    <p style="font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:${violet};margin:0 0 16px 0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">
       Your Cosmic Connection is Live
     </p>
 
-    <h1 style="color:#3d2f2a;font-size:26px;font-weight:400;margin:0 0 20px 0;line-height:1.3;">
+    <h1 style="color:${ink};font-size:26px;font-weight:400;margin:0 0 20px 0;line-height:1.3;">
       ${petName}'s weekly horoscope<br>starts this Sunday
     </h1>
 
-    <p style="color:#7a6a60;font-size:15px;line-height:1.8;margin:0 0 28px 0;">
-      Every Sunday morning, a personalised cosmic reading for ${petName} will arrive in your inbox &#8212; calculated from their exact birth chart against that week's real planetary transits. Not generic sun sign predictions. Real astrology, written with real love, just for your ${sunSign} soul.
+    <p style="color:${body};font-size:15px;line-height:1.8;margin:0 0 28px 0;">
+      Every Sunday morning, a personalised cosmic forecast for ${petName} arrives in your inbox. It is calculated from their exact birth chart against that week's real planetary transits. Not generic sun sign guesses. Real astrology, written with real love, just for your ${sunSign} soul.
     </p>
 
-    <div style="text-align:left;background:#faf6f1;border-radius:12px;padding:24px 28px;margin:0 0 28px 0;">
-      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c4a265;margin:0 0 14px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <div style="text-align:left;background:${mist};border-radius:12px;padding:24px 28px;margin:0 0 28px 0;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${violet};margin:0 0 14px 0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;">
         Every Week You'll Get
       </p>
-      <p style="color:#5a4a42;font-size:14px;line-height:2;margin:0;">
+      <p style="color:${body};font-size:14px;line-height:2;margin:0;">
         ${petName}'s cosmic mood forecast for each day<br>
         Their lucky day, power move, and energy peaks<br>
         Hilarious texts and Google searches from ${petName}<br>
@@ -70,23 +75,25 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
     </div>
 
     <div style="margin:28px 0;">
-      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block;background:#3d2f2a;color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;">
+      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block;background:${cta};color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:600;font-size:15px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:0.5px;">
         Talk to ${petName}'s Soul
       </a>
     </div>
 
-    <p style="color:#b8a99e;font-size:13px;line-height:1.6;margin:0;">
+    <p style="color:${muted};font-size:13px;line-height:1.6;margin:0 0 26px 0;">
       While you wait for Sunday, ${petName}'s soul is ready to chat.<br>You've got free SoulSpeak credits waiting.
     </p>
+
+    <div style="width:44px;height:1px;background:linear-gradient(90deg,transparent,${soft},transparent);margin:0 auto 20px;"></div>
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;font-style:italic;color:${body};margin:0 0 8px;">With love,</p>
+    <img src="${SIG}" alt="Grace" width="112" style="display:inline-block;width:112px;height:auto;margin:0 0 3px;">
+    <p style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:${muted};margin:0;">Grace &middot; Little Souls</p>
   </div>
 
   <div style="text-align:center;margin-top:36px;">
-    <p style="color:#b8a99e;font-size:12px;line-height:1.7;margin:0 0 8px 0;">
+    <p style="color:${muted};font-size:12px;line-height:1.7;margin:0;">
       Your first horoscope arrives this Sunday at 9am UTC.<br>
       Questions? Just reply to this email.
-    </p>
-    <p style="color:#d4c8bc;font-size:11px;margin:0;letter-spacing:1px;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-      Little Souls
     </p>
   </div>
 
@@ -447,16 +454,25 @@ serve(async (req) => {
           if (referralCode) {
             try {
               const supabaseUrl = Deno.env.get("SUPABASE_URL");
-              await fetch(`${supabaseUrl}/functions/v1/track-referral`, {
+              const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+              const refResponse = await fetch(`${supabaseUrl}/functions/v1/track-referral`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${serviceRoleKey}`,
+                },
                 body: JSON.stringify({
                   referralCode,
                   sessionId: session.id,
                   amount: session.amount_total || 0,
                 }),
               });
-              console.log("[STRIPE-WEBHOOK] Referral tracked:", referralCode);
+              if (!refResponse.ok) {
+                const refErrorText = await refResponse.text();
+                console.error("[STRIPE-WEBHOOK] Referral tracking returned non-OK:", refResponse.status, refErrorText);
+              } else {
+                console.log("[STRIPE-WEBHOOK] Referral tracked:", referralCode);
+              }
             } catch (refErr) {
               console.error("[STRIPE-WEBHOOK] Referral tracking failed:", refErr);
             }
@@ -698,17 +714,29 @@ serve(async (req) => {
             }
           }
           
-          // Handle gift certificate redemption
+          // Handle gift certificate redemption (partial-cert paid orders).
+          // Atomic conditional UPDATE: only flip is_redeemed false->true, and
+          // only the winning row is stamped with THIS order's redeemed_by. If a
+          // second paid session raced the same partial cert, the loser here is a
+          // 0-row no-op — we log it rather than overwrite the first legitimate
+          // redemption's redeemed_at/redeemed_by.
           const giftCertificateId = session.metadata?.gift_certificate_id;
           if (giftCertificateId) {
-            await supabaseClient
+            const { data: redeemedRows, error: redeemErr } = await supabaseClient
               .from("gift_certificates")
-              .update({ 
-                is_redeemed: true, 
+              .update({
+                is_redeemed: true,
                 redeemed_at: new Date().toISOString(),
                 redeemed_by_report_id: reportIds[0],
               })
-              .eq("id", giftCertificateId);
+              .eq("id", giftCertificateId)
+              .eq("is_redeemed", false)
+              .select("id");
+            if (redeemErr) {
+              console.error("[STRIPE-WEBHOOK] Gift cert redeem failed:", giftCertificateId, redeemErr);
+            } else if (!redeemedRows || redeemedRows.length !== 1) {
+              console.warn("[STRIPE-WEBHOOK] Gift cert already redeemed (race/no-op):", giftCertificateId);
+            }
           }
           
           // At-checkout gift-for-friend handler removed in
@@ -718,6 +746,34 @@ serve(async (req) => {
           // certificates still flow through the `type === "gift_certificate"`
           // branch above, which is the only remaining gift codepath.
 
+          // ── Resolve the saved card for horoscope billing ─────────────────
+          // Quick + standard checkout now set setup_future_usage:'off_session',
+          // so Stripe saves the buyer's card to the Customer via the
+          // PaymentIntent. Read that PaymentMethod here and (a) set it as the
+          // Customer's default and (b) pass it as the horoscope subscription's
+          // default_payment_method, so the recurring fee can actually charge
+          // after the 30-day trial. Without a default PM the sub trials, then
+          // the first real invoice has nothing to bill and never charges.
+          let horoscopeDefaultPaymentMethod: string | null = null;
+          if (session.metadata?.include_horoscope === "true" && session.customer && session.payment_intent) {
+            try {
+              const savedPiId = typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : session.payment_intent.id;
+              const savedPi = await stripe.paymentIntents.retrieve(savedPiId);
+              horoscopeDefaultPaymentMethod = typeof savedPi.payment_method === "string"
+                ? savedPi.payment_method
+                : (savedPi.payment_method?.id ?? null);
+              if (horoscopeDefaultPaymentMethod) {
+                await stripe.customers.update(session.customer as string, {
+                  invoice_settings: { default_payment_method: horoscopeDefaultPaymentMethod },
+                });
+                console.log("[STRIPE-WEBHOOK] Saved card set as default for horoscope billing:", horoscopeDefaultPaymentMethod);
+              }
+            } catch (pmErr) {
+              console.error("[STRIPE-WEBHOOK] Failed to resolve saved payment method:", pmErr);
+            }
+          }
 
           // Generate reports and send emails for each report
           for (const reportId of reportIds) {
@@ -806,6 +862,12 @@ serve(async (req) => {
                       const petOccasionMode = report.occasion_mode || "discover";
 
                       const plan = "trial";
+                      // 30-day trial window mirrored into our DB. The weekly
+                      // batch lapses trial rows past this date that never linked
+                      // a Stripe sub; converted rows (stripe_subscription_id set)
+                      // are always sent regardless, so this is safe for both.
+                      const horoscopeTrialEndsAt = new Date();
+                      horoscopeTrialEndsAt.setDate(horoscopeTrialEndsAt.getDate() + 30);
 
                       // Create Stripe recurring subscription with 30-day free trial
                       let stripeSubId: string | null = null;
@@ -815,6 +877,9 @@ serve(async (req) => {
                             customer: session.customer as string,
                             items: [{ price: "price_1Sfi1vEFEZSdxrGttpk4iUEa" }],
                             trial_period_days: 30,
+                            // Bill the card the buyer saved at checkout after the
+                            // trial. Falls back to the Customer default we set above.
+                            ...(horoscopeDefaultPaymentMethod ? { default_payment_method: horoscopeDefaultPaymentMethod } : {}),
                             metadata: {
                               pet_name: report.pet_name,
                               pet_report_id: reportId,
@@ -846,6 +911,7 @@ serve(async (req) => {
                           status: "active",
                           next_send_at: nextSunday.toISOString(),
                           plan,
+                          trial_ends_at: horoscopeTrialEndsAt.toISOString(),
                           occasion_mode: petOccasionMode,
                           ...(stripeSubId ? { stripe_subscription_id: stripeSubId } : {}),
                         });

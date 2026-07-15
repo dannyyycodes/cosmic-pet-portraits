@@ -431,19 +431,34 @@ serve(async (req) => {
       for (const id of reportIds) {
         const { data: petReport } = await supabaseClient
           .from("pet_reports")
-          .select("email, pet_name")
+          .select("email, pet_name, occasion_mode")
           .eq("id", id)
           .single();
-        
+
         if (petReport) {
+          // Memorial pets never get horoscopes — weekly "what's ahead" emails
+          // for a pet who has crossed the rainbow bridge would be a care failure.
+          if (petReport.occasion_mode === "memorial") {
+            console.log("[VERIFY-PAYMENT] Skipping horoscope enrollment for memorial pet:", id);
+            continue;
+          }
+
           // Check if subscription already exists
           const { data: existingSub } = await supabaseClient
             .from("horoscope_subscriptions")
             .select("id")
             .eq("pet_report_id", id)
             .single();
-          
+
           if (!existingSub) {
+            // Stamp a 30-day trial window + plan:'trial'. The weekly batch
+            // lapses any active enrollment whose trial_ends_at has passed with
+            // no stripe_subscription_id attached — so an enrollment that never
+            // links a paying Stripe sub stops after 30 days instead of sending
+            // free horoscopes forever. The canonical Stripe link is created by
+            // stripe-webhook on checkout.session.completed.
+            const trialEndsAt = new Date();
+            trialEndsAt.setDate(trialEndsAt.getDate() + 30);
             const { error: subError } = await supabaseClient
               .from("horoscope_subscriptions")
               .insert({
@@ -451,13 +466,16 @@ serve(async (req) => {
                 pet_name: petReport.pet_name,
                 pet_report_id: id,
                 status: "active",
+                plan: "trial",
+                trial_ends_at: trialEndsAt.toISOString(),
+                occasion_mode: petReport.occasion_mode || "discover",
                 next_send_at: new Date().toISOString(),
               });
-            
+
             if (subError) {
               console.error("[VERIFY-PAYMENT] Failed to create horoscope subscription:", subError);
             } else {
-              console.log("[VERIFY-PAYMENT] Horoscope subscription created for:", petReport.pet_name);
+              console.log("[VERIFY-PAYMENT] Horoscope subscription created (trial) for:", petReport.pet_name);
             }
           }
         }
