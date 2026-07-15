@@ -216,13 +216,33 @@
   padding: 6vh 18px;
 }
 .rv-wheel-eyebrow {
-  font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase;
+  font-size: 12px; letter-spacing: 0.36em; text-transform: uppercase;
   color: var(--rv-lavender);
+  text-shadow: 0 0 18px rgba(187,167,255,0.5);
 }
+.rv-wheel-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 2vh 0;
+}
+.rv-wheel-aura {
+  position: absolute;
+  inset: -16%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(212,175,55,0.16), transparent 46%),
+    radial-gradient(circle at 50% 50%, rgba(110,69,216,0.24), transparent 66%);
+  filter: blur(24px);
+  animation: rv-aura 7s ease-in-out infinite;
+}
+@keyframes rv-aura { 0%,100% { opacity: 0.72; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
 .rv-wheel-holder {
-  width: min(78vw, 62svh, 460px);
+  width: min(90vw, 66svh, 540px);
   aspect-ratio: 1;
   position: relative;
+  z-index: 1;
 }
 .rv-wheel-holder svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .rv-wheel-caption {
@@ -245,9 +265,9 @@
 .rv-w-aspect { fill: none; stroke-linecap: round; }
 .rv-w-aspect--harmony { stroke: rgba(187,167,255,0.5); }
 .rv-w-aspect--tense { stroke: rgba(216, 120, 200, 0.42); }
-.rv-w-planet-dot { fill: var(--rv-void); stroke: var(--rv-lavender); }
+.rv-w-planet-dot { fill: var(--rv-void); stroke: var(--rv-lavender); filter: drop-shadow(0 0 3px rgba(187,167,255,0.5)); }
 .rv-w-planet-glyph { fill: var(--rv-pearl); font-family: var(--rv-serif); }
-.rv-w-planet--lit .rv-w-planet-dot { stroke: var(--rv-gold); fill: rgba(212,175,55,0.14); }
+.rv-w-planet--lit .rv-w-planet-dot { stroke: var(--rv-gold); fill: rgba(212,175,55,0.16); filter: drop-shadow(0 0 7px rgba(212,175,55,0.75)); }
 .rv-w-planet--lit .rv-w-planet-glyph { fill: var(--rv-gold); }
 .rv-w-planet { cursor: pointer; }
 .rv-w-planet:focus { outline: none; }
@@ -324,8 +344,8 @@
 /* ============================================================================
    CHAPTERS
    ============================================================================ */
-.rv-chapter { position: relative; padding: 14vh 20px; }
-.rv-chapter-inner { max-width: var(--rv-maxw); margin: 0 auto; }
+.rv-chapter { position: relative; padding: 0 0 18vh; }
+.rv-chapter-inner { max-width: var(--rv-maxw); margin: 0 auto; padding: 0 20px; }
 
 .rv-chapter-head {
   text-align: center;
@@ -363,7 +383,154 @@
   color: var(--rv-mist);
 }
 
-.rv-cards { display: flex; flex-direction: column; gap: 7vh; }
+.rv-cards { display: flex; flex-direction: column; gap: 9vh; margin-top: 4vh; }
+
+/* ============================================================================
+   CHAPTER HERO  — full-bleed cosmic image opening every chapter
+   ============================================================================ */
+.rv-chero {
+  position: relative;
+  width: 100%;
+  height: clamp(440px, 72svh, 760px);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  isolation: isolate;
+}
+.rv-chero-media {
+  position: absolute;
+  inset: -8% 0;
+  z-index: 0;
+  will-change: transform;
+}
+.rv-chero-media picture { display: block; width: 100%; height: 100%; }
+.rv-chero-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rv-chero-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(11,6,22,0.42) 0%,
+    rgba(11,6,22,0.04) 20%,
+    rgba(11,6,22,0.10) 44%,
+    rgba(11,6,22,0.55) 72%,
+    rgba(11,6,22,0.92) 92%,
+    var(--rv-void) 100%
+  );
+}
+.rv-chero-glow {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(64% 46% at 50% 82%, color-mix(in oklab, var(--rv-accent) 34%, transparent), transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+.rv-chero-caption {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 40rem;
+  text-align: center;
+  padding: 0 22px 9svh;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.rv-chero-num {
+  font-family: var(--rv-sans);
+  font-size: 11px; letter-spacing: 0.42em; text-transform: uppercase;
+  color: var(--rv-lavender);
+  display: inline-flex; align-items: center; gap: 12px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.6);
+}
+.rv-chero-num::before, .rv-chero-num::after {
+  content: ""; width: 26px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rv-lavender));
+}
+.rv-chero-num::after { background: linear-gradient(90deg, var(--rv-lavender), transparent); }
+.rv-chero-title {
+  font-family: var(--rv-serif);
+  font-weight: 300;
+  font-optical-sizing: auto;
+  font-size: clamp(2.6rem, 11vw, 4.8rem);
+  line-height: 1.02;
+  letter-spacing: -0.014em;
+  margin: 0;
+  color: var(--rv-pearl);
+  text-wrap: balance;
+  text-shadow: 0 4px 40px rgba(0,0,0,0.55);
+}
+.rv-chero-sub {
+  max-width: 28rem;
+  font-family: var(--rv-quote);
+  font-style: italic;
+  font-size: clamp(1.05rem, 4.4vw, 1.4rem);
+  line-height: 1.5;
+  color: var(--rv-mist);
+  text-shadow: 0 2px 22px rgba(0,0,0,0.7);
+}
+.rv-chero-tender {
+  margin-top: 2px;
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--rv-gold);
+}
+
+/* ---- invocation backdrop (the ceremonial title screen) ---- */
+.rv-invocation { position: relative; z-index: 0; overflow: hidden; }
+.rv-invocation-bg { position: absolute; inset: 0; z-index: -1; }
+.rv-invocation-bg picture { display: block; width: 100%; height: 100%; }
+.rv-invocation-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; transform: scale(1.06); }
+.rv-invocation-bg::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(80% 60% at 50% 38%, transparent 0%, rgba(11,6,22,0.45) 62%, var(--rv-void) 100%),
+    linear-gradient(to bottom, rgba(11,6,22,0.5), rgba(11,6,22,0.18) 40%, rgba(11,6,22,0.88) 100%);
+}
+
+/* ---- constellation dividers between cards ---- */
+.rv-divider {
+  display: flex; justify-content: center; align-items: center;
+  padding: 1vh 0;
+}
+.rv-divider img {
+  width: min(58%, 230px);
+  height: auto;
+  opacity: 0.66;
+  filter: drop-shadow(0 0 10px rgba(187,167,255,0.22));
+}
+
+/* ---- element motif interlude ---- */
+.rv-motif {
+  margin: 0;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 18px;
+  padding: 3vh 0 2vh;
+}
+.rv-motif-orb {
+  position: relative;
+  width: min(66vw, 300px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(187,167,255,0.26);
+  box-shadow:
+    0 0 0 1px rgba(212,175,55,0.12),
+    0 22px 60px -22px rgba(0,0,0,0.85),
+    0 0 64px -8px color-mix(in oklab, var(--rv-accent) 42%, transparent);
+}
+.rv-motif-orb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rv-motif-orb::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, transparent 54%, rgba(11,6,22,0.5) 100%);
+}
+.rv-motif-cap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.rv-motif-el {
+  font-family: var(--rv-sans);
+  font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--rv-gold);
+}
+.rv-motif-line {
+  font-family: var(--rv-quote); font-style: italic;
+  font-size: clamp(1.05rem, 4.6vw, 1.35rem);
+  color: var(--rv-lavender);
+}
 
 /* ============================================================================
    READING CARD (progressive disclosure)
@@ -612,7 +779,9 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal-root .rv-wash { transition: none; }
   .reveal-root .rv-summon .rv-caret,
-  .reveal-root .rv-scrollcue .rv-mouse::after { animation: none; }
+  .reveal-root .rv-scrollcue .rv-mouse::after,
+  .reveal-root .rv-wheel-aura { animation: none; }
+  .reveal-root .rv-chero-media { transform: none !important; }
   .reveal-root * { scroll-behavior: auto; }
 }
 
@@ -621,14 +790,17 @@
    ============================================================================ */
 @media (min-width: 768px) {
   .reveal-root { font-size: 19px; }
-  .rv-chapter { padding: 16vh 24px; }
-  .rv-cards { gap: 8vh; }
+  .rv-chapter { padding: 0 0 20vh; }
+  .rv-cards { gap: 10vh; }
   .rv-card-btn { padding: 30px 30px; }
   .rv-card-body { padding: 0 30px 32px; }
   .rv-card-glyph { width: 52px; height: 52px; font-size: 25px; }
+  .rv-chero { height: clamp(520px, 78svh, 860px); }
+  .rv-motif-orb { width: min(46vw, 400px); }
 }
 @media (min-width: 1024px) {
-  .rv-wheel-holder { width: min(46vw, 74svh, 540px); }
+  .rv-wheel-holder { width: min(52vw, 80svh, 660px); }
+  .rv-chero-caption { padding-bottom: 10svh; }
 }
 
 /* focus visibility everywhere */

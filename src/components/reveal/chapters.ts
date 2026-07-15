@@ -3,7 +3,8 @@
 // progressively-disclosed cards. Never invents keys. Honours the copy —
 // presentation only, no rewriting of the reading itself.
 
-import type { Block, CardModel, CardTier, CardTone, ChapterModel, GlyphType, RevealReport } from './types';
+import type { Block, CardModel, CardTier, CardTone, ChapterModel, ChapterMotif, GlyphType, RevealReport } from './types';
+import { CHAPTER_HERO } from './assets';
 
 /* -------------------------------------------------------------------------- */
 /* text helpers                                                               */
@@ -448,6 +449,7 @@ interface ChapterDef {
   washA: string;
   washB: string;
   accent: string;
+  motif?: ChapterMotif;
   special?: 'invocation' | 'legacy';
   sections: [string, CardTier][];
 }
@@ -473,6 +475,7 @@ const DEFS: ChapterDef[] = [
     id: 'inner-world', numeral: 'III', title: 'Inner World',
     subtitle: 'How they think, how they love, and how they move through an ordinary afternoon.',
     washA: '#5a2585', washB: '#1a1038', accent: '#b054d6',
+    motif: { el: 'fire', label: 'Fire', line: 'The spark that sets them moving.' },
     sections: [
       ['cosmicCuriosity', 'hero'], ['harmonyHeartbeats', 'hero'], ['spiritOfMotion', 'hero'],
       ['quirkDecoder', 'card'], ['memePersonality', 'delight'], ['datingProfile', 'delight'],
@@ -482,6 +485,7 @@ const DEFS: ChapterDef[] = [
     id: 'social-soul', numeral: 'IV', title: 'Social Soul',
     subtitle: 'How they grew, what they teach you, and the quiet contract you two have kept.',
     washA: '#2d2a72', washB: '#120f30', accent: '#6E45D8',
+    motif: { el: 'earth', label: 'Earth', line: 'The ground they hold you to.' },
     sections: [
       ['cosmicExpansion', 'hero'], ['cosmicLessons', 'hero'], ['keepersBond', 'hero'],
       ['earthlyExpression', 'card'], ['dreamJob', 'delight'], ['cosmicRecipe', 'delight'],
@@ -492,6 +496,7 @@ const DEFS: ChapterDef[] = [
     subtitle: 'The parts kept below the surface. The dream, the shadow, and the wound they came to heal.',
     memorialSubtitle: 'The parts kept below the surface. The dream, the shadow, and the tender wound they carried.',
     washA: '#3d1c52', washB: '#0f0a22', accent: '#9a4fbf',
+    motif: { el: 'water', label: 'Water', line: 'The deep they feel everything from.' },
     sections: [
       ['wildSpirit', 'hero'], ['luminousField', 'hero'], ['shadowSelf', 'hero'],
       ['gentleHealer', 'hero'], ['celestialGem', 'card'], ['luckyElements', 'delight'],
@@ -501,6 +506,7 @@ const DEFS: ChapterDef[] = [
     id: 'crossroads', numeral: 'VI', title: 'Crossroads',
     subtitle: 'Where the paths crossed, and why the two of you found each other at all.',
     washA: '#6a2a6a', washB: '#1a1030', accent: '#c25aa8',
+    motif: { el: 'air', label: 'Air', line: 'The current that carried you together.' },
     sections: [
       ['destinyCompass', 'hero'], ['celestialChoreography', 'card'], ['petOwnerFriction', 'card'],
       ['compatibilityNotes', 'card'], ['villainOriginStory', 'delight'], ['topFiveCrimes', 'delight'],
@@ -531,6 +537,8 @@ export function buildChapters(data: RevealReport): ChapterModel[] {
       washA: def.washA,
       washB: def.washB,
       accent: def.accent,
+      hero: CHAPTER_HERO[def.id] || 'ch1-invocation',
+      motif: def.motif,
       cards,
       special: def.special,
     };

@@ -54,6 +54,12 @@ export interface CardModel {
   signLabel?: string;     // for hero cards: "Gemini Sun" style headline
 }
 
+export interface ChapterMotif {
+  el: 'fire' | 'earth' | 'air' | 'water';
+  label: string;          // one word, e.g. "Fire"
+  line: string;           // one short evocative line
+}
+
 export interface ChapterModel {
   id: string;
   index: number;          // 1..7
@@ -63,6 +69,8 @@ export interface ChapterModel {
   washA: string;
   washB: string;
   accent: string;         // active-chapter accent hue
+  hero: string;           // hero image base name (assets.CHAPTER_HERO)
+  motif?: ChapterMotif;   // optional element interlude woven mid-chapter
   cards: CardModel[];
   special?: 'invocation' | 'legacy';
 }

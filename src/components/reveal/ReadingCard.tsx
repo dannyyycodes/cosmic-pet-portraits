@@ -112,9 +112,9 @@ function HeroCard({ card, reduced }: { card: CardModel; reduced: boolean }) {
   const entrance = useEntrance(reduced);
   const style = card.accentHex ? ({ ['--rv-accent' as string]: card.accentHex } as React.CSSProperties) : undefined;
 
-  // split into a primary beat + the rest
-  const firstQuoteIdx = card.blocks.findIndex((b) => b.kind === 'quote');
-  const splitAt = firstQuoteIdx >= 0 ? firstQuoteIdx + 1 : Math.min(1, card.blocks.length);
+  // Imagery-led: show only the opening beat by default, everything else folds
+  // behind "Read the rest" so the hero breathes instead of dumping a wall.
+  const splitAt = Math.min(1, card.blocks.length);
   const primary = card.blocks.slice(0, splitAt);
   const extra = card.blocks.slice(splitAt);
   const [open, setOpen] = useState(false);

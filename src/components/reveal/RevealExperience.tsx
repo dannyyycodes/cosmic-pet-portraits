@@ -7,6 +7,7 @@ import { Chapter } from './Chapter';
 import { KeepsakeSeal } from './KeepsakeSeal';
 import { buildChapters } from './chapters';
 import { bigThree, PLANETS } from './astro';
+import { heroMobile, heroWide } from './assets';
 import type { ChapterModel, RevealReport } from './types';
 
 /* -------- invocation header (ceremonial open) -------- */
@@ -51,6 +52,12 @@ function InvocationHeader({ data, reduced }: { data: RevealReport; reduced: bool
 
   return (
     <header className="rv-invocation">
+      <div className="rv-invocation-bg" aria-hidden="true">
+        <picture>
+          <source media="(max-width: 640px)" srcSet={heroMobile('ch1-invocation')} />
+          <img src={heroWide('ch1-invocation')} alt="" fetchPriority="high" decoding="async" draggable={false} />
+        </picture>
+      </div>
       <div className="rv-summon" aria-hidden="true">
         {typed}{!done && <span className="rv-caret" />}
       </div>
@@ -80,16 +87,19 @@ function WheelScene({ data, reduced }: { data: RevealReport; reduced: boolean })
   const sceneRef = useRef<HTMLElement | null>(null);
   const isMemorial = data.occasionMode === 'memorial';
   return (
-    <section className="rv-wheel-scene" ref={sceneRef} style={{ height: reduced ? 'auto' : '210vh' }}>
+    <section className="rv-wheel-scene" ref={sceneRef} style={{ height: reduced ? 'auto' : '260vh' }}>
       <div className="rv-wheel-sticky">
         <span className="rv-wheel-eyebrow">Their sky, the moment they arrived</span>
-        <div className="rv-wheel-holder">
-          <NatalWheel
-            placements={data.report?.chartPlacements || {}}
-            mode={reduced ? 'static' : 'draw'}
-            reduced={reduced}
-            sceneRef={sceneRef}
-          />
+        <div className="rv-wheel-stage">
+          <div className="rv-wheel-aura" aria-hidden="true" />
+          <div className="rv-wheel-holder">
+            <NatalWheel
+              placements={data.report?.chartPlacements || {}}
+              mode={reduced ? 'static' : 'draw'}
+              reduced={reduced}
+              sceneRef={sceneRef}
+            />
+          </div>
         </div>
         <p className="rv-wheel-caption">
           {isMemorial
@@ -174,8 +184,14 @@ export function RevealExperience({ data }: { data: RevealReport }) {
         <WheelScene data={data} reduced={reduced} />
         <div ref={wheelSentinelRef} aria-hidden="true" />
 
-        {chapters.map((ch) => (
-          <Chapter key={ch.id} chapter={ch} onActive={onActive}>
+        {chapters.map((ch, i) => (
+          <Chapter
+            key={ch.id}
+            chapter={ch}
+            onActive={onActive}
+            eagerHero={i === 0}
+            isMemorial={data.occasionMode === 'memorial'}
+          >
             {ch.special === 'legacy' && <KeepsakeSeal data={data} />}
           </Chapter>
         ))}
