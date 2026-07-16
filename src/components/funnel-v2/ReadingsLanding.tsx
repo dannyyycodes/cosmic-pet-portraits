@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, AudioLines, ChevronDown, Mail, Orbit, Volume2 } from "lucide-react";
+import { ArrowRight, ChevronDown, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import imageCompression from "browser-image-compression";
@@ -4237,110 +4237,558 @@ function FullReadingOpens() {
   );
 }
 
-// ── The one value screen ──────────────────────────────────────────────────────
-// Everything the full reading holds, said once: the thirteen placements, the
-// keepsake with their photo, SoulSpeak and the monthly horoscope. One concrete
-// tile each, then straight to the reviews. This single screen replaced the old
-// keepsake rung, the three value moments and the After-Their-Reading grid: the
-// post-peak stretch was repeating its promise three screens in a row.
-// Discovery path only — the memorial path keeps its hush.
-const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; Icon?: typeof AudioLines; photo?: string }[] = [
+// ── The keepsake plate ────────────────────────────────────────────────────────
+// "See everything it holds" lands HERE, so this section shows the thing that
+// holds everything: one astronomical atlas plate. The finished keepsake wheel
+// (their photo at the centre, all thirteen bodies assembled around it) sits as
+// the specimen; the four holdings are set as an engraved index beside it, tied
+// to the object by fine leader lines the way a museum plate labels a specimen.
+// Copy is verbatim from the approved card version. Discovery path only — the
+// memorial path keeps its hush (null return, unchanged).
+const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; target: "ring" | "core" | "voice" | "phases" }[] = [
   {
     key: "placements",
     label: "The written reading",
     name: "Thirteen chapters, one soul.",
     line: "Every placement opened all the way down and written in full, the way you just saw begun.",
-    Icon: Orbit,
+    target: "ring",
   },
   {
     key: "keepsake",
     label: "The keepsake",
     name: "Their face at the very centre.",
     line: "Made with their photo, kept for as long as you want to hold on to them.",
-    photo: "/pets/pet-cockapoo.webp",
+    target: "core",
   },
   {
     key: "soulspeak",
     label: "SoulSpeak",
     name: "Sit and talk with their soul.",
     line: "Ask them anything, in their own voice. The questions you never got to, answered at last.",
-    Icon: AudioLines,
+    target: "voice",
   },
   {
     key: "horoscope",
     label: "Monthly horoscopes",
     name: "Their year, as it turns.",
     line: "Every month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
-    Icon: Mail,
+    target: "phases",
   },
 ];
 
+/* Leader-line anchors on the object — angle in degrees clockwise from
+ * 12 o'clock, radius as a fraction of the wheel size. Ordered top-to-bottom
+ * on the object's right side so no two lines ever cross. */
+const VM_ANCHORS: Record<string, { a: number; rf: number }> = {
+  ring: { a: 360 / 13, rf: 0.5 }, // the ring mini nearest 40deg (the Moon's seat)
+  core: { a: 85, rf: 0.23 }, // the photo's edge
+  voice: { a: 115, rf: 0.31 }, // the SoulSpeak engraving (r=124 of 400)
+  phases: { a: 145, rf: 0.43 }, // the moon-phase strip (r=172 of 400)
+};
+
+/* Species sample photos for the core when no photo was uploaded. */
+const VM_SAMPLE: Record<string, string> = {
+  dog: "/pets/pet-cockapoo.webp",
+  cat: "/pets/pet-tabby.webp",
+  other: "/pets/pet-rabbit.webp",
+};
+
+/* Engrave geometry, precomputed once (viewBox 0 0 400 400, centre 200,200). */
+const vmPt = (deg: number, r: number) => ({
+  x: +(200 + r * Math.sin((deg * Math.PI) / 180)).toFixed(2),
+  y: +(200 - r * Math.cos((deg * Math.PI) / 180)).toFixed(2),
+});
+const VM_TICKS = Array.from({ length: 60 }, (_, i) => {
+  const a = vmPt(i * 6, 170);
+  const b = vmPt(i * 6, 174);
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+});
+const VM_BARS = [4, 8, 12, 8, 4].map((len, i) => {
+  const deg = 115 + (i - 2) * 3;
+  const a = vmPt(deg, 124 - len / 2);
+  const b = vmPt(deg, 124 + len / 2);
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+});
+const VM_PHASES = [0, 1, 2, 3].map((i) => vmPt(137.5 + i * 5, 172));
+
+type VmLead = { d: string; sx: number; sy: number; k: string };
+
 function ValueMoments() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
+  // The one personal asset the funnel has collected: their pet's name and photo,
+  // read on mount and kept live via the same events the checkout listens to.
+  const [pet, setPet] = useState<{ name: string | null } | null>(() => {
+    try {
+      const raw = sessionStorage.getItem("ls_chart_pet");
+      return raw ? (JSON.parse(raw) as { name: string | null }) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [photo, setPhoto] = useState<string | null>(() => {
+    try { return sessionStorage.getItem("ls_chart_photo") || null; } catch { return null; }
+  });
+  const [species, setSpecies] = useState<string>(() => {
+    try { return sessionStorage.getItem("ls_chart_species") || ""; } catch { return ""; }
+  });
+  const [coreErr, setCoreErr] = useState(false);
+  const [inView, setInView] = useState(false);
+  const [live, setLive] = useState(false);
+  const [leads, setLeads] = useState<{ w: number; h: number; paths: VmLead[] } | null>(null);
+  const rootRef = useRef<HTMLElement>(null);
+  const plateRef = useRef<HTMLDivElement>(null);
+  const objRef = useRef<HTMLDivElement>(null);
+  const wheelRef = useRef<HTMLDivElement>(null);
+  const indexRef = useRef<HTMLOListElement>(null);
+  const reduce = useReducedMotion();
+
   useEffect(() => {
     const onIntent = () => setMemorialIntent(getIntent() === "memorial");
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
+
+  useEffect(() => {
+    const onPet = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      setPet(detail && typeof detail === "object" ? (detail as { name: string | null }) : null);
+      try { setSpecies(sessionStorage.getItem("ls_chart_species") || ""); } catch { /* ignore */ }
+      try { setPhoto(sessionStorage.getItem("ls_chart_photo") || null); } catch { /* ignore */ }
+    };
+    const onPhoto = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { url?: string | null } | undefined;
+      setPhoto(detail && typeof detail.url === "string" && detail.url ? detail.url : null);
+    };
+    window.addEventListener("ls-chart-pet", onPet as EventListener);
+    window.addEventListener("ls-chart-photo", onPhoto as EventListener);
+    return () => {
+      window.removeEventListener("ls-chart-pet", onPet as EventListener);
+      window.removeEventListener("ls-chart-photo", onPhoto as EventListener);
+    };
+  }, []);
+
+  const coreSrc = (!coreErr && photo) || VM_SAMPLE[species] || VM_SAMPLE.dog;
+
+  // A fresh photo gets a fresh chance after a failed load.
+  useEffect(() => { setCoreErr(false); }, [photo]);
+
+  // One observer latches the reveal (data-in, permanent); a second gates the
+  // ambient orbit + halo breath (is-live) so nothing runs off-screen.
+  useEffect(() => {
+    if (memorialIntent) return;
+    const obj = objRef.current;
+    if (!obj || typeof window === "undefined") return;
+    if (reduce || !("IntersectionObserver" in window)) {
+      setInView(true);
+      return;
+    }
+    const ioLatch = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
+            setInView(true);
+            ioLatch.disconnect();
+          }
+        });
+      },
+      { threshold: 0.2 },
+    );
+    ioLatch.observe(obj);
+    const ioLive = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => setLive(entry.isIntersecting)),
+      { threshold: 0.25 },
+    );
+    ioLive.observe(obj);
+    return () => {
+      ioLatch.disconnect();
+      ioLive.disconnect();
+    };
+  }, [memorialIntent, reduce]);
+
+  // Leader-line geometry: measured plate-local via the offsetParent chain
+  // (transform-free, so the .ls-reveal rise never skews an endpoint), redrawn
+  // on any plate resize and again once fonts settle. Desktop >=900px only;
+  // the section is complete without the lines if measurement ever fails.
+  useLayoutEffect(() => {
+    if (memorialIntent) return;
+    const plate = plateRef.current;
+    if (!plate || typeof window === "undefined") return;
+    const compute = () => {
+      const wheel = wheelRef.current;
+      const ol = indexRef.current;
+      if (!wheel || !ol || window.innerWidth < 900) {
+        setLeads(null);
+        return;
+      }
+      const off = (el: HTMLElement) => {
+        let x = 0, y = 0;
+        let n: HTMLElement | null = el;
+        while (n && n !== plate) {
+          x += n.offsetLeft;
+          y += n.offsetTop;
+          n = n.offsetParent as HTMLElement | null;
+        }
+        return { x, y };
+      };
+      const w = wheel.offsetWidth;
+      const wo = off(wheel);
+      const cx = wo.x + w / 2;
+      const cy = wo.y + w / 2;
+      const lis = Array.from(ol.querySelectorAll<HTMLLIElement>("li.ls-vm-entry"));
+      if (lis.length !== VALUE_MOMENTS.length) {
+        setLeads(null);
+        return;
+      }
+      const paths: VmLead[] = [];
+      for (let i = 0; i < VALUE_MOMENTS.length; i++) {
+        const m = VALUE_MOMENTS[i];
+        const li = lis[i];
+        const ord = li.querySelector<HTMLElement>(".ls-vm-ord") ?? li;
+        const to = off(ord);
+        const ex = +(to.x - 18).toFixed(1);
+        const ey = +(to.y + ord.offsetHeight / 2).toFixed(1);
+        const { a, rf } = VM_ANCHORS[m.target];
+        const rad = (a * Math.PI) / 180;
+        const sx = +(cx + rf * w * Math.sin(rad)).toFixed(1);
+        const sy = +(cy - rf * w * Math.cos(rad)).toFixed(1);
+        if (ex <= sx) { setLeads(null); return; }
+        paths.push({
+          k: m.key,
+          sx,
+          sy,
+          d: `M ${sx} ${sy} Q ${((sx + ex) / 2).toFixed(1)} ${ey} ${ex} ${ey}`,
+        });
+      }
+      setLeads({ w: plate.offsetWidth, h: plate.offsetHeight, paths });
+    };
+    compute();
+    const ro = new ResizeObserver(() => compute());
+    ro.observe(plate);
+    window.addEventListener("resize", compute);
+    try {
+      document.fonts?.ready?.then(() => compute());
+    } catch { /* ignore */ }
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", compute);
+    };
+  }, [memorialIntent]);
+
   if (memorialIntent) return null;
 
+  const petName = (pet?.name || "").trim();
+  const objLabel = `The full reading, kept as one keepsake with ${petName ? `${petName}'s` : "their"} photo at the centre`;
+
   return (
-    <section id="the-more" className="ls-vm ls-parallax-band" aria-labelledby="ls-vm-title">
+    <section
+      id="the-more"
+      ref={rootRef}
+      className="ls-vm ls-parallax-band"
+      aria-labelledby="ls-vm-title"
+      data-in={inView ? "1" : undefined}
+    >
+      <div className="ls-vm-grain" aria-hidden="true" />
+      <div className="ls-vm-wash" aria-hidden="true" />
       <div className="ls-vm-inner">
         <header className="ls-vm-head ls-reveal">
           <p className="ls-vm-eyebrow">Inside the full reading</p>
           <h2 id="ls-vm-title" className="ls-vm-title">Everything that makes them who they are, kept in one place.</h2>
         </header>
-        <div className="ls-vm-grid">
-          {VALUE_MOMENTS.map(({ key, label, name, line, Icon, photo }, i) => (
-            <article key={key} className="ls-vm-card ls-reveal" style={revealDelay(0.06 + i * 0.08)}>
-              <span className="ls-vm-motif" aria-hidden="true">
-                {photo ? (
-                  <img className="ls-vm-photo" src={photo} alt="" width={64} height={64} loading="lazy" decoding="async" />
-                ) : Icon ? (
-                  <Icon size={30} strokeWidth={1.5} />
-                ) : null}
-              </span>
-              <div className="ls-vm-copy">
-                <span className="ls-vm-label">{label}</span>
-                <h3 className="ls-vm-name">{name}</h3>
-                <p className="ls-vm-line">{line}</p>
+        <div className="ls-vm-plate" ref={plateRef}>
+          <div className="ls-vm-objcol">
+            <div className={`ls-vm-object ${live ? "is-live" : ""}`} ref={objRef} role="img" aria-label={objLabel}>
+              <div className="ls-vm-halo" aria-hidden="true" />
+              <div className="ls-vm-wheel" ref={wheelRef}>
+                <svg className="ls-vm-engrave" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+                  <circle className="ls-vm-eng-c" cx={200} cy={200} r={124} />
+                  <circle className="ls-vm-eng-c" cx={200} cy={200} r={172} />
+                  {VM_TICKS.map((t, i) => (
+                    <line key={i} className="ls-vm-eng-tick" x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
+                  ))}
+                  <g className="ls-vm-eng-voice">
+                    {VM_BARS.map((b, i) => (
+                      <line key={i} x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2} />
+                    ))}
+                  </g>
+                  <g className="ls-vm-eng-phases">
+                    {VM_PHASES.map((p, i) => (
+                      <g key={i}>
+                        <circle cx={p.x} cy={p.y} r={2.5} fill={i === 3 ? "#cfc0f4" : "none"} stroke="#cfc0f4" strokeWidth={1} />
+                        {i === 1 && <path d={`M ${p.x} ${p.y - 2.5} A 2.5 2.5 0 0 1 ${p.x} ${p.y + 2.5} Z`} fill="#cfc0f4" />}
+                        {i === 2 && <path d={`M ${p.x} ${p.y - 2.5} A 2.5 2.5 0 0 1 ${p.x} ${p.y + 2.5} A 1.1 2.5 0 0 1 ${p.x} ${p.y - 2.5} Z`} fill="#cfc0f4" />}
+                      </g>
+                    ))}
+                  </g>
+                </svg>
+                <div className="ls-vm-ring" aria-hidden="true">
+                  {THIRTEEN_ORDER.map((k, i) => {
+                    const lit = i < 5;
+                    const img = lit ? DECK_PHOTO[k as DeckPlanet] : REST_SKY.find((b) => b.key === k)?.img;
+                    return (
+                      <span
+                        key={k}
+                        className={`ls-vm-mini ${lit ? "is-free" : "is-full"}${img ? "" : " is-glyph"}`}
+                        style={{ ["--a" as string]: `${((i * 360) / 13).toFixed(4)}deg` } as CSSProperties}
+                      >
+                        <span className="ls-vm-mini-face">
+                          {img ? (
+                            <img
+                              src={img}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => e.currentTarget.parentElement?.classList.add("is-imgerr")}
+                            />
+                          ) : null}
+                          <span className="ls-vm-mini-glyph"><AstroGlyph name={k} /></span>
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className={`ls-vm-core ${coreErr && !VM_SAMPLE[species] ? "is-bare" : ""}`} aria-hidden="true">
+                  <img
+                    key={coreSrc}
+                    src={coreSrc}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      if (photo && coreSrc === photo) {
+                        setCoreErr(true);
+                      } else {
+                        e.currentTarget.style.display = "none";
+                      }
+                    }}
+                  />
+                </div>
               </div>
-            </article>
-          ))}
+              {petName ? <span className="ls-vm-nameplate">{petName}</span> : null}
+            </div>
+          </div>
+          {leads ? (
+            <svg
+              className="ls-vm-leads"
+              width={leads.w}
+              height={leads.h}
+              viewBox={`0 0 ${leads.w} ${leads.h}`}
+              aria-hidden="true"
+              focusable="false"
+            >
+              {leads.paths.map((p, i) => (
+                <g key={p.k} style={{ ["--li" as string]: i } as CSSProperties}>
+                  <path className="ls-vm-lead" data-k={p.k} d={p.d} pathLength={1} />
+                  <circle className="ls-vm-lead-dot" data-k={p.k} cx={p.sx} cy={p.sy} r={3.5} />
+                </g>
+              ))}
+            </svg>
+          ) : null}
+          <ol className="ls-vm-index" ref={indexRef} aria-label="What the full reading holds">
+            {VALUE_MOMENTS.map(({ key, label, name: entryName, line }, i) => (
+              <li key={key} className="ls-vm-entry ls-reveal" data-k={key} style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}>
+                <span className="ls-vm-node" aria-hidden="true" />
+                <span className="ls-vm-ord" aria-hidden="true">{["I", "II", "III", "IV"][i]}</span>
+                <div className="ls-vm-etext">
+                  <span className="ls-vm-label">{label}</span>
+                  <h3 className="ls-vm-name">{entryName}</h3>
+                  <p className="ls-vm-line">{line}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
-        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.38)}>The people below opened one. They say it best.</p>
+        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.75)}>The people below opened one. They say it best.</p>
       </div>
       <style>{`
-        .ls-vm { position: relative; z-index: 1; background: ${C.cosmos}; padding: clamp(28px, 5svh, 66px) 20px clamp(32px, 5svh, 72px); }
-        .ls-vm-inner { max-width: 660px; margin: 0 auto; }
-        .ls-vm-head { text-align: center; margin: 0 auto clamp(26px, 5vw, 44px); }
+        .ls-vm { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(34px, 5svh, 76px) 20px clamp(40px, 6svh, 88px); --e-stage: cubic-bezier(0.22, 0.7, 0.2, 1); --e-settle: cubic-bezier(0.16, 1, 0.3, 1); --e-draw: cubic-bezier(0.4, 0, 0.2, 1); }
+        .ls-vm-grain {
+          position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.05; mix-blend-mode: overlay;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        }
+        .ls-vm-wash {
+          position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          background:
+            radial-gradient(120% 84% at 50% -8%, rgba(124,92,214,0.14), transparent 58%),
+            radial-gradient(120% 100% at 50% 60%, transparent 56%, rgba(6,4,12,0.6) 100%);
+        }
+        .ls-vm-inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; }
+        .ls-vm-head { text-align: center; margin: 0 auto clamp(34px, 5vw, 56px); }
         .ls-vm-eyebrow { margin: 0 0 14px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; }
-        .ls-vm-title { margin: 0 auto; max-width: 24ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5.4vw, 2.5rem); line-height: 1.1; letter-spacing: -0.016em; }
-        .ls-vm-grid { display: flex; flex-direction: column; gap: clamp(16px, 3vw, 24px); }
-        .ls-vm-card { position: relative; display: flex; align-items: center; gap: clamp(18px, 4vw, 28px); padding: clamp(22px, 4.6vw, 30px) clamp(20px, 4.6vw, 32px); border-radius: 18px; background: radial-gradient(120% 90% at 0% 0%, rgba(154,126,230,0.07), transparent 60%), linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.32); }
-        .ls-vm-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; background: linear-gradient(165deg, rgba(154,126,230,0.32) 0%, rgba(154,126,230,0.14) 46%, rgba(154,126,230,0.26) 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-        .ls-vm-motif { flex: 0 0 auto; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; color: ${C.goldSoft}; border: 1px solid rgba(154,126,230,0.38); background: radial-gradient(circle at 50% 36%, rgba(154,126,230,0.16), rgba(154,126,230,0.04) 70%); box-shadow: 0 10px 26px -12px rgba(154,126,230,0.4); }
-        .ls-vm-motif svg { display: block; }
-        .ls-vm-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .ls-vm-copy { flex: 1 1 auto; min-width: 0; }
-        .ls-vm-label { display: block; margin: 0 0 8px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
-        .ls-vm-name { margin: 0 0 8px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.28rem, 4.6vw, 1.6rem); line-height: 1.1; letter-spacing: -0.01em; }
-        .ls-vm-line { margin: 0; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.0625rem, 2.6vw, 1.12rem); line-height: 1.55; }
-        .ls-vm-pull { margin: clamp(22px, 4vw, 34px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.6vw, 1.16rem); line-height: 1.5; }
-        @media (max-width: 560px) {
-          .ls-vm-card { flex-direction: column; text-align: center; gap: 14px; }
+        .ls-vm-title { margin: 0 auto; max-width: 26ch; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.85rem, 5.6vw, 2.7rem); line-height: 1.07; letter-spacing: -0.016em; }
+
+        /* THE PLATE - object first on mobile, object + index side by side on desktop */
+        .ls-vm-plate { position: relative; max-width: 1040px; margin: 0 auto; }
+
+        /* THE OBJECT - the keepsake wheel, seated (SEAT verb) once in view */
+        .ls-vm-objcol { position: relative; }
+        .ls-vm-object {
+          position: relative; width: fit-content; margin: 0 auto clamp(26px, 6vw, 36px);
+          --vm-size: clamp(240px, 74vw, 320px);
+          --vm-mini: calc(var(--vm-size) * 0.095);
+          --vm-r: calc(var(--vm-size) / 2);
+          padding: calc(var(--vm-mini) / 2 + 6px);
+          opacity: 0; transform: scale(0.965); filter: blur(6px);
+          transition: opacity 0.95s var(--e-settle) 0.05s, transform 0.95s var(--e-settle) 0.05s, filter 0.95s var(--e-settle) 0.05s;
+        }
+        .ls-vm[data-in] .ls-vm-object { opacity: 1; transform: none; filter: blur(0); }
+        .ls-vm-halo {
+          position: absolute; inset: -12%; z-index: 0; border-radius: 50%; pointer-events: none;
+          background: radial-gradient(circle, rgba(154,126,230,0.32) 0%, rgba(154,126,230,0.12) 40%, transparent 70%);
+          filter: blur(10px); opacity: 0.6;
+        }
+        .ls-vm-object.is-live .ls-vm-halo { animation: lsVmBreathe 5.8s ease-in-out infinite; }
+        @keyframes lsVmBreathe { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 0.86; transform: scale(1.06); } }
+        .ls-vm-wheel { position: relative; z-index: 1; width: var(--vm-size); height: var(--vm-size); }
+        .ls-vm-engrave { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .ls-vm-eng-c { fill: none; stroke: rgba(185,165,240,0.16); stroke-width: 1; }
+        .ls-vm-eng-tick { stroke: rgba(185,165,240,0.12); stroke-width: 1; }
+        .ls-vm-eng-voice { opacity: 0.7; transition: opacity 0.35s var(--e-stage); }
+        .ls-vm-eng-voice line { stroke: #cfc0f4; stroke-width: 1.5; stroke-linecap: round; }
+        .ls-vm-eng-phases { opacity: 0.7; transition: opacity 0.35s var(--e-stage); }
+
+        /* the thirteen-mini ring - imperceptible orbit drift, faces stay upright */
+        .ls-vm-ring { position: absolute; inset: 0; }
+        .ls-vm-object.is-live .ls-vm-ring { animation: lsVmOrbit 240s linear infinite; }
+        .ls-vm-object.is-live .ls-vm-mini-face { animation: lsVmOrbit 240s linear infinite reverse; }
+        @keyframes lsVmOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .ls-vm-mini {
+          position: absolute; left: 50%; top: 50%; width: var(--vm-mini); height: var(--vm-mini);
+          margin: calc(var(--vm-mini) / -2) 0 0 calc(var(--vm-mini) / -2);
+          transform: rotate(var(--a)) translateY(calc(-1 * var(--vm-r))) rotate(calc(-1 * var(--a)));
+        }
+        .ls-vm-mini-face {
+          position: relative; display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+          background: #050310; box-shadow: 0 0 0 1px rgba(226,220,240,0.12), 0 6px 18px rgba(4,2,12,0.55);
+          transition: filter 0.35s var(--e-stage);
+        }
+        .ls-vm-mini-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ls-vm-mini.is-full .ls-vm-mini-face img { filter: brightness(0.9); }
+        .ls-vm-mini-glyph { display: none; position: absolute; inset: 0; place-items: center; background: radial-gradient(circle at 38% 32%, #120c24 0%, #090618 62%, #050310 100%); }
+        .ls-vm-mini-glyph svg { width: 60%; height: 60%; color: rgba(185,165,240,0.5); }
+        .ls-vm-mini.is-glyph .ls-vm-mini-glyph, .ls-vm-mini-face.is-imgerr .ls-vm-mini-glyph { display: grid; }
+        .ls-vm-mini-face.is-imgerr img { display: none; }
+
+        /* the core - their photo, double-ringed */
+        .ls-vm-core {
+          position: absolute; left: 50%; top: 50%; width: 46%; height: 46%; z-index: 2;
+          transform: translate(-50%, -50%); border-radius: 50%; overflow: hidden;
+          background: radial-gradient(circle at 50% 36%, rgba(154,126,230,0.16), rgba(154,126,230,0.04) 70%);
+          box-shadow: 0 0 0 1px rgba(185,165,240,0.45), 0 0 0 9px rgba(13,10,20,0.9), 0 0 0 10px rgba(185,165,240,0.18), 0 24px 70px rgba(4,2,12,0.7);
+          transition: box-shadow 0.35s var(--e-stage);
+        }
+        .ls-vm-core img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.92) contrast(1.03); }
+        .ls-vm-nameplate {
+          display: flex; align-items: center; justify-content: center; gap: 14px; margin: 14px auto 0;
+          color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-weight: 600;
+          font-size: 12.5px; letter-spacing: 0.22em; text-transform: uppercase; text-align: center;
+        }
+        .ls-vm-nameplate::before, .ls-vm-nameplate::after { content: ""; flex: 0 0 auto; width: 18px; height: 1px; background: rgba(185,165,240,0.3); }
+
+        /* LEADER LINES - desktop only, drawn (DRAW verb) once the plate is in */
+        .ls-vm-leads { display: none; position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+        .ls-vm-lead {
+          fill: none; stroke: rgba(185,165,240,0.32); stroke-width: 1;
+          stroke-dasharray: 1; stroke-dashoffset: 1;
+          transition: stroke-dashoffset 0.8s var(--e-draw) calc(0.35s + var(--li, 0) * 0.12s), stroke 0.35s var(--e-stage);
+        }
+        .ls-vm[data-in] .ls-vm-lead { stroke-dashoffset: 0; }
+        .ls-vm-lead-dot { fill: ${C.violetBright}; opacity: 0; transition: opacity 0.3s var(--e-stage) calc(1.15s + var(--li, 0) * 0.12s); }
+        .ls-vm[data-in] .ls-vm-lead-dot { opacity: 1; }
+
+        /* THE INDEX - an engraved specimen ledger, never a card, never centered */
+        .ls-vm-index { position: relative; list-style: none; margin: 0; padding: 0 0 0 18px; }
+        .ls-vm-index::before {
+          content: ""; position: absolute; left: 5px; top: 8px; bottom: 24px; width: 1px;
+          background: linear-gradient(180deg, rgba(185,165,240,0.30), rgba(185,165,240,0.08));
+          transform: scaleY(0); transform-origin: top; transition: transform 0.7s var(--e-draw) 0.35s;
+        }
+        .ls-vm[data-in] .ls-vm-index::before { transform: scaleY(1); }
+        .ls-vm-entry {
+          position: relative; display: grid; grid-template-columns: 30px 1fr; column-gap: 16px;
+          padding: clamp(20px, 2.6vw, 26px) 0; text-align: left;
+        }
+        .ls-vm-entry + .ls-vm-entry { border-top: 1px solid rgba(185,165,240,0.14); }
+        .ls-vm-node {
+          position: absolute; left: -15px; top: calc(clamp(20px, 2.6vw, 26px) + 8px);
+          width: 5px; height: 5px; border-radius: 50%; background: ${C.violetBright};
+          box-shadow: 0 0 8px rgba(185,165,240,0.6);
+          opacity: 0; transition: opacity 0.3s var(--e-stage) calc(0.45s + var(--ni, 0) * 0.1s);
+        }
+        .ls-vm[data-in] .ls-vm-node { opacity: 1; }
+        .ls-vm-ord { color: ${C.violetBright}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 15px; padding-top: 4px; }
+        .ls-vm-label { display: block; margin: 0 0 6px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 14px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
+        .ls-vm-name { margin: 0 0 7px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.6vw, 1.55rem); line-height: 1.12; letter-spacing: -0.01em; }
+        .ls-vm-line { margin: 0; max-width: 46ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.55; }
+
+        /* the bridge to the voices below, hairline-flanked */
+        .ls-vm-pull { margin: clamp(30px, 5vw, 48px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 18px; line-height: 1.5; }
+        .ls-vm-pull::before, .ls-vm-pull::after { content: ""; display: inline-block; width: 56px; height: 1px; vertical-align: middle; }
+        .ls-vm-pull::before { margin-right: 14px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.35)); }
+        .ls-vm-pull::after { margin-left: 14px; background: linear-gradient(90deg, rgba(185,165,240,0.35), transparent); }
+        @media (max-width: 479px) {
+          /* the flanking hairlines wrap awkwardly at phone widths - the italic
+             violet voice already sets the line apart, so they step aside */
+          .ls-vm-pull::before, .ls-vm-pull::after { display: none; }
         }
 
-        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        /* desktop: the museum plate - object left, engraved index right, leads on */
+        @media (min-width: 900px) {
+          .ls-vm-plate { display: grid; grid-template-columns: minmax(300px, 0.44fr) minmax(0, 0.56fr); gap: clamp(40px, 6vw, 84px); align-items: center; }
+          .ls-vm-object { --vm-size: clamp(280px, 34vw, 400px); margin: 0 auto; }
+          .ls-vm-leads { display: block; }
+          .ls-vm-index { padding-left: 0; }
+          .ls-vm-index::before { display: none; }
+          .ls-vm-node { display: none; }
+          .ls-vm-entry { grid-template-columns: 34px 1fr; }
+        }
+
+        /* hover linking - CSS only, desktop pointers only, degrades silently */
+        @media (hover: hover) and (min-width: 900px) {
+          .ls-vm-plate:has(li[data-k="placements"]:hover) .ls-vm-mini-face { filter: brightness(1.15); }
+          .ls-vm-plate:has(li[data-k="keepsake"]:hover) .ls-vm-core { box-shadow: 0 0 0 1px rgba(185,165,240,0.7), 0 0 0 9px rgba(13,10,20,0.9), 0 0 0 10px rgba(185,165,240,0.34), 0 24px 70px rgba(4,2,12,0.7); }
+          .ls-vm-plate:has(li[data-k="soulspeak"]:hover) .ls-vm-eng-voice { opacity: 1; }
+          .ls-vm-plate:has(li[data-k="horoscope"]:hover) .ls-vm-eng-phases { opacity: 1; }
+          .ls-vm-plate:has(li[data-k="placements"]:hover) .ls-vm-lead[data-k="placements"],
+          .ls-vm-plate:has(li[data-k="keepsake"]:hover) .ls-vm-lead[data-k="keepsake"],
+          .ls-vm-plate:has(li[data-k="soulspeak"]:hover) .ls-vm-lead[data-k="soulspeak"],
+          .ls-vm-plate:has(li[data-k="horoscope"]:hover) .ls-vm-lead[data-k="horoscope"] { stroke: rgba(185,165,240,0.6); }
+        }
+
+        /* reduced motion: the rest state IS the finished composition - wheel
+           assembled, lines drawn, spine full, index set. Nothing depends on
+           the observer firing. */
+        @media (prefers-reduced-motion: reduce) {
+          .ls-vm-ring, .ls-vm-mini-face, .ls-vm-halo { animation: none !important; }
+          .ls-vm-halo { opacity: 0.58 !important; transform: none !important; }
+          .ls-vm-object { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+          .ls-vm-lead { stroke-dashoffset: 0 !important; transition: none !important; }
+          .ls-vm-lead-dot { opacity: 1 !important; transition: none !important; }
+          .ls-vm-index::before { transform: scaleY(1) !important; transition: none !important; }
+          .ls-vm-node { opacity: 1 !important; transition: none !important; }
+          .ls-vm .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+        }
+        /* .is-static mirror (same finished-composition rest state, class-driven) */
+        .ls-vm.is-static .ls-vm-ring, .ls-vm.is-static .ls-vm-mini-face, .ls-vm.is-static .ls-vm-halo { animation: none !important; }
+        .ls-vm.is-static .ls-vm-halo { opacity: 0.58 !important; transform: none !important; }
+        .ls-vm.is-static .ls-vm-object { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        .ls-vm.is-static .ls-vm-lead { stroke-dashoffset: 0 !important; transition: none !important; }
+        .ls-vm.is-static .ls-vm-lead-dot { opacity: 1 !important; transition: none !important; }
+        .ls-vm.is-static .ls-vm-index::before { transform: scaleY(1) !important; transition: none !important; }
+        .ls-vm.is-static .ls-vm-node { opacity: 1 !important; transition: none !important; }
+        .ls-vm.is-static .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14; plate rebuild 2026-07-16) ==== */
         .ls-vm-eyebrow { font-size: 14px; }
+        .ls-vm-label { font-size: 14px; }
         .ls-vm-line, .ls-vm-pull { font-size: 18px; }
         @media (min-width: 768px) {
           .ls-vm-eyebrow { font-size: 14.5px; }
+          .ls-vm-label { font-size: 14.5px; }
           .ls-vm-line, .ls-vm-pull { font-size: 18.5px; }
         }
         @media (min-width: 1280px) {
           .ls-vm-eyebrow { font-size: 15px; }
+          .ls-vm-label { font-size: 15px; }
           .ls-vm-line, .ls-vm-pull { font-size: 19px; }
         }
       `}</style>
