@@ -3404,6 +3404,14 @@ function StickyBeginBar() {
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
+  // The peak (.ls-rs-close) only exists once a chart is computed; re-run the
+  // observer effect when the chart lands so the bar works on first visits too.
+  const [chartTick, setChartTick] = useState(0);
+  useEffect(() => {
+    const onPet = () => setChartTick((t) => t + 1);
+    window.addEventListener("ls-chart-pet", onPet);
+    return () => window.removeEventListener("ls-chart-pet", onPet);
+  }, []);
   useEffect(() => {
     if (memorial || typeof window === "undefined" || !("IntersectionObserver" in window)) {
       setOn(false);
@@ -3432,7 +3440,7 @@ function StickyBeginBar() {
       ioPeak.disconnect();
       ioCheckout?.disconnect();
     };
-  }, [memorial]);
+  }, [memorial, chartTick]);
   if (memorial) return null;
   return (
     <div className={`ls-stickybegin${on ? " show" : ""}`} aria-hidden={!on}>
@@ -3552,6 +3560,25 @@ function RestLock() {
   );
 }
 
+/* The lit five of the ledger strip — chart order, matching THIRTEEN_ORDER's
+ * first five. Discs come from DECK_PHOTO (already cached by the deck). */
+const LIT_FIVE: { key: DeckPlanet; label: string }[] = [
+  { key: "sun", label: "Sun" },
+  { key: "moon", label: "Moon" },
+  { key: "mercury", label: "Mercury" },
+  { key: "venus", label: "Venus" },
+  { key: "mars", label: "Mars" },
+];
+
+/* Spelled index words for the eight sealed doors ("one of eight" … ). */
+const REST_IDX = ["one", "two", "three", "four", "five", "six", "seven", "eight"];
+
+/* Signs computed for this pet — the ledger strip reads them live. */
+type RestSigns = {
+  sun?: string | null; moon?: string | null; venus?: string | null;
+  mercury?: string | null; mars?: string | null;
+};
+
 function FullReadingOpens() {
   const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
   const [pet, setPet] = useState<{ name: string | null } | null>(() => {
@@ -3581,6 +3608,44 @@ function FullReadingOpens() {
       window.removeEventListener("ls-chart-pet", onPet as EventListener);
     };
   }, []);
+
+  // Computed signs feed the ledger strip's lit five ("Sun · Gemini"). Same
+  // storage + event pattern as the checkout (DossierCheckout reads it too);
+  // degrades to body-name-only labels when signs are absent, never empty.
+  const [signs, setSigns] = useState<RestSigns | null>(() => {
+    try {
+      const raw = sessionStorage.getItem("ls_chart_signs");
+      return raw ? (JSON.parse(raw) as RestSigns) : null;
+    } catch {
+      return null;
+    }
+  });
+  useEffect(() => {
+    const onSigns = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (detail && typeof detail === "object") {
+        setSigns(detail as RestSigns);
+        return;
+      }
+      try {
+        const raw = sessionStorage.getItem("ls_chart_signs");
+        setSigns(raw ? (JSON.parse(raw) as RestSigns) : null);
+      } catch {
+        setSigns(null);
+      }
+    };
+    window.addEventListener("ls-chart-signs", onSigns as EventListener);
+    return () => window.removeEventListener("ls-chart-signs", onSigns as EventListener);
+  }, []);
+
+  // The rebuilt section is ~30% shorter and only mounts once a chart exists;
+  // re-measure every GSAP ScrollTrigger after the new height lands so
+  // downstream triggers (and the sticky Begin bar's peak logic) stay true.
+  useEffect(() => {
+    if (!pet) return;
+    const id = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => cancelAnimationFrame(id);
+  }, [pet, memorial]);
 
   // One IntersectionObserver drives both the reveal latch (data-in, permanent) and
   // the per-planet ASMR play-state (is-live, toggles so only on-screen discs run).
@@ -3684,12 +3749,68 @@ function FullReadingOpens() {
           )}
         </header>
 
+        {/* BEAT 1 — the ledger strip. Five burning, eight extinguished: the
+            section's sole lit-vs-dark contrast moment, felt in one glance. */}
+        <div
+          className="ls-rs-ledger ls-rs-rv"
+          role="list"
+          aria-label={`${nmPoss} thirteen placements: five read, eight sealed`}
+        >
+          <div className="ls-rs-led-grp is-lit">
+            <span className="ls-rs-led-cap">Read. Yours to keep.</span>
+            <div className="ls-rs-led-orbs">
+              {LIT_FIVE.map((b, i) => (
+                <span key={b.key} role="listitem" className="ls-rs-led-orb" style={{ ["--gi" as string]: i } as CSSProperties}>
+                  <span className="ls-rs-led-disc">
+                    <img src={DECK_PHOTO[b.key]} alt="" loading="lazy" decoding="async" />
+                  </span>
+                  <small className="ls-rs-led-sign">
+                    <span className="ls-rs-led-body">{b.label}</span>
+                    {signs?.[b.key] ? <span className="ls-rs-led-sg">{signs[b.key]}</span> : null}
+                  </small>
+                </span>
+              ))}
+            </div>
+          </div>
+          <span className="ls-rs-led-vr" aria-hidden="true" />
+          <div className="ls-rs-led-grp is-dark">
+            <span className="ls-rs-led-cap">{memorial ? "Their eight, still to read." : "Still sealed."}</span>
+            <div className="ls-rs-led-orbs">
+              {REST_SKY.map((b, i) => (
+                <span key={b.key} role="listitem" className="ls-rs-led-orb" style={{ ["--gi" as string]: 5 + i } as CSSProperties}>
+                  <span className="ls-rs-led-disc">
+                    {b.img ? (
+                      <img src={b.img} alt="" loading="lazy" decoding="async" />
+                    ) : (
+                      <span className="ls-rs-led-glyph" aria-hidden="true"><AstroGlyph name={b.key} /></span>
+                    )}
+                  </span>
+                  <small className="ls-rs-led-sign">{b.name}</small>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* The approved seal line, said once for all eight doors. */}
+        {!memorial && (
+          <p className="ls-rs-sealline ls-rs-rv"><RestLock />Sealed in the full reading</p>
+        )}
+
+        {/* BEAT 2 — the eight as eclipsed worlds behind wax-sealed rings,
+            threaded on one meridian spine. Hooks verbatim, both registers. */}
         <div className="ls-rs-sky">
+          <div className="ls-rs-spine" aria-hidden="true" />
           {REST_SKY.map((body, i) => (
             <article
               key={body.key}
               className={`ls-rs-row ls-rs-rv${i % 2 === 1 ? " is-rev" : ""}`}
               style={{ ["--glow" as string]: body.glow, ["--rsi" as string]: i } as CSSProperties}
+              onPointerDown={(e) => {
+                const el = e.currentTarget;
+                el.classList.add("is-tried");
+                window.setTimeout(() => el.classList.remove("is-tried"), 700);
+              }}
             >
               <div className="ls-rs-stage">
                 <div className="ls-rs-halo" />
@@ -3709,31 +3830,69 @@ function FullReadingOpens() {
                     </div>
                   )}
                   <div className="ls-rs-term" />
+                  <div className="ls-rs-eclipse" />
                   <div className="ls-rs-spec" />
                   <div className="ls-rs-rim" />
                   <div className="ls-rs-dust" aria-hidden="true" />
                 </div>
+                {!memorial && (
+                  <div className="ls-rs-sealring" aria-hidden="true">
+                    <span className="ls-rs-sealmark"><RestLock /></span>
+                  </div>
+                )}
               </div>
               <div className="ls-rs-copy">
+                {!memorial && <span className="ls-rs-idx">{REST_IDX[i]} of eight</span>}
                 <div className="ls-rs-name">{body.name}</div>
                 <h3 className="ls-rs-placement">
                   {body.place.pre}<em>{body.place.em}</em>{body.place.post}
                 </h3>
                 <p className="ls-rs-hook">{memorial && body.memHook ? body.memHook : body.hook}</p>
-                {!memorial && <div className="ls-rs-seal"><RestLock />Sealed in the full reading</div>}
               </div>
             </article>
           ))}
         </div>
 
-        <p className="ls-rs-rising ls-rs-rv">
-          {memorial
-            ? "And the rising, the first face they showed. It turns on the exact minute they arrived."
-            : "And the rising, the first face they show. It turns on the exact minute they arrived."}
-        </p>
+        {/* BEAT 3 — the rising as a horizon hinge: a half-risen disc on a
+            drawn hairline, the approved sentence beneath it. */}
+        <div className="ls-rs-horizon ls-rs-rv">
+          <div className="ls-rs-hz-label">The Rising</div>
+          <div className="ls-rs-hz-line" aria-hidden="true">
+            <span className="ls-rs-hz-glow" />
+            <span className="ls-rs-hz-disc" />
+          </div>
+          <p className="ls-rs-rising">
+            {memorial
+              ? "And the rising, the first face they showed. It turns on the exact minute they arrived."
+              : "And the rising, the first face they show. It turns on the exact minute they arrived."}
+          </p>
+        </div>
 
+        {/* BEAT 4 — the close: the thirteen assembled into one chart ring
+            (THIRTEEN_ORDER, 360/13 steps) above the filled primary CTA. */}
         {!memorial && (
           <div className="ls-rs-close ls-rs-rv">
+            <div className="ls-rs-ring" aria-hidden="true">
+              {THIRTEEN_ORDER.map((k, i) => {
+                const lit = i < 5;
+                const img = lit ? DECK_PHOTO[k as DeckPlanet] : REST_SKY.find((b) => b.key === k)?.img;
+                return (
+                  <span
+                    key={k}
+                    className={`ls-rs-ring-orb ${lit ? "is-lit" : "is-dark"}`}
+                    style={{ ["--ra" as string]: `${((i * 360) / 13).toFixed(4)}deg`, ["--gi" as string]: i } as CSSProperties}
+                  >
+                    {img ? (
+                      <img src={img} alt="" loading="lazy" decoding="async" />
+                    ) : (
+                      <span className="ls-rs-ring-glyph"><AstroGlyph name={k} /></span>
+                    )}
+                  </span>
+                );
+              })}
+              <span className="ls-rs-ring-name">{nm}</span>
+            </div>
+            <p className="sr-only">Five placements read, eight sealed in the full reading.</p>
             <h2 className="ls-rs-close-title">All thirteen, read as one.</h2>
             <p className="ls-rs-close-line">
               The full reading opens every seal and reads them together, written for {nm} alone and no other soul.
@@ -3749,7 +3908,7 @@ function FullReadingOpens() {
         /* The section paints its own opaque cosmos so nothing from an adjacent band
            ever bleeds through the sealed sky. Grain + wash + per-planet halos carry
            the premium atmosphere; the planets themselves carry the life. */
-        .ls-rs { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(34px, 5svh, 76px) 20px clamp(38px, 5vw, 84px); }
+        .ls-rs { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(34px, 5svh, 76px) 20px clamp(38px, 5vw, 84px); --e-stage: cubic-bezier(0.22, 0.7, 0.2, 1); --e-settle: cubic-bezier(0.16, 1, 0.3, 1); --e-draw: cubic-bezier(0.4, 0, 0.2, 1); }
         .ls-rs-grain {
           position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.05; mix-blend-mode: overlay;
           background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
@@ -3768,31 +3927,69 @@ function FullReadingOpens() {
         .ls-rs-title { margin: 0 0 15px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.04; letter-spacing: -0.018em; }
         .ls-rs-lead { margin: 0 auto; max-width: 44ch; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.04rem, 2.5vw, 1.22rem); line-height: 1.55; }
 
-        /* the sealed sky - a tight alternating column of real worlds */
-        .ls-rs-sky { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(30px, 6vw, 54px); }
-        .ls-rs-row { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+        /* BEAT 1 - the ledger strip: five burning, eight extinguished */
+        .ls-rs-ledger { display: flex; flex-direction: column; align-items: center; gap: 18px; max-width: 1000px; margin: 0 auto clamp(40px, 6vw, 64px); }
+        .ls-rs-led-grp { display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+        .ls-rs-led-orbs { display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap; gap: 12px 6px; }
+        .ls-rs-led-orb { flex: 0 0 auto; }
+        @media (min-width: 480px) { .ls-rs-led-orbs { gap: 12px 14px; } }
+        .ls-rs-led-cap { font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
+        .ls-rs-led-grp.is-lit .ls-rs-led-cap { color: ${C.goldSoft}; }
+        .ls-rs-led-grp.is-dark .ls-rs-led-cap { color: rgba(200,200,210,0.6); }
+        .ls-rs-led-orb { display: flex; flex-direction: column; align-items: center; gap: 7px; max-width: 76px; min-width: 0; }
+        .ls-rs-led-disc { position: relative; display: block; border-radius: 50%; }
+        .ls-rs-led-disc img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #050310; }
+        .ls-rs-led-grp.is-lit .ls-rs-led-disc { width: 44px; height: 44px; box-shadow: 0 0 0 1px rgba(207,192,244,0.35); }
+        .ls-rs-led-grp.is-lit .ls-rs-led-disc img { filter: brightness(1.02); }
+        .ls-rs-led-grp.is-lit .ls-rs-led-disc::after { content: ""; position: absolute; inset: -30%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.35), transparent 70%); filter: blur(6px); z-index: -1; opacity: 0; }
+        .ls-rs-led-grp.is-dark .ls-rs-led-disc { width: 32px; height: 32px; box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
+        .ls-rs-led-grp.is-dark .ls-rs-led-disc img { filter: brightness(0.16) saturate(0.55); }
+        .ls-rs-led-glyph { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #120c24 0%, #090618 62%, #050310 100%); }
+        .ls-rs-led-glyph svg { width: 55%; height: 55%; color: rgba(154,126,230,0.4); }
+        .ls-rs-led-sign { font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; line-height: 1.35; }
+        .ls-rs-led-body, .ls-rs-led-sg { display: block; }
+        .ls-rs-led-grp.is-lit .ls-rs-led-sign { color: ${C.goldSoft}; }
+        .ls-rs-led-grp.is-lit .ls-rs-led-sg { opacity: 0.78; }
+        .ls-rs-led-grp.is-dark .ls-rs-led-sign { color: rgba(200,200,210,0.55); }
+        .ls-rs-led-vr { display: none; }
+        /* ledger entry - lit five seat first, then the dark eight */
+        .ls-rs-led-orb { opacity: 0; }
+        .ls-rs-ledger[data-in] .ls-rs-led-orb { animation: lsRsLedIn 0.5s var(--e-stage) forwards; animation-delay: calc(0.05s + var(--gi, 0) * 0.04s); }
+        @keyframes lsRsLedIn { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+        .ls-rs-ledger[data-in] .ls-rs-led-grp.is-lit .ls-rs-led-disc::after { animation: lsRsLedHalo 0.5s ease-out forwards; animation-delay: 1.05s; }
+        @keyframes lsRsLedHalo { to { opacity: 1; } }
 
-        /* the planet (shared ASMR machine - light crosses it, it never spins) */
+        /* the one seal line above the doors (approved phrase, said once) */
+        .ls-rs-sealline { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto clamp(26px, 4vw, 40px); color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
+        .ls-rs-sealline svg { width: 12px; height: 13px; flex: 0 0 auto; }
+
+        /* BEAT 2 - the sealed sky: eclipsed worlds on one meridian spine */
+        .ls-rs-sky { position: relative; max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(26px, 4.5vw, 44px); }
+        .ls-rs-spine { display: none; }
+        .ls-rs-row { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+
+        /* the eclipsed world - dark behind its seal, one thin crescent of life */
         .ls-rs-stage {
           position: relative; flex: 0 0 auto; display: grid; place-items: center;
-          width: clamp(150px, 44vw, 208px); height: clamp(150px, 44vw, 208px);
+          --rs-disc: clamp(112px, 32vw, 132px);
+          width: clamp(132px, 36vw, 156px); height: clamp(132px, 36vw, 156px);
           transform: translate3d(calc(var(--ls-pointer-x, 0) * 7px), calc(var(--ls-pointer-y, 0) * 6px), 0);
           will-change: transform;
         }
         .ls-rs-halo {
           position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none;
           background: radial-gradient(circle,
-            color-mix(in srgb, var(--glow) 42%, transparent) 0%,
-            color-mix(in srgb, var(--glow) 20%, transparent) 34%,
-            color-mix(in srgb, var(--glow) 7%, transparent) 54%,
-            transparent 72%);
-          filter: blur(8px); opacity: 0.72;
+            color-mix(in srgb, var(--glow) 34%, transparent) 0%,
+            color-mix(in srgb, var(--glow) 14%, transparent) 30%,
+            transparent 58%);
+          filter: blur(10px); opacity: 0.28;
+          transition: opacity 0.45s var(--e-stage);
           animation: lsRsBreathe 5.8s ease-in-out infinite; animation-delay: calc(var(--rsi, 0) * -0.5s); animation-play-state: paused;
         }
-        @keyframes lsRsBreathe { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.08); opacity: 0.86; } }
+        @keyframes lsRsBreathe { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.36; } }
 
         .ls-rs-disc {
-          position: relative; z-index: 2; width: clamp(120px, 34vw, 166px); height: clamp(120px, 34vw, 166px);
+          position: relative; z-index: 2; width: var(--rs-disc); height: var(--rs-disc);
           border-radius: 50%; overflow: hidden; isolation: isolate;
           box-shadow: 0 0 0 1px rgba(226,220,240,0.10), 0 20px 56px rgba(4,2,12,0.66);
           animation: lsRsBreatheDisc 7.4s ease-in-out infinite; animation-delay: calc(var(--rsi, 0) * -0.6s); animation-play-state: paused;
@@ -3800,70 +3997,58 @@ function FullReadingOpens() {
         @keyframes lsRsBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.016); } }
         .ls-rs-photo {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
-          transform: scale(1.03); filter: brightness(0.82) contrast(1.04) saturate(1.02); background: #050310;
+          transform: scale(1.03); filter: brightness(0.30) contrast(1.05) saturate(0.72); background: #050310;
         }
-        /* STILL day/night shading (no sweep) - light reads from the upper-left,
-           a soft shadow settles on the lower-right. Static, so it never draws
-           the eye; the only motion is the per-world light below, and it differs
-           for every planet (no two share the same terminator sweep). */
+        /* STILL day/night shading - light reads from the upper-left. */
         .ls-rs-term {
           position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%;
           transform: none; pointer-events: none;
           background: radial-gradient(circle at 66% 40%,
             rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%);
         }
-        /* the one moving light per world - minimal, low intensity, distinct by
-           kind. Base carries no animation-name (nothing runs) until a kind rule
-           names one; play-state stays paused until the disc is on screen. */
+        /* the eclipse - swallows the lower-right three-quarters of the world */
+        .ls-rs-eclipse {
+          position: absolute; inset: 0; z-index: 3; border-radius: 50%; pointer-events: none;
+          background: radial-gradient(circle at 72% 62%,
+            rgba(6,4,14,0.92) 0%, rgba(6,4,14,0.78) 46%, rgba(6,4,14,0.30) 78%, rgba(6,4,14,0.12) 100%);
+        }
+        /* the limb crescent - one language for all eight; alive, never lit.
+           Amber survives ONLY here (Saturn/Jupiter limb light on the photo). */
         .ls-rs-spec {
           position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; border-radius: 50%;
-          transform: none; mix-blend-mode: screen; pointer-events: none;
-          background: radial-gradient(circle at 34% 30%,
-            color-mix(in srgb, var(--glow) 30%, white) 0%,
-            color-mix(in srgb, var(--glow) 12%, transparent) 26%, transparent 50%);
-          opacity: 0; will-change: opacity, transform;
-          animation-timing-function: ease-in-out; animation-iteration-count: infinite;
-          animation-delay: calc(var(--rsi, 0) * -0.8s); animation-play-state: paused;
+          transform-origin: 50% 50%; mix-blend-mode: screen; pointer-events: none;
+          background: radial-gradient(circle at 30% 26%,
+            color-mix(in srgb, var(--glow) 34%, white) 0%,
+            color-mix(in srgb, var(--glow) 14%, transparent) 18%, transparent 34%);
+          opacity: 0.22; will-change: opacity, transform;
+          transition: opacity 0.45s var(--e-stage), transform 0.45s var(--e-stage);
+          animation: lsRsCrescent 7s ease-in-out infinite;
+          animation-delay: calc(var(--rsi, 0) * -0.9s); animation-play-state: paused;
         }
-        /* rocky worlds - a single, gentle light-shift */
-        .ls-rs-disc.is-rocky .ls-rs-spec { animation-name: lsRsGlow; animation-duration: 9.5s; }
-        /* gas giants - a slow band of light drifting across the disc */
-        .ls-rs-disc.is-gas .ls-rs-spec {
-          background: linear-gradient(96deg, transparent 14%, color-mix(in srgb, var(--glow) 14%, transparent) 34%,
-            color-mix(in srgb, var(--glow) 30%, white) 50%, color-mix(in srgb, var(--glow) 14%, transparent) 66%, transparent 86%);
-          animation-name: lsRsBands; animation-duration: 16s; animation-timing-function: linear;
-        }
-        /* ice giants - a cool diagonal sheen */
-        .ls-rs-disc.is-ice .ls-rs-spec {
-          background: radial-gradient(ellipse 58% 118% at 38% 28%,
-            color-mix(in srgb, var(--glow) 26%, white) 0%, color-mix(in srgb, var(--glow) 10%, transparent) 36%, transparent 62%);
-          animation-name: lsRsSheen; animation-duration: 13s;
-        }
-        /* Saturn - mostly still; a soft glint crosses the rings now and then */
-        .ls-rs-disc.rs-saturn .ls-rs-spec {
-          background: linear-gradient(74deg, transparent 42%, color-mix(in srgb, var(--glow) 34%, white) 50%, transparent 58%);
-          animation-name: lsRsRing; animation-duration: 12s; animation-delay: -3s;
-        }
+        @keyframes lsRsCrescent { 0%, 100% { opacity: 0.18; } 50% { opacity: 0.34; } }
         /* Saturn - hold the full rings inside the circular frame (square 512 asset) */
-        .ls-rs-disc.rs-saturn .ls-rs-photo { transform: scale(0.98); filter: brightness(0.92) contrast(1.03) saturate(1.02); }
-        @keyframes lsRsGlow {
-          0%, 100% { opacity: 0.12; transform: translate(-6%, -3%); }
-          50% { opacity: 0.34; transform: translate(6%, 2%); }
+        .ls-rs-disc.rs-saturn .ls-rs-photo { transform: scale(0.98); }
+        /* Lilith is already the shadowed Moon - ease her eclipse so she never goes fully black */
+        .ls-rs-disc.rs-lilith .ls-rs-eclipse { opacity: 0.6; }
+
+        /* the seal - a ring held shut by a wax mark (discovery only) */
+        .ls-rs-sealring {
+          position: absolute; inset: 0; margin: auto; z-index: 3; pointer-events: none;
+          width: calc(var(--rs-disc) * 1.18); height: calc(var(--rs-disc) * 1.18);
+          border-radius: 50%; border: 1px solid rgba(185,165,240,0.34);
         }
-        @keyframes lsRsBands {
-          0% { opacity: 0.14; transform: translateX(-34%); }
-          50% { opacity: 0.30; }
-          100% { opacity: 0.14; transform: translateX(34%); }
+        .ls-rs-sealmark {
+          position: absolute; left: 50%; bottom: -13px; transform: translateX(-50%);
+          width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+          background: #15101c; border: 1px solid rgba(185,165,240,0.5); color: ${C.goldSoft};
+          transition: box-shadow 0.45s var(--e-stage);
         }
-        @keyframes lsRsSheen {
-          0%, 100% { opacity: 0.10; transform: translate(-9%, -6%); }
-          50% { opacity: 0.28; transform: translate(7%, 6%); }
-        }
-        @keyframes lsRsRing {
-          0%, 66%, 100% { opacity: 0; transform: translateX(-42%); }
-          80% { opacity: 0.32; transform: translateX(0%); }
-          90% { opacity: 0; transform: translateX(42%); }
-        }
+        .ls-rs-sealmark svg { width: 12px; height: 12px; }
+
+        /* the key almost turns - the door answers, and holds */
+        .ls-rs-row:hover .ls-rs-spec, .ls-rs-row.is-tried .ls-rs-spec { animation: none; opacity: 0.42; transform: rotate(8deg); }
+        .ls-rs-row:hover .ls-rs-halo, .ls-rs-row.is-tried .ls-rs-halo { animation: none; opacity: 0.5; }
+        .ls-rs-row:hover .ls-rs-sealmark, .ls-rs-row.is-tried .ls-rs-sealmark { box-shadow: 0 0 0 4px rgba(185,165,240,0.18); }
         /* limb darkening, rocky worlds read as spheres */
         .ls-rs-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 26px 8px rgba(4,2,12,0.55); }
         /* limb brighten, gas giants + atmospheres get a warm rim */
@@ -3895,22 +4080,50 @@ function FullReadingOpens() {
 
         /* the copy */
         .ls-rs-copy { flex: 1 1 auto; min-width: 0; }
-        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 12px; color: var(--glow); font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
-        .ls-rs-name::before, .ls-rs-name::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glow) 70%, transparent)); }
+        .ls-rs-idx { display: block; margin: 0 0 6px; color: rgba(200,200,210,0.5); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
+        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 12px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
+        .ls-rs-name::before, .ls-rs-name::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5)); }
         .ls-rs-placement { margin: 0 0 10px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5.4vw, 2.05rem); line-height: 1.08; letter-spacing: -0.015em; }
         .ls-rs-placement em { font-style: italic; color: ${C.goldSoft}; }
         .ls-rs-hook { margin: 0 auto; max-width: 40ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.14rem); line-height: 1.5; }
-        .ls-rs-seal { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
-        .ls-rs-seal svg { width: 12px; height: 13px; }
 
-        /* the rising - the ninth seal, named as an honest fact (needs the minute) */
-        .ls-rs-rising { margin: clamp(34px, 6vw, 58px) auto 0; max-width: 46ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.55; }
+        /* BEAT 3 - the rising as a horizon hinge */
+        .ls-rs-horizon { margin: clamp(48px, 7vw, 72px) auto 0; text-align: center; }
+        .ls-rs-hz-label { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 20px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
+        .ls-rs-hz-label::before, .ls-rs-hz-label::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5)); }
+        .ls-rs-hz-line { position: relative; width: min(520px, 82vw); height: 1px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.55), transparent); transform: scaleX(0.4); transition: transform 0.8s var(--e-settle); }
+        .ls-rs-horizon[data-in] .ls-rs-hz-line { transform: scaleX(1); }
+        .ls-rs-hz-glow { position: absolute; left: 50%; top: 1px; width: 120px; height: 24px; margin-left: -60px; border-radius: 50%; background: rgba(154,126,230,0.35); filter: blur(24px); pointer-events: none; opacity: 0; transition: opacity 0.7s var(--e-settle) 0.15s; }
+        .ls-rs-hz-disc { position: absolute; left: 50%; bottom: 0; width: 64px; height: 32px; margin-left: -32px; overflow: hidden; opacity: 0; transform: translateY(8px); transition: transform 0.7s var(--e-settle) 0.15s, opacity 0.7s var(--e-settle) 0.15s; }
+        .ls-rs-hz-disc::before { content: ""; position: absolute; left: 0; bottom: -32px; width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 50% 100%, ${C.goldSoft} 0%, ${C.violet} 55%, transparent 78%); }
+        .ls-rs-horizon[data-in] .ls-rs-hz-disc { opacity: 1; transform: none; }
+        .ls-rs-horizon[data-in] .ls-rs-hz-glow { opacity: 1; }
+        .ls-rs-rising { margin: 18px auto 0; max-width: 46ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.55; }
 
-        /* the close - ache only, no price, no button (pricing waits below reviews) */
+        /* BEAT 4 - the close: the thirteen assemble, then the one real door */
         .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
-        .ls-rs-close-cta { display: inline-flex; align-items: center; gap: 12px; margin-top: clamp(20px, 3.6vw, 30px); padding: clamp(15px, 2.4vw, 19px) clamp(26px, 4vw, 38px); border-radius: 999px; border: 1px solid color-mix(in srgb, ${C.violetSoft} 55%, transparent); background: linear-gradient(180deg, rgba(124,92,214,0.24), rgba(124,92,214,0.12)); color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.06rem, 2.7vw, 1.24rem); font-weight: 600; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 10px 34px rgba(70,40,140,0.34); transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; }
-        .ls-rs-close-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(70,40,140,0.46); background: linear-gradient(180deg, rgba(124,92,214,0.32), rgba(124,92,214,0.16)); }
-        .ls-rs-close-cta:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
+        .ls-rs-ring { position: relative; width: clamp(232px, 40vw, 300px); aspect-ratio: 1; margin: 0 auto clamp(26px, 4vw, 40px); --ring-size: clamp(232px, 40vw, 300px); --ring-r: calc(var(--ring-size) / 2 - 14px); }
+        .ls-rs-ring::before { content: ""; position: absolute; inset: 12%; border-radius: 50%; border: 1px solid ${C.line}; }
+        .ls-rs-ring-orb { position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; opacity: 0; transform: rotate(var(--ra)) translateY(calc(-1 * var(--ring-r))) rotate(calc(-1 * var(--ra))); }
+        .ls-rs-ring-orb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #050310; }
+        .ls-rs-ring-orb.is-lit img { filter: brightness(1.02); box-shadow: 0 0 0 1px rgba(207,192,244,0.3), 0 0 10px rgba(154,126,230,0.35); }
+        .ls-rs-ring-orb.is-dark img { filter: brightness(0.16) saturate(0.55); box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
+        .ls-rs-ring-glyph { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #120c24 0%, #090618 62%, #050310 100%); box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
+        .ls-rs-ring-glyph svg { width: 60%; height: 60%; color: rgba(154,126,230,0.4); }
+        .ls-rs-ring-orb.is-dark::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 26%, rgba(207,192,244,0.9) 0%, rgba(207,192,244,0.25) 30%, transparent 55%); opacity: 0; pointer-events: none; }
+        .ls-rs-ring-name { position: absolute; inset: 0; display: grid; place-items: center; color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.05rem, 3vw, 1.3rem); }
+        /* assembly: the thirteen seat in order, then the eight flicker ONCE and hold dark */
+        .ls-rs-close[data-in] .ls-rs-ring-orb { animation: lsRsRingIn 0.45s var(--e-stage) forwards; animation-delay: calc(var(--gi, 0) * 0.045s); }
+        @keyframes lsRsRingIn {
+          from { opacity: 0; transform: rotate(var(--ra)) translateY(calc(-1 * var(--ring-r))) rotate(calc(-1 * var(--ra))) scale(0.6); }
+          to { opacity: 1; transform: rotate(var(--ra)) translateY(calc(-1 * var(--ring-r))) rotate(calc(-1 * var(--ra))) scale(1); }
+        }
+        .ls-rs-close[data-in] .ls-rs-ring-orb.is-dark::after { animation: lsRsGlint 0.9s ease-in-out 1 both; animation-delay: calc(1.1s + var(--gi, 0) * 0.08s); }
+        @keyframes lsRsGlint { 0%, 100% { opacity: 0; } 50% { opacity: 0.4; } }
+        /* the CTA - the section's one job, a real filled primary (StickyBeginBar recipe) */
+        .ls-rs-close-cta { display: inline-flex; align-items: center; gap: 12px; margin-top: clamp(20px, 3.6vw, 30px); padding: clamp(16px, 2.6vw, 20px) clamp(34px, 5vw, 46px); border-radius: 999px; border: 0; background: linear-gradient(180deg, #a78bfa 0%, #8266d9 45%, #6a4cc4 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 19px; font-weight: 700; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 14px 40px -8px rgba(124,92,214,0.55); transition: transform 0.3s var(--e-stage), box-shadow 0.3s var(--e-stage); }
+        .ls-rs-close-cta:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 18px 48px -8px rgba(124,92,214,0.65); }
+        .ls-rs-close-cta:focus-visible { outline: 2px solid ${C.goldSoft}; outline-offset: 3px; }
         .ls-rs-close-cta svg { animation: lsRsNudge 2.4s ease-in-out infinite; }
         @keyframes lsRsNudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
         .ls-rs-close-title { margin: 0 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.06; letter-spacing: -0.015em; }
@@ -3922,56 +4135,102 @@ function FullReadingOpens() {
 
         @media (min-width: 768px) {
           .ls-rs { padding: clamp(48px, 6svh, 104px) 24px clamp(48px, 6vw, 104px); }
-          .ls-rs-sky { gap: clamp(40px, 6vw, 66px); }
+          .ls-rs-sky { gap: clamp(34px, 5vw, 52px); }
+          .ls-rs-spine { display: block; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-0.5px); background: linear-gradient(180deg, transparent, rgba(154,126,230,0.26) 6%, rgba(154,126,230,0.26) 94%, transparent); z-index: 0; }
           .ls-rs-row { flex-direction: row; text-align: left; gap: clamp(30px, 5vw, 56px); }
+          .ls-rs-row::before { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: rgba(154,126,230,0.5); }
           .ls-rs-row.is-rev { flex-direction: row-reverse; text-align: right; }
           .ls-rs-name { justify-content: flex-start; }
           .ls-rs-row.is-rev .ls-rs-name { justify-content: flex-end; }
           .ls-rs-hook { margin: 0; }
           .ls-rs-row.is-rev .ls-rs-hook { margin-left: auto; }
+          .ls-rs-stage { --rs-disc: clamp(120px, 30vw, 150px); width: clamp(140px, 34vw, 176px); height: clamp(140px, 34vw, 176px); }
+          .ls-rs-led-grp.is-lit .ls-rs-led-disc { width: 56px; height: 56px; }
+          .ls-rs-led-grp.is-dark .ls-rs-led-disc { width: 44px; height: 44px; }
+          .ls-rs-ring-orb { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
           .ls-rs-rv { filter: blur(6px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.95s cubic-bezier(0.16,1,0.3,1), filter 0.9s cubic-bezier(0.16,1,0.3,1); }
           .ls-rs-rv[data-in] { filter: blur(0); }
         }
+        @media (min-width: 1100px) {
+          .ls-rs-ledger { flex-direction: row; align-items: flex-start; justify-content: center; flex-wrap: wrap; gap: 18px 0; max-width: none; }
+          .ls-rs-led-vr { display: block; width: 1px; height: 44px; background: rgba(154,126,230,0.28); margin: 34px 20px 0; flex: 0 0 auto; }
+          .ls-rs-led-orbs { flex-wrap: nowrap; gap: 12px 8px; }
+        }
 
-        /* memorial - the same real worlds, hushed: softer light + lower contrast,
-           no seal and no pay-pressure. Still lit, still theirs. */
+        /* memorial - the same eclipsed worlds, hushed: no seals, no locks, no
+           counts, warmer crescent. Still alive, still theirs. */
         .ls-rs.is-memorial .ls-rs-wash {
           background:
             radial-gradient(120% 84% at 50% -8%, rgba(120,108,150,0.12), transparent 58%),
             radial-gradient(120% 100% at 50% 46%, transparent 58%, rgba(6,4,12,0.6) 100%);
         }
-        .ls-rs.is-memorial .ls-rs-photo { filter: brightness(0.72) contrast(0.99) saturate(0.9); }
-        .ls-rs.is-memorial .ls-rs-halo { opacity: 0.52; }
+        .ls-rs.is-memorial .ls-rs-spec { opacity: 0.28; }
+        .ls-rs.is-memorial .ls-rs-sealring, .ls-rs.is-memorial .ls-rs-idx, .ls-rs.is-memorial .ls-rs-sealline { display: none; }
 
-        /* reduced motion: real planets static + lit, no sweeps, no drift, no dust */
+        /* reduced motion: the rest state IS the finished composition - worlds
+           eclipsed, crescents lit and still, ledger placed, ring assembled,
+           horizon risen. No sweeps, no drift, no dust, no glint. */
         @media (prefers-reduced-motion: reduce) {
-          .ls-rs-halo, .ls-rs-disc, .ls-rs-term, .ls-rs-spec, .ls-rs-dust span { animation: none !important; }
-          .ls-rs-term { display: none !important; }
-          .ls-rs-spec { opacity: 0.32 !important; transform: none !important; }
-          .ls-rs-photo { filter: brightness(0.94) contrast(1.03) saturate(1.02) !important; }
-          .ls-rs-halo { opacity: 0.58 !important; transform: none !important; }
+          .ls-rs-halo, .ls-rs-disc, .ls-rs-term, .ls-rs-spec, .ls-rs-dust span,
+          .ls-rs-led-orb, .ls-rs-led-disc::after, .ls-rs-ring-orb, .ls-rs-ring-orb.is-dark::after,
+          .ls-rs-close-cta, .ls-rs-close-cta svg { animation: none !important; }
+          .ls-rs-spec { opacity: 0.30 !important; transform: none !important; transition: none !important; }
+          .ls-rs-halo { opacity: 0.28 !important; transform: none !important; transition: none !important; }
           .ls-rs-stage { transform: none !important; }
+          .ls-rs-led-orb { opacity: 1 !important; transform: none !important; }
+          .ls-rs-led-disc::after { opacity: 1 !important; }
+          .ls-rs-ring-orb { opacity: 1 !important; }
+          .ls-rs-ring-orb.is-dark::after { opacity: 0 !important; }
+          .ls-rs-hz-line { transform: none !important; transition: none !important; }
+          .ls-rs-hz-disc, .ls-rs-hz-glow { opacity: 1 !important; transform: none !important; transition: none !important; }
+          .ls-rs-sealmark { transition: none !important; box-shadow: none !important; }
+          .ls-rs-row:hover .ls-rs-spec, .ls-rs-row.is-tried .ls-rs-spec { opacity: 0.30 !important; transform: none !important; }
+          .ls-rs-row:hover .ls-rs-halo, .ls-rs-row.is-tried .ls-rs-halo { opacity: 0.28 !important; }
           .ls-rs-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
-          .ls-rs-close-cta, .ls-rs-close-cta svg { animation: none !important; transform: none !important; transition: none !important; }
+          .ls-rs-close-cta { transform: none !important; transition: none !important; }
         }
+        /* .is-static mirror (same finished-composition rest state, class-driven) */
+        .ls-rs.is-static .ls-rs-halo, .ls-rs.is-static .ls-rs-disc, .ls-rs.is-static .ls-rs-term, .ls-rs.is-static .ls-rs-spec, .ls-rs.is-static .ls-rs-dust span,
+        .ls-rs.is-static .ls-rs-led-orb, .ls-rs.is-static .ls-rs-led-disc::after, .ls-rs.is-static .ls-rs-ring-orb, .ls-rs.is-static .ls-rs-ring-orb.is-dark::after,
+        .ls-rs.is-static .ls-rs-close-cta, .ls-rs.is-static .ls-rs-close-cta svg { animation: none !important; }
+        .ls-rs.is-static .ls-rs-spec { opacity: 0.30 !important; transform: none !important; transition: none !important; }
+        .ls-rs.is-static .ls-rs-halo { opacity: 0.28 !important; transform: none !important; transition: none !important; }
+        .ls-rs.is-static .ls-rs-stage { transform: none !important; }
+        .ls-rs.is-static .ls-rs-led-orb { opacity: 1 !important; transform: none !important; }
+        .ls-rs.is-static .ls-rs-led-disc::after { opacity: 1 !important; }
+        .ls-rs.is-static .ls-rs-ring-orb { opacity: 1 !important; }
+        .ls-rs.is-static .ls-rs-ring-orb.is-dark::after { opacity: 0 !important; }
+        .ls-rs.is-static .ls-rs-hz-line { transform: none !important; transition: none !important; }
+        .ls-rs.is-static .ls-rs-hz-disc, .ls-rs.is-static .ls-rs-hz-glow { opacity: 1 !important; transform: none !important; transition: none !important; }
+        .ls-rs.is-static .ls-rs-sealmark { transition: none !important; box-shadow: none !important; }
+        .ls-rs.is-static .ls-rs-rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+        .ls-rs.is-static .ls-rs-close-cta { transform: none !important; transition: none !important; }
 
-        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
-        .ls-rs-eyebrow, .ls-rs-seal { font-size: 14px; }
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14; rest rebuild 2026-07-16) ==== */
+        .ls-rs-eyebrow, .ls-rs-sealline, .ls-rs-hz-label { font-size: 14px; }
         .ls-rs-lead { font-size: 18px; }
         .ls-rs-hook { font-size: 18px; }
         .ls-rs-rising { font-size: 18px; }
         .ls-rs-close-line { font-size: 18px; }
-        .ls-rs-close-cta { font-size: 18px; }
+        .ls-rs-close-cta { font-size: 19px; }
+        .ls-rs-led-cap { font-size: 13px; }
+        .ls-rs-idx { font-size: 12.5px; }
         @media (min-width: 768px) {
-          .ls-rs-eyebrow, .ls-rs-seal { font-size: 14.5px; }
+          .ls-rs-eyebrow, .ls-rs-sealline, .ls-rs-hz-label { font-size: 14.5px; }
           .ls-rs-lead, .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 18.5px; }
           .ls-rs-close-cta { font-size: 19px; }
+          .ls-rs-led-cap { font-size: 14px; }
+          .ls-rs-idx, .ls-rs-led-sign { font-size: 12.5px; }
         }
         @media (min-width: 1280px) {
-          .ls-rs-eyebrow, .ls-rs-seal { font-size: 15px; }
+          .ls-rs-eyebrow, .ls-rs-sealline, .ls-rs-hz-label { font-size: 15px; }
           .ls-rs-lead { font-size: 19.5px; }
           .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 19px; }
           .ls-rs-close-cta { font-size: 20px; }
+          .ls-rs-idx { font-size: 13px; }
+          /* led-sign stays 12.5px at 1280: 13px overflows the one-row ledger
+             (measured 1078px vs the 1000px rail) - flagged for Danny */
+          .ls-rs-led-sign { font-size: 12.5px; }
         }
       `}</style>
     </section>
