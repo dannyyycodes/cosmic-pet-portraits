@@ -22,6 +22,7 @@ import { AuraVisual } from './AuraVisual';
 import { AuraPortrait } from './AuraPortrait';
 import { ElementalBalance } from './ElementalBalance';
 import { ReportSectionCard } from './ReportSectionCard';
+import { WholeReadingPlayer, type WholeReadingItem } from '@/components/narration/WholeReadingPlayer';
 import { SoulLetter } from './SoulLetter';
 import { SoulLetterUnfurl } from './SoulLetterUnfurl';
 import { GoogleSearches } from './GoogleSearches';
@@ -407,6 +408,20 @@ export function CosmicReportViewer({
     );
   };
 
+  // The blocks for the single "play the whole reading" control: every section
+  // that is present and unlocked, in reading order.
+  const wholeReadingItems: WholeReadingItem[] = readingSections
+    .filter((c) => {
+      const section = report[c.key] as SectionContent | undefined;
+      if (!section) return false;
+      const isLocked = isPreview && !['solarSoulprint', 'lunarHeart'].includes(c.key);
+      return !isLocked;
+    })
+    .map((c) => {
+      const section = report[c.key] as SectionContent;
+      return { key: c.key, heading: c.label, title: section.title, content: section.content };
+    });
+
   // Map the 7 chapters into anchor descriptors for the side-rail progress.
   const chapterAnchors = chapters.map((c) => ({
     number: c.number,
@@ -570,6 +585,9 @@ export function CosmicReportViewer({
           'you already know by heart.',
         ]}
       />
+
+      {/* ═══ HEAR THE WHOLE READING ═══ */}
+      <WholeReadingPlayer items={wholeReadingItems} />
 
       {/* ═══ READING SECTIONS: First Half (I-VI) ═══ */}
       {readingSections.slice(0, 6).map((config, i) => renderReadingSection(config, i))}

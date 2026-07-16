@@ -1,0 +1,155 @@
+/* Narration engine — voice control + word highlight.
+   Violet / cosmic world. Warm, soft, alive. Never a stock media player.
+   Every class is prefixed ls-nar- so it is safe to load globally. */
+
+/* ---- the word highlight ---- */
+.ls-nar-line {
+  transition: text-shadow 0.4s ease;
+}
+.ls-nar-w {
+  transition: color 0.16s ease, opacity 0.32s ease, text-shadow 0.34s ease;
+}
+/* while a line is being read, the words ahead settle back a touch so the
+   voice's place is felt, not just seen */
+.ls-nar-line.is-narrating .ls-nar-w {
+  opacity: 0.5;
+}
+.ls-nar-line.is-narrating .ls-nar-w.is-read {
+  opacity: 0.88;
+}
+.ls-nar-line.is-narrating .ls-nar-w.is-lit {
+  opacity: 1;
+  color: #ffffff;
+  text-shadow: 0 0 13px rgba(185, 165, 240, 0.78), 0 0 30px rgba(154, 126, 230, 0.42);
+}
+/* reduced-motion / no per-word data: the whole active line lifts gently */
+.ls-nar-line.is-reading-plain {
+  text-shadow: 0 0 22px rgba(154, 126, 230, 0.34);
+}
+
+/* ---- the control ---- */
+.ls-nar-ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px 8px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(154, 126, 230, 0.34);
+  background: linear-gradient(180deg, rgba(154, 126, 230, 0.14), rgba(124, 92, 214, 0.05));
+  color: #e9e3f7;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+.ls-nar-ctrl:hover {
+  transform: translateY(-1px);
+  border-color: rgba(185, 165, 240, 0.62);
+  box-shadow: 0 8px 26px rgba(70, 40, 140, 0.32);
+}
+.ls-nar-ctrl:focus-visible {
+  outline: 2px solid rgba(185, 165, 240, 0.85);
+  outline-offset: 2px;
+}
+.ls-nar-ctrl.is-playing {
+  background: linear-gradient(180deg, rgba(154, 126, 230, 0.24), rgba(124, 92, 214, 0.1));
+  border-color: rgba(185, 165, 240, 0.55);
+}
+.ls-nar-ctrl.is-busy {
+  cursor: progress;
+}
+.ls-nar-ctrl.is-failed {
+  cursor: pointer;
+  opacity: 0.82;
+}
+.ls-nar-label {
+  padding-right: 4px;
+  white-space: nowrap;
+}
+
+/* the glowing disc that holds the play / pause / loading mark */
+.ls-nar-disc {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #ffffff;
+  background: radial-gradient(circle at 50% 38%, rgba(196, 178, 246, 0.55), rgba(124, 92, 214, 0.3));
+  box-shadow: 0 0 0 1px rgba(185, 165, 240, 0.42) inset, 0 0 14px rgba(154, 126, 230, 0.4);
+}
+.ls-nar-ctrl.is-playing .ls-nar-disc {
+  animation: lsNarBreath 2.6s ease-in-out infinite;
+}
+@keyframes lsNarBreath {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(185, 165, 240, 0.42) inset, 0 0 12px rgba(154, 126, 230, 0.36); }
+  50% { box-shadow: 0 0 0 1px rgba(196, 178, 246, 0.62) inset, 0 0 22px rgba(154, 126, 230, 0.6); }
+}
+.ls-nar-disc svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+/* loading ring */
+.ls-nar-ring {
+  animation: lsNarSpin 0.9s linear infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes lsNarSpin { to { transform: rotate(360deg); } }
+
+/* live voice bars shown beside the label while reading */
+.ls-nar-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 13px;
+  margin-right: 2px;
+}
+.ls-nar-bars i {
+  width: 2.5px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #d8caf6, #9a7ee6);
+  animation: lsNarBar 1s ease-in-out infinite;
+}
+.ls-nar-bars i:nth-child(1) { height: 40%; animation-delay: 0s; }
+.ls-nar-bars i:nth-child(2) { height: 100%; animation-delay: 0.18s; }
+.ls-nar-bars i:nth-child(3) { height: 62%; animation-delay: 0.36s; }
+.ls-nar-bars i:nth-child(4) { height: 84%; animation-delay: 0.52s; }
+@keyframes lsNarBar {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.7; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* a compact icon-only variant for tight headers */
+.ls-nar-ctrl.is-mini {
+  padding: 5px;
+  gap: 0;
+  border-color: rgba(154, 126, 230, 0.3);
+  background: rgba(154, 126, 230, 0.08);
+}
+.ls-nar-ctrl.is-mini .ls-nar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-nar-ctrl.is-playing .ls-nar-disc,
+  .ls-nar-bars i,
+  .ls-nar-ring {
+    animation: none !important;
+  }
+  .ls-nar-w {
+    transition: none;
+  }
+}

@@ -37,6 +37,10 @@ import {
 import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
+import { useNarration } from "@/components/narration/useNarration";
+import { NarrationControl } from "@/components/narration/NarrationControl";
+import { NarratedWords, narratedLineClass } from "@/components/narration/NarratedWords";
+import type { NarrationBlock } from "@/components/narration/types";
 
 const C = {
   ink: "#141210",
@@ -1574,7 +1578,51 @@ function PhotoMark() {
   );
 }
 
-function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
+// The reading, as ordered voice blocks. Each id matches the paragraph it reads,
+// so the highlight lands on the right line. Empty fields drop out cleanly.
+function deckCardBlocks(card: DeckCard): NarrationBlock[] {
+  const mk = (id: string, text?: string | null): NarrationBlock[] =>
+    text && text.trim() ? [{ id, text }] : [];
+  switch (card.kind) {
+    case "planet":
+      return [...mk("l1", card.l1), ...mk("beats", card.beats), ...mk("tell", card.tell), ...mk("sealed", card.sealed)];
+    case "element":
+      return [...mk("l1", card.l1), ...mk("beats", card.beats), ...mk("tell", card.tell)];
+    case "synthesis":
+      return [...mk("lead", card.lead), ...mk("wants", card.wants), ...mk("needs", card.needs), ...mk("close", card.close)];
+    case "tease":
+      return [...mk("keep", card.copy.keep), ...mk("deeper", card.copy.deeper), ...mk("rising", card.copy.rising), ...mk("bridge", card.copy.bridge)];
+    default:
+      return [];
+  }
+}
+
+function DeckCardBody({ card, reduce, floating = false }: { card: DeckCard; reduce: boolean; floating?: boolean }) {
+  const blocks = useMemo(() => deckCardBlocks(card), [card]);
+  const nar = useNarration(blocks);
+  const lc = (id: string, base: string) => narratedLineClass(id, nar, base);
+  const control = blocks.length > 0 ? (
+    <NarrationControl nar={nar} idleLabel="Hear it read to you" playingLabel="Reading aloud" />
+  ) : null;
+
+  const wrap = (inner: JSX.Element) => {
+    if (!control) return inner;
+    if (floating) {
+      return (
+        <>
+          {inner}
+          <div className="ls-dk-hear-wrap">{control}</div>
+        </>
+      );
+    }
+    return (
+      <>
+        {inner}
+        <div className="ls-dk-hear-static">{control}</div>
+      </>
+    );
+  };
+
   if (card.kind === "keepsake") {
     return (
       <div className="ls-dk-inner ls-dk-keep-inner">
@@ -1591,7 +1639,7 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
   }
 
   if (card.kind === "planet") {
-    return (
+    return wrap(
       <div className="ls-dk-inner ls-dk-pl">
         <div className="ls-dk-orb" aria-hidden="true">
           <span className="ls-dk-halo" />
@@ -1611,13 +1659,13 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
               )}
             </p>
           </div>
-          <p className="ls-dk-l1">{card.l1}</p>
+          <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
         </div>
         <span className="ls-dk-rule" aria-hidden="true" />
-        <p className="ls-dk-beats">{card.beats}</p>
-        <p className="ls-dk-tell"><span className="ls-dk-tell-mark" aria-hidden="true" />{card.tell}</p>
-        <p className="ls-dk-seal"><SealMark />{card.sealed}</p>
-      </div>
+        <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+        <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+        <p className={lc("sealed", "ls-dk-seal")}><SealMark /><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
+      </div>,
     );
   }
 
@@ -1627,7 +1675,7 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
     const tied = order.filter((e) => e !== card.dominant && card.counts[e] === domCount);
     const domLabel =
       tied.length > 0 ? `${card.dominant} and ${tied[0]}` : domCount >= 3 ? `Mostly ${card.dominant}` : `Led by ${card.dominant}`;
-    return (
+    return wrap(
       <div className="ls-dk-inner ls-dk-el">
         <p className="ls-dk-eyebrow ls-dk-el-eyebrow">The balance of them</p>
         <p className="ls-dk-el-dom">{domLabel}</p>
@@ -1642,31 +1690,32 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
             </div>
           ))}
         </div>
-        <p className="ls-dk-l1 ls-dk-el-meaning">{card.l1}</p>
+        <p className={lc("l1", "ls-dk-l1 ls-dk-el-meaning")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
         <span className="ls-dk-rule" aria-hidden="true" />
-        <p className="ls-dk-beats">{card.beats}</p>
-        <p className="ls-dk-tell"><span className="ls-dk-tell-mark" aria-hidden="true" />{card.tell}</p>
-      </div>
+        <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+        <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+      </div>,
     );
   }
 
   if (card.kind === "synthesis") {
-    return (
+    return wrap(
       <div className="ls-dk-inner">
         <span className="ls-dk-synmark" aria-hidden="true"><AstroGlyph name="synthesis" /></span>
-        <p className="ls-dk-lead">{card.lead}</p>
-        <p className="ls-dk-syn">{card.wants}</p>
-        <p className="ls-dk-syn ls-dk-syn2">{card.needs}</p>
-        <p className="ls-dk-close">{card.close}</p>
-      </div>
+        <p className={lc("lead", "ls-dk-lead")}><NarratedWords blockId="lead" text={card.lead} nar={nar} /></p>
+        <p className={lc("wants", "ls-dk-syn")}><NarratedWords blockId="wants" text={card.wants} nar={nar} /></p>
+        <p className={lc("needs", "ls-dk-syn ls-dk-syn2")}><NarratedWords blockId="needs" text={card.needs} nar={nar} /></p>
+        <p className={lc("close", "ls-dk-close")}><NarratedWords blockId="close" text={card.close} nar={nar} /></p>
+      </div>,
     );
   }
 
   const t = card.copy;
   return (
     <div className="ls-dk-inner ls-dk-tease">
-      <p className="ls-dk-keep">{t.keep}</p>
-      <p className="ls-dk-deeper">{t.deeper}</p>
+      {control && <div className="ls-dk-hear-tease">{control}</div>}
+      <p className={lc("keep", "ls-dk-keep")}><NarratedWords blockId="keep" text={t.keep} nar={nar} /></p>
+      <p className={lc("deeper", "ls-dk-deeper")}><NarratedWords blockId="deeper" text={t.deeper} nar={nar} /></p>
       <ul className="ls-dk-ledger">
         {t.ledger.map((row, i) => (
           <li key={row.body} style={{ animationDelay: `${0.35 + i * 0.05}s` }}>
@@ -1675,8 +1724,8 @@ function DeckCardBody({ card, reduce }: { card: DeckCard; reduce: boolean }) {
           </li>
         ))}
       </ul>
-      <p className="ls-dk-rising"><AstroGlyph name="rising" className="ls-dk-rising-g" />{t.rising}</p>
-      <p className="ls-dk-bridge">{t.bridge}</p>
+      <p className={lc("rising", "ls-dk-rising")}><AstroGlyph name="rising" className="ls-dk-rising-g" /><NarratedWords blockId="rising" text={t.rising} nar={nar} /></p>
+      <p className={lc("bridge", "ls-dk-bridge")}><NarratedWords blockId="bridge" text={t.bridge} nar={nar} /></p>
       <button type="button" className="ls-dk-cta" onClick={() => descendTo("#the-rest")}>
         {t.cta} <ChevronDown size={19} strokeWidth={1.7} />
       </button>
@@ -1785,6 +1834,14 @@ const DECK_CSS = `
   .ls-dk-next { right: max(2px, env(safe-area-inset-right)); }
   .ls-dk-nudge { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 6; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 14px; letter-spacing: 0.34em; text-indent: 0.34em; text-transform: uppercase; animation: lsDkNudge 2s ease-in-out infinite; pointer-events: none; }
   @keyframes lsDkNudge { 0%, 100% { opacity: 0.16; } 50% { opacity: 0.42; } }
+
+  /* The voice affordance. Floats above the card in the swipe deck (never shifts
+     the reading), sits inline in the static column and on the tease card. */
+  .ls-dk-hear-wrap { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(60px, calc(env(safe-area-inset-bottom) + 46px)); z-index: 6; }
+  .ls-dk-hear-static { display: flex; justify-content: center; margin-top: clamp(16px, 3svh, 24px); }
+  .ls-dk-hear-tease { display: flex; justify-content: center; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
+  @media (max-height: 720px) { .ls-dk-hear-wrap { bottom: max(46px, calc(env(safe-area-inset-bottom) + 34px)); } }
+  @media (max-height: 620px) { .ls-dk-hear-wrap { display: none; } }
 
   /* Static column: reduced motion, every card visible in reading order. */
   .ls-dk.is-static { height: auto; margin: 0; touch-action: auto; cursor: default; overflow: visible; display: flex; flex-direction: column; padding: clamp(10px, 2svh, 24px) 0; }
@@ -1993,7 +2050,7 @@ function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthC
             transition={{ duration: 0.35, ease: "easeOut" }}
             aria-live="polite"
           >
-            <DeckCardBody card={cards[active]} reduce={false} />
+            <DeckCardBody card={cards[active]} reduce={false} floating />
           </motion.div>
         </AnimatePresence>
       </div>
