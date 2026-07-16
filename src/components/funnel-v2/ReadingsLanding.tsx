@@ -4797,58 +4797,69 @@ function ValueMoments() {
 }
 
 // The ONE reviews wall on the path, curated from the full approved set of
-// seventeen. Nine quotes, verbatim, chosen for spread: a converted sceptic
-// opens, a won-over partner and a quiet retrospective sit mid-wall, two
-// four-star voices keep it believable, and a two-souls-compared line closes.
-// Species run whippet to horse to guinea pig so every reader finds a shape
-// like their own. None of these quotes render inside the dossier checkout
-// (it carries grief / joy / gift / practical / returner), so no quote ever
-// appears twice on one path.
-// Mobile dose: a phone reads THREE reviews first (a sceptic won over, the horse
-// for range, one for grief), each under a short bold label with the quote
-// clamped to a few lines behind a "Read on". The other six wait behind one tap.
-// Desktop keeps the full nine-card grid exactly as approved; labels, clamps and
-// the tap live only inside the small-screen media query. Wording verbatim.
-const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; attr: string; mobLabel?: string; mobOrder?: number }[] = [
-  { ...REVIEWS.skeptic, mobLabel: "For sceptics", mobOrder: 1 },
+// seventeen. Nine quotes, verbatim. The converted sceptic is the SPOTLIGHT,
+// set open on the sky above the rest: an editorial two-column read, not a
+// card. The other eight drift past in two slow counter-moving rows of
+// violet-glass cards (row A left, row B right), pausable by an explicit
+// control, by hover/focus, or by opening a card. Phones swap the drift for
+// a user-driven snap strip in the same order (row A then row B) with
+// decorative progress dots. Two four-star voices keep it believable; species
+// run whippet to horse to guinea pig so every reader finds a shape like
+// their own. None of these quotes render inside the dossier checkout (it
+// carries grief / joy / gift / practical / returner), so no quote ever
+// appears twice on one path. Wording verbatim.
+type WallReview = {
+  img: string; alt: string; stars: number; quote: string; attr: string;
+  label?: string; placement: "hero" | "rowA" | "rowB";
+};
+const WALL_REVIEWS: WallReview[] = [
+  { ...REVIEWS.skeptic, label: "For sceptics", placement: "hero" },
   {
+    placement: "rowA",
     img: "/reviews/review-8.webp", alt: "Otis", stars: 5,
     quote: "otis spent his first three months under our bed in Cardiff, only coming out after midnight for biscuits. The reading described a guarded Moon placement and a creature who watches the room from a border before choosing anyone. I had not written anything about him being formerly feral, so that line stayed with me.",
     attr: "Grace O. · Otis, rescue shorthair cat",
   },
   {
+    placement: "rowA",
     img: "/reviews/review-12.webp", alt: "Bracken", stars: 5,
     quote: "I was not sure a reading would make sense for a horse, especially Bracken, who has opinions about everything at the Devon yard. Then it mentioned a stubborn Saturn edge around thresholds and moving boxes, which is exactly his trailer-loading face on a wet Tuesday. The yard owner laughed because only the people here would know that.",
     attr: "Emily F. · Bracken, cob-type horse",
-    mobLabel: "Felt exactly like them", mobOrder: 2,
+    label: "Felt exactly like them",
   },
   {
+    placement: "rowA",
     img: "/reviews/review-7.webp", alt: "Marmite", stars: 5,
     quote: "I ordered Marmite's reading for the anniversary of the day we brought him back to Leeds in a borrowed blanket. It picked up his restless little Mars rhythm by the front door at about 6pm, which is exactly the hour he still starts pacing every October as if the car is coming again. Too specific to brush off, really.",
     attr: "Freya H. · Marmite, cockapoo",
   },
   {
+    placement: "rowA",
     img: "/reviews/review-16.webp", alt: "Loki", stars: 5,
     quote: "Sam was openly dismissive when I ordered Loki's reading, mainly because astrology is not their thing. Then the reading described a fixed, territorial streak around shared spaces, and Loki had spent that same week blocking our other cat from the Manchester flat's hallway rug. Sam went quiet, read that paragraph twice, and has mentioned Loki's Mars placement more than I have.",
     attr: "Ben H. · Loki, Maine Coon cat",
   },
   {
+    placement: "rowB",
     img: "/reviews/review-13.webp", alt: "Willow", stars: 5,
     quote: "weeks after Willow died, I ordered her reading during a rough patch when the house in Nottingham felt very quiet. It gave me a way to talk with my kids about her little routines, the radiator spot, the paw on the newspaper, the way she chose one person at a time. Nothing overblown. Just enough shape around the missing.",
     attr: "Daniel K. · Willow, senior cat",
-    mobLabel: "For grief", mobOrder: 3,
+    label: "For grief",
   },
   {
+    placement: "rowB",
     img: "/reviews/review-14.webp", alt: "Nugget", stars: 4,
     quote: "I did roll my eyes at spending money on a guinea pig of all things, but Nugget's reading had his number. The bit about comfort-seeking Venus and always choosing the covered end of the run was bang on, right down to him ignoring the parsley until he has dragged it under the little red shelter. For less than we paid last month for bedding and hay, it was fair value. I would have liked a cheaper way to add our second guinea pig afterwards.",
     attr: "Colin B. · Nugget, guinea pig",
   },
   {
+    placement: "rowB",
     img: "/reviews/review-9.webp", alt: "Meg", stars: 4,
     quote: "Meg is fourteen now, grey round the muzzle and slower on the lane behind our house near Sheffield. Her reading did not try to make her sound young again, it spoke about Saturn steadiness and the comfort of doing the same small jobs well. I was glad of that. Only niggle is that it took closer to a day to arrive, rather than the couple of hours I had expected.",
     attr: "Alan R. · Meg, border collie, fourteen",
   },
   {
+    placement: "rowB",
     img: "/reviews/review-11.webp", alt: "Fig and Norm", stars: 5,
     quote: "We ordered Fig and Norm's readings together, assuming two dogs in the same Glasgow house would come out much the same. Fig's was all bright Mars, cupboard doors and sudden decisions, while Norm's had this older Beagle patience and a Moon that sounded exactly like him refusing the rain at the back step. Same sofa, same walks, totally different souls.",
     attr: "Isla M. · Fig and Norm, sprocker spaniel and beagle",
@@ -4857,142 +4868,319 @@ const WALL_REVIEWS: { img: string; alt: string; stars: number; quote: string; at
 
 function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
-  // Mobile dose state: which quotes are unclamped, and whether the six
-  // behind-the-tap cards are open. Desktop ignores both (CSS-scoped).
-  const [showAll, setShowAll] = useState(false);
+  // Drift state: explicit pause control (WCAG 2.2.2) + per-card expand.
+  const [paused, setPaused] = useState(false);
   const [opened, setOpened] = useState<Record<string, boolean>>({});
+  // Decorative progress dot for the mobile snap strip.
+  const [activeDot, setActiveDot] = useState(0);
+  const stripRef = useRef<HTMLUListElement | null>(null);
   useEffect(() => {
     const onIntent = () => setMemorialIntent(getIntent() === "memorial");
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip || typeof IntersectionObserver === "undefined") return;
+    const cards = Array.from(strip.querySelectorAll<HTMLElement>("[data-strip-idx]"));
+    if (!cards.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setActiveDot(Number((e.target as HTMLElement).dataset.stripIdx || 0));
+        }
+      },
+      { root: strip, threshold: 0.6 },
+    );
+    cards.forEach((c) => io.observe(c));
+    return () => io.disconnect();
+  }, [memorialIntent]);
   if (memorialIntent) return null;
 
-  const reviews = WALL_REVIEWS;
+  const hero = WALL_REVIEWS.find((r) => r.placement === "hero")!;
+  const rowA = WALL_REVIEWS.filter((r) => r.placement === "rowA");
+  const rowB = WALL_REVIEWS.filter((r) => r.placement === "rowB");
+  const rowAOpen = rowA.some((r) => opened[r.img]);
+  const rowBOpen = rowB.some((r) => opened[r.img]);
+  const [heroWho, ...heroRest] = hero.attr.split(" · ");
+
+  const starRow = (n: number, cls: string) => (
+    <div
+      className={`ls-rev-stars ${cls}`}
+      role="img"
+      aria-label={n === 5 ? "Five out of five stars" : `${n} out of five stars`}
+    >
+      {[0, 1, 2, 3, 4].map((s) => (
+        <svg key={s} viewBox="0 0 24 24" aria-hidden="true" className={s < n ? "" : "off"}>
+          <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
+        </svg>
+      ))}
+    </div>
+  );
+
+  // One card renderer for the drift rows AND the mobile strip. `ghost` marks
+  // the aria-hidden duplicate set inside a drift track: its button leaves the
+  // tab order so keyboard focus never chases a moving clone.
+  const card = (r: WallReview, ghost: boolean, stripIdx?: number) => {
+    const open = !!opened[r.img];
+    const [who, ...rest] = r.attr.split(" · ");
+    return (
+      <li
+        key={`${r.img}${ghost ? "-dup" : ""}`}
+        className={`ls-rev${open ? " is-open" : ""}`}
+        {...(typeof stripIdx === "number" ? { "data-strip-idx": stripIdx } : {})}
+      >
+        <figure className="ls-rev-fig">
+          {r.label && <p className="ls-rev-chip">{r.label}</p>}
+          <div className="ls-rev-top">
+            <span className="ls-rev-ph">
+              <img src={r.img} alt={ghost ? "" : r.alt} width={128} height={128} loading="lazy" decoding="async" />
+            </span>
+            <div className="ls-rev-meta">
+              {starRow(r.stars, "is-sm")}
+              <figcaption className="ls-rev-attr">
+                <span className="ls-rev-who">{who}</span>
+                {rest.length > 0 && <span className="ls-rev-pet">{rest.join(" · ")}</span>}
+              </figcaption>
+            </div>
+          </div>
+          <div className={`ls-rev-body${open ? " is-open" : ""}`}>
+            <blockquote className={`ls-rev-quote${open ? "" : " is-clamp"}`}>{r.quote}</blockquote>
+          </div>
+          <button
+            type="button"
+            className="ls-rev-more"
+            aria-expanded={open}
+            tabIndex={ghost ? -1 : 0}
+            onClick={() => setOpened((o) => ({ ...o, [r.img]: !o[r.img] }))}
+          >
+            {open ? "Close" : "Read on"}
+          </button>
+        </figure>
+      </li>
+    );
+  };
+
+  // NOTE: has-open lives on the TRACK, never the viewport: the viewport
+  // carries .ls-reveal whose .is-in is added imperatively by the reveal
+  // observer, and a React className update there would wipe it.
+  const driftRow = (rows: WallReview[], cls: string, hasOpen: boolean, delay: string) => (
+    <div
+      className={`ls-drift-vp ls-reveal ${cls}`}
+      style={{ "--ls-delay": delay } as CSSProperties}
+    >
+      <div className={`ls-drift-track${hasOpen ? " has-open" : ""}`}>
+        <ul className="ls-drift-set" role="list">{rows.map((r) => card(r, false))}</ul>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <ul className="ls-drift-set" aria-hidden="true" {...({ inert: "" } as any)}>
+          {rows.map((r) => card(r, true))}
+        </ul>
+      </div>
+    </div>
+  );
 
   return (
     <section
       className="ls-reviews ls-parallax-band"
       aria-labelledby="ls-reviews-title"
     >
+      {/* STAR GOLD def — Danny's one gold exception (2026-07-16). Legal ONLY
+          as review-star fill + drop-shadow. Never borders, text, or chrome. */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+        <defs>
+          <linearGradient id="ls-star-gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={C.starGoldHi} />
+            <stop offset="50%" stopColor={C.starGoldMid} />
+            <stop offset="100%" stopColor={C.starGoldLo} />
+          </linearGradient>
+        </defs>
+      </svg>
       <div className="ls-reviews-inner">
         <header className="ls-reviews-head ls-reveal">
           <p className="ls-reviews-eyebrow">From people who did this</p>
           <h2 id="ls-reviews-title" className="ls-reviews-title">What their people say</h2>
         </header>
-        <ul className={`ls-reviews-grid is-dosed${showAll ? " show-all" : ""}`} role="list">
-          {reviews.map((r, i) => {
-            const front = typeof r.mobOrder === "number";
-            const open = !!opened[r.img];
-            return (
-              <li
-                key={r.img}
-                className={`ls-rev ls-reveal${front ? " is-front" : " is-extra"}`}
-                style={{ "--ls-delay": `${(i % 3) * 0.09}s`, ...(front ? { "--mord": r.mobOrder } : {}) } as CSSProperties}
-              >
-                <figure className="ls-rev-fig">
-                  {r.mobLabel && <p className="ls-rev-label" aria-hidden="true">{r.mobLabel}</p>}
-                  <div className="ls-rev-top">
-                    <span className="ls-rev-ph">
-                      <img src={r.img} alt={r.alt} width={128} height={128} loading="lazy" decoding="async" />
-                    </span>
-                    <div className="ls-rev-meta">
-                      <div
-                        className="ls-rev-stars"
-                        role="img"
-                        aria-label={r.stars === 5 ? "Five out of five stars" : `${r.stars} out of five stars`}
-                      >
-                        {[0, 1, 2, 3, 4].map((s) => (
-                          <svg key={s} viewBox="0 0 24 24" aria-hidden="true" className={s < r.stars ? "" : "off"}>
-                            <path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <figcaption className="ls-rev-attr">
-                        {(() => {
-                          const [who, ...rest] = r.attr.split(" · ");
-                          return (
-                            <>
-                              <span className="ls-rev-who">{who}</span>
-                              {rest.length > 0 && <span className="ls-rev-pet">{rest.join(" · ")}</span>}
-                            </>
-                          );
-                        })()}
-                      </figcaption>
-                    </div>
-                  </div>
-                  <blockquote className={`ls-rev-quote${open ? "" : " is-clamp"}`}>{r.quote}</blockquote>
-                  {!open && (
-                    <button
-                      type="button"
-                      className="ls-rev-more"
-                      aria-expanded="false"
-                      onClick={() => setOpened((o) => ({ ...o, [r.img]: true }))}
-                    >
-                      Read on
-                    </button>
-                  )}
-                </figure>
-              </li>
-            );
-          })}
-        </ul>
-        {!showAll && (
-          <button type="button" className="ls-reviews-more" onClick={() => setShowAll(true)}>
-            Read the other six
+
+        {/* 1. Spotlight: the converted sceptic, set open on the sky. */}
+        <figure className="ls-spot ls-reveal" style={{ "--ls-delay": "0.05s" } as CSSProperties}>
+          <div className="ls-spot-rail">
+            {hero.label && <p className="ls-spot-chip">{hero.label}</p>}
+            <span className="ls-rev-ph ls-spot-ph">
+              <img src={hero.img} alt={hero.alt} width={192} height={192} loading="lazy" decoding="async" />
+            </span>
+            <span className="ls-spot-starwrap">
+              {starRow(hero.stars, "is-lg")}
+              <span className="ls-spot-sweep" aria-hidden="true" />
+            </span>
+            <figcaption className="ls-rev-attr ls-spot-attr">
+              <span className="ls-rev-who">{heroWho}</span>
+              {heroRest.length > 0 && <span className="ls-rev-pet">{heroRest.join(" · ")}</span>}
+            </figcaption>
+          </div>
+          <span className="ls-spot-rule" aria-hidden="true" />
+          <div className="ls-spot-qwrap">
+            <blockquote className="ls-spot-quote">{hero.quote}</blockquote>
+          </div>
+        </figure>
+
+        {/* 2. The drift (>=768px): eight voices in two counter-moving rows. */}
+        <div className={`ls-drift-wrap${paused ? " is-paused" : ""}`}>
+          <button
+            type="button"
+            className="ls-drift-pause"
+            aria-pressed={paused}
+            aria-label={paused ? "Resume the moving reviews" : "Pause the moving reviews"}
+            onClick={() => setPaused((p) => !p)}
+          >
+            <svg className="ls-dp-pause" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="3.6" y="2.6" width="2.6" height="10.8" rx="1.1" />
+              <rect x="9.8" y="2.6" width="2.6" height="10.8" rx="1.1" />
+            </svg>
+            <svg className="ls-dp-play" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M5.4 2.9v10.2c0 .62.68 1 1.2.67l7.9-5.1a.8.8 0 0 0 0-1.35L6.6 2.23a.8.8 0 0 0-1.2.67z" />
+            </svg>
           </button>
-        )}
+          {driftRow(rowA, "is-a", rowAOpen, "0.15s")}
+          {driftRow(rowB, "is-b", rowBOpen, "0.27s")}
+        </div>
+
+        {/* 3. Mobile <768px: user-driven snap strip, same eight in the same order. */}
+        <ul className="ls-strip" role="list" ref={stripRef}>
+          {[...rowA, ...rowB].map((r, i) => card(r, false, i))}
+        </ul>
+        <div className="ls-strip-dots" aria-hidden="true">
+          {[...rowA, ...rowB].map((r, i) => (
+            <span key={r.img} className={`ls-strip-dot${i === activeDot ? " is-on" : ""}`} />
+          ))}
+        </div>
+
         <p className="ls-reviews-pull ls-reveal">Their chart has been waiting since the day they were born. Open it below.</p>
       </div>
       <style>{`
-        .ls-reviews { position: relative; padding: clamp(30px, 5svh, 60px) 20px clamp(18px, 3svh, 32px); }
+        .ls-reviews { position: relative; padding: clamp(52px, 8svh, 92px) 20px clamp(34px, 5svh, 64px); }
         .ls-reviews-inner { max-width: 1120px; margin: 0 auto; }
-        .ls-reviews-head { text-align: center; max-width: 720px; margin: 0 auto clamp(30px, 5vw, 52px); }
+        .ls-reviews-head { text-align: center; max-width: 720px; margin: 0 auto clamp(36px, 5vw, 56px); }
         .ls-reviews-eyebrow {
           margin: 0 0 16px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif;
-          font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+          font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
         }
         .ls-reviews-title {
           margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500;
-          font-size: clamp(2.1rem, 6.4vw, 3.6rem); line-height: 1.02; letter-spacing: -0.018em;
+          font-size: clamp(1.85rem, 5.6vw, 2.7rem); line-height: 1.05; letter-spacing: -0.018em;
         }
-        .ls-reviews-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 16px; }
-        .ls-rev { margin: 0; min-width: 0; }
+
+        /* ── stars: the one gold on the page, fills + drop-shadow only ── */
+        .ls-rev-stars { display: flex; gap: 4px; }
+        .ls-rev-stars svg { width: 15px; height: 15px; display: block; fill: url(#ls-star-gold); filter: drop-shadow(0 0 5px ${C.starGoldGlow}); }
+        .ls-rev-stars svg.off { fill: rgba(196,190,220,0.22); filter: none; }
+        .ls-rev-stars.is-sm { margin-bottom: 6px; }
+        .ls-rev-stars.is-lg { gap: 5px; }
+        .ls-rev-stars.is-lg svg { width: 20px; height: 20px; }
+
+        /* ── spotlight: not a card, an open editorial read on the sky ── */
+        .ls-spot { position: relative; margin: 0 auto clamp(44px, 6vw, 72px); max-width: 960px; padding-left: 18px; }
+        .ls-spot::before {
+          content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; border-radius: 2px;
+          background: linear-gradient(180deg, rgba(185,165,240,0.5), transparent);
+        }
+        .ls-spot.ls-reveal {
+          transform: translate3d(0, 12px, 0);
+          transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          transition-delay: var(--ls-delay, 0s);
+        }
+        .ls-spot.ls-reveal.is-in { transform: translate3d(0, 0, 0); }
+        .ls-spot-rail {
+          display: grid; grid-template-columns: 72px 1fr; column-gap: 14px; row-gap: 4px;
+          grid-template-areas: "chip chip" "ph stars" "ph attr"; align-items: center; margin-bottom: 16px;
+        }
+        .ls-spot-chip {
+          grid-area: chip; margin: 0 0 10px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
+          font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+        }
+        .ls-spot-ph { grid-area: ph; width: 72px; height: 72px; border-radius: 18px; }
+        .ls-spot-starwrap { grid-area: stars; position: relative; display: inline-flex; align-self: end; }
+        .ls-spot-attr { grid-area: attr; align-self: start; }
+        .ls-spot-attr .ls-rev-who { font-size: 17px; }
+        .ls-spot-attr .ls-rev-pet { font-size: 14px; }
+        .ls-spot-rule { display: none; }
+        .ls-spot-qwrap { position: relative; }
+        .ls-spot-qwrap::before {
+          content: "\\201C"; position: absolute; top: -14px; left: -6px; z-index: 0; pointer-events: none;
+          font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 64px; line-height: 1;
+          color: rgba(154,126,230,0.18);
+        }
+        .ls-spot-quote {
+          position: relative; z-index: 1; margin: 0; max-width: 58ch;
+          color: ${C.creamDim}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-style: normal;
+          font-size: clamp(1.12rem, 4.6vw, 1.3rem); line-height: 1.5; letter-spacing: -0.005em;
+        }
+        .ls-spot-quote::before { content: "\\201C"; }
+        .ls-spot-quote::after { content: "\\201D"; }
+        /* GLINT: one-time light pass over the spotlight stars, never loops. */
+        .ls-spot-sweep {
+          position: absolute; inset: -6px -10px; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+          background: linear-gradient(105deg, transparent 40%, rgba(232,207,143,0.5) 50%, transparent 60%);
+          background-size: 250% 100%; background-repeat: no-repeat; background-position: 130% 0;
+        }
+        @keyframes lsStarGlint {
+          0% { opacity: 1; background-position: 130% 0; }
+          100% { opacity: 0; background-position: -80% 0; }
+        }
+        .ls-spot.is-in .ls-spot-sweep { animation: lsStarGlint 900ms cubic-bezier(0.22, 0.7, 0.2, 1) 0.5s forwards; }
+        @media (min-width: 768px) {
+          .ls-spot { padding-left: 0; display: grid; grid-template-columns: 264px 1px 1fr; column-gap: clamp(14px, 2vw, 24px); align-items: start; }
+          .ls-spot::before { display: none; }
+          .ls-spot-rail { display: block; margin-bottom: 0; }
+          .ls-spot-chip { margin: 0 0 14px; }
+          .ls-spot-ph { display: block; width: 96px; height: 96px; border-radius: 24px; margin-bottom: 12px; }
+          .ls-spot-starwrap { margin-bottom: 10px; }
+          .ls-spot-rule {
+            display: block; width: 1px; align-self: stretch;
+            background: linear-gradient(180deg, transparent, rgba(185,165,240,0.35), transparent);
+          }
+          .ls-spot-qwrap::before { top: -18px; left: -34px; font-size: 96px; }
+          .ls-spot-quote { font-size: clamp(1.22rem, 2vw, 1.5rem); }
+        }
+
+        /* ── the shared card: violet glass, clearly lighter than the page ── */
+        .ls-rev { margin: 0; min-width: 0; flex: none; }
         .ls-rev-fig {
           position: relative; height: 100%; margin: 0; display: flex; flex-direction: column;
-          padding: 22px 20px 20px; border-radius: 16px;
-          background:
-            radial-gradient(130% 80% at 50% 0%, rgba(154,126,230,0.06), transparent 60%),
-            linear-gradient(180deg, ${C.cosmos2} 0%, ${C.cosmos} 100%);
-          box-shadow:
-            0 1px 2px rgba(0,0,0,0.45), 0 6px 18px rgba(0,0,0,0.4),
-            0 20px 50px rgba(0,0,0,0.32), 0 1px 0 rgba(185,165,240,0.05) inset;
+          padding: 20px 20px 18px; border-radius: 18px;
+          background: linear-gradient(180deg, rgba(124,92,214,0.13) 0%, rgba(124,92,214,0.05) 100%), ${C.cosmos2};
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 14px 34px rgba(0,0,0,0.35);
+          transition: transform 220ms cubic-bezier(0.22, 0.7, 0.2, 1), box-shadow 220ms cubic-bezier(0.22, 0.7, 0.2, 1);
         }
         .ls-rev-fig::before {
           content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-          background: linear-gradient(165deg, rgba(185,165,240,0.34) 0%, rgba(154,126,230,0.14) 46%, rgba(185,165,240,0.28) 100%);
+          background: linear-gradient(165deg, rgba(185,165,240,0.42) 0%, rgba(154,126,230,0.20) 46%, rgba(185,165,240,0.36) 100%);
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
+          transition: filter 180ms cubic-bezier(0.22, 0.7, 0.2, 1);
         }
         /* an editorial quote-mark watermark, unmistakably a testimonial */
         .ls-rev-fig::after {
           content: "\\201C"; position: absolute; top: 2px; right: 16px; z-index: 0; pointer-events: none;
           font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 78px; line-height: 1;
-          color: rgba(154,126,230,0.13);
+          color: rgba(154,126,230,0.16);
         }
-        .ls-rev-top, .ls-rev-quote, .ls-rev-label, .ls-rev-more { position: relative; z-index: 1; }
-        .ls-rev-top { display: flex; align-items: center; gap: 13px; margin-bottom: 14px; }
+        .ls-rev-top, .ls-rev-body, .ls-rev-chip, .ls-rev-more { position: relative; z-index: 1; }
+        .ls-rev-chip {
+          margin: 0 0 10px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
+          font-size: 11.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+        }
+        .ls-rev-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .ls-rev-ph {
-          position: relative; flex: none; width: 58px; height: 58px; border-radius: 14px; overflow: hidden;
+          position: relative; flex: none; width: 48px; height: 48px; border-radius: 12px; overflow: hidden;
           background: ${C.cosmos3};
           box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(154,126,230,0.14);
         }
-        /* Warm pet photos get pulled into the cosmic world: gently desaturated,
-           with a violet soft-light wash so they sit beside the planet discs. */
-        .ls-rev-ph img { position: relative; z-index: 0; display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(0.82) brightness(0.9) contrast(1.04); }
+        /* Warm pet photos sit beside the planet discs: a gentler pull into the
+           cosmic world than before, so faces stay faces. */
+        .ls-rev-ph img { position: relative; z-index: 0; display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(0.88) brightness(0.98) contrast(1.03); }
         .ls-rev-ph::before {
           content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-          background: linear-gradient(155deg, rgba(124,92,214,0.32), rgba(20,12,44,0.10) 55%, rgba(124,92,214,0.22));
+          background: linear-gradient(155deg, rgba(124,92,214,0.24), rgba(20,12,44,0.08) 55%, rgba(124,92,214,0.17));
           mix-blend-mode: soft-light;
         }
         .ls-rev-ph::after {
@@ -5002,87 +5190,142 @@ function ReviewsWall() {
           -webkit-mask-composite: xor; mask-composite: exclude;
         }
         .ls-rev-meta { min-width: 0; }
-        /* Stars read as a real rating: luminous cream, a soft violet glow, off in a
-           quiet muted violet. On-palette, never gold. */
-        .ls-rev-stars { display: flex; gap: 4px; margin-bottom: 8px; }
-        .ls-rev-stars svg { width: 16px; height: 16px; display: block; fill: #efe9ff; filter: drop-shadow(0 0 4px rgba(185,165,240,0.55)); }
-        .ls-rev-stars svg.off { fill: rgba(196,190,220,0.22); filter: none; }
-        /* Attribution: the person's name in warm cream, the pet + breed a quiet
-           line beneath. Legible, unhurried, sentence case. */
         .ls-rev-attr { display: flex; flex-direction: column; gap: 2px; }
-        .ls-rev-who { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 16px; line-height: 1.2; letter-spacing: -0.006em; }
-        .ls-rev-pet { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 13.5px; line-height: 1.3; opacity: 0.86; }
+        .ls-rev-who { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 15.5px; line-height: 1.2; letter-spacing: -0.006em; }
+        .ls-rev-pet { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 13px; line-height: 1.3; opacity: 0.86; }
+        /* Expand-in-place: width never changes so the drift loop math holds;
+           rows are top-aligned so growth is downward only. */
+        .ls-rev-body { overflow: hidden; max-height: 116px; transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+        .ls-rev-body.is-open { max-height: 560px; }
         .ls-rev-quote {
           margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic;
-          font-size: 1.02rem; line-height: 1.6;
+          font-size: 18px; line-height: 1.55;
         }
+        .ls-rev-quote.is-clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
         .ls-rev-quote::before { content: "\\201C"; }
         .ls-rev-quote::after { content: "\\201D"; }
-        .ls-reviews-pull { margin: clamp(26px, 4.6vw, 40px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
+        .ls-rev-more {
+          display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px;
+          padding: 0; border: 0; background: none; cursor: pointer;
+          color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
+          font-style: italic; font-size: 18px;
+          text-decoration: underline; text-decoration-color: rgba(185,165,240,0.45);
+          text-underline-offset: 4px;
+        }
+        .ls-rev-more:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; border-radius: 4px; }
+        @media (hover: hover) and (pointer: fine) {
+          .ls-drift-set .ls-rev-fig:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 20px 44px rgba(0,0,0,0.42);
+            transition-duration: 180ms;
+          }
+          .ls-drift-set .ls-rev-fig:hover::before { filter: brightness(1.3); }
+        }
 
-        /* ── mobile dose: three labelled, clamped cards; six behind one tap ── */
-        .ls-rev-label { display: none; }
-        .ls-rev-more { display: none; }
-        .ls-reviews-more { display: none; }
-        @media (max-width: 639px) {
-          .ls-reviews-grid.is-dosed .ls-rev { order: 10; }
-          .ls-reviews-grid.is-dosed .ls-rev.is-front { order: var(--mord, 1); }
-          .ls-reviews-grid.is-dosed .ls-rev.is-extra { display: none; }
-          .ls-reviews-grid.is-dosed.show-all .ls-rev.is-extra { display: block; order: 20; }
-          .ls-rev-label {
-            display: block; margin: 0 0 12px; color: ${C.cream};
-            font-family: "Fraunces", Georgia, serif; font-weight: 600;
-            font-size: 1.05rem; line-height: 1.2; letter-spacing: 0.005em;
-          }
-          .ls-rev-quote.is-clamp {
-            display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
-            overflow: hidden;
-          }
-          .ls-rev-more {
-            display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px;
-            padding: 0; border: 0; background: none; cursor: pointer;
-            color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif;
-            font-style: italic; font-size: 1.02rem;
-            text-decoration: underline; text-decoration-color: rgba(185,165,240,0.45);
-            text-underline-offset: 4px;
-          }
-          .ls-reviews-more {
-            display: flex; align-items: center; justify-content: center;
-            margin: 20px auto 0; min-height: 48px; padding: 0 26px;
-            border-radius: 999px; border: 1px solid rgba(154,126,230,0.44);
-            background: linear-gradient(180deg, rgba(124,92,214,0.2), rgba(124,92,214,0.08));
-            color: ${C.cream}; font-family: "Newsreader", Georgia, serif;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-          }
+        /* ── the drift: two counter-moving rows, full-bleed, pausable ── */
+        .ls-drift-wrap { position: relative; display: none; }
+        .ls-drift-pause {
+          position: absolute; top: -52px; right: 20px; z-index: 2;
+          width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          border: 1px solid rgba(154,126,230,0.44); background: rgba(124,92,214,0.12);
         }
-        @media (min-width: 640px) {
-          .ls-reviews-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+        .ls-drift-pause:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
+        .ls-drift-pause svg { position: absolute; width: 15px; height: 15px; fill: ${C.creamDim}; transition: opacity 150ms cubic-bezier(0.22, 0.7, 0.2, 1); }
+        .ls-dp-play { opacity: 0; }
+        .ls-drift-wrap.is-paused .ls-dp-play { opacity: 1; }
+        .ls-drift-wrap.is-paused .ls-dp-pause { opacity: 0; }
+        .ls-drift-vp {
+          position: relative; width: 100vw; margin-inline: calc(50% - 50vw); overflow: hidden;
+          -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
         }
+        .ls-drift-vp + .ls-drift-vp { margin-top: 20px; }
+        .ls-drift-vp.ls-reveal {
+          transform: translate3d(0, 10px, 0);
+          transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          transition-delay: var(--ls-delay, 0s);
+        }
+        .ls-drift-vp.ls-reveal.is-in { transform: translate3d(0, 0, 0); }
+        .ls-drift-track { display: flex; width: max-content; will-change: transform; padding: 6px 0 10px; }
+        .ls-drift-set { list-style: none; margin: 0; padding: 0 18px 0 0; display: flex; gap: 18px; align-items: flex-start; }
+        .ls-drift-set .ls-rev { width: 400px; }
+        @keyframes lsDrift { to { transform: translateX(-50%); } }
+        .ls-drift-vp.is-a .ls-drift-track { animation: lsDrift 60s linear infinite; }
+        .ls-drift-vp.is-b .ls-drift-track { animation: lsDrift 75s linear infinite reverse; }
+        .ls-drift-vp:hover .ls-drift-track,
+        .ls-drift-vp:focus-within .ls-drift-track,
+        .ls-drift-wrap.is-paused .ls-drift-track,
+        .ls-drift-track.has-open { animation-play-state: paused; }
+
+        /* ── mobile snap strip: user-driven, no auto-motion ── */
+        .ls-strip {
+          list-style: none; margin: 0; padding: 6px 20px 10px; display: flex; gap: 12px;
+          width: 100vw; margin-inline: calc(50% - 50vw);
+          overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px;
+          overscroll-behavior-x: contain; scrollbar-width: none;
+          -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%);
+        }
+        .ls-strip::-webkit-scrollbar { display: none; }
+        .ls-strip .ls-rev { width: 82vw; max-width: 360px; scroll-snap-align: start; }
+        .ls-strip-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+        .ls-strip-dot {
+          width: 6px; height: 6px; border-radius: 999px; background: rgba(196,190,220,0.28);
+          transition: transform 200ms cubic-bezier(0.22, 0.7, 0.2, 1), background 200ms cubic-bezier(0.22, 0.7, 0.2, 1);
+        }
+        .ls-strip-dot.is-on { background: ${C.violetBright}; transform: scale(1.3); }
         @media (min-width: 768px) {
-          .ls-rev-fig { padding: 26px 24px 24px; }
-          .ls-rev-ph { width: 62px; height: 62px; }
-          .ls-rev-quote { font-size: 1.06rem; }
-        }
-        @media (min-width: 1024px) {
-          .ls-reviews-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+          .ls-drift-wrap { display: block; }
+          .ls-strip, .ls-strip-dots { display: none; }
         }
 
-        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
+        .ls-reviews-pull { margin: clamp(36px, 5vw, 56px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
+
+        /* ── REDUCED MOTION: the rest state IS the finished composition.
+             Drift becomes a static wrapped grid inside the rail. ── */
+        @media (prefers-reduced-motion: reduce) {
+          .ls-drift-pause { display: none; }
+          .ls-drift-vp { width: auto; margin-inline: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+          .ls-drift-vp + .ls-drift-vp { margin-top: 18px; }
+          .ls-drift-track { animation: none !important; display: block; width: auto; padding: 0; }
+          .ls-drift-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0; }
+          .ls-drift-set[aria-hidden="true"] { display: none; }
+          .ls-drift-set .ls-rev { width: auto; }
+          .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
+          .ls-rev-body, .ls-rev-fig, .ls-rev-fig::before, .ls-strip-dot { transition: none; }
+        }
+        @media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
+          .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+        /* .is-static mirror (same rest-state law, togglable in code) */
+        .ls-reviews.is-static .ls-drift-pause { display: none; }
+        .ls-reviews.is-static .ls-drift-vp { width: auto; margin-inline: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+        .ls-reviews.is-static .ls-drift-track { animation: none !important; display: block; width: auto; padding: 0; }
+        .ls-reviews.is-static .ls-drift-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0; }
+        .ls-reviews.is-static .ls-drift-set[aria-hidden="true"] { display: none; }
+        .ls-reviews.is-static .ls-drift-set .ls-rev { width: auto; }
+        .ls-reviews.is-static .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
+        @media (min-width: 1024px) {
+          .ls-reviews.is-static .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        /* ==== TYPE FLOORS - tuned per viewport (2026-07-14; wall rebuild 2026-07-16) ====
+           Drift/strip card quotes deliberately HOLD 18px at every width (no
+           19px 1280 bump: the spotlight carries the large voice). */
         .ls-reviews-eyebrow { font-size: 14px; }
         .ls-rev-quote { font-size: 18px; }
-        .ls-rev-label { font-size: 18px; }
         .ls-rev-more { font-size: 18px; }
-        .ls-reviews-more { font-size: 18px; }
         .ls-reviews-pull { font-size: 18px; }
+        .ls-spot-quote { font-size: clamp(18.5px, 4.9vw, 20.8px); }
         @media (min-width: 768px) {
           .ls-reviews-eyebrow { font-size: 14.5px; }
-          .ls-rev-quote, .ls-reviews-pull { font-size: 18.5px; }
+          .ls-reviews-pull { font-size: 18.5px; }
+          .ls-spot-quote { font-size: clamp(19.5px, 2vw, 24px); }
         }
         @media (min-width: 1280px) {
           .ls-reviews-eyebrow { font-size: 15px; }
-          .ls-rev-quote { font-size: 19px; }
           .ls-reviews-pull { font-size: 19.5px; }
-          .ls-reviews-more { font-size: 19px; }
         }
       `}</style>
     </section>
