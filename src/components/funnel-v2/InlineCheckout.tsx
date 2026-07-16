@@ -1192,7 +1192,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
   if (visualMode === "cosmic") {
     return (
-      <section ref={sectionRef} id="checkout" className="cosmic-checkout">
+      <section ref={sectionRef} id="checkout" className={`cosmic-checkout${memorialOnly ? " is-memorial" : ""}`}>
         <style>{`
           .cosmic-checkout {
             position: relative;
@@ -1620,7 +1620,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             display: flex; gap: 3px;
             min-height: 0 !important; border-radius: 0 !important; box-shadow: none !important;
           }
-          .cosmic-mem-stars svg { width: 13px; height: 13px; fill: #b9a5f0; display: block; }
+          /* STAR GOLD — Danny's ONE gold exception (2026-07-16). Review-star
+             FILLS + their drop-shadow only; never borders, text, CTAs, or
+             engraving. Same recipe as dsr-stargold / ls-star-gold. */
+          .cosmic-mem-stars svg { width: 13px; height: 13px; fill: url(#cosmic-mem-stargold); display: block;
+            filter: drop-shadow(0 0 4px rgba(196,162,101,0.28)); }
           .cosmic-mem-review blockquote {
             margin: 0;
             color: #d9d3e6;
@@ -1884,6 +1888,109 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             }
           }
 
+          /* ── MEMORIAL RE-SKIN (2026-07-16, funnel registers rule) ─────────
+             The memorial register re-surfaces the order panel in the funnel's
+             structural panel language — the settled DossierCheckout recipe:
+             linear-gradient(180deg,#181226,#140f1e) surface + mask-composite
+             gradient hairline border. Presentation only; state, copy and
+             payment logic untouched. No dossier artifacts here: no seals,
+             locks, counts, was-price, or urgency. Static composition at
+             rest — nothing below animates, so reduced-motion needs no
+             extra override. */
+          .cosmic-checkout.is-memorial .cosmic-order-panel {
+            border: 0;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #181226 0%, #140f1e 100%);
+            box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 24px 70px rgba(0,0,0,.5);
+          }
+          .cosmic-checkout.is-memorial .cosmic-order-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            pointer-events: none;
+            background: linear-gradient(165deg, rgba(185,165,240,.55) 0%, rgba(154,126,230,.18) 30%, rgba(139,123,216,.14) 55%, rgba(154,126,230,.60) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+          }
+          /* "IN LOVING MEMORY" leaves its floating pill and is inscribed
+             into the tier card's top hairline: centered small caps clipping
+             the border on the night-sky ground. No fill, no shadow. */
+          .cosmic-tier.is-memorial .cosmic-tier-badge {
+            top: 0;
+            left: 50%;
+            right: auto;
+            transform: translate(-50%, -50%);
+            border-radius: 0;
+            background: #0d0a14;
+            color: #b3a7e0;
+            padding: 0 12px;
+            font-family: "Newsreader", Georgia, serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            box-shadow: none;
+            white-space: nowrap;
+          }
+          /* Single-reading collapse: the "x 1" ledger rows become one quiet
+             centered price moment. Same words, restaged. */
+          .cosmic-checkout.is-memorial .cosmic-mini-label { text-align: center; }
+          .cosmic-mem-price-moment { padding: 14px 0 8px; text-align: center; }
+          .cosmic-mem-price-moment .nm {
+            margin: 0;
+            color: #ececf2;
+            font-family: "Fraunces", Georgia, serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 20px;
+            line-height: 1.3;
+          }
+          .cosmic-mem-price-moment .amt {
+            display: block;
+            margin: 6px 0 0;
+            color: #ffffff;
+            font-family: "Fraunces", Georgia, serif;
+            font-weight: 600;
+            font-size: 44px;
+            line-height: 1.05;
+          }
+          .cosmic-mem-price-moment .sub {
+            display: block;
+            margin: 10px 0 0;
+            color: #b3a7e0;
+            font-family: "Newsreader", Georgia, serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+          }
+          /* Trust marks: whole units on one line each, never mid-label wraps. */
+          .cosmic-checkout.is-memorial .cosmic-trust-band .cosmic-proof {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px 18px;
+          }
+          .cosmic-checkout.is-memorial .cosmic-trust-band .cosmic-proof span {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            white-space: nowrap;
+          }
+          /* Payment tray balanced 3+3 — no orphan chip. */
+          .cosmic-checkout.is-memorial .cosmic-pay-tray > div {
+            display: grid;
+            grid-template-columns: repeat(3, auto);
+            justify-content: center;
+            justify-items: center;
+            gap: 8px 10px;
+          }
+
           /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
           .cosmic-checkout-kicker, .cosmic-mini-label { font-size: 14px; }
           .cosmic-tier-badge { font-size: 14px; }
@@ -1934,6 +2041,19 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             .cosmic-preview-panel p { font-size: 19px; }
           }
         `}</style>
+
+        {/* STAR GOLD gradient — the one gold exception, star fills only.
+            Stops #e8cf8f / #c4a265 / #9a7b4f, anchored on the approved
+            email gold #c4a265. Mirrors dsr-stargold in DossierCheckout. */}
+        <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+          <defs>
+            <linearGradient id="cosmic-mem-stargold" x1="0" y1="0" x2="0.052" y2="1">
+              <stop offset="0" stopColor="#e8cf8f" />
+              <stop offset=".55" stopColor="#c4a265" />
+              <stop offset="1" stopColor="#9a7b4f" />
+            </linearGradient>
+          </defs>
+        </svg>
 
         <div className="cosmic-checkout-shell">
           <div className="cosmic-checkout-copy">
@@ -2008,40 +2128,53 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
           <aside className="cosmic-order-panel" aria-label="Order summary">
             <p className="cosmic-mini-label">Your reading</p>
-            {basicQty > 0 && (
-              <div className="cosmic-order-row">
-                <span>Soul Reading x {basicQty}</span>
-                <strong>{fmt(basicQty * basicPrice)}</strong>
+            {memorialOnly && memorialQty === 1 && basicQty === 0 && premiumQty === 0 && discountRate === 0 && !appliedCoupon ? (
+              /* Single-reading memorial: the "x 1" ledger rows collapse into
+                 one quiet centered price moment — same words, restaged.
+                 Multi-pet or coupon carts fall back to the itemised rows. */
+              <div className="cosmic-mem-price-moment">
+                <p className="nm">Memorial Reading</p>
+                <strong className="amt">{fmt(finalPrice + charityBonus * 100)}</strong>
+                <span className="sub">Total today</span>
               </div>
+            ) : (
+              <>
+                {basicQty > 0 && (
+                  <div className="cosmic-order-row">
+                    <span>Soul Reading x {basicQty}</span>
+                    <strong>{fmt(basicQty * basicPrice)}</strong>
+                  </div>
+                )}
+                {premiumQty > 0 && (
+                  <div className="cosmic-order-row">
+                    <span>Soul Bond x {premiumQty}</span>
+                    <strong>{fmt(premiumQty * premiumPrice)}</strong>
+                  </div>
+                )}
+                {memorialQty > 0 && (
+                  <div className="cosmic-order-row">
+                    <span>Memorial Reading x {memorialQty}</span>
+                    <strong>{fmt(memorialQty * memorialPrice)}</strong>
+                  </div>
+                )}
+                {discountRate > 0 && (
+                  <div className="cosmic-order-row">
+                    <span>Multi-pet saving</span>
+                    <strong>-{fmt(volumeDiscountAmount)}</strong>
+                  </div>
+                )}
+                {appliedCoupon && (
+                  <div className="cosmic-order-row">
+                    <span>Code {appliedCoupon.code}</span>
+                    <strong>-{fmt(couponDiscountAmount)}</strong>
+                  </div>
+                )}
+                <div className="cosmic-total-row">
+                  <span>Total today</span>
+                  <strong>{fmt(finalPrice + charityBonus * 100)}</strong>
+                </div>
+              </>
             )}
-            {premiumQty > 0 && (
-              <div className="cosmic-order-row">
-                <span>Soul Bond x {premiumQty}</span>
-                <strong>{fmt(premiumQty * premiumPrice)}</strong>
-              </div>
-            )}
-            {memorialQty > 0 && (
-              <div className="cosmic-order-row">
-                <span>Memorial Reading x {memorialQty}</span>
-                <strong>{fmt(memorialQty * memorialPrice)}</strong>
-              </div>
-            )}
-            {discountRate > 0 && (
-              <div className="cosmic-order-row">
-                <span>Multi-pet saving</span>
-                <strong>-{fmt(volumeDiscountAmount)}</strong>
-              </div>
-            )}
-            {appliedCoupon && (
-              <div className="cosmic-order-row">
-                <span>Code {appliedCoupon.code}</span>
-                <strong>-{fmt(couponDiscountAmount)}</strong>
-              </div>
-            )}
-            <div className="cosmic-total-row">
-              <span>Total today</span>
-              <strong>{fmt(finalPrice + charityBonus * 100)}</strong>
-            </div>
 
             {!codeOpen && !appliedCoupon && (
               <button type="button" className="cosmic-code-button" onClick={() => setCodeOpen(true)}>
