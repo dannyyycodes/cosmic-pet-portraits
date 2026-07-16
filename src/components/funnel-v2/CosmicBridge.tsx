@@ -21,8 +21,8 @@ gsap.registerPlugin(ScrollTrigger);
      PIVOT                — personality / placements: the brightened
                             stars gain hairline crosshairs + real degree
                             labels (geometry arriving IS the break)
-     B3  the birth sky    — the thread bends INTO the natal wheel and
-                            becomes its outer ring; the degree labels
+     B3  the birth sky    — the natal wheel draws its own outer ring while
+                            the thread passes plumb on its left; the labels
                             glide in as Venus/Sun/Moon; the real moon
                             joins the wheel's Moon by a drawn hairline;
                             ONE scripted meteor on the verdict line
@@ -998,7 +998,6 @@ export function CosmicBridge() {
     const getCard = () => document.querySelector<HTMLElement>(".ls-seal-card");
 
     let totalLen = 0, spineLen = 0, hasCard = false;
-    let threadEntryLen = 0; // where the thread hands off to the wheel's ring
     let nodeLens: number[] = [];
     let colTopAbs = 0;
     let lastStructure = "";
@@ -1051,15 +1050,15 @@ export function CosmicBridge() {
       });
     };
 
-    /* Direction A B4: a 12px traveling highlight runs the remaining spine
-       from the wheel's exit to the CTA node over 0.8s - then it lights */
+    /* Direction A B4: a 12px traveling highlight runs the last stretch of
+       spine into the CTA node over 0.8s - then it lights */
     let runnerT0 = 0, runFrom = 0, runTo = 0, ctaLit = false, runnerFired = false;
     const startRunner = () => {
       if (runnerFired) return;
       runnerFired = true;
       if (reduced || !runnerEl || !totalLen || !nodeLens.length) { ctaLit = true; return; }
       const target = nodeLens[nodeLens.length - 1];
-      runFrom = threadEntryLen > 0 ? Math.min(threadEntryLen, target) : Math.max(0, target - 420);
+      runFrom = Math.max(0, target - 420);
       runTo = Math.max(runFrom, target - 12);
       runnerEl.style.strokeDasharray = `12 ${Math.ceil(totalLen) + 20}`;
       runnerT0 = performance.now();
@@ -1151,37 +1150,16 @@ export function CosmicBridge() {
         nodeYs.push(p.y);
       });
 
-      /* Direction A: the plumb spine bends INTO the wheel at 12 o'clock,
-         hands off to the outer ring (which draws from that junction), then
-         resumes at the wheel's bottom point and falls back to the spine.
-         Everywhere else the thread is a dead-straight plumb line (S2). */
-      const wheelEl = q<HTMLElement>(".c2-wheel");
-      let wIn: Pt | null = null, wOut: Pt | null = null;
-      if (moonSec && wheelEl) {
-        const ww = wheelEl.offsetWidth;
-        const wx = (moonSec as HTMLElement).offsetLeft + wheelEl.offsetLeft + ww / 2;
-        const wy0 = (moonSec as HTMLElement).offsetTop + wheelEl.offsetTop;
-        wIn = { x: wx, y: wy0 + ww * (6 / 320) };
-        wOut = { x: wx, y: wy0 + ww * (314 / 320) };
-      }
-
-      threadEntryLen = 0;
+      /* The thread stays a dead-straight plumb line the whole way down (S2).
+         It used to swing right and hand off to the wheel's outer ring at 12
+         o'clock, but the wheel sits ~370px off the spine, so a tangent
+         arrival ran the thread near-parallel to the ring for ~120px at BOTH
+         junctions: it read as a stray line skimming the chart rather than
+         becoming it. The wheel now stands as its own object and draws its
+         own ring; the thread simply passes it on the left. */
       let prev = pts[0];
-      let wheelDone = false;
       for (let i = 1; i < pts.length; i++) {
         const p = pts[i];
-        if (wIn && wOut && !wheelDone && p.y > wIn.y) {
-          const bendX = Math.min(120, Math.max(40, (wIn.x - sx) * 0.55));
-          d += ` C ${sx} ${(prev.y + (wIn.y - prev.y) * 0.55).toFixed(1)}, ${(wIn.x - bendX).toFixed(1)} ${wIn.y.toFixed(1)}, ${wIn.x.toFixed(1)} ${wIn.y.toFixed(1)}`;
-          const probeIn = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          probeIn.setAttribute("d", d);
-          threadEntryLen = probeIn.getTotalLength();
-          const dropY = Math.min(p.y - 24, wOut.y + 130);
-          d += ` M ${wOut.x.toFixed(1)} ${wOut.y.toFixed(1)}` +
-            ` C ${(wOut.x - bendX).toFixed(1)} ${(wOut.y + 12).toFixed(1)}, ${sx} ${(wOut.y + 34).toFixed(1)}, ${sx} ${dropY.toFixed(1)}`;
-          prev = { x: sx, y: dropY };
-          wheelDone = true;
-        }
         d += ` L ${p.x} ${p.y}`;
         prev = p;
       }
@@ -1604,8 +1582,7 @@ export function CosmicBridge() {
                   <path key={i} className={s.dim ? "wfill b" : "wfill a"} d={s.d} />
                 ))}
               </g>
-              {/* outer ring drawn as a path from 12 o'clock - the junction
-                  where the thread hands off; the line becomes the ring */}
+              {/* outer ring drawn as a path from 12 o'clock, clockwise */}
               <path className="wring-a" d="M160,6 A154,154 0 1 1 160,314 A154,154 0 1 1 160,6" />
               <circle className="wring-b" cx="160" cy="160" r="123" />
               <circle className="wring-c" cx="160" cy="160" r="38" />
