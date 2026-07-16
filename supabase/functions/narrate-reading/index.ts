@@ -8,6 +8,9 @@ import { checkRateLimit, getClientIp } from "../_shared/rate-limit.ts";
 // The box content-hash caches every segment, so repeats are instant + free.
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+// Vercel preview builds (littlesouls-app-git-<branch>-...vercel.app) are allowed too
+// so the voice works on preview links before they reach production.
+const VERCEL_PREVIEW = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
 
 const NARRATE_URL = "https://content.littlesouls.app/narrate";
 const MAX_SEGMENTS = 60;
@@ -15,11 +18,16 @@ const MAX_TOTAL_CHARS = 24000;   // whole free reading is well under this
 const RATE_LIMIT_COUNT = 40;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
+function isAllowedOrigin(origin: string) {
+  return ALLOWED_ORIGINS.includes(origin) || VERCEL_PREVIEW.test(origin);
+}
+
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
   return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Origin": isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0],
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
   };
 }
 
