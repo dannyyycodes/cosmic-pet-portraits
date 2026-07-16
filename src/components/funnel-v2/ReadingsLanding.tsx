@@ -60,7 +60,47 @@ const C = {
   cosmos3: "#201722",
   line: "rgba(154, 126, 230, 0.22)",
   lineSoft: "rgba(237, 233, 247, 0.10)",
+  // STAR GOLD — Danny's ONE gold exception (approved 2026-07-16).
+  // Scope: review-star FILLS and their drop-shadow ONLY. Never borders,
+  // never text, never CTAs, never engraving chrome. Anchored on the
+  // already-approved email gold #c4a265. Off/empty stars stay muted violet.
+  starGoldHi: "#e8cf8f",
+  starGoldMid: "#c4a265",
+  starGoldLo: "#9a7b4f",
+  starGoldGlow: "rgba(196, 162, 101, 0.28)",
 };
+
+/* ── SHARED SYSTEM (funnel-wide law, synth 2026-07-16) ─────────────────────
+ * EASINGS — exactly three tokens, nothing else (linear only for ambient
+ * drift/orbit):
+ *   --ease-stage  cubic-bezier(0.22, 0.7, 0.2, 1)   staggers / pops / hovers
+ *   --ease-settle cubic-bezier(0.16, 1, 0.3, 1)     arrivals / reveals / price-settle
+ *   --ease-draw   cubic-bezier(0.4, 0, 0.2, 1)      stroke-dash + scaleX/Y draws
+ *
+ * HAIRLINE — the only divider language. 1px gradient:
+ *   linear-gradient(90deg, transparent, rgba(154,126,230,0.22) 20%,
+ *     rgba(154,126,230,0.22) 80%, transparent)
+ *   bright variant rgba(185,165,240,0.35) for lit moments only
+ *   (horizon, spotlight divider, seal bars).
+ *
+ * SMALLCAPS — two tiers only, all other tracking values normalize into them:
+ *   LABEL  12.5-15px  Newsreader 600  letter-spacing 0.18em
+ *   TAG    10-11.5px                  letter-spacing 0.22em
+ *
+ * SURFACES — three levels only, no fourth skin may be invented:
+ *   sky    raw #0d0a14 with grain/wash (deck cards, sealed doors,
+ *          spotlight review, rising, close)
+ *   glass  linear-gradient(rgba(124,92,214,0.13), rgba(124,92,214,0.05))
+ *          over #15101c + gradient border (drift review cards, Soul Bond bump)
+ *   panel  linear-gradient(180deg, #181226, #140f1e) + mask-composite
+ *          gradient hairline border (ledger card, checkout seal panel,
+ *          memorial order panel)
+ *
+ * MOTION VERBS — four only: DRAW, SEAT, BREATHE, GLINT.
+ * REDUCED-MOTION LAW — rest state IS the finished composition; every
+ * animated class ships .is-static + prefers-reduced-motion overrides
+ * in the same edit.
+ * ─────────────────────────────────────────────────────────────────────── */
 
 const PLACEHOLDERS = [
   {
@@ -3297,6 +3337,16 @@ const REST_SKY: RestBody[] = [
     memHook: "The note in them nothing tamed. The part no routine ever fully settled, and you never wanted it to.",
   },
 ];
+
+/* THIRTEEN_ORDER — the single canonical ring order for every thirteen-body
+ * motif (rest-close ring, keepsake wheel, checkout wheel). Free five in
+ * chart order, then the eight in REST_SKY door-descent order. Angle step
+ * is 360/13 = 27.6923deg clockwise from 12 o'clock, everywhere. Never
+ * define a second order. (synth 2026-07-16) */
+const THIRTEEN_ORDER = [
+  "sun", "moon", "mercury", "venus", "mars",
+  ...REST_SKY.map((b) => b.key),
+] as const;
 
 function RestLock() {
   return (

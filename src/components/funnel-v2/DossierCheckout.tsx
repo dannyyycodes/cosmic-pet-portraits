@@ -892,6 +892,15 @@ function DossierStyles(): ReactNode {
         --dsr-gold-sheen:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.35) 50%,transparent 58%);
         --dsr-violet-100:#e8e4f6; --dsr-violet-200:#cfc7ec; --dsr-violet-300:#b3a7e0;
         --dsr-violet-400:#9b8fd0; --dsr-violet-500:#8b7bd8; --dsr-violet-600:#6f62a8;
+        /* STAR GOLD — Danny's ONE gold exception (approved 2026-07-16).
+           Scope: review-star FILLS + their drop-shadow ONLY. Never borders,
+           text, CTAs, or engraving. Anchored on approved email gold #c4a265.
+           Off/empty stars stay muted violet. Mirrors C.starGold* in
+           ReadingsLanding.tsx. */
+        --dsr-star-gold-hi:#e8cf8f;
+        --dsr-star-gold-mid:#c4a265;
+        --dsr-star-gold-lo:#9a7b4f;
+        --dsr-star-gold-glow:rgba(196,162,101,0.28);
         --dsr-cream:#ffffff; --dsr-cream-dim:#c6c0d8;
         --dsr-surface-1:#140f1e; --dsr-surface-2:#181226; --dsr-surface-3:#1f1830;
         --dsr-ease:cubic-bezier(.16,1,.3,1);
