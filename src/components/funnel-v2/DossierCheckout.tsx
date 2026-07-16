@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SIGN_LINES } from "./signLines";
+import { THIRTEEN_ORDER } from "./ReadingsLanding";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -68,26 +69,43 @@ export interface DossierCheckoutProps {
 }
 
 /* ── one data source drives the wheel AND the locked rows ──
- * angle: degrees clockwise from the top of the wheel.
- * The ledger is the free deck's (freeDeck.ts TEASE): five placements given
- * (Sun, Moon, Venus, Mercury, Mars), eight still dark in the deck's exact
- * order and words. The rising is NOT one of the thirteen — it renders as the
- * honest italic line below the rows, same as FullReadingOpens. */
-const PLACEMENTS = [
-  { ico: "g-sun", name: "Sun", frame: "Who they are at the centre.", lit: true, a: 25 },
-  { ico: "g-moon", name: "Moon", frame: "How they feel, and what soothes them.", lit: true, a: 232 },
-  { ico: "g-venus", name: "Venus", frame: "How they love.", lit: true, a: 68 },
-  { ico: "g-mercury", name: "Mercury", frame: "How they read you.", lit: true, a: 47 },
-  { ico: "g-mars", name: "Mars", frame: "What they chase, and why.", lit: true, a: 301 },
-  { ico: "g-saturn", name: "Saturn", frame: "What they fear, and what steadies them.", lit: false, a: 160 },
-  { ico: "g-chiron", name: "Chiron", frame: "What they carry from before you.", lit: false, a: 251 },
-  { ico: "g-jupiter", name: "Jupiter", frame: "Where their joy lives.", lit: false, a: 198 },
-  { ico: "g-pluto", name: "Pluto", frame: "Who they never quite forgive.", lit: false, a: 137 },
-  { ico: "g-node", name: "North Node", frame: "The job they came to do.", lit: false, a: 330 },
-  { ico: "g-uranus", name: "Uranus", frame: "The strange streak.", lit: false, a: 95 },
-  { ico: "g-neptune", name: "Neptune", frame: "The dreaming.", lit: false, a: 116 },
-  { ico: "g-lilith", name: "Lilith", frame: "The wild streak.", lit: false, a: 270 },
-] as const;
+ * Ring order + angles consume THIRTEEN_ORDER (ReadingsLanding — the single
+ * canonical thirteen-body order, synth 2026-07-16): free five in chart
+ * order, then the eight in door-descent order. Angle step 360/13 =
+ * 27.6923deg clockwise from 12 o'clock, same as the rest-close ring and
+ * the keepsake wheel. Metadata below is keyed by those keys.
+ * The ledger is the free deck's (freeDeck.ts TEASE): five placements given,
+ * eight still dark in the deck's exact words. The rising is NOT one of the
+ * thirteen — it renders as the honest italic line below the rows, same as
+ * FullReadingOpens. */
+type PlacementMeta = { ico: string; name: string; frame: string; lit: boolean };
+const PLACEMENT_META: Record<string, PlacementMeta> = {
+  sun: { ico: "g-sun", name: "Sun", frame: "Who they are at the centre.", lit: true },
+  moon: { ico: "g-moon", name: "Moon", frame: "How they feel, and what soothes them.", lit: true },
+  mercury: { ico: "g-mercury", name: "Mercury", frame: "How they read you.", lit: true },
+  venus: { ico: "g-venus", name: "Venus", frame: "How they love.", lit: true },
+  mars: { ico: "g-mars", name: "Mars", frame: "What they chase, and why.", lit: true },
+  saturn: { ico: "g-saturn", name: "Saturn", frame: "What they fear, and what steadies them.", lit: false },
+  chiron: { ico: "g-chiron", name: "Chiron", frame: "What they carry from before you.", lit: false },
+  jupiter: { ico: "g-jupiter", name: "Jupiter", frame: "Where their joy lives.", lit: false },
+  pluto: { ico: "g-pluto", name: "Pluto", frame: "Who they never quite forgive.", lit: false },
+  northNode: { ico: "g-node", name: "North Node", frame: "The job they came to do.", lit: false },
+  uranus: { ico: "g-uranus", name: "Uranus", frame: "The strange streak.", lit: false },
+  neptune: { ico: "g-neptune", name: "Neptune", frame: "The dreaming.", lit: false },
+  lilith: { ico: "g-lilith", name: "Lilith", frame: "The wild streak.", lit: false },
+};
+const THIRTEEN_STEP = 360 / 13;
+type Placement = PlacementMeta & { a: number };
+let placementsCache: Placement[] | null = null;
+/** Lazy on purpose: DossierCheckout sits inside the ReadingsLanding →
+ * InlineCheckout → DossierCheckout import cycle, so THIRTEEN_ORDER must
+ * never be dereferenced at module-eval time (TDZ). First render is fine. */
+function getPlacements(): Placement[] {
+  if (!placementsCache) {
+    placementsCache = THIRTEEN_ORDER.map((k, i) => ({ ...PLACEMENT_META[k], a: i * THIRTEEN_STEP }));
+  }
+  return placementsCache;
+}
 
 const CX = 170;
 const CY = 170;
@@ -326,27 +344,97 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         scrollTrigger: { trigger: el, start: "top 98%", end: "top 52%", scrub: 1 },
       }
     );
+    /* the evidence/seal grid changes this section's height on desktop —
+       re-measure every trigger on the page against the final layout */
+    const refreshT = window.setTimeout(() => ScrollTrigger.refresh(), 150);
     return () => {
+      window.clearTimeout(refreshT);
       tween.scrollTrigger?.kill();
       tween.kill();
     };
   }, [reduce]);
 
-  /* kicker flash when a locked row is tapped */
+  /* kicker flash when a locked row is tapped.
+     Desktop (>=1024px): the seal panel's price is already on screen, so the
+     tap never scrolls — the price moment takes one soft pulse instead.
+     Mobile keeps the smooth scroll to the price. Both echo the tap on the
+     wheel: the matching dim glyph pulses once (600ms). Reduced motion:
+     kicker text change only (aria-live announces). */
   const kickerHome = petName
     ? `How deeply do you want to know ${petName}?`
     : "How deeply do you want to know them?";
   const [kicker, setKicker] = useState<string | null>(null);
   const kickerTimer = useRef<number | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const priceRowRef = useRef<HTMLDivElement>(null);
   const flashPlacement = useCallback((name: string) => {
     setKicker(petName ? `${petName}. ${name} still unread.` : `${name}. Still unread.`);
     if (kickerTimer.current) window.clearTimeout(kickerTimer.current);
     kickerTimer.current = window.setTimeout(() => setKicker(null), 1800);
-    priceRowRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    if (!reduce) {
+      const glyph = rootRef.current?.querySelector(`[data-glyph="${name}"]`);
+      if (glyph) {
+        glyph.classList.remove("echo");
+        // restart the one-shot animation on repeat taps
+        window.requestAnimationFrame(() => glyph.classList.add("echo"));
+        window.setTimeout(() => glyph.classList.remove("echo"), 700);
+      }
+    }
+    const desktop = typeof window !== "undefined" && window.matchMedia("(min-width:1024px)").matches;
+    if (desktop) {
+      const row = priceRowRef.current;
+      if (row && !reduce) {
+        row.classList.remove("pulse");
+        window.requestAnimationFrame(() => row.classList.add("pulse"));
+        window.setTimeout(() => row.classList.remove("pulse"), 700);
+      }
+    } else {
+      priceRowRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    }
     onTrack("v2_dossier_row_tapped", { placement: name });
   }, [petName, reduce, onTrack]);
   useEffect(() => () => { if (kickerTimer.current) window.clearTimeout(kickerTimer.current); }, []);
+
+  /* PRICE SETTLE — once, when the price moment is 60% on screen: the
+     was-price strike draws left→right, then the price blooms in. Latched
+     via data-settled so it never replays. The CTA's gold-thread swell only
+     begins AFTER the settle completes: the page's last moving light follows
+     the number, never precedes it. Reduced motion: settled at rest. */
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (settled) return;
+    const el = priceRowRef.current;
+    if (!el) return;
+    if (reduce || !("IntersectionObserver" in window)) { setSettled(true); return; }
+    const io = new IntersectionObserver(
+      ([en]) => { if (en.isIntersecting) { setSettled(true); io.disconnect(); } },
+      { threshold: 0.6 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduce, settled]);
+  const [thread, setThread] = useState(false);
+  useEffect(() => {
+    if (!settled) return;
+    if (reduce) { setThread(true); return; }
+    const t = window.setTimeout(() => setThread(true), 900); // strike 420ms + bloom 480ms
+    return () => window.clearTimeout(t);
+  }, [settled, reduce]);
+
+  /* seal panel entrance (desktop, once): rises 18px as the section enters */
+  const sealRef = useRef<HTMLElement>(null);
+  const [sealIn, setSealIn] = useState(false);
+  useEffect(() => {
+    const el = sealRef.current;
+    if (!el) return;
+    if (reduce || !("IntersectionObserver" in window)) { setSealIn(true); return; }
+    const io = new IntersectionObserver(
+      ([en]) => { if (en.isIntersecting) { setSealIn(true); io.disconnect(); } },
+      { rootMargin: "0px 0px -15% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduce]);
 
   /* price roll (29 → 49) when Soul Bond toggles */
   const [nowShown, setNowShown] = useState(unitNow);
@@ -371,22 +459,43 @@ export function DossierCheckout(props: DossierCheckoutProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unitNow, unitWas, reduce]);
 
-  /* sticky bottom bar: shows once the main CTA has scrolled OFF THE TOP —
-     never earlier, so no price bar hovers over the reveal above. */
+  /* sticky bottom bar (mobile only, <1024px — desktop's sticky seal panel
+     already keeps price + button on screen): shows WHILE INSIDE the section
+     with the real CTA out of view — dossier card scrolled past the top,
+     section bottom still below the fold — and hides the moment the real
+     CTA enters. */
   const ctaRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (emailEditing) emailRef.current?.focus({ preventScroll: true });
   }, [emailEditing]);
   const [stickyOn, setStickyOn] = useState(false);
   useEffect(() => {
-    const el = ctaRef.current;
-    if (!el || !("IntersectionObserver" in window)) return;
-    const io = new IntersectionObserver(([en]) => {
-      setStickyOn(!en.isIntersecting && en.boundingClientRect.top < 0);
-    }, { threshold: 0 });
-    io.observe(el);
-    return () => io.disconnect();
+    const cta = ctaRef.current;
+    const card = cardRef.current;
+    const root = rootRef.current;
+    if (!cta || !card || !root) return;
+    let ctaVis = false;
+    const update = () => {
+      if (!window.matchMedia("(max-width:1023px)").matches) { setStickyOn(false); return; }
+      const cardTop = card.getBoundingClientRect().top;
+      const rootBottom = root.getBoundingClientRect().bottom;
+      setStickyOn(!ctaVis && cardTop < 0 && rootBottom > window.innerHeight);
+    };
+    let io: IntersectionObserver | null = null;
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(([en]) => { ctaVis = en.isIntersecting; update(); }, { threshold: 0 });
+      io.observe(cta);
+    }
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+    return () => {
+      io?.disconnect();
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
   const stickyCheckout = () => {
     if (!email.trim() || !email.includes("@")) {
@@ -402,7 +511,8 @@ export function DossierCheckout(props: DossierCheckoutProps) {
     onTrack("v2_dossier_bond_toggled", { bond: checked, qty });
   };
 
-  /* wheel geometry (memoised — pure trig) */
+  /* wheel geometry (memoised — pure trig, THIRTEEN_ORDER angles) */
+  const placements = getPlacements();
   const wheel = useMemo(() => {
     const ticks: { x1: number; y1: number; x2: number; y2: number; cusp: boolean }[] = [];
     for (let d = 0; d < 360; d += 5) {
@@ -410,22 +520,22 @@ export function DossierCheckout(props: DossierCheckoutProps) {
       const p1 = pt(d, 128), p2 = pt(d, cusp ? 120 : 124);
       ticks.push({ x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], cusp });
     }
-    const litPts = PLACEMENTS.filter((p) => p.lit).map((p) => pt(p.a, 90));
+    const litPts = placements.filter((p) => p.lit).map((p) => pt(p.a, 90));
     const chords = litPts.map((a, i) => {
       const b = litPts[(i + 1) % litPts.length];
       return { x1: a[0], y1: a[1], x2: b[0], y2: b[1] };
     });
-    const glyphs = PLACEMENTS.map((p, idx) => {
+    const glyphs = placements.map((p, idx) => {
       const g = pt(p.a, 111);
       const l = pt(p.a, 143);
       const lrad = ((p.a - 90) * Math.PI) / 180;
       const cosA = Math.cos(lrad), sinA = Math.sin(lrad);
-      const anchor = cosA > 0.35 ? "start" : cosA < -0.35 ? "end" : "middle";
+      const anchor = cosA > 0.2 ? "start" : cosA < -0.2 ? "end" : "middle";
       const dy = sinA > 0.6 ? 9 : sinA < -0.6 ? -1 : 3;
       return { ...p, gx: g[0], gy: g[1], lx: l[0], ly: l[1] + dy, anchor, delay: 0.45 + idx * 0.06 };
     });
     return { ticks, chords, glyphs };
-  }, []);
+  }, [placements]);
 
   const totalLabel = fmt(finalPrice);
   const ctaText = `${ctaLabel} · ${totalLabel}`;
@@ -435,14 +545,20 @@ export function DossierCheckout(props: DossierCheckoutProps) {
     : "A natal wheel. Sun, Moon, Venus, Mercury and Mars are lit. Eight placements are still unread.";
 
   return (
-    <div className={`dsr-root${lit ? " is-lit" : ""}${bond ? " is-bond" : ""}`}>
+    <div className={`dsr-root${lit ? " is-lit" : ""}${bond ? " is-bond" : ""}`} ref={rootRef}>
       <DossierStyles />
 
-      {/* glyph sprite: gold gradient + thirteen drawn placements + review star */}
+      {/* glyph sprite: violet gradient + thirteen drawn placements + review star */}
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <defs>
           <linearGradient id="dsr-mgold" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#cfc0f4" /><stop offset=".5" stopColor="#8f6de0" /><stop offset="1" stopColor="#6a4cc4" />
+          </linearGradient>
+          {/* STAR GOLD — Danny's ONE gold exception (2026-07-16). Review-star
+              FILLS + their drop-shadow only; never borders, text, CTAs, or
+              engraving. ~177deg. Same recipe as ls-star-gold. */}
+          <linearGradient id="dsr-stargold" x1="0" y1="0" x2="0.052" y2="1">
+            <stop offset="0" stopColor="#e8cf8f" /><stop offset=".55" stopColor="#c4a265" /><stop offset="1" stopColor="#9a7b4f" />
           </linearGradient>
           <symbol id="g-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" /><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" /></symbol>
           <symbol id="g-moon" viewBox="0 0 24 24"><path d="M14.8 3.5A8.5 8.5 0 1 0 14.8 20.5 10.5 10.5 0 0 1 14.8 3.5Z" /></symbol>
@@ -458,10 +574,13 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           <symbol id="g-node" viewBox="0 0 24 24"><circle cx="6.8" cy="17.6" r="2.4" /><circle cx="17.2" cy="17.6" r="2.4" /><path d="M5.6 15.6C4.5 8.8 7.6 4.5 12 4.5s7.5 4.3 6.4 11.1" /></symbol>
           <symbol id="g-lilith" viewBox="0 0 24 24"><path d="M14.4 3.6A5.4 5.4 0 1 0 14.4 13.4 6.6 6.6 0 0 1 14.4 3.6Z" /><path d="M12 13.5V21M9 17.5h6" /></symbol>
           <symbol id="dsr-check" viewBox="0 0 24 24"><path d="M4.5 12.6l5.2 5.2L19.5 6.6" /></symbol>
-          <symbol id="dsr-star" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="url(#dsr-mgold)" stroke="none" /></symbol>
+          <symbol id="dsr-star" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="url(#dsr-stargold)" stroke="none" /></symbol>
           <symbol id="dsr-star-o" viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.5l-5.9 3.1 1.2-6.5L2.5 9.5l6.6-.9z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></symbol>
         </defs>
       </svg>
+
+      {/* ── EVIDENCE — their chart, the ledger, one voice, the bump ── */}
+      <div className="dsr-evidence">
 
       {/* ── their chart, half-lit ── */}
       <div className="dsr-wheel-holder" ref={wheelHolderRef}>
@@ -484,7 +603,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
             {wheel.glyphs.map((g) => (
               <g key={g.name}>
                 {g.lit && <circle cx={g.gx} cy={g.gy} r={12} className="dsr-glyph-halo" />}
-                <g className={`dsr-wglyph ${g.lit ? "lit" : "dim"}`} style={{ transitionDelay: `${g.delay}s` }}>
+                <g className={`dsr-wglyph ${g.lit ? "lit" : "dim"}`} data-glyph={g.name} style={{ transitionDelay: `${g.delay}s` }}>
                   <use href={`#${g.ico}`} x={g.gx - (g.lit ? 8.5 : 7.5)} y={g.gy - (g.lit ? 8.5 : 7.5)} width={g.lit ? 17 : 15} height={g.lit ? 17 : 15} />
                 </g>
                 <text x={g.lx} y={g.ly} className={`dsr-wlabel ${g.lit ? "lit" : "dim"}`} style={{ textAnchor: g.anchor as "start" | "end" | "middle" }}>
@@ -501,14 +620,10 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         <p className="dsr-handoff">You have met five placements. Eight are still unread. Then what all thirteen mean between you.</p>
       )}
 
-      {/* ── the dossier ── */}
-      <section className="dsr-card" aria-label="Soul Reading">
+      {/* ── the ledger card ── */}
+      <section className="dsr-card" aria-label="Soul Reading" ref={cardRef}>
         <p className="dsr-eyebrow dsr-kicker" aria-live="polite" data-flash={kicker ? "" : undefined}>
           {kicker ?? kickerHome}
-        </p>
-
-        <p className="dsr-inscription dsr-gold-text">
-          {petName && bornLabel ? `For ${petName}, born ${bornLabel}.` : "Inscribed with their name at checkout."}
         </p>
 
         {hasChart && (
@@ -562,7 +677,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         {hasChart && (
           <>
             <div className="dsr-rung" aria-hidden="true">
-              {PLACEMENTS.map((p, i) => (
+              {placements.map((p, i) => (
                 <i key={p.name} className={i < 5 ? "on" : undefined} style={{ transitionDelay: `${0.5 + i * 0.05}s` }} />
               ))}
             </div>
@@ -572,7 +687,7 @@ export function DossierCheckout(props: DossierCheckoutProps) {
 
         {/* eight locked rows — the deck's tease ledger, named, never blurred */}
         <ul className="dsr-rows">
-          {PLACEMENTS.filter((p) => !p.lit).map((p) => (
+          {placements.filter((p) => !p.lit).map((p) => (
             <li key={p.name}>
               <button
                 type="button"
@@ -615,33 +730,65 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           </figure>
         )}
 
-        {/* reviews: grief given room, joy, gift. The full six-voice wall
-            already ran earlier on the journey (ReviewsWall, post-reveal),
-            so this in-checkout block stays a tight, curated few. */}
-        <div className="dsr-rev-block">
-          <Review kind="grief" variant="room" />
-          <Review kind="joy" variant="compact" />
-          <Review kind="gift" variant="compact" />
+      </section>
+
+      {/* ── ACT 2, THE COMPANY — one voice only. The full six-voice wall
+          already ran 1,000px earlier (ReviewsWall); joy, gift and the
+          returner live there, not at the register. ── */}
+      <div className="dsr-act-hr" aria-hidden="true" />
+      <Review kind="grief" variant="room" />
+
+      {/* ── Soul Bond bump — second orbit, not a rival card ── */}
+      <div className="dsr-act-hr" aria-hidden="true" />
+      <label className="dsr-bond" htmlFor="dsr-bond-check">
+        <input
+          type="checkbox"
+          id="dsr-bond-check"
+          checked={bond}
+          onChange={(e) => toggleBond(e.target.checked)}
+        />
+        <span className="box" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5l3.5 3.5L13.5 4" stroke="#14101e" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </span>
+        <span className="bt">
+          <span className="dsr-bond-title">
+            <svg className="dsr-bond-orbits" viewBox="0 0 28 16" aria-hidden="true">
+              <circle cx="9" cy="8" r="5.6" /><circle cx="18" cy="8" r="5.6" />
+            </svg>
+            <b>Soul Bond.</b>
+            <span className="dsr-bond-pill plus">+{fmt(props.bondDelta)}</span>
+          </span>
+          <span className="dsr-bond-body">Your chart beside theirs. Where you align, where you challenge each other, and why you found each other.</span>
+          <span className="dsr-bond-badge">What most families add</span>
+        </span>
+      </label>
+
+      </div>
+
+      {/* ── THE SEAL — price, email, button: always within reach ── */}
+      <aside className={`dsr-seal${sealIn ? " is-in" : ""}`} aria-label="Complete their reading" ref={sealRef}>
+        <div className="dsr-seal-scroll">
+        <p className="dsr-inscription dsr-gold-text">
+          {petName && bornLabel ? `For ${petName}, born ${bornLabel}.` : "Inscribed with their name at checkout."}
+        </p>
+
+        {/* the price moment — the single largest numeral on the page */}
+        <div className="dsr-price-moment">
+          <div className="dsr-price-row" ref={priceRowRef} aria-live="polite" data-settled={settled ? "" : undefined}>
+            <span className="dsr-was"><span>{fmt(wasShown)}</span><span className="strike" aria-hidden="true" /></span>
+            <span className="dsr-now dsr-gold-text">{fmt(nowShown)}</span>
+          </div>
+          <p className="dsr-price-mod">One time. Yours forever.</p>
+          {(qty > 1 || !!appliedCoupon) && (
+            <p className="dsr-total-line">
+              {qty > 1 ? `${qty} readings · ${savingPct}% off every one · ` : ""}
+              {appliedCoupon ? `Code ${appliedCoupon.code} applied · ` : ""}
+              <b>{totalLabel} total.</b>
+            </p>
+          )}
         </div>
 
-        {/* Soul Bond bump — second orbit, not a rival card */}
-        <label className="dsr-bond" htmlFor="dsr-bond-check">
-          <input
-            type="checkbox"
-            id="dsr-bond-check"
-            checked={bond}
-            onChange={(e) => toggleBond(e.target.checked)}
-          />
-          <span className="box" aria-hidden="true">
-            <svg viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5l3.5 3.5L13.5 4" stroke="#14101e" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </span>
-          <span className="bt">
-            <b>Soul Bond.</b> Your chart beside theirs. Where you align, where you challenge each other, and why you found each other. <span className="plus">+{fmt(props.bondDelta)}</span>
-            <span className="dsr-bond-badge">What most families add</span>
-          </span>
-        </label>
-
-        {/* the practical one, beside the price */}
+        {/* the practical one, glued to the number it names */}
         <Review kind="practical" variant="mini" />
 
         {/* the open value stack — always visible at the price, never folded */}
@@ -673,22 +820,10 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           </li>
         </ul>
 
-        {/* price row LAST and small */}
-        <div className="dsr-price-row" ref={priceRowRef} aria-live="polite">
-          <span className="dsr-was"><span>{fmt(wasShown)}</span><span className="strike" aria-hidden="true" /></span>
-          <span className="dsr-now dsr-gold-text">{fmt(nowShown)}</span>
-        </div>
-        <p className="dsr-price-mod">One time. Yours forever.</p>
-        {(qty > 1 || !!appliedCoupon) && (
-          <p className="dsr-total-line">
-            {qty > 1 ? `${qty} readings · ${savingPct}% off every one · ` : ""}
-            {appliedCoupon ? `Code ${appliedCoupon.code} applied · ` : ""}
-            <b>{totalLabel} total.</b>
-          </p>
-        )}
-
-        {/* the returner — last social proof before the buy button */}
-        <Review kind="returner" variant="compact" />
+        {/* bond echo — only when Soul Bond is checked */}
+        <p className="dsr-bond-echo" aria-hidden={!bond}>
+          <span>Soul Bond added · +{fmt(props.bondDelta)}</span>
+        </p>
 
         <div className="dsr-email-block">
           {emailKept ? (
@@ -720,12 +855,15 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           )}
         </div>
 
-        <button className="dsr-cta" type="button" ref={ctaRef} onClick={onCheckout} disabled={isLoading}>
+        <button className={`dsr-cta${thread ? " is-thread" : ""}`} type="button" ref={ctaRef} onClick={onCheckout} disabled={isLoading}>
           {isLoading ? "Opening secure checkout..." : ctaText}
         </button>
         {error && <p className="dsr-error" role="alert">{error}</p>}
 
         <p className="dsr-guarantee">If the reading does not feel like them, we refund every cent.</p>
+
+        {/* quiet footer — 70% presence, everything administrative */}
+        <div className="dsr-quiet">
 
         {/* promo code, demoted below the CTA */}
         <div className="dsr-code">
@@ -776,10 +914,11 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           </div>
         </details>
 
+        {/* refund lives in exactly two places (stack item + guarantee line) —
+            never a third repeat here */}
         <div className="dsr-trust-line">
           <span>Secure checkout</span>
           <span>Ready in minutes</span>
-          <span>Full refund</span>
         </div>
 
         {isLocalized && (
@@ -867,9 +1006,12 @@ export function DossierCheckout(props: DossierCheckoutProps) {
             ))}
           </div>
         </details>
-      </section>
 
-      {/* sticky CTA — appears only after the main CTA scrolls off the top */}
+        </div>
+        </div>
+      </aside>
+
+      {/* sticky CTA — mobile only: inside the section, real CTA out of view */}
       <div className={`dsr-sticky${stickyOn ? " show" : ""}`} aria-hidden={!stickyOn}>
         <button className="dsr-cta" type="button" tabIndex={stickyOn ? 0 : -1} onClick={stickyCheckout} disabled={isLoading}>
           {isLoading ? "Opening secure checkout..." : ctaText}
@@ -903,6 +1045,7 @@ function DossierStyles(): ReactNode {
         --dsr-star-gold-glow:rgba(196,162,101,0.28);
         --dsr-cream:#ffffff; --dsr-cream-dim:#c6c0d8;
         --dsr-surface-1:#140f1e; --dsr-surface-2:#181226; --dsr-surface-3:#1f1830;
+        --dsr-hairline:linear-gradient(90deg,transparent,rgba(139,123,216,.22) 20% 80%,transparent);
         --dsr-ease:cubic-bezier(.16,1,.3,1);
         --dsr-display:'Fraunces',Georgia,serif;
         --dsr-body:'Newsreader',Georgia,serif;
@@ -916,6 +1059,16 @@ function DossierStyles(): ReactNode {
       }
       @media (min-width:768px){ .dsr-root{max-width:600px} }
 
+      /* ---------- EVIDENCE / SEAL desktop grid ---------- */
+      @media (min-width:1024px){
+        .dsr-root{max-width:1080px;display:grid;
+          grid-template-columns:minmax(0,1fr) 400px;column-gap:48px;align-items:start}
+        .dsr-evidence{width:100%;max-width:600px;margin:0 auto;min-width:0}
+      }
+      /* act separators — mobile only; on desktop the columns chapter the page */
+      .dsr-act-hr{height:1px;border:0;margin:40px 0;background:var(--dsr-hairline)}
+      @media (min-width:1024px){ .dsr-act-hr{margin:24px 0;background:none} }
+
       .dsr-gold-text{
         color:#8f6de0;
         background:var(--dsr-gold-metal-text);
@@ -926,9 +1079,9 @@ function DossierStyles(): ReactNode {
 
       /* ---------- natal wheel ---------- */
       .dsr-wheel-holder{display:flex;flex-direction:column;align-items:center;margin-bottom:8px}
-      .dsr-wheel{width:min(64vw,260px);height:auto;display:block;overflow:visible;
+      .dsr-wheel{width:min(64vw,210px);height:auto;display:block;overflow:visible;
         filter:drop-shadow(0 0 28px rgba(139,123,216,.14))}
-      @media (min-width:768px){ .dsr-wheel{width:320px} }
+      @media (min-width:768px){ .dsr-wheel{width:300px} }
       .dsr-ring{fill:none;stroke:rgba(139,123,216,.42);stroke-width:1;
         stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.6s var(--dsr-ease)}
       .dsr-ring.inner{stroke:rgba(139,123,216,.28);transition-delay:.25s}
@@ -938,18 +1091,24 @@ function DossierStyles(): ReactNode {
       .dsr-chord{stroke:url(#dsr-mgold);stroke-opacity:.4;stroke-width:1;fill:none;
         stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.4s var(--dsr-ease) .9s}
       .is-lit .dsr-chord{stroke-dashoffset:0}
+      /* lit five at full presence, dim eight dropped to .34 — the half-lit
+         story must read at a glance (the whole reason to buy) */
       .dsr-wglyph{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
         opacity:0;transition:opacity 1s var(--dsr-ease)}
-      .dsr-wglyph.lit{stroke:url(#dsr-mgold);color:#8f6de0}
-      .dsr-wglyph.dim{color:var(--dsr-violet-500)}
+      .dsr-wglyph.lit{stroke:#cfc0f4;color:#cfc0f4}
+      .dsr-wglyph.dim{color:var(--dsr-violet-600)}
       .is-lit .dsr-wglyph.lit{opacity:1}
-      .is-lit .dsr-wglyph.dim{opacity:.7}
+      .is-lit .dsr-wglyph.dim{opacity:.34}
       .dsr-wlabel{font-family:var(--dsr-body);font-weight:500;font-size:22px;letter-spacing:.07em;
         text-transform:uppercase;opacity:0;transition:opacity 1.1s var(--dsr-ease) .5s}
-      .dsr-wlabel.lit{fill:#8f6de0}
+      .dsr-wlabel.lit{fill:#cfc0f4}
       .dsr-wlabel.dim{fill:var(--dsr-violet-400);font-size:17.5px;display:none}
       @media (min-width:768px){ .dsr-wlabel.dim{display:block} }
       .is-lit .dsr-wlabel{opacity:1}
+      .is-lit .dsr-wlabel.dim{opacity:.5}
+      /* row tap → wheel echo: the matching dim glyph answers once */
+      .dsr-wglyph.dim.echo{animation:dsrGlyphEcho .6s var(--dsr-ease)}
+      @keyframes dsrGlyphEcho{0%,100%{opacity:.34}45%{opacity:.9}}
       .dsr-glyph-halo{fill:none;stroke:url(#dsr-mgold);stroke-opacity:.4;stroke-width:1;
         opacity:0;transition:opacity 1.2s var(--dsr-ease) .7s}
       .is-lit .dsr-glyph-halo{opacity:1}
@@ -1002,6 +1161,13 @@ function DossierStyles(): ReactNode {
         color:var(--dsr-cream);letter-spacing:-.02em;margin:0 0 8px}
       @media (min-width:768px){ .dsr-tier{font-size:48px} }
       .dsr-tier-line{text-align:center;font-style:italic;font-size:17px;color:var(--dsr-cream);margin-bottom:26px}
+      /* desktop: the ledger reads as a page, not a centered stack —
+         only the kicker stays centered */
+      @media (min-width:1024px){
+        .dsr-headline{text-align:left;margin:0 0 26px;max-width:24ch}
+        .dsr-tier{text-align:left}
+        .dsr-tier-line{text-align:left}
+      }
 
       /* ---------- outcome bullets ---------- */
       .dsr-bullets{list-style:none;margin:0 0 8px;padding:0 2px}
@@ -1019,7 +1185,7 @@ function DossierStyles(): ReactNode {
       .dsr-rung i{width:7px;height:7px;border-radius:50%;background:var(--dsr-violet-600);display:block;
         transform:scale(.4);opacity:0;
         transition:transform .6s var(--dsr-ease),opacity .6s var(--dsr-ease)}
-      .dsr-rung i.on{background:var(--dsr-gold-metal);box-shadow:0 0 8px rgba(154,126,230,.6)}
+      .dsr-rung i.on{background:#cfc0f4;box-shadow:0 0 8px rgba(154,126,230,.6)}
       .is-lit .dsr-rung i{transform:scale(1);opacity:1}
       .dsr-rung-line{text-align:center;font-family:var(--dsr-display);font-style:italic;
         font-variation-settings:'opsz' 20;font-size:16px;color:var(--dsr-cream-dim);margin-bottom:22px}
@@ -1034,7 +1200,7 @@ function DossierStyles(): ReactNode {
         background:none;border:0;padding:12px 4px;min-height:48px;
         font-family:var(--dsr-body);cursor:pointer;border-radius:8px;
         transition:background .3s var(--dsr-ease)}
-      .dsr-lrow .dsr-gico{flex:none;width:20px;height:20px;opacity:.7}
+      .dsr-lrow .dsr-gico{flex:none;width:20px;height:20px;opacity:.5}
       .dsr-lrow .nm{font-size:16px;font-weight:600;letter-spacing:.01em;color:var(--dsr-violet-300)}
       .dsr-lrow .fr{font-size:16px;color:var(--dsr-violet-400);font-style:italic}
       .dsr-chev{margin-left:auto;flex:none;width:18px;height:18px;opacity:.55}
@@ -1051,9 +1217,11 @@ function DossierStyles(): ReactNode {
         background:linear-gradient(165deg, rgba(139,123,216,.35) 0%, rgba(139,123,216,.10) 45%, rgba(139,123,216,.28) 100%);
         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
         -webkit-mask-composite:xor;mask-composite:exclude}
+      /* gold star fills (the one gold exception) — off star stays neutral */
       .dsr-stars{display:flex;gap:4px;margin-bottom:12px}
-      .dsr-stars svg{width:15px;height:15px;display:block}
-      .dsr-stars .off{color:rgba(201,192,174,.45)}
+      .dsr-stars svg{width:15px;height:15px;display:block;
+        filter:drop-shadow(0 0 4px var(--dsr-star-gold-glow))}
+      .dsr-stars .off{color:rgba(201,192,174,.45);filter:none}
       .dsr-review q{display:block;font-style:italic;font-size:17px;line-height:1.5;color:var(--dsr-cream);
         quotes:"\\201C" "\\201D";margin-bottom:12px}
       .dsr-attr{font-family:var(--dsr-body);font-size:16px;font-weight:500;
@@ -1073,7 +1241,7 @@ function DossierStyles(): ReactNode {
       .dsr-review--p .dsr-attr{grid-area:attr;align-self:start}
       .dsr-review--p q{grid-area:quote;margin:14px 0 0}
       .dsr-review--room{padding:26px 20px 22px}
-      .dsr-review--room .dsr-rev-ph{width:min(100%,280px);height:auto;aspect-ratio:1/1;border-radius:18px;margin:2px auto 16px}
+      .dsr-review--room .dsr-rev-ph{width:min(100%,200px);height:auto;aspect-ratio:1/1;border-radius:18px;margin:2px auto 16px}
       .dsr-review--room .dsr-stars{justify-content:center;margin-bottom:14px}
       .dsr-review--room q{margin-bottom:14px}
       .dsr-review--room .dsr-attr{display:block;text-align:center}
@@ -1082,9 +1250,6 @@ function DossierStyles(): ReactNode {
       .dsr-review--mini .dsr-stars{margin:3px 0 4px}
       .dsr-review--mini q{font-size:16.5px;margin-top:12px}
       .dsr-review--mini .dsr-attr{font-size:16px}
-      .dsr-rev-block{margin-bottom:24px}
-      .dsr-rev-block .dsr-review{margin-bottom:12px}
-      .dsr-rev-block .dsr-review:last-child{margin-bottom:0}
 
       /* ---------- sample excerpt (sealed line) ---------- */
       .dsr-excerpt{position:relative;border-radius:14px;padding:18px 18px 16px;margin:0 0 24px;
@@ -1111,7 +1276,7 @@ function DossierStyles(): ReactNode {
       .dsr-stack{list-style:none;margin:0 0 14px;padding:16px 2px 4px;position:relative}
       .dsr-stack::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
         background:linear-gradient(90deg,transparent,rgba(139,123,216,.22) 20% 80%,transparent)}
-      .dsr-stack li{display:flex;gap:12px;align-items:flex-start;padding:7px 0;
+      .dsr-stack li{display:flex;gap:12px;align-items:flex-start;padding:6px 0;
         font-size:16px;line-height:1.45;color:var(--dsr-cream)}
       .dsr-stack strong{font-weight:600}
       .dsr-stack-ck{flex:none;width:17px;height:17px;margin-top:4px;display:block;
@@ -1132,8 +1297,9 @@ function DossierStyles(): ReactNode {
         text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(139,123,216,.5)}
       .dsr-email-change:focus-visible{outline:2px solid var(--dsr-violet-300);outline-offset:2px;border-radius:6px}
 
-      /* ---------- Soul Bond bump ---------- */
-      .dsr-bond{position:relative;display:flex;align-items:flex-start;gap:14px;
+      /* ---------- Soul Bond bump — [22px checkbox][content w/ price pill] ---------- */
+      .dsr-bond{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr);
+        align-items:start;column-gap:14px;
         min-height:48px;width:100%;padding:15px 16px;
         background:var(--dsr-surface-3);border:0;border-radius:12px;
         cursor:pointer;user-select:none;margin-bottom:26px;
@@ -1156,27 +1322,126 @@ function DossierStyles(): ReactNode {
       .is-bond .dsr-bond .box{background:var(--dsr-violet-500)}
       .dsr-bond .box svg{width:13px;height:13px;opacity:0;transition:opacity .2s}
       .is-bond .dsr-bond .box svg{opacity:1}
-      .dsr-bond .bt{font-size:16px;line-height:1.45;color:var(--dsr-cream)}
+      .dsr-bond .bt{font-size:16px;line-height:1.45;color:var(--dsr-cream);min-width:0}
       .dsr-bond .bt b{font-weight:600}
-      .dsr-bond .bt .plus{font-weight:600;white-space:nowrap;color:var(--dsr-violet-200)}
+      .dsr-bond-title{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+      .dsr-bond-orbits{flex:none;width:26px;height:15px;display:block;
+        fill:none;stroke:var(--dsr-violet-300);stroke-width:1.3;opacity:.85}
+      .dsr-bond-body{display:block}
+      /* the price, out of the sentence and into its own right-aligned pill */
+      .dsr-bond-pill{margin-left:auto;flex:none;
+        font-size:13px;font-weight:600;white-space:nowrap;color:var(--dsr-violet-200);
+        box-shadow:0 0 0 1px rgba(139,123,216,.55) inset;
+        border-radius:99px;padding:4px 10px}
       .dsr-bond input:focus-visible ~ .box{outline:2px solid var(--dsr-violet-300);outline-offset:3px}
-      .dsr-bond-badge{display:inline-block;margin-left:8px;
-        font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+      /* the badge gets its own line — never wrapping mid-sentence */
+      .dsr-bond-badge{display:inline-block;margin-top:9px;
+        font-size:11.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
         color:var(--dsr-violet-300);
         box-shadow:0 0 0 1px rgba(139,123,216,.4) inset;
-        border-radius:99px;padding:1px 8px 2px;vertical-align:2px;white-space:nowrap}
+        border-radius:99px;padding:2px 9px 3px;white-space:nowrap;max-width:100%}
 
-      /* ---------- price row ---------- */
-      .dsr-price-row{display:flex;align-items:baseline;justify-content:center;gap:14px;margin-bottom:6px}
+      /* ---------- the price moment ---------- */
+      .dsr-price-moment{position:relative;padding-top:18px;margin-bottom:18px}
+      .dsr-price-moment::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+        background:var(--dsr-hairline)}
+      .dsr-price-row{display:flex;align-items:baseline;justify-content:center;gap:14px;
+        margin-bottom:6px;border-radius:12px}
       .dsr-was{position:relative;font-family:var(--dsr-display);font-weight:500;
         font-size:16px;color:var(--dsr-cream-dim);font-variant-numeric:lining-nums tabular-nums}
       .dsr-was .strike{position:absolute;left:-3px;right:-3px;top:50%;height:1px;
-        background:linear-gradient(90deg,transparent,rgba(201,192,174,.85) 18% 82%,transparent);pointer-events:none}
-      .dsr-now{font-family:var(--dsr-display);font-size:42px;font-weight:600;line-height:1;
-        font-variant-numeric:lining-nums tabular-nums}
-      .dsr-price-mod{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin-bottom:24px}
-      .dsr-total-line{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin:-14px 0 22px}
+        background:linear-gradient(90deg,transparent,rgba(201,192,174,.85) 18% 82%,transparent);pointer-events:none;
+        transform:scaleX(0);transform-origin:left;
+        transition:transform .42s cubic-bezier(.16,1,.3,1)}
+      /* the single largest numeral on the page — 48px mobile, 56px desktop */
+      .dsr-now{display:inline-block;font-family:var(--dsr-display);font-size:48px;font-weight:600;line-height:1;
+        font-variant-numeric:lining-nums tabular-nums;
+        opacity:0;transform:scale(.96);
+        transition:opacity .48s cubic-bezier(.16,1,.3,1) .34s,transform .48s cubic-bezier(.16,1,.3,1) .34s}
+      @media (min-width:1024px){ .dsr-now{font-size:56px} }
+      /* PRICE SETTLE — strike draws, then the price blooms; latched, never replays */
+      .dsr-price-row[data-settled] .dsr-was .strike{transform:scaleX(1)}
+      .dsr-price-row[data-settled] .dsr-now{opacity:1;transform:none}
+      /* desktop row tap → one soft pulse at the number (no scroll) */
+      .dsr-price-row.pulse{animation:dsrPricePulse .6s var(--dsr-ease)}
+      @keyframes dsrPricePulse{
+        0%,100%{box-shadow:0 0 0 0 rgba(154,126,230,0)}
+        45%{box-shadow:0 0 28px rgba(154,126,230,.35)}
+      }
+      .dsr-price-mod{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin:0}
+      .dsr-total-line{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin:8px 0 0}
       .dsr-total-line b{color:var(--dsr-cream);font-weight:600}
+
+      /* ---------- THE SEAL — the buy panel ---------- */
+      .dsr-seal{position:relative;border-radius:18px;
+        margin-top:24px;
+        background:linear-gradient(180deg,#181226 0%,#140f1e 100%);
+        box-shadow:0 1px 2px rgba(0,0,0,.5),0 24px 70px rgba(0,0,0,.5)}
+      .dsr-seal::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+        z-index:1;
+        background:linear-gradient(165deg, rgba(185,165,240,.55) 0%, rgba(154,126,230,.18) 30%, rgba(139,123,216,.14) 55%, rgba(154,126,230,.60) 100%);
+        -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+        -webkit-mask-composite:xor;mask-composite:exclude}
+      .dsr-seal-scroll{padding:28px 24px 22px}
+      .dsr-seal .dsr-inscription{margin-bottom:18px}
+      .dsr-seal .dsr-review--mini{margin-bottom:18px}
+      @media (min-width:1024px){
+        .dsr-seal{position:sticky;top:84px;align-self:start;margin-top:0;
+          overflow:hidden;
+          opacity:0;transform:translateY(18px);
+          transition:opacity .6s var(--dsr-ease),transform .6s var(--dsr-ease)}
+        .dsr-seal.is-in{opacity:1;transform:none}
+        /* the panel never exceeds the viewport: the critical run (price →
+           email → button) stays on screen; the quiet footer rides a thin
+           in-panel rail below the fold */
+        .dsr-seal-scroll{max-height:calc(100vh - 96px);overflow-y:auto;
+          overscroll-behavior:contain;scrollbar-width:thin;
+          scrollbar-color:rgba(139,123,216,.35) transparent;
+          padding:18px 20px 16px}
+        /* compact register type, seal only (never below 16px body) — the
+           560px-column floors would push the buy panel past the fold */
+        .dsr-seal .dsr-inscription{font-size:16px;margin-bottom:10px}
+        .dsr-seal .dsr-price-moment{padding-top:12px;margin-bottom:12px}
+        .dsr-seal .dsr-price-mod{font-size:16px}
+        .dsr-seal .dsr-total-line{font-size:16px}
+        .dsr-seal .dsr-review--mini{margin-bottom:12px;padding:12px 12px 11px;grid-template-columns:44px 1fr}
+        .dsr-seal .dsr-review--mini .dsr-rev-ph{width:44px;height:44px;border-radius:10px}
+        .dsr-seal .dsr-review--mini .dsr-stars{margin:1px 0 3px}
+        .dsr-seal .dsr-review--mini q{font-size:16px;line-height:1.45;margin-top:9px}
+        .dsr-seal .dsr-review--mini .dsr-attr{font-size:12.5px}
+        .dsr-seal .dsr-stack{margin:0 0 10px;padding:10px 2px 2px}
+        .dsr-seal .dsr-stack li{font-size:16px;line-height:1.4;padding:4px 0}
+        .dsr-seal .dsr-stack-ck{width:15px;height:15px;margin-top:3px}
+        .dsr-seal .dsr-bond-echo>span{font-size:14px}
+        .dsr-seal .dsr-email-block{margin-bottom:10px}
+        .dsr-seal .dsr-email-block .dsr-eyebrow{font-size:12.5px;margin-bottom:6px}
+        .dsr-seal .dsr-field input{min-height:44px;font-size:16px}
+        .dsr-seal .dsr-email-kept{min-height:44px;padding:6px 4px 6px 12px}
+        .dsr-seal .dsr-email-kept .addr,.dsr-seal .dsr-email-change{font-size:16px}
+        .dsr-seal .dsr-guarantee{font-size:16px;line-height:1.45;margin:14px 4px 0}
+        .dsr-seal .dsr-quiet{margin-top:14px}
+        .dsr-seal .dsr-quiet .dsr-code{margin-bottom:12px}
+        .dsr-seal .dsr-code-link,.dsr-seal .dsr-code-applied{font-size:16px}
+        .dsr-seal .dsr-details summary{min-height:42px;padding:9px 2px;font-size:16px}
+        .dsr-seal .dsr-disc-body,.dsr-seal .dsr-saving-line{font-size:16px}
+        .dsr-seal .dsr-quiet .dsr-trust-line{margin:12px 0 10px;font-size:16px}
+        .dsr-seal .dsr-fx-note{font-size:16px;margin:0 0 10px}
+        .dsr-seal .dsr-pay-row{margin-bottom:12px}
+        .dsr-seal .dsr-charity,.dsr-seal .dsr-charity summary,
+        .dsr-seal .dsr-charity-opts button{font-size:16px}
+      }
+
+      /* bond echo — fades + grows in when Soul Bond is checked */
+      .dsr-bond-echo{display:grid;grid-template-rows:0fr;opacity:0;margin:0;
+        transition:grid-template-rows .24s var(--dsr-ease),opacity .24s var(--dsr-ease),margin .24s var(--dsr-ease)}
+      .dsr-bond-echo>span{overflow:hidden;display:block;text-align:center;
+        font-size:15px;color:var(--dsr-violet-200)}
+      .is-bond .dsr-bond-echo{grid-template-rows:1fr;opacity:1;margin:0 0 18px}
+
+      /* quiet footer — administrative, 70% presence */
+      .dsr-quiet{opacity:.7;margin-top:18px}
+      .dsr-quiet .dsr-code{margin-bottom:18px}
+      .dsr-quiet .dsr-trust-line{margin:18px 0 14px}
 
       /* ---------- email + CTA ---------- */
       .dsr-email-block{margin-bottom:14px}
@@ -1194,7 +1459,7 @@ function DossierStyles(): ReactNode {
       .dsr-field input::placeholder{color:rgba(201,192,174,.55)}
 
       .dsr-cta{position:relative;overflow:hidden;border:0;cursor:pointer;
-        display:block;width:100%;min-height:54px;
+        display:block;width:100%;min-height:56px;
         background:var(--dsr-gold-metal);color:var(--dsr-gold-ink);
         border-radius:12px;padding:16px 12px;white-space:nowrap;
         font:600 clamp(15.5px,4.3vw,17px)/1 'Newsreader',Georgia,serif;letter-spacing:.02em;
@@ -1285,16 +1550,17 @@ function DossierStyles(): ReactNode {
       .dsr-saving-line{font-size:16px;color:var(--dsr-cream-dim)}
       .dsr-saving-line b{color:var(--dsr-cream);font-weight:600}
 
-      /* ---------- trust ---------- */
-      .dsr-trust-line{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+      /* ---------- trust — one row, never wrapping ---------- */
+      .dsr-trust-line{display:flex;justify-content:center;gap:8px;flex-wrap:nowrap;white-space:nowrap;
         font-size:16px;color:var(--dsr-cream-dim);margin:22px 0 14px;text-align:center}
       .dsr-trust-line span::after{content:"·";margin-left:8px;color:rgba(139,123,216,.5)}
       .dsr-trust-line span:last-child::after{content:""}
       .dsr-fx-note{text-align:center;font-size:16px;color:var(--dsr-cream-dim);margin:0 0 14px}
 
-      .dsr-pay-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+      /* payment marks — 26px chips, one centered row at 390px */
+      .dsr-pay-row{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
       .dsr-pay-chip{display:inline-flex;align-items:center;justify-content:center;
-        height:30px;padding:0 10px;border-radius:8px;
+        height:26px;padding:0 7px;border-radius:7px;
         background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(243,243,246,.92));
         border:1px solid rgba(255,255,255,.16);
         box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 2px 6px rgba(0,0,0,.35)}
@@ -1303,8 +1569,8 @@ function DossierStyles(): ReactNode {
         backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
         border:1px solid rgba(255,255,255,.14);
         box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
-      .dsr-pay-chip svg{height:14px;width:auto;display:block}
-      .dsr-pay-chip--dark svg{height:15px}
+      .dsr-pay-chip svg{height:12px;width:auto;display:block}
+      .dsr-pay-chip--dark svg{height:13px}
 
       /* charity */
       .dsr-charity{text-align:center;font-size:16px;color:var(--dsr-cream-dim)}
@@ -1337,20 +1603,40 @@ function DossierStyles(): ReactNode {
         background:linear-gradient(90deg,transparent,rgba(139,123,216,.35) 20% 80%,transparent)}
       .dsr-sticky.show{transform:none;pointer-events:auto}
       .dsr-sticky .dsr-cta{min-height:56px;margin:0;max-width:560px;margin-inline:auto}
+      /* desktop never shows the bar — the sticky seal panel covers it */
+      @media (min-width:1024px){ .dsr-sticky{display:none} }
 
-      /* ---------- reduced motion ---------- */
+      /* ---------- reduced motion — rest state IS the finished composition ---------- */
       @media (prefers-reduced-motion: reduce){
         .dsr-root *, .dsr-root *::before, .dsr-root *::after{transition-duration:.01ms!important;animation:none!important}
         .dsr-cta.is-thread{box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 -1px 0 rgba(0,0,0,.28) inset,
           0 6px 18px -6px rgba(124,92,214,.5), 0 0 26px rgba(154,126,230,.2)}
         .dsr-ring,.dsr-chord{stroke-dashoffset:0}
         .dsr-wglyph.lit,.dsr-wlabel,.dsr-glyph-halo{opacity:1}
-        .dsr-wglyph.dim{opacity:.7}
+        .dsr-wglyph.dim{opacity:.34}
+        .dsr-wlabel.dim{opacity:.5}
         .dsr-rung i{transform:scale(1);opacity:1}
         .dsr-cta::after{display:none}
         .is-bond .dsr-bond-ring{stroke-dashoffset:0}
         .dsr-bond-ring{stroke-dashoffset:1}
+        .dsr-was .strike{transform:scaleX(1)}
+        .dsr-now{opacity:1;transform:none}
+        .dsr-seal{opacity:1;transform:none}
+        .dsr-bond-echo{transition:none}
       }
+      /* .is-static — same finished composition, class-driven (QA / no-JS parity) */
+      .dsr-root.is-static .dsr-ring,.dsr-root.is-static .dsr-chord{stroke-dashoffset:0}
+      .dsr-root.is-static .dsr-wglyph.lit,.dsr-root.is-static .dsr-wlabel,
+      .dsr-root.is-static .dsr-glyph-halo{opacity:1}
+      .dsr-root.is-static .dsr-wglyph.dim{opacity:.34}
+      .dsr-root.is-static .dsr-wlabel.dim{opacity:.5}
+      .dsr-root.is-static .dsr-rung i{transform:scale(1);opacity:1}
+      .dsr-root.is-static .dsr-was .strike{transform:scaleX(1)}
+      .dsr-root.is-static .dsr-now{opacity:1;transform:none}
+      .dsr-root.is-static .dsr-seal{opacity:1;transform:none}
+      .dsr-root.is-static .dsr-cta{animation:none}
+      .dsr-root.is-static .dsr-wglyph.dim.echo,
+      .dsr-root.is-static .dsr-price-row.pulse{animation:none}
 
       /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
       .dsr-root{font-size:18px}
@@ -1371,7 +1657,7 @@ function DossierStyles(): ReactNode {
       .dsr-email-kept .addr{font-size:17px}
       .dsr-email-change{font-size:17px}
       .dsr-bond .bt{font-size:18px}
-      .dsr-bond-badge{font-size:14px}
+      .dsr-bond-badge{font-size:12px}
       .dsr-was{font-size:17px}
       .dsr-price-mod{font-size:17px}
       .dsr-total-line{font-size:17px}
@@ -1414,7 +1700,8 @@ function DossierStyles(): ReactNode {
         .dsr-stack li{font-size:19px}
         .dsr-email-kept .addr,.dsr-email-change{font-size:17.5px}
         .dsr-bond .bt{font-size:18.5px}
-        .dsr-bond-badge,.dsr-tag{font-size:15px}
+        .dsr-bond-badge{font-size:12.5px}
+        .dsr-tag{font-size:15px}
         .dsr-was,.dsr-price-mod,.dsr-total-line{font-size:17.5px}
         .dsr-field input{font-size:17.5px}
         .dsr-cta{font-size:19px}

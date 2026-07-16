@@ -3552,8 +3552,11 @@ const REST_SKY: RestBody[] = [
  * motif (rest-close ring, keepsake wheel, checkout wheel). Free five in
  * chart order, then the eight in REST_SKY door-descent order. Angle step
  * is 360/13 = 27.6923deg clockwise from 12 o'clock, everywhere. Never
- * define a second order. (synth 2026-07-16) */
-const THIRTEEN_ORDER = [
+ * define a second order. (synth 2026-07-16) Exported for DossierCheckout's
+ * wheel — consumers inside the ReadingsLanding→InlineCheckout→DossierCheckout
+ * import cycle must dereference it lazily (after module eval), never at
+ * module top level. */
+export const THIRTEEN_ORDER = [
   "sun", "moon", "mercury", "venus", "mars",
   ...REST_SKY.map((b) => b.key),
 ] as const;
