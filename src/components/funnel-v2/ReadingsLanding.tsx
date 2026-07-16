@@ -6616,8 +6616,8 @@ function CosmicStyles() {
         margin: 2.6svh 0 0;
         font-family: "Newsreader", Georgia, serif;
         font-style: italic;
-        font-size: 17px;
-        color: rgba(245,242,255,0.55);
+        font-size: 19px;
+        color: rgba(245,242,255,0.82);
         min-height: 1.6em;
         max-width: 38ch;
         transition: opacity 220ms ease, transform 220ms ease;
@@ -7000,7 +7000,7 @@ function CosmicStyles() {
       .ls-hero-memorial { font-size: 17px; }
       .ls-tgl-micro { font-size: 14px; }
       .ls-tgl label { font-size: 18px; }
-      .ls-tgl-sub { font-size: 17px; }
+      .ls-tgl-sub { font-size: 19px; }
       .ls-bridge-beat { font-size: clamp(1.25rem, 2.4vw, 1.55rem); }
       .ls-seal-field label { font-size: 17px; }
       .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub { font-size: 17px; }
@@ -7062,7 +7062,7 @@ function CosmicStyles() {
       @media (min-width: 768px) {
         .ls-hero-memorial { font-size: 17.5px; }
         .ls-tgl-micro { font-size: 14.5px; }
-        .ls-tgl-sub { font-size: 17.5px; }
+        .ls-tgl-sub { font-size: 20px; }
         .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub, .ls-chart-message { font-size: 17.5px; }
         .ls-orrery-bubble .ls-orrery-line { font-size: 19px; }
         .ls-orrery-line--info { font-size: 17.5px !important; }
@@ -7081,7 +7081,7 @@ function CosmicStyles() {
         .ls-gold-button, .ls-ghost-button { font-size: 19px; }
         .ls-hero-memorial { font-size: 18px; }
         .ls-tgl-micro { font-size: 15px; }
-        .ls-tgl-sub { font-size: 18px; }
+        .ls-tgl-sub { font-size: 21px; }
         .ls-seal-field label { font-size: 17.5px; }
         .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub, .ls-chart-message { font-size: 18px; }
         .ls-chart-form input, .ls-lead-form input { font-size: 17.5px; }

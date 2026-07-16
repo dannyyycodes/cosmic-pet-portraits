@@ -272,10 +272,10 @@ const LCB_CSS = `
   --lcb-bg:#0d0a14; --lcb-deep:#070510; --lcb-lift:#100c1a;
   --lcb-violet:#8b7bd8; --lcb-violet-br:#a78bfa; --lcb-violet-soft:#b3a7e0;
   --lcb-white:#f5f2ff;
-  --lcb-body:rgba(245,242,255,.78);
+  --lcb-body:rgba(245,242,255,.9);
   --lcb-dim:rgba(245,242,255,.55);
-  --lcb-mute:rgba(245,242,255,.66);
-  --lcb-frag:rgba(245,242,255,.86);
+  --lcb-mute:rgba(245,242,255,.85);
+  --lcb-frag:rgba(245,242,255,.94);
   --c2-spine:24px; --c2-padl:60px; --c2-padr:22px;
   position:relative;
   overflow-x:clip;
@@ -348,7 +348,7 @@ const LCB_CSS = `
 .c2-b3:not(.is-drawn) .c2-lxl.c2-rv{opacity:0;transform:translate3d(0,34px,0)}
 
 /* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
-.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:19px;color:var(--lcb-mute);max-width:35ch;line-height:1.62;margin:0}
+.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:21px;color:var(--lcb-mute);max-width:35ch;line-height:1.62;margin:0}
 .c2-lm{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.3rem,2.4vw + .6rem,1.8rem);line-height:1.38;color:var(--lcb-body);margin:0;letter-spacing:-0.008em}
 .c2-ll{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.7rem,3.4vw + .7rem,2.5rem);line-height:1.24;color:var(--lcb-white);letter-spacing:-0.014em;margin:0;text-wrap:balance}
 .c2-lxl{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.05rem,4.6vw + .8rem,3.15rem);line-height:1.18;color:var(--lcb-white);letter-spacing:-0.016em;margin:0;text-wrap:balance}
@@ -359,7 +359,7 @@ const LCB_CSS = `
   text-shadow:0 1px 30px rgba(4,3,10,.5);text-wrap:balance;
 }
 .c2-peak-v{color:var(--lcb-violet-br)}
-.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:22px;line-height:1.52;color:var(--lcb-frag);position:relative;max-width:34ch;margin:0}
+.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:24px;line-height:1.52;color:var(--lcb-frag);position:relative;max-width:34ch;margin:0}
 .c2-peak em,.c2-ll em{font-style:italic}
 
 /* ---- station nodes riding the thread ---- */
@@ -541,17 +541,17 @@ const LCB_CSS = `
 }
 
 /* ---- TYPE FLOORS: tuned per viewport (raised 2026-07-15 for legibility).
-   Base above = mobile 390-767 (whisper 19 / frag 22 / wdeg 16 SVG units,
+   Base above = mobile 390-767 (whisper 21 / frag 24 / wdeg 16 SVG units,
    >=15px rendered at the 304px mobile wheel and 20px at the 400px desktop
    wheel). Fragments carry a lifted contrast token (--lcb-frag) so the
    recognition beats read cleanly on the dark stage. ---- */
 @media (min-width:768px){
-  .c2-whisper{font-size:20px}
-  .c2-frag{font-size:24px}
+  .c2-whisper{font-size:22px}
+  .c2-frag{font-size:26px}
 }
 @media (min-width:1280px){
-  .c2-whisper{font-size:21px}
-  .c2-frag{font-size:26px}
+  .c2-whisper{font-size:24px}
+  .c2-frag{font-size:28px}
 }
 `;
 
@@ -1125,14 +1125,22 @@ export function CosmicBridge() {
       });
       const rel = (r: DOMRect) => ({ x: r.left - colLeft, y: r.top - colR.top, w: r.width, h: r.height });
 
-      // born under the chosen path (the chooser toggle), then swings onto the spine
+      // Born under the chosen path (the chooser toggle), then swings onto
+      // the spine. It is born below the WHOLE chooser block - toggle plus
+      // its italic sub-line - because the sub-line sits directly under the
+      // track, and a birth anchored to the track put the stroke through
+      // the sub-line's first word.
       const toggle = document.querySelector<HTMLElement>(".ls-tgl-track");
+      const tglSub = document.querySelector<HTMLElement>(".ls-tgl-sub");
       let d: string;
       let startY: number;
       if (toggle) {
         const t = rel(toggle.getBoundingClientRect());
         const startX = t.x + 28;
-        startY = t.y + t.h + 18;
+        const blockBottom = tglSub
+          ? Math.max(t.y + t.h, rel(tglSub.getBoundingClientRect()).y + rel(tglSub.getBoundingClientRect()).h)
+          : t.y + t.h;
+        startY = blockBottom + 22;
         const joinY = startY + 90;
         d = `M ${startX} ${startY} C ${startX - 26} ${startY + 48}, ${sx} ${startY + 48}, ${sx} ${joinY}`;
         startY = joinY;
