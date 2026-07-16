@@ -268,23 +268,48 @@ const MOON_LINE_LEN = Math.ceil(
 let INTENT_FLIP_PENDING = false;
 
 const LCB_CSS = `
+/* ==== THE COLUMN CONTRACT - ONE rail, ONE text edge, chooser + passage ====
+   The chooser (.ls-tgl-col, in ReadingsLanding) and the passage (.c2-col) are
+   ONE composition sharing ONE left spine, so they MUST resolve to the same
+   box. They are separate sections, so the geometry is declared here once and
+   both consume it. Never hard-code these numbers at either consumer.
+
+   Before 2026-07-16 they drifted: .ls-tgl-section carried 20px of side padding
+   .lcb-root did not, and the two padding-lefts were 84 vs 104. Result: the
+   chooser's text edge landed at x=344 and the passage's at x=365 on desktop,
+   and the offset changed again between 768-899. Nothing lined up, and the
+   whole section read as stacked beats instead of one column. The contract is
+   the fix: identical max-width, identical margin, identical padding-left, no
+   section side padding on either. Change a number here and BOTH move together.
+
+     --c2-spine  x of the violet thread, from the column's left edge
+     --c2-padl   x of every text edge (chooser + passage), same edge
+     --c2-padr   passage's right padding (the chooser keeps its own: the
+                 toggle is a wide object and the right edge is ragged anyway) */
+.lcb-root, .ls-tgl-col{
+  --c2-spine:24px; --c2-padl:60px; --c2-padr:22px;
+}
+@media (min-width:900px){
+  .lcb-root, .ls-tgl-col{ --c2-spine:44px; --c2-padl:104px; --c2-padr:40px; }
+}
+
 .lcb-root{
   --lcb-bg:#0d0a14; --lcb-deep:#070510; --lcb-lift:#100c1a;
   --lcb-violet:#8b7bd8; --lcb-violet-br:#a78bfa; --lcb-violet-soft:#b3a7e0;
   --lcb-white:#f5f2ff;
-  --lcb-body:rgba(245,242,255,.9);
+  /* Legibility floor (raised 2026-07-16). The passage reads on a #0d0a14
+     stage, so "quiet" is carried by SIZE and ITALIC, never by dimness: a
+     dimmed serif italic on a dark field reads faint however good its contrast
+     ratio is, which is exactly what it was doing. */
+  --lcb-body:rgba(245,242,255,.92);
   --lcb-dim:rgba(245,242,255,.55);
-  --lcb-mute:rgba(245,242,255,.85);
-  --lcb-frag:rgba(245,242,255,.94);
-  --c2-spine:24px; --c2-padl:60px; --c2-padr:22px;
+  --lcb-mute:rgba(245,242,255,.92);
+  --lcb-frag:rgba(245,242,255,.97);
   position:relative;
   overflow-x:clip;
   pointer-events:none;
   font-family:"Newsreader",Georgia,serif;font-weight:400;
   -webkit-font-smoothing:antialiased;
-}
-@media (min-width:900px){
-  .lcb-root{ --c2-spine:44px; --c2-padl:104px; --c2-padr:40px; }
 }
 
 /* ---- fixed graded night stage (the ONE sky for the whole page) ---- */
@@ -348,7 +373,15 @@ const LCB_CSS = `
 .c2-b3:not(.is-drawn) .c2-lxl.c2-rv{opacity:0;transform:translate3d(0,34px,0)}
 
 /* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
-.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:21px;color:var(--lcb-mute);max-width:35ch;line-height:1.62;margin:0}
+/* The quiet lines had NO text-wrap and were dropping orphans: the first
+   fragment broke as "...from everyone" / "else's." - a 65px last line that
+   reads as a mistake, not a line break. Body register takes text-wrap:pretty
+   (kills the orphan, keeps the natural long-then-short rag, so the fragment
+   triple stays one block); the display lines below keep text-wrap:balance.
+   Measured, not assumed: balance here would break "How they know your" /
+   "footsteps from everyone else's.", splitting "your footsteps" and stepping
+   the left block. NB: this whole block is a JS template literal - no backticks. */
+.c2-whisper{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:22px;color:var(--lcb-mute);max-width:35ch;line-height:1.62;margin:0;text-wrap:pretty}
 .c2-lm{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.3rem,2.4vw + .6rem,1.8rem);line-height:1.38;color:var(--lcb-body);margin:0;letter-spacing:-0.008em}
 .c2-ll{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(1.7rem,3.4vw + .7rem,2.5rem);line-height:1.24;color:var(--lcb-white);letter-spacing:-0.014em;margin:0;text-wrap:balance}
 .c2-lxl{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.05rem,4.6vw + .8rem,3.15rem);line-height:1.18;color:var(--lcb-white);letter-spacing:-0.016em;margin:0;text-wrap:balance}
@@ -359,7 +392,7 @@ const LCB_CSS = `
   text-shadow:0 1px 30px rgba(4,3,10,.5);text-wrap:balance;
 }
 .c2-peak-v{color:var(--lcb-violet-br)}
-.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:24px;line-height:1.52;color:var(--lcb-frag);position:relative;max-width:34ch;margin:0}
+.c2-frag{font-family:"Newsreader",Georgia,serif;font-size:25px;line-height:1.52;color:var(--lcb-frag);position:relative;max-width:34ch;margin:0;text-wrap:pretty}
 .c2-peak em,.c2-ll em{font-style:italic}
 
 /* ---- station nodes riding the thread ---- */
@@ -390,12 +423,23 @@ const LCB_CSS = `
 .c2-node-sm::after{display:none}
 .c2-node-sm.lit{box-shadow:0 0 8px rgba(167,139,250,.5)}
 
+/* THE BIRTH STATION - the thread's origin, level with the toggle.
+   The thread used to be born in mid-air below the chooser and hook left onto
+   the spine over 90px. With nothing at either end it read as a stray squiggle,
+   not a birth. Now the choice IS the first station: the thread begins here, on
+   the spine, dead level with the toggle's centre, and runs plumb from it. Same
+   11px dot + 20px hairline tick as every other stop, so the chooser reads as
+   part of the passage rather than a separate block sat above it.
+   It lives in .c2-threadwrap (no column padding), hence the plain spine calc;
+   buildThread() then pins x and y exactly. */
+.c2-birth{left:calc(var(--c2-spine) - 5.5px);top:-9999px}
+
 /* ---- beats: momentum timeline, ~2.6 viewports toggle → form. B1 opens
    on the chooser's heels (seam kill kept); pivot air halved; post-climax
    padding cut so the CTA rides the wheel's momentum; memorial keeps its
    slower/dimmer grammar but NO extra scroll distance ---- */
-.c2-b1{padding:6svh 0 7svh}
-@media (min-width:900px){ .c2-b1{padding-top:3svh} }
+.c2-b1{padding:3svh 0 7svh}
+@media (min-width:900px){ .c2-b1{padding-top:2svh} }
 .c2-b1 .c2-whisper{margin-bottom:3.2svh}
 .c2-b1 .c2-peak{margin-top:5svh}
 .c2-b2{padding:6svh 0 8svh}
@@ -546,12 +590,12 @@ const LCB_CSS = `
    wheel). Fragments carry a lifted contrast token (--lcb-frag) so the
    recognition beats read cleanly on the dark stage. ---- */
 @media (min-width:768px){
-  .c2-whisper{font-size:22px}
-  .c2-frag{font-size:26px}
+  .c2-whisper{font-size:24px}
+  .c2-frag{font-size:27px}
 }
 @media (min-width:1280px){
-  .c2-whisper{font-size:24px}
-  .c2-frag{font-size:28px}
+  .c2-whisper{font-size:26px}
+  .c2-frag{font-size:29px}
 }
 `;
 
@@ -993,6 +1037,10 @@ export function CosmicBridge() {
     const runnerEl = q<SVGPathElement>(".c2-runner");
     const sparkEl = q<SVGCircleElement>(".c2-spark");
     const nodes = qa("[data-node]");
+    // the origin station. Deliberately NOT [data-node]: every other station is
+    // placed from an element's offsetTop inside the column, but the birth is
+    // pinned to the toggle, which lives in a different section entirely.
+    const birthEl = q<HTMLElement>(".c2-birth");
     const moonSec = q(".c2-b3");
     const moonImg = q<HTMLImageElement>(".c2-moonspine");
     const getCard = () => document.querySelector<HTMLElement>(".ls-seal-card");
@@ -1064,8 +1112,13 @@ export function CosmicBridge() {
       runnerT0 = performance.now();
     };
 
-    /* S6: the birth spark - a 300ms violet-white spark travels the first
-       90px of the thread when the chooser is flipped / first scrolled past */
+    /* S6: the ignition - a violet-white spark leaves the birth station and
+       runs the first SPARK_PX of the rail when the chooser is flipped / first
+       scrolled past. It used to travel 90px because that was exactly the old
+       birth bezier; now that the birth is a station on a plumb rail, it runs
+       further and a touch longer so the read is "the choice lit the thread",
+       carrying the eye down out of the chooser rather than just tracing a curve. */
+    const SPARK_PX = 150, SPARK_MS = 380;
     let sparkT0 = 0, sparkScrollSeen = false, prevDrawn = -1;
     const fireSpark = () => {
       if (!reduced && sparkEl && path) sparkT0 = performance.now();
@@ -1118,6 +1171,18 @@ export function CosmicBridge() {
         while (n && n !== col) { x += n.offsetLeft; n = n.offsetParent as HTMLElement | null; }
         return x;
       };
+      /* Absolute layout y, summed up the offsetParent chain. getBoundingClientRect
+         CANNOT be used to find the toggle: the chooser's fieldset carries
+         .ls-reveal, which holds a translate3d(0,30px,0) until it animates in, and
+         rects include transforms. Measuring mid-reveal put the birth station 30px
+         below the toggle and moved it between builds. offsetTop is pure layout, so
+         the origin lands on the toggle's resting centre no matter when we measure.
+         (placeNodes() dodges the same trap the same way.) */
+      const absTop = (el: HTMLElement | null) => {
+        let y = 0; let n: HTMLElement | null = el;
+        while (n) { y += n.offsetTop; n = n.offsetParent as HTMLElement | null; }
+        return y;
+      };
       nodes.forEach((nd) => {
         const el = nd as HTMLElement;
         const parentLeft = offLeftInCol(el) - el.offsetLeft;
@@ -1125,28 +1190,38 @@ export function CosmicBridge() {
       });
       const rel = (r: DOMRect) => ({ x: r.left - colLeft, y: r.top - colR.top, w: r.width, h: r.height });
 
-      // Born under the chosen path (the chooser toggle), then swings onto
-      // the spine. It is born below the WHOLE chooser block - toggle plus
-      // its italic sub-line - because the sub-line sits directly under the
-      // track, and a birth anchored to the track put the stroke through
-      // the sub-line's first word.
+      /* THE BIRTH (rebuilt 2026-07-16). The thread is born ON the spine, dead
+         level with the toggle's centre, and runs plumb from there. The choice
+         is the thread's first station; everything below hangs off the same
+         rail, so the chooser and the passage are ONE column.
+
+         It used to be born in mid-air ~50px below the sub-line at x = toggle+28
+         and hook 68px left onto the spine over a 90px bezier. That curve had no
+         origin and no destination: it started at a point where nothing was, and
+         its scroll-drawn tip ended in mid-air. It read as a coat hook in the
+         margin. Anchoring the top to a real station kills the squiggle outright
+         and turns the band between the chooser and beat 1 from dead space into
+         the thread visibly carrying you out of the choice.
+
+         Because the birth now sits at the toggle's centre and the spine is a
+         full text-gutter to the left of every text edge, the stroke can never
+         touch the sub-line again (the 2026-07-15 collision the old birth was
+         lowered to dodge): it clears it structurally, not by nudging. */
       const toggle = document.querySelector<HTMLElement>(".ls-tgl-track");
-      const tglSub = document.querySelector<HTMLElement>(".ls-tgl-sub");
       let d: string;
       let startY: number;
       if (toggle) {
-        const t = rel(toggle.getBoundingClientRect());
-        const startX = t.x + 28;
-        const blockBottom = tglSub
-          ? Math.max(t.y + t.h, rel(tglSub.getBoundingClientRect()).y + rel(tglSub.getBoundingClientRect()).h)
-          : t.y + t.h;
-        startY = blockBottom + 22;
-        const joinY = startY + 90;
-        d = `M ${startX} ${startY} C ${startX - 26} ${startY + 48}, ${sx} ${startY + 48}, ${sx} ${joinY}`;
-        startY = joinY;
+        startY = absTop(toggle) + toggle.offsetHeight / 2 - absTop(col as HTMLElement);
+        d = `M ${sx} ${startY}`;
       } else {
         startY = -40;
         d = `M ${sx} ${startY}`;
+      }
+      // pin the birth station onto the origin (threadwrap is unpadded, so the
+      // spine x needs no column correction here)
+      if (birthEl) {
+        birthEl.style.left = `${(sx - birthEl.offsetWidth / 2).toFixed(2)}px`;
+        birthEl.style.top = `${(startY - birthEl.offsetHeight / 2).toFixed(2)}px`;
       }
 
       const pts: Pt[] = [{ x: sx, y: startY }];
@@ -1342,6 +1417,9 @@ export function CosmicBridge() {
         if (on && !nd.classList.contains("c2-node-sm")) lastLit = i;
       });
       nodes.forEach((nd, i) => nd.classList.toggle("pulse", i === lastLit));
+      // the origin lights the instant the rail exists, and never pulses: it is
+      // where the thread comes from, not a stop along it
+      birthEl?.classList.toggle("lit", drawn > 2);
       // S6: the birth spark (chooser flip / first scroll past the birth)
       if (!sparkScrollSeen && prevDrawn >= 0 && prevDrawn <= 24 && drawn > 24) {
         sparkScrollSeen = true;
@@ -1349,10 +1427,10 @@ export function CosmicBridge() {
       }
       prevDrawn = drawn;
       if (sparkT0 && sparkEl && path) {
-        const sp = (now - sparkT0) / 300;
+        const sp = (now - sparkT0) / SPARK_MS;
         if (sp >= 1) { sparkT0 = 0; sparkEl.style.opacity = "0"; }
         else if (sp >= 0) {
-          const pt = path.getPointAtLength(Math.max(0, Math.min(90, sp * 90)));
+          const pt = path.getPointAtLength(Math.max(0, Math.min(SPARK_PX, sp * SPARK_PX)));
           sparkEl.setAttribute("cx", pt.x.toFixed(1));
           sparkEl.setAttribute("cy", pt.y.toFixed(1));
           sparkEl.style.opacity = Math.sin(Math.PI * Math.min(1, sp)).toFixed(2);
@@ -1455,6 +1533,9 @@ export function CosmicBridge() {
           glowP.style.strokeDashoffset = "0";
         }
         nodes.forEach((nd) => nd.classList.add("lit"));
+        // the origin lights too: this branch never starts the frame loop, and a
+        // finished thread hanging off an unlit station reads as a broken end
+        birthEl?.classList.add("lit");
         armCard(); sealCard();
         paintFrame(0, 0);
         return;
@@ -1537,6 +1618,8 @@ export function CosmicBridge() {
             <path className="c2-runner" d="" />
             <circle className="c2-spark" r="2.6" />
           </svg>
+          {/* the origin: pinned level with the chooser's toggle by buildThread */}
+          <span className="c2-node c2-birth" />
         </div>
 
         {/* ── Beat 1 · the claim (no artifact: the real sky answers) ── */}

@@ -6501,11 +6501,17 @@ function CosmicStyles() {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        /* 72svh (was 86) + 3svh tail (was 5): the passage's first beat now
-           arrives within ~a fifth of a viewport of the chooser sub-line -
-           no dead black band between the choice and the first station. */
-        min-height: 72svh;
-        padding: 9svh 20px 3svh;
+        /* 64svh (was 72, was 86). The section is centred, so its min-height
+           sets the tail: every extra pixel of height became dead black band
+           between the sub-line and the passage's first whisper (165px of it at
+           900vh). Trimmed here, and .c2-b1's top padding trimmed to match, so
+           what's left reads as the thread travelling out of the choice.
+           NO horizontal padding: .lcb-root has none either, and any mismatch
+           shifts this column off the passage's. See THE COLUMN CONTRACT in
+           CosmicBridge.tsx - the padding lives on .ls-tgl-col, from the same
+           --c2-padl the passage uses. */
+        min-height: 58svh;
+        padding: 9svh 0 3svh;
         overflow: visible;
       }
       .ls-tgl-section::before {
@@ -6524,17 +6530,25 @@ function CosmicStyles() {
           radial-gradient(1.2px 1.2px at 8% 52%, rgba(185,165,240,0.5), transparent 60%);
         opacity: 0.55;
       }
+      /* Same box as the passage's .c2-col, to the pixel: same width, same
+         max-width, same margin, same padding-left, so the eyebrow, the
+         question, the toggle and the sub-line share ONE text edge with every
+         line of the passage below them. --c2-padl is THE COLUMN CONTRACT,
+         declared once in CosmicBridge.tsx. Never hard-code it here again:
+         84px lived here against the passage's 104px and the two columns
+         visibly staggered. The right padding stays local - the toggle is a
+         wide object and the right edge is ragged by design. */
       .ls-tgl-col {
         position: relative;
         z-index: 1;
         width: 100%;
         max-width: 760px;
         margin: 0 auto;
-        padding-left: 40px;
+        padding-left: var(--c2-padl, 60px);
         padding-right: 2px;
         text-align: left;
       }
-      @media (min-width: 900px) { .ls-tgl-col { padding-left: 84px; padding-right: 20px; } }
+      @media (min-width: 900px) { .ls-tgl-col { padding-right: 20px; } }
       .ls-tgl-arc { display: none; }
       @media (min-width: 900px) {
         .ls-tgl-arc {
@@ -6612,14 +6626,17 @@ function CosmicStyles() {
       }
       .ls-tgl input:checked + label { color: #0d0a14; }
       .ls-tgl input:focus-visible + label { outline: 2px solid #a78bfa; outline-offset: 3px; }
+      /* NOTE: font-size here is overridden by the readability tier block
+         below (base / 768 / 1280). Change the size THERE, not here. */
       .ls-tgl-sub {
         margin: 2.6svh 0 0;
         font-family: "Newsreader", Georgia, serif;
         font-style: italic;
         font-size: 19px;
-        color: rgba(245,242,255,0.82);
+        color: rgba(245,242,255,0.92);
         min-height: 1.6em;
         max-width: 38ch;
+        text-wrap: pretty;
         transition: opacity 220ms ease, transform 220ms ease;
       }
       .ls-tgl-sub.is-swap { opacity: 0; transform: translateY(6px); }
@@ -7000,7 +7017,10 @@ function CosmicStyles() {
       .ls-hero-memorial { font-size: 17px; }
       .ls-tgl-micro { font-size: 14px; }
       .ls-tgl label { font-size: 18px; }
-      .ls-tgl-sub { font-size: 19px; }
+      /* the chooser sub-line sits directly above the passage's first whisper
+         and is read as part of it - keep this ladder in step with .c2-whisper
+         (22/24/26) in CosmicBridge.tsx, one step quieter */
+      .ls-tgl-sub { font-size: 20px; }
       .ls-bridge-beat { font-size: clamp(1.25rem, 2.4vw, 1.55rem); }
       .ls-seal-field label { font-size: 17px; }
       .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub { font-size: 17px; }
@@ -7062,7 +7082,7 @@ function CosmicStyles() {
       @media (min-width: 768px) {
         .ls-hero-memorial { font-size: 17.5px; }
         .ls-tgl-micro { font-size: 14.5px; }
-        .ls-tgl-sub { font-size: 20px; }
+        .ls-tgl-sub { font-size: 21px; }
         .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub, .ls-chart-message { font-size: 17.5px; }
         .ls-orrery-bubble .ls-orrery-line { font-size: 19px; }
         .ls-orrery-line--info { font-size: 17.5px !important; }
@@ -7081,7 +7101,7 @@ function CosmicStyles() {
         .ls-gold-button, .ls-ghost-button { font-size: 19px; }
         .ls-hero-memorial { font-size: 18px; }
         .ls-tgl-micro { font-size: 15px; }
-        .ls-tgl-sub { font-size: 21px; }
+        .ls-tgl-sub { font-size: 22px; }
         .ls-seal-field label { font-size: 17.5px; }
         .ls-seal-hint, .ls-seal-help, .ls-seal-why, .ls-seal-loading-sub, .ls-chart-message { font-size: 18px; }
         .ls-chart-form input, .ls-lead-form input { font-size: 17.5px; }
