@@ -1494,7 +1494,7 @@ const TEASE_GLYPH: Record<string, string> = {
 type DeckCard =
   | { kind: "keepsake"; photoUrl: string; name: string | null }
   | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; essence: string; l1: string; beats: string; tell: string; sealed: string; count: number }
-  | { kind: "element"; counts: Record<DeckElement, number>; dominant: DeckElement; l1: string; beats: string; tell: string }
+  | { kind: "element"; counts: Record<DeckElement, number>; byElement: Record<DeckElement, DeckPlanet[]>; dominant: DeckElement; l1: string; beats: string; tell: string }
   | { kind: "synthesis"; lead: string; wants: string; needs: string; close: string }
   | { kind: "tease"; copy: TeaseCopy };
 
@@ -1551,16 +1551,21 @@ function buildDeck(
   // Element balance, counted over the five personal planets (the honest
   // date-only set). The dominant element is the card.
   const counts: Record<DeckElement, number> = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  const byElement: Record<DeckElement, DeckPlanet[]> = { Fire: [], Earth: [], Air: [], Water: [] };
   for (const key of DECK_PLANETS) {
     const sign = (chart[key] as ChartBody | undefined)?.sign;
     const el = sign ? SIGN_ELEMENT[sign] : undefined;
-    if (el) counts[el] += 1;
+    if (el) {
+      counts[el] += 1;
+      byElement[el].push(key);
+    }
   }
   const dominant = (Object.keys(counts) as DeckElement[]).reduce((a, b) => (counts[b] > counts[a] ? b : a));
   if (counts[dominant] > 0) {
     cards.push({
       kind: "element",
       counts,
+      byElement,
       dominant,
       l1: fill(elementL1(counts[dominant], dominant), S),
       beats: fill(ELEMENT_READS[dominant].beats[voice], S),
@@ -1583,6 +1588,54 @@ function buildDeck(
   const teaseCopy = TEASE[voice];
   cards.push({ kind: "tease", copy: { ...teaseCopy, keep: fill(teaseCopy.keep, S), bridge: fill(teaseCopy.bridge, S) } });
   return cards;
+}
+
+// The engraved chart wheel behind each planet card (spec-0, 2026-07-16): a
+// 1px violet ring with 30 degree ticks (one per degree of the sign, every
+// 5th longer), and ONE lit tick at the body's true degree. The NASA disc
+// rides the rim at that same angle via .ls-dk-orbit (natural colour: the
+// violet instrument chrome frames the photo as data). deg null = no lit
+// tick, disc seated at 12 o'clock. Angles run clockwise from 12.
+const WHEEL_VB = 220;
+const WHEEL_R = 104; // rim radius; orb top inset = (110-104)/220 = 2.727%
+const WHEEL_C = 2 * Math.PI * WHEEL_R; // ring circumference for the draw
+function DeckWheel({ deg }: { deg: number | null }) {
+  const c = WHEEL_VB / 2;
+  const ticks: JSX.Element[] = [];
+  for (let i = 0; i < 30; i++) {
+    const a = ((i * 12 - 90) * Math.PI) / 180;
+    const len = i % 5 === 0 ? 7 : 4;
+    ticks.push(
+      <line
+        key={i}
+        x1={(c + Math.cos(a) * (WHEEL_R - 2)).toFixed(2)}
+        y1={(c + Math.sin(a) * (WHEEL_R - 2)).toFixed(2)}
+        x2={(c + Math.cos(a) * (WHEEL_R - 2 - len)).toFixed(2)}
+        y2={(c + Math.sin(a) * (WHEEL_R - 2 - len)).toFixed(2)}
+        opacity={i % 5 === 0 ? 0.3 : 0.18}
+      />,
+    );
+  }
+  let lit: JSX.Element | null = null;
+  if (deg != null) {
+    const a = (((deg / 30) * 360 - 90) * Math.PI) / 180;
+    lit = (
+      <line
+        className="ls-dk-wheel-lit"
+        x1={(c + Math.cos(a) * (WHEEL_R - 1)).toFixed(2)}
+        y1={(c + Math.sin(a) * (WHEEL_R - 1)).toFixed(2)}
+        x2={(c + Math.cos(a) * (WHEEL_R - 11)).toFixed(2)}
+        y2={(c + Math.sin(a) * (WHEEL_R - 11)).toFixed(2)}
+      />
+    );
+  }
+  return (
+    <svg className="ls-dk-wheel" viewBox={`0 0 ${WHEEL_VB} ${WHEEL_VB}`} aria-hidden="true">
+      <circle className="ls-dk-wheel-ring" cx={c} cy={c} r={WHEEL_R} style={{ strokeDasharray: WHEEL_C.toFixed(1) }} />
+      <g className="ls-dk-wheel-ticks" stroke="#b9a5f0" strokeWidth="1">{ticks}</g>
+      {lit}
+    </svg>
+  );
 }
 
 // A tiny bespoke seal mark for the sealed-depth footers: same stroke language
@@ -1715,72 +1768,120 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
   }
 
   if (card.kind === "planet") {
+    // THE PLATE (spec-0): the card is one composed instrument plate in three
+    // strata. (A) FACT: an engraved chart wheel with the real disc riding the
+    // rim at its true degree; sign lockup + l1 caption live INSIDE the ring.
+    // (B) READING: beats as the left-aligned hero with an inset quote-rule,
+    // tell as the indented italic margin note with a dash anchor. (C) SEAL: a
+    // labelled sealed-drawer footer bar. Copy verbatim; block ids unchanged.
+    const angle = card.deg != null ? (card.deg / 30) * 360 : 0;
     return wrap(
       <div className="ls-dk-inner ls-dk-pl">
-        <div className="ls-dk-orb" aria-hidden="true">
-          <span className="ls-dk-halo" />
-          <img src={DECK_PHOTO[card.key]} alt="" draggable={false} />
-        </div>
-        <div className="ls-dk-hook">
-          <p className="ls-dk-eyebrow">
-            <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
-            {DECK_LABEL[card.key]}
-            <span className="ls-dk-count">{counterLabel(card.count)}</span>
-          </p>
-          <div className="ls-dk-chipwrap">
-            <p className="ls-dk-chip">
-              {card.sign}
-              {card.deg != null && (
-                <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
-              )}
-            </p>
+        <div className="ls-dk-plate">
+          <DeckWheel deg={card.deg} />
+          <div className="ls-dk-orbit" style={{ "--dk-angle": `${angle.toFixed(2)}deg` } as React.CSSProperties} aria-hidden="true">
+            <div className="ls-dk-orb">
+              <span className="ls-dk-halo" />
+              <img src={DECK_PHOTO[card.key]} alt="" draggable={false} />
+            </div>
           </div>
-          <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
+          <div className="ls-dk-lockup">
+            <p className="ls-dk-eyebrow">
+              <span className="ls-dk-eyelabel">
+                <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
+                {DECK_LABEL[card.key]}
+              </span>
+              <span className="ls-dk-count">{counterLabel(card.count)}</span>
+            </p>
+            <div className="ls-dk-chipwrap">
+              <p className="ls-dk-chip">
+                {card.sign}
+                {card.deg != null && (
+                  <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
+                )}
+              </p>
+            </div>
+            <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
+          </div>
         </div>
-        <span className="ls-dk-rule" aria-hidden="true" />
-        <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
-        <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
-        <p className={lc("sealed", "ls-dk-seal")}><SealMark /><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
+        <div className="ls-dk-read">
+          <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+          <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+        </div>
+        <div className="ls-dk-sealbar">
+          <SealMark />
+          <p className={lc("sealed", "ls-dk-sealtext")}><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
+          <span className="ls-dk-sealtag">In the full reading</span>
+        </div>
       </div>,
     );
   }
 
   if (card.kind === "element") {
+    // THE FOUR HOUSES (spec-0): the five personal planets physically sorted
+    // into four element columns. Sun and Mercury STANDING in Air is the chart;
+    // no widget bars. Dominant column lit, empty column dimmed to a dot.
     const order: DeckElement[] = ["Fire", "Earth", "Air", "Water"];
     const domCount = card.counts[card.dominant];
     const tied = order.filter((e) => e !== card.dominant && card.counts[e] === domCount);
     const domLabel =
       tied.length > 0 ? `${card.dominant} and ${tied[0]}` : domCount >= 3 ? `Mostly ${card.dominant}` : `Led by ${card.dominant}`;
+    let chipIdx = 0;
     return wrap(
       <div className="ls-dk-inner ls-dk-el">
         <p className="ls-dk-eyebrow ls-dk-el-eyebrow">The balance of them</p>
         <p className="ls-dk-el-dom">{domLabel}</p>
-        <div className="ls-dk-bars">
-          {order.map((el, i) => (
-            <div key={el} className={`ls-dk-bar${card.counts[el] === domCount ? " is-dom" : ""}`}>
-              <span className="ls-dk-bar-label">{el}</span>
-              <span className="ls-dk-bar-track">
-                <i style={{ transform: `scaleX(${card.counts[el] / 5})`, animationDelay: `${0.2 + i * 0.08}s` }} />
-              </span>
-              <span className="ls-dk-bar-n">{card.counts[el]}</span>
-            </div>
-          ))}
+        <div className="ls-dk-houses">
+          {order.map((el) => {
+            const planets = card.byElement[el];
+            const isDom = card.counts[el] === domCount && card.counts[el] > 0;
+            const cls = `ls-dk-house${isDom ? " is-dom" : ""}${planets.length === 0 ? " is-empty" : ""}${planets.length >= 4 ? " is-many" : ""}`;
+            return (
+              <div key={el} className={cls}>
+                <span className="ls-dk-house-name">{el}</span>
+                <span className="ls-dk-house-chips">
+                  {planets.length === 0 ? (
+                    <i className="ls-dk-house-dot" aria-hidden="true" />
+                  ) : (
+                    planets.map((p) => (
+                      <i key={p} className="ls-dk-house-chip" style={{ "--pop-delay": `${(0.3 + chipIdx++ * 0.06).toFixed(2)}s` } as React.CSSProperties}>
+                        <AstroGlyph name={p} />
+                      </i>
+                    ))
+                  )}
+                </span>
+                <span className="ls-dk-house-n">{card.counts[el]}</span>
+              </div>
+            );
+          })}
         </div>
         <p className={lc("l1", "ls-dk-l1 ls-dk-el-meaning")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
-        <span className="ls-dk-rule" aria-hidden="true" />
-        <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
-        <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+        <div className="ls-dk-read">
+          <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+          <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+        </div>
       </div>,
     );
   }
 
   if (card.kind === "synthesis") {
+    // The conjunction mark (spec-0): two circles overlapping, a hairline stem.
+    // Static geometry, never a spinner. Wants and needs stage as call and
+    // response: sun-anchored left, moon-anchored right (both left on mobile).
     return wrap(
-      <div className="ls-dk-inner">
-        <span className="ls-dk-synmark" aria-hidden="true"><AstroGlyph name="synthesis" /></span>
+      <div className="ls-dk-inner ls-dk-sy">
+        <span className="ls-dk-conj" aria-hidden="true">
+          <svg viewBox="0 0 64 48" width="64" height="48" fill="none" stroke="#b9a5f0" strokeWidth="1.4">
+            <circle className="ls-dk-conj-a" cx="26" cy="16" r="10" />
+            <circle className="ls-dk-conj-b" cx="38" cy="16" r="10" fill="rgba(185,165,240,0.22)" />
+            <line className="ls-dk-conj-stem" x1="32" y1="29" x2="32" y2="47" strokeWidth="1" stroke="rgba(154,126,230,0.5)" />
+          </svg>
+        </span>
         <p className={lc("lead", "ls-dk-lead")}><NarratedWords blockId="lead" text={card.lead} nar={nar} /></p>
-        <p className={lc("wants", "ls-dk-syn")}><NarratedWords blockId="wants" text={card.wants} nar={nar} /></p>
-        <p className={lc("needs", "ls-dk-syn ls-dk-syn2")}><NarratedWords blockId="needs" text={card.needs} nar={nar} /></p>
+        <div className="ls-dk-synpair">
+          <p className={lc("wants", "ls-dk-syn")}><AstroGlyph name="sun" className="ls-dk-syn-g" /><NarratedWords blockId="wants" text={card.wants} nar={nar} /></p>
+          <p className={lc("needs", "ls-dk-syn ls-dk-syn2")}><AstroGlyph name="moon" className="ls-dk-syn-g" /><NarratedWords blockId="needs" text={card.needs} nar={nar} /></p>
+        </div>
         <p className={lc("close", "ls-dk-close")}><NarratedWords blockId="close" text={card.close} nar={nar} /></p>
       </div>,
     );
@@ -1827,7 +1928,7 @@ const DECK_CSS = `
   /* Bottom padding reserves the single control-row band, so the reading never
      reaches down into the [back · hear · Next] cluster (what made the hear
      button land on the sealed footer before). */
-  .ls-dk-card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: clamp(46px, 7svh, 72px) 22px clamp(84px, 12svh, 100px); }
+  .ls-dk-card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: clamp(46px, 7svh, 72px) 22px clamp(108px, 15svh, 124px); }
   .ls-dk-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: clamp(9px, 1.6svh, 15px); width: min(100%, 660px); max-height: 100%; }
   .ls-dk-inner > * { opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
   @keyframes lsDkIn { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
@@ -1845,60 +1946,119 @@ const DECK_CSS = `
   @keyframes lsDkFrameSpin { to { transform: rotate(360deg); } }
   .ls-dk-keepname { margin: 0; max-width: 20ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.9rem); line-height: 1.08; letter-spacing: -0.016em; text-shadow: 0 0 32px rgba(154,126,230,0.42); animation-delay: 0.42s; }
 
-  /* The planet card: real disc, then a HOOK block (label + sign chip + the
-     name sentence), a hairline, the uncanny BEATS, the warm TELL, the SEAL. */
-  .ls-dk-pl { gap: clamp(8px, 1.3svh, 13px); }
-  .ls-dk-orb { position: relative; width: clamp(90px, 14svh, 132px); aspect-ratio: 1; display: grid; place-items: center; }
-  .ls-dk-halo { position: absolute; inset: -16%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.30) 0%, rgba(154,126,230,0.11) 44%, transparent 70%); filter: blur(12px); }
-  .ls-dk-orb img { position: relative; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 16px 44px rgba(4,2,12,0.62)); animation: lsDkKen 7s ease-in-out infinite alternate; }
+  /* THE PLANET PLATE (spec-0): fact stratum = engraved wheel with the disc
+     seated at its true degree; reading stratum = beats + tell as two staged
+     voices; seal stratum = the labelled sealed-drawer bar. Every animated
+     piece's BASE state is the finished composition; animations only stage
+     the arrival (reduced-motion law). */
+  .ls-dk-pl { gap: clamp(16px, 2.6svh, 24px); }
+  .ls-dk-plate { position: relative; width: clamp(190px, 30svh, 236px); aspect-ratio: 1; display: grid; place-items: center; animation: none; opacity: 1; }
+  .ls-dk-wheel { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ls-dk-wheel-ring { fill: none; stroke: rgba(185,165,240,0.30); stroke-width: 1; stroke-dashoffset: 0; transform: rotate(-90deg); transform-origin: 50% 50%; animation: lsDkRingDraw 0.7s cubic-bezier(0.4,0,0.2,1) both; }
+  @keyframes lsDkRingDraw { from { stroke-dashoffset: 653.5; } to { stroke-dashoffset: 0; } }
+  .ls-dk-wheel-ticks { animation: lsDkFadeIn 0.4s ease 0.25s both; }
+  @keyframes lsDkFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .ls-dk-wheel-lit { stroke: #b9a5f0; stroke-width: 2; filter: drop-shadow(0 0 8px rgba(185,165,240,0.8)); animation: lsDkFadeIn 0.3s ease 0.85s both; }
+  /* the orbit wrapper rotates the disc to its degree; the orb counter-rotates
+     in exact lockstep so the photo never tilts mid-travel */
+  .ls-dk-orbit { position: absolute; inset: 0; pointer-events: none; transform: rotate(var(--dk-angle, 0deg)); animation: lsDkOrbit 0.9s cubic-bezier(0.22,0.7,0.2,1) 0.15s both; }
+  @keyframes lsDkOrbit { from { transform: rotate(calc(var(--dk-angle, 0deg) - 28deg)); } to { transform: rotate(var(--dk-angle, 0deg)); } }
+  .ls-dk-orb { position: absolute; left: 50%; top: 2.727%; width: clamp(56px, 8.5svh, 72px); aspect-ratio: 1; display: grid; place-items: center; transform: translate(-50%, -50%) rotate(calc(-1 * var(--dk-angle, 0deg))); animation: lsDkOrbCounter 0.9s cubic-bezier(0.22,0.7,0.2,1) 0.15s both; }
+  @keyframes lsDkOrbCounter { from { transform: translate(-50%, -50%) rotate(calc(28deg - var(--dk-angle, 0deg))); } to { transform: translate(-50%, -50%) rotate(calc(-1 * var(--dk-angle, 0deg))); } }
+  .ls-dk-halo { position: absolute; inset: -22%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.22) 0%, rgba(154,126,230,0.09) 44%, transparent 70%); filter: blur(12px); }
+  .ls-dk-orb img { position: relative; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 26px rgba(4,2,12,0.6)); animation: lsDkKen 7s ease-in-out infinite alternate; }
   @keyframes lsDkKen { from { transform: scale(1) translate3d(0, 1.4%, 0); } to { transform: scale(1.075) translate3d(0, -1.4%, 0); } }
-  .ls-dk-hook { display: flex; flex-direction: column; align-items: center; gap: clamp(7px, 1.2svh, 12px); animation-delay: 0.12s; }
-  .ls-dk-eyebrow { margin: 0; display: inline-flex; align-items: center; gap: 10px; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.28em; text-indent: 0.28em; text-transform: uppercase; }
-  .ls-dk-glyphmark { font-size: 16px; filter: drop-shadow(0 0 8px rgba(154,126,230,0.5)); }
-  .ls-dk-count { display: inline-flex; align-items: center; padding-left: 11px; margin-left: 1px; color: rgba(200,200,210,0.62); font-size: 11px; letter-spacing: 0.18em; text-indent: 0.18em; border-left: 1px solid rgba(154,126,230,0.32); }
-  .ls-dk-chipwrap { perspective: 680px; animation: none; opacity: 1; }
-  .ls-dk-chip { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; font-size: clamp(2.2rem, 9.4vw, 3.3rem); line-height: 1; color: #ffffff; text-shadow: 0 0 34px rgba(154,126,230,0.35); transform-origin: 50% 115%; animation: lsDkFlip 0.7s cubic-bezier(0.3,1.26,0.44,1) both; }
+  /* the lockup: label, sign word and caption INSIDE the ring, so the sign
+     lives in its own chart wheel with the planet placed at its degree */
+  .ls-dk-lockup { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; max-width: 78%; }
+  .ls-dk-lockup > * { opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
+  .ls-dk-lockup .ls-dk-eyebrow { animation-delay: 0.2s; }
+  .ls-dk-eyebrow { margin: 0; display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 9px; row-gap: 4px; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.18em; text-indent: 0.18em; text-transform: uppercase; }
+  /* label and counter wrap as whole units, never mid-word */
+  .ls-dk-eyelabel { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
+  .ls-dk-count { white-space: nowrap; }
+  .ls-dk-glyphmark { font-size: 15px; filter: drop-shadow(0 0 8px rgba(154,126,230,0.5)); }
+  .ls-dk-count { display: inline-flex; align-items: center; padding-left: 10px; margin-left: 1px; color: rgba(200,200,210,0.62); font-size: 10.5px; letter-spacing: 0.22em; text-indent: 0.22em; border-left: 1px solid rgba(154,126,230,0.32); }
+  .ls-dk-chipwrap { perspective: 680px; animation: none !important; opacity: 1 !important; }
+  .ls-dk-chip { margin: 0; white-space: nowrap; font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; font-size: clamp(1.5rem, 6vw, 2rem); line-height: 1; color: #ffffff; text-shadow: 0 0 34px rgba(154,126,230,0.35); transform-origin: 50% 115%; animation: lsDkFlip 0.7s cubic-bezier(0.3,1.26,0.44,1) 0.25s both; }
   @keyframes lsDkFlip { from { transform: rotateX(-92deg); opacity: 0; } to { transform: rotateX(0deg); opacity: 1; } }
-  .ls-dk-deg { color: #b9a5f0; font-size: 0.5em; font-weight: 500; letter-spacing: 0.02em; vertical-align: 0.35em; }
-  .ls-dk-l1 { margin: 2px 0 0; max-width: 34ch; color: #d9d2ea; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 4vw, 1.14rem); line-height: 1.4; }
-  /* the hairline that separates the placement hook from the reading */
-  .ls-dk-rule { width: clamp(46px, 12vw, 72px); height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5), transparent); animation-delay: 0.34s; }
-  /* the uncanny beats: the hero of the card, largest, brightest */
-  .ls-dk-beats { margin: 0; max-width: 30ch; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.24rem, 5.2vw, 1.5rem); line-height: 1.42; letter-spacing: -0.004em; text-shadow: 0 0 30px rgba(154,126,230,0.22); animation-delay: 0.42s; }
-  /* the warm tell: a distinct violet panel, set off from the beats */
-  .ls-dk-tell { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; max-width: 33ch; color: #cbb8f2; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.06rem, 4.3vw, 1.24rem); line-height: 1.48; animation-delay: 0.66s; }
-  .ls-dk-tell-mark { width: 26px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #b9a5f0, transparent); }
-  /* the seal: a small locked pill, unmistakably a closed door */
-  .ls-dk-seal { margin: clamp(2px, 1svh, 8px) 0 0; display: inline-flex; align-items: center; gap: 8px; max-width: 40ch; padding: 8px 15px; border-radius: 999px; border: 1px solid rgba(154,126,230,0.26); background: rgba(154,126,230,0.06); color: rgba(206,206,216,0.72); font-family: "Newsreader", Georgia, serif; font-size: 13px; line-height: 1.4; text-align: left; animation-delay: 0.9s; }
-  .ls-dk-seal svg { flex: 0 0 auto; font-size: 13px; color: rgba(185,165,240,0.7); }
+  .ls-dk-deg { color: #b9a5f0; font-size: 0.52em; font-weight: 500; letter-spacing: 0.02em; vertical-align: 0.35em; }
+  .ls-dk-l1 { margin: 0; max-width: 26ch; color: #d9d2ea; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(0.92rem, 3.6vw, 1.02rem); line-height: 1.4; }
+  .ls-dk-lockup .ls-dk-l1 { animation-delay: 0.38s; }
+  /* READING stratum: two left-aligned voices at two indents. The block itself
+     centers on the card axis; inside it the words stage as spoken lines. */
+  .ls-dk-read { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; text-align: left; width: fit-content; max-width: min(100%, 36ch); margin-inline: auto; animation: none; opacity: 1; }
+  /* the uncanny beats: the hero voice, quoted off an inset rule */
+  .ls-dk-beats { position: relative; margin: 0; max-width: 32ch; padding-left: 18px; text-align: left; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.22rem, 5vw, 1.46rem); line-height: 1.45; letter-spacing: -0.004em; text-shadow: 0 0 30px rgba(154,126,230,0.22); opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.48s forwards; }
+  .ls-dk-beats::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, transparent, #b9a5f0 30%, #b9a5f0 70%, transparent); transform-origin: top; animation: lsDkRuleY 0.4s cubic-bezier(0.4,0,0.2,1) 0.5s both; }
+  @keyframes lsDkRuleY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  /* the warm tell: the indented italic margin note, dash-anchored */
+  .ls-dk-tell { position: relative; margin: 0; max-width: 30ch; padding-left: 36px; text-align: left; color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 4.2vw, 1.16rem); line-height: 1.5; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.68s forwards; }
+  .ls-dk-tell-mark { position: absolute; left: 6px; top: 0.66em; width: 22px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #b9a5f0, transparent); }
+  /* SEAL stratum: the labelled sealed drawer. Hairline top, lock left, the
+     sealed line, the destination tag right. A drawer with a destination. */
+  .ls-dk-sealbar { position: relative; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; width: min(100%, 420px); padding-top: 13px; margin-inline: auto; text-align: left; animation: none; opacity: 1; }
+  .ls-dk-sealbar::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(154,126,230,0.22) 20%, rgba(154,126,230,0.22) 80%, transparent); transform-origin: left; animation: lsDkRuleX 0.45s cubic-bezier(0.4,0,0.2,1) 0.86s both; }
+  @keyframes lsDkRuleX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .ls-dk-sealbar > svg { flex: 0 0 auto; margin-top: 3px; font-size: 13px; color: rgba(185,165,240,0.7); opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.9s forwards; }
+  .ls-dk-sealtext { margin: 0; flex: 1 1 0; min-width: 0; color: rgba(206,206,216,0.72); font-family: "Newsreader", Georgia, serif; font-size: 13.5px; line-height: 1.45; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.9s forwards; }
+  .ls-dk-sealtag { flex: 0 0 auto; margin-top: 3px; color: rgba(185,165,240,0.75); font-family: "Newsreader", Georgia, serif; font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.9s forwards; }
+  @media (max-width: 390px) {
+    .ls-dk-sealtag { flex-basis: 100%; text-align: right; margin-top: 0; }
+  }
 
-  /* The element card: dominant element named, four bars as one designed unit
-     with the dominant lit, then the meaning, the beats and the tell. */
+  /* THE FOUR HOUSES (element card): his five planets standing in four
+     hairline-divided element columns. The dominant column lit, the empty
+     column a dimmed dot. Astronomy, not a settings widget. */
   .ls-dk-el { gap: clamp(8px, 1.5svh, 14px); }
   .ls-dk-el-eyebrow { animation-delay: 0.05s; }
   .ls-dk-el-dom { margin: 0; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1; letter-spacing: -0.014em; text-shadow: 0 0 32px rgba(154,126,230,0.32); animation-delay: 0.12s; }
-  .ls-dk-bars { display: flex; flex-direction: column; gap: 11px; width: min(80vw, 340px); margin: clamp(4px, 1svh, 10px) 0; padding: clamp(14px, 3vw, 18px) clamp(16px, 4vw, 22px); border-radius: 16px; border: 1px solid rgba(154,126,230,0.18); background: linear-gradient(180deg, rgba(154,126,230,0.07), rgba(154,126,230,0.02)); animation-delay: 0.22s; }
-  .ls-dk-bar { display: grid; grid-template-columns: 52px 1fr 16px; align-items: center; gap: 12px; opacity: 0.62; transition: opacity 0.4s ease; }
-  .ls-dk-bar.is-dom { opacity: 1; }
-  .ls-dk-bar-label { color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; text-align: right; }
-  .ls-dk-bar.is-dom .ls-dk-bar-label { color: #cfc0f4; font-weight: 600; }
-  .ls-dk-bar-track { position: relative; height: 6px; border-radius: 99px; background: rgba(154,126,230,0.14); overflow: hidden; }
-  .ls-dk-bar-track i { position: absolute; inset: 0; border-radius: 99px; background: linear-gradient(90deg, rgba(124,92,214,0.55), rgba(185,165,240,0.55)); transform-origin: 0 50%; animation: lsDkBar 0.8s cubic-bezier(0.22,0.7,0.2,1) both; }
-  .ls-dk-bar.is-dom .ls-dk-bar-track i { background: linear-gradient(90deg, #7c5cd6, #cfc0f4); box-shadow: 0 0 12px rgba(185,165,240,0.5); }
-  @keyframes lsDkBar { from { transform: scaleX(0); } }
-  .ls-dk-bar-n { color: rgba(200,200,210,0.7); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; text-align: left; }
-  .ls-dk-bar.is-dom .ls-dk-bar-n { color: #cfc0f4; }
+  .ls-dk-houses { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); width: min(88vw, 460px); margin: clamp(4px, 1svh, 10px) 0; padding: 18px 0 14px; animation: none; opacity: 1; }
+  .ls-dk-houses::before, .ls-dk-houses::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(154,126,230,0.22) 20%, rgba(154,126,230,0.22) 80%, transparent); transform-origin: left; animation: lsDkRuleX 0.45s cubic-bezier(0.4,0,0.2,1) 0.22s both; }
+  .ls-dk-houses::before { top: 0; }
+  .ls-dk-houses::after { bottom: 0; }
+  .ls-dk-house { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .ls-dk-house + .ls-dk-house { border-left: 1px solid rgba(154,126,230,0.22); }
+  .ls-dk-house.is-empty { opacity: 0.45; }
+  .ls-dk-house-name { color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-indent: 0.18em; text-transform: uppercase; }
+  .ls-dk-house.is-dom .ls-dk-house-name { color: #cfc0f4; }
+  .ls-dk-house-chips { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; min-height: 118px; padding-top: 2px; }
+  .ls-dk-house-chip { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(185,165,240,0.22); background: rgba(154,126,230,0.04); display: grid; place-items: center; font-style: normal; font-size: 16px; color: rgba(217,210,234,0.6); animation: lsDkChipPop 0.35s cubic-bezier(0.22,0.7,0.2,1) var(--pop-delay, 0.3s) both; }
+  .ls-dk-house.is-many .ls-dk-house-chip { width: 30px; height: 30px; font-size: 14px; }
+  @keyframes lsDkChipPop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+  .ls-dk-house.is-dom .ls-dk-house-chip { color: #cfc0f4; border-color: rgba(185,165,240,0.55); background: rgba(154,126,230,0.08); box-shadow: 0 0 14px rgba(185,165,240,0.35); animation: lsDkChipPop 0.35s cubic-bezier(0.22,0.7,0.2,1) var(--pop-delay, 0.3s) both, lsDkDomBreath 1.4s ease-in-out 0.7s both; }
+  /* the one-time dominant breath: swells once, then rests lit */
+  @keyframes lsDkDomBreath { 0% { box-shadow: 0 0 0 rgba(185,165,240,0); } 55% { box-shadow: 0 0 20px rgba(185,165,240,0.5); } 100% { box-shadow: 0 0 14px rgba(185,165,240,0.35); } }
+  .ls-dk-house-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(185,165,240,0.25); margin-top: 8px; }
+  .ls-dk-house-n { color: rgba(200,200,210,0.7); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; }
+  .ls-dk-house.is-dom .ls-dk-house-n { color: #cfc0f4; }
+  .ls-dk-house.is-empty .ls-dk-house-n { opacity: 0.4; }
   .ls-dk-el-meaning { max-width: 30ch; color: #d9d2ea; font-style: italic; animation-delay: 0.5s; }
-  .ls-dk-el .ls-dk-rule { animation-delay: 0.6s; }
   .ls-dk-el .ls-dk-beats { animation-delay: 0.66s; }
+  .ls-dk-el .ls-dk-beats::before { animation-delay: 0.68s; }
   .ls-dk-el .ls-dk-tell { animation-delay: 0.85s; }
 
-  /* The synthesis: two placements multiplying, the one "it is the chart" close. */
-  .ls-dk-synmark { color: #b9a5f0; font-size: 30px; filter: drop-shadow(0 0 12px rgba(154,126,230,0.5)); }
-  .ls-dk-lead { margin: 0; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.05rem, 4.2vw, 1.2rem); animation-delay: 0.05s; }
-  .ls-dk-syn { margin: 0; max-width: 26ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 6.4vw, 2.2rem); line-height: 1.18; letter-spacing: -0.014em; animation-delay: 0.25s; }
-  .ls-dk-syn2 { animation-delay: 0.55s; }
-  .ls-dk-close { margin: clamp(6px, 1.6svh, 16px) 0 0; max-width: 24ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.3rem, 5.4vw, 1.8rem); line-height: 1.24; text-shadow: 0 0 26px rgba(167,139,250,0.4); animation-delay: 0.9s; }
+  /* The synthesis: the conjunction mark (two bodies overlapping, one stem),
+     then wants and needs as call and response, then the close. */
+  .ls-dk-sy { gap: clamp(10px, 1.8svh, 16px); }
+  .ls-dk-conj { display: inline-flex; filter: drop-shadow(0 0 12px rgba(154,126,230,0.4)); }
+  .ls-dk-conj-a { animation: lsDkConjA 0.6s cubic-bezier(0.22,0.7,0.2,1) 0.1s both; }
+  .ls-dk-conj-b { animation: lsDkConjB 0.6s cubic-bezier(0.22,0.7,0.2,1) 0.1s both; }
+  @keyframes lsDkConjA { from { transform: translateX(-6px); } to { transform: translateX(0); } }
+  @keyframes lsDkConjB { from { transform: translateX(6px); fill-opacity: 0; } to { transform: translateX(0); fill-opacity: 1; } }
+  .ls-dk-conj-stem { animation: lsDkFadeIn 0.4s ease 0.5s both; }
+  .ls-dk-lead { margin: 0; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.05rem, 4.2vw, 1.2rem); animation-delay: 0.15s; }
+  .ls-dk-synpair { display: flex; flex-direction: column; gap: clamp(14px, 2.4svh, 22px); width: min(100%, 560px); animation: none; opacity: 1; }
+  .ls-dk-syn { position: relative; margin: 0; max-width: 26ch; padding-left: 30px; align-self: flex-start; text-align: left; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 6.4vw, 2.05rem); line-height: 1.18; letter-spacing: -0.014em; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.3s forwards; }
+  .ls-dk-syn2 { align-self: flex-end; text-align: right; padding-left: 0; padding-right: 30px; animation-delay: 0.6s; }
+  .ls-dk-syn-g { position: absolute; left: 0; top: 0.3em; font-size: 15px; color: rgba(185,165,240,0.7); }
+  .ls-dk-syn2 .ls-dk-syn-g { left: auto; right: 0; }
+  @media (max-width: 639px) {
+    .ls-dk-syn2 { align-self: flex-start; text-align: left; margin-left: 24px; padding-left: 30px; padding-right: 0; }
+    .ls-dk-syn2 .ls-dk-syn-g { right: auto; left: 0; }
+  }
+  .ls-dk-close { position: relative; margin: clamp(6px, 1.6svh, 16px) 0 0; padding-top: 21px; max-width: 24ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(1.3rem, 5.4vw, 1.8rem); line-height: 1.24; text-shadow: 0 0 26px rgba(167,139,250,0.4); animation-delay: 0.9s; }
+  .ls-dk-close::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 46px; height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.35), transparent); }
 
   /* The tease + handoff (terminal card, ledger of the eight still dark). */
   .ls-dk-tease { gap: clamp(8px, 1.4svh, 13px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; max-height: 100%; padding: 4px; cursor: default; }
@@ -1914,14 +2074,17 @@ const DECK_CSS = `
   .ls-dk-cta { margin-top: clamp(6px, 1.4svh, 14px); display: inline-flex; align-items: center; gap: 11px; padding: clamp(15px, 2.2vw, 18px) clamp(28px, 5vw, 40px); border-radius: 999px; border: 1px solid rgba(154,126,230,0.55); background: linear-gradient(180deg, rgba(124,92,214,0.28), rgba(124,92,214,0.13)); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 4.4vw, 1.22rem); font-weight: 600; cursor: pointer; box-shadow: 0 10px 34px rgba(70,40,140,0.36); transition: transform 0.3s ease, box-shadow 0.3s ease; animation-delay: 1.05s; }
   .ls-dk-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(70,40,140,0.48); }
 
-  /* Chrome: the segmented progress, the quiet back/next, the idle nudge. */
-  .ls-dk-progress { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 6; display: flex; gap: 6px; width: min(86%, 430px); }
+  /* Chrome: the segmented progress lives at BOTTOM CENTER (it used to sit
+     16px under the fixed site header, interleaving with the nav). It rides
+     beneath the control row and hides on the terminal tease card. */
+  .ls-dk-progress { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 6; display: flex; gap: 6px; width: min(52%, 300px); }
   .ls-dk-progress span { flex: 1; height: 3px; border-radius: 99px; background: rgba(236,236,242,0.16); transition: background 0.35s ease, box-shadow 0.35s ease; }
   .ls-dk-progress span.is-done { background: rgba(236,236,242,0.82); }
   .ls-dk-progress span.is-now { background: #b9a5f0; box-shadow: 0 0 10px rgba(185,165,240,0.55); }
   /* The control row: one grouped cluster, anchored under the card (never the
-     viewport edge), centered in the reserved band. Fades up with the card. */
-  .ls-dk-footer { position: absolute; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 7; display: flex; align-items: center; justify-content: center; gap: clamp(9px, 2.4vw, 15px); padding: 0 14px; opacity: 0; animation: lsDkFootIn 0.5s cubic-bezier(0.22,0.7,0.2,1) 0.24s forwards; }
+     viewport edge), centered in the reserved band above the progress bar.
+     Fades up with the card. */
+  .ls-dk-footer { position: absolute; left: 0; right: 0; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 27px); z-index: 7; display: flex; align-items: center; justify-content: center; gap: clamp(9px, 2.4vw, 15px); padding: 0 14px; opacity: 0; animation: lsDkFootIn 0.5s cubic-bezier(0.22,0.7,0.2,1) 0.24s forwards; }
   @keyframes lsDkFootIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .ls-dk-hear-foot { display: inline-flex; }
   .ls-dk-nav { display: inline-flex; align-items: center; cursor: pointer; font-family: "Newsreader", Georgia, serif; -webkit-tap-highlight-color: transparent; flex: 0 0 auto; }
@@ -1960,39 +2123,70 @@ const DECK_CSS = `
      disappear. */
   @media (max-height: 620px) {
     .ls-dk-hear-foot { display: none; }
-    .ls-dk-card { padding-bottom: clamp(74px, 12svh, 92px); }
+    .ls-dk-card { padding-bottom: clamp(96px, 15svh, 108px); }
   }
 
-  /* Static column: reduced motion, every card visible in reading order. */
+  /* Desktop >=1024px: the plate and the reading face each other like a
+     spread; the seal drawer underlines them both. */
+  @media (min-width: 1024px) {
+    .ls-dk-pl { display: grid; grid-template-columns: 300px minmax(0, 400px); column-gap: 56px; row-gap: 22px; align-items: center; justify-content: center; width: min(100%, 800px); }
+    .ls-dk-plate { width: clamp(220px, 34svh, 280px); justify-self: center; }
+    .ls-dk-pl .ls-dk-read { margin-inline: 0; }
+    .ls-dk-pl .ls-dk-sealbar { grid-column: 1 / -1; width: min(100%, 640px); justify-self: center; }
+  }
+
+  /* Static column: reduced motion, every card visible in reading order.
+     REDUCED-MOTION LAW: the rest state IS the finished composition: ring
+     drawn, disc seated at its final angle, lit tick on, chips seated,
+     drawers labelled, lines full. */
   .ls-dk.is-static { height: auto; margin: 0; touch-action: auto; cursor: default; overflow: visible; display: flex; flex-direction: column; padding: clamp(10px, 2svh, 24px) 0; }
   .ls-dk-static-card { padding: clamp(22px, 4svh, 38px) 0; border-bottom: 1px solid rgba(154,126,230,0.14); }
   .ls-dk-static-card:last-child { border-bottom: 0; }
   .ls-dk.is-static .ls-dk-inner { margin: 0 auto; }
-  .ls-dk.is-static .ls-dk-inner > *, .ls-dk.is-static .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
-  .ls-dk.is-static .ls-dk-chip, .ls-dk.is-static .ls-dk-orb img, .ls-dk.is-static .ls-dk-bar-track i { animation: none !important; }
-  .ls-dk.is-static .ls-dk-frame, .ls-dk.is-static .ls-dk-frame-glow, .ls-dk.is-static .ls-dk-frame-mask img, .ls-dk.is-static .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
+  .ls-dk.is-static .ls-dk-inner > *, .ls-dk.is-static .ls-dk-ledger li, .ls-dk.is-static .ls-dk-lockup > *,
+  .ls-dk.is-static .ls-dk-beats, .ls-dk.is-static .ls-dk-tell,
+  .ls-dk.is-static .ls-dk-sealbar > svg, .ls-dk.is-static .ls-dk-sealtext, .ls-dk.is-static .ls-dk-sealtag,
+  .ls-dk.is-static .ls-dk-syn, .ls-dk.is-static .ls-dk-syn2 { opacity: 1 !important; animation: none !important; }
+  .ls-dk.is-static .ls-dk-chip, .ls-dk.is-static .ls-dk-orb img,
+  .ls-dk.is-static .ls-dk-wheel-ring, .ls-dk.is-static .ls-dk-wheel-ticks, .ls-dk.is-static .ls-dk-wheel-lit,
+  .ls-dk.is-static .ls-dk-orbit, .ls-dk.is-static .ls-dk-orb,
+  .ls-dk.is-static .ls-dk-beats::before, .ls-dk.is-static .ls-dk-sealbar::before,
+  .ls-dk.is-static .ls-dk-houses::before, .ls-dk.is-static .ls-dk-houses::after, .ls-dk.is-static .ls-dk-house-chip,
+  .ls-dk.is-static .ls-dk-conj-a, .ls-dk.is-static .ls-dk-conj-b, .ls-dk.is-static .ls-dk-conj-stem { animation: none !important; }
   .ls-dk.is-static .ls-dk-tease { overflow: visible; max-height: none; }
 
   @media (prefers-reduced-motion: reduce) {
-    .ls-dk-inner > *, .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
-    .ls-dk-chip, .ls-dk-orb img, .ls-dk-bar-track i { animation: none !important; }
+    .ls-dk-inner > *, .ls-dk-ledger li, .ls-dk-lockup > *,
+    .ls-dk-beats, .ls-dk-tell,
+    .ls-dk-sealbar > svg, .ls-dk-sealtext, .ls-dk-sealtag,
+    .ls-dk-syn, .ls-dk-syn2 { opacity: 1 !important; animation: none !important; }
+    .ls-dk-chip, .ls-dk-orb img,
+    .ls-dk-wheel-ring, .ls-dk-wheel-ticks, .ls-dk-wheel-lit,
+    .ls-dk-orbit, .ls-dk-orb,
+    .ls-dk-beats::before, .ls-dk-sealbar::before,
+    .ls-dk-houses::before, .ls-dk-houses::after, .ls-dk-house-chip,
+    .ls-dk-conj-a, .ls-dk-conj-b, .ls-dk-conj-stem { animation: none !important; }
     .ls-dk-nav-next, .ls-dk-nav-next.is-nudge { animation: none !important; opacity: 1 !important; }
     .ls-dk-frame, .ls-dk-frame-glow, .ls-dk-frame-mask img, .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
+    .ls-dk-footer { animation: none !important; opacity: 1 !important; }
   }
 
   @media (max-height: 640px) {
-    .ls-dk-orb { width: clamp(84px, 16svh, 120px); }
+    .ls-dk-plate { width: clamp(150px, 26svh, 190px); }
+    .ls-dk-orb { width: clamp(46px, 7svh, 58px); }
     .ls-dk-inner { gap: 8px; }
-    .ls-dk-chip { font-size: clamp(1.7rem, 7vw, 2.3rem); }
+    .ls-dk-pl { gap: 14px; }
+    .ls-dk-chip { font-size: clamp(1.3rem, 5.4vw, 1.7rem); }
+    .ls-dk-l1 { font-size: 0.88rem; }
   }
 
   /* ==== TYPE FLOORS - tuned per viewport ==== */
   @media (min-width: 1024px) {
-    .ls-dk-l1 { font-size: 1.16rem; }
+    .ls-dk-l1 { font-size: 1.02rem; }
     .ls-dk-beats { font-size: 1.5rem; }
     .ls-dk-tell { font-size: 1.26rem; }
-    .ls-dk-seal { font-size: 14.5px; }
-    .ls-dk-eyebrow { font-size: 13.5px; }
+    .ls-dk-sealtext { font-size: 14.5px; }
+    .ls-dk-eyebrow { font-size: 13px; }
   }
 `;
 
@@ -2155,11 +2349,13 @@ function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthC
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
     >
-      <div className="ls-dk-progress" aria-hidden="true">
-        {cards.map((_, i) => (
-          <span key={i} className={i < active ? "is-done" : i === active ? "is-now" : ""} />
-        ))}
-      </div>
+      {active < last && (
+        <div className="ls-dk-progress" aria-hidden="true">
+          {cards.map((_, i) => (
+            <span key={i} className={i < active ? "is-done" : i === active ? "is-now" : ""} />
+          ))}
+        </div>
+      )}
       <div className="ls-dk-stage">
         <AnimatePresence initial={false}>
           <motion.div
