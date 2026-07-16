@@ -1,8 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import DOMPurify from 'dompurify';
 import { ChevronDown } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useNarration } from '@/components/narration/useNarration';
+import { NarrationControl } from '@/components/narration/NarrationControl';
+import { NarratedWords, narratedLineClass } from '@/components/narration/NarratedWords';
+import type { NarrationBlock } from '@/components/narration/types';
 
 interface ReportSectionCardProps {
   icon: string;
@@ -39,6 +43,30 @@ function cleanContent(raw: string): string {
     .replace(/\n- /g, '<br />• ');
 }
 
+function decodeEntities(s: string): string {
+  if (typeof document === 'undefined') return s;
+  const el = document.createElement('textarea');
+  el.innerHTML = s;
+  return el.value;
+}
+
+// Turn the section's (lightly HTML-flavoured) content into clean spoken
+// paragraphs. Used both to build the voice blocks and to render the exact same
+// words for the highlight while the voice reads — so the two never drift.
+export function contentToParagraphs(raw: string): string[] {
+  const stripped = raw.replace(/<[^>]+>/g, ' ');
+  const decoded = decodeEntities(stripped);
+  return decoded
+    .split(/\n\s*\n/)
+    .map((p) =>
+      p
+        .replace(/^\s*[-•]\s+/gm, '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter(Boolean);
+}
+
 function getPreview(raw: string): string {
   const plain = raw
     .replace(/\n\n/g, ' ')
@@ -73,6 +101,18 @@ export function ReportSectionCard({
   const [isExpanded, setIsExpanded] = useState(!collapsible);
   const [showWhy, setShowWhy] = useState(false);
 
+  // Voice: the section title, then each paragraph, read in order. Lazy — the
+  // audio is only fetched when the reader taps play.
+  const paragraphs = useMemo(() => contentToParagraphs(content), [content]);
+  const blocks = useMemo<NarrationBlock[]>(
+    () => [
+      ...(title && title.trim() ? [{ id: 'title', text: title }] : []),
+      ...paragraphs.map((p, i) => ({ id: `p${i}`, text: p })),
+    ],
+    [title, paragraphs],
+  );
+  const nar = useNarration(blocks);
+
   return (
     <motion.div
       ref={s.ref}
@@ -95,8 +135,19 @@ export function ReportSectionCard({
             <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#a78bfa]">
               {label}
             </div>
-            <h3 className="text-[1.1rem] text-[#f2eeff] mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h3>
+            <h3
+              className={narratedLineClass('title', nar, 'text-[1.1rem] text-[#f2eeff] mt-0.5')}
+              style={{ fontFamily: 'DM Serif Display, serif' }}
+            >
+              <NarratedWords blockId="title" text={title} nar={nar} />
+            </h3>
           </div>
+          <NarrationControl
+            nar={nar}
+            mini
+            className="flex-shrink-0"
+            onBeforeToggle={() => { if (!isExpanded) setIsExpanded(true); }}
+          />
           {collapsible && (
             <button
               onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
@@ -169,11 +220,23 @@ export function ReportSectionCard({
                   </div>
                 )}
 
-                {/* Content */}
-                <div
-                  className="text-[0.86rem] leading-[1.85] text-[#c7bfe0]"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanContent(content)) }}
-                />
+                {/* Content — while the voice reads, the same words render as
+                    spans so the highlight lands exactly; otherwise the fully
+                    formatted reading shows. */}
+                {nar.isActive ? (
+                  <div className="text-[0.86rem] leading-[1.85] text-[#c7bfe0]">
+                    {paragraphs.map((p, i) => (
+                      <p key={i} className={narratedLineClass(`p${i}`, nar, i > 0 ? 'mt-4' : '')}>
+                        <NarratedWords blockId={`p${i}`} text={p} nar={nar} />
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className="text-[0.86rem] leading-[1.85] text-[#c7bfe0]"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanContent(content)) }}
+                  />
+                )}
 
                 {/* Tip box */}
                 {tipBox && (
