@@ -30,7 +30,6 @@ import {
   signArticle,
   TEASE,
   counterLabel,
-  NUDGE_WORD,
   makeSubject,
   fill,
 } from "./freeDeck";
@@ -1597,7 +1596,7 @@ function deckCardBlocks(card: DeckCard): NarrationBlock[] {
   }
 }
 
-function DeckCardBody({ card, reduce, floating = false }: { card: DeckCard; reduce: boolean; floating?: boolean }) {
+function DeckCardBody({ card, reduce, floating = false, showNext = false, showBack = false, nudge = false, onNext, onBack }: { card: DeckCard; reduce: boolean; floating?: boolean; showNext?: boolean; showBack?: boolean; nudge?: boolean; onNext?: () => void; onBack?: () => void }) {
   const blocks = useMemo(() => deckCardBlocks(card), [card]);
   const nar = useNarration(blocks);
   const lc = (id: string, base: string) => narratedLineClass(id, nar, base);
@@ -1605,16 +1604,50 @@ function DeckCardBody({ card, reduce, floating = false }: { card: DeckCard; redu
     <NarrationControl nar={nar} idleLabel="Hear it read to you" playingLabel="Reading aloud" />
   ) : null;
 
+  // The card-anchored control row: one grouped cluster under the reading, in a
+  // reserved band so it never lands on the sealed footer the way the old
+  // floating chrome did. Reading left to right: a quiet ghost Back, the hear
+  // affordance, then the obvious violet Next pill (the primary action, gently
+  // breathing when idle). It rides WITH the card, never pinned to the far
+  // viewport edge. The tease is its own terminal card, so it keeps its own CTA.
+  const footer =
+    floating && card.kind !== "tease" ? (
+      <div className="ls-dk-footer">
+        {showBack && onBack && (
+          <button
+            type="button"
+            className="ls-dk-nav ls-dk-nav-back"
+            onClick={(e) => { e.stopPropagation(); onBack(); }}
+            aria-label="Back one card"
+          >
+            <CtrlPrev />
+          </button>
+        )}
+        {control && <div className="ls-dk-hear-foot">{control}</div>}
+        {showNext && onNext && (
+          <button
+            type="button"
+            className={`ls-dk-nav ls-dk-nav-next${nudge ? " is-nudge" : ""}`}
+            onClick={(e) => { e.stopPropagation(); onNext(); }}
+            aria-label="Next card"
+          >
+            <span className="ls-dk-nav-label">Next</span>
+            <CtrlNext />
+          </button>
+        )}
+      </div>
+    ) : null;
+
   const wrap = (inner: JSX.Element) => {
-    if (!control) return inner;
     if (floating) {
       return (
         <>
           {inner}
-          <div className="ls-dk-hear-wrap">{control}</div>
+          {footer}
         </>
       );
     }
+    if (!control) return inner;
     return (
       <>
         {inner}
@@ -1625,16 +1658,19 @@ function DeckCardBody({ card, reduce, floating = false }: { card: DeckCard; redu
 
   if (card.kind === "keepsake") {
     return (
-      <div className="ls-dk-inner ls-dk-keep-inner">
-        <div className="ls-dk-frame">
-          <span className="ls-dk-frame-glow" aria-hidden="true" />
-          <span className="ls-dk-frame-mask">
-            <img src={card.photoUrl} alt={card.name ? card.name : "Their photo"} draggable={false} />
-          </span>
-          <span className="ls-dk-frame-ring" aria-hidden="true" />
+      <>
+        <div className="ls-dk-inner ls-dk-keep-inner">
+          <div className="ls-dk-frame">
+            <span className="ls-dk-frame-glow" aria-hidden="true" />
+            <span className="ls-dk-frame-mask">
+              <img src={card.photoUrl} alt={card.name ? card.name : "Their photo"} draggable={false} />
+            </span>
+            <span className="ls-dk-frame-ring" aria-hidden="true" />
+          </div>
+          {card.name && <p className="ls-dk-keepname">{card.name}</p>}
         </div>
-        {card.name && <p className="ls-dk-keepname">{card.name}</p>}
-      </div>
+        {footer}
+      </>
     );
   }
 
@@ -1712,8 +1748,19 @@ function DeckCardBody({ card, reduce, floating = false }: { card: DeckCard; redu
 
   const t = card.copy;
   return (
-    <div className="ls-dk-inner ls-dk-tease">
-      {control && <div className="ls-dk-hear-tease">{control}</div>}
+    <>
+      {floating && showBack && onBack && (
+        <button
+          type="button"
+          className="ls-dk-nav ls-dk-nav-back ls-dk-teaseback"
+          onClick={(e) => { e.stopPropagation(); onBack(); }}
+          aria-label="Back one card"
+        >
+          <CtrlPrev />
+        </button>
+      )}
+      <div className="ls-dk-inner ls-dk-tease">
+        {control && <div className="ls-dk-hear-tease">{control}</div>}
       <p className={lc("keep", "ls-dk-keep")}><NarratedWords blockId="keep" text={t.keep} nar={nar} /></p>
       <p className={lc("deeper", "ls-dk-deeper")}><NarratedWords blockId="deeper" text={t.deeper} nar={nar} /></p>
       <ul className="ls-dk-ledger">
@@ -1726,17 +1773,21 @@ function DeckCardBody({ card, reduce, floating = false }: { card: DeckCard; redu
       </ul>
       <p className={lc("rising", "ls-dk-rising")}><AstroGlyph name="rising" className="ls-dk-rising-g" /><NarratedWords blockId="rising" text={t.rising} nar={nar} /></p>
       <p className={lc("bridge", "ls-dk-bridge")}><NarratedWords blockId="bridge" text={t.bridge} nar={nar} /></p>
-      <button type="button" className="ls-dk-cta" onClick={() => descendTo("#the-rest")}>
-        {t.cta} <ChevronDown size={19} strokeWidth={1.7} />
-      </button>
-    </div>
+        <button type="button" className="ls-dk-cta" onClick={() => descendTo("#the-rest")}>
+          {t.cta} <ChevronDown size={19} strokeWidth={1.7} />
+        </button>
+      </div>
+    </>
   );
 }
 
 const DECK_CSS = `
   .ls-dk { position: relative; z-index: 2; margin: 0 -20px; height: 100vh; height: 100svh; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; overflow: hidden; }
   .ls-dk-stage { position: absolute; inset: 0; }
-  .ls-dk-card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: clamp(52px, 9svh, 88px) 22px clamp(26px, 5svh, 48px); }
+  /* Bottom padding reserves the single control-row band, so the reading never
+     reaches down into the [back · hear · Next] cluster (what made the hear
+     button land on the sealed footer before). */
+  .ls-dk-card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: clamp(46px, 7svh, 72px) 22px clamp(84px, 12svh, 100px); }
   .ls-dk-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: clamp(9px, 1.6svh, 15px); width: min(100%, 660px); max-height: 100%; }
   .ls-dk-inner > * { opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
   @keyframes lsDkIn { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
@@ -1756,8 +1807,8 @@ const DECK_CSS = `
 
   /* The planet card: real disc, then a HOOK block (label + sign chip + the
      name sentence), a hairline, the uncanny BEATS, the warm TELL, the SEAL. */
-  .ls-dk-pl { gap: clamp(10px, 1.8svh, 17px); }
-  .ls-dk-orb { position: relative; width: clamp(96px, 18svh, 158px); aspect-ratio: 1; display: grid; place-items: center; }
+  .ls-dk-pl { gap: clamp(8px, 1.3svh, 13px); }
+  .ls-dk-orb { position: relative; width: clamp(90px, 14svh, 132px); aspect-ratio: 1; display: grid; place-items: center; }
   .ls-dk-halo { position: absolute; inset: -16%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.30) 0%, rgba(154,126,230,0.11) 44%, transparent 70%); filter: blur(12px); }
   .ls-dk-orb img { position: relative; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 16px 44px rgba(4,2,12,0.62)); animation: lsDkKen 7s ease-in-out infinite alternate; }
   @keyframes lsDkKen { from { transform: scale(1) translate3d(0, 1.4%, 0); } to { transform: scale(1.075) translate3d(0, -1.4%, 0); } }
@@ -1828,20 +1879,49 @@ const DECK_CSS = `
   .ls-dk-progress span { flex: 1; height: 3px; border-radius: 99px; background: rgba(236,236,242,0.16); transition: background 0.35s ease, box-shadow 0.35s ease; }
   .ls-dk-progress span.is-done { background: rgba(236,236,242,0.82); }
   .ls-dk-progress span.is-now { background: #b9a5f0; box-shadow: 0 0 10px rgba(185,165,240,0.55); }
-  .ls-dk-navbtn { position: absolute; top: 50%; z-index: 6; display: grid; place-items: center; width: 44px; height: 64px; margin-top: -32px; border: 0; background: transparent; color: rgba(236,236,242,0.32); font-size: 22px; cursor: pointer; transition: color 0.25s ease; }
-  .ls-dk-navbtn:hover { color: rgba(236,236,242,0.85); }
-  .ls-dk-back { left: max(2px, env(safe-area-inset-left)); }
-  .ls-dk-next { right: max(2px, env(safe-area-inset-right)); }
-  .ls-dk-nudge { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 6; color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 14px; letter-spacing: 0.34em; text-indent: 0.34em; text-transform: uppercase; animation: lsDkNudge 2s ease-in-out infinite; pointer-events: none; }
-  @keyframes lsDkNudge { 0%, 100% { opacity: 0.16; } 50% { opacity: 0.42; } }
+  /* The control row: one grouped cluster, anchored under the card (never the
+     viewport edge), centered in the reserved band. Fades up with the card. */
+  .ls-dk-footer { position: absolute; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 7; display: flex; align-items: center; justify-content: center; gap: clamp(9px, 2.4vw, 15px); padding: 0 14px; opacity: 0; animation: lsDkFootIn 0.5s cubic-bezier(0.22,0.7,0.2,1) 0.24s forwards; }
+  @keyframes lsDkFootIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .ls-dk-hear-foot { display: inline-flex; }
+  .ls-dk-nav { display: inline-flex; align-items: center; cursor: pointer; font-family: "Newsreader", Georgia, serif; -webkit-tap-highlight-color: transparent; flex: 0 0 auto; }
+  .ls-dk-nav:focus-visible { outline: 2px solid rgba(185,165,240,0.9); outline-offset: 3px; }
+  /* Primary: the obvious violet Next pill. Breathes when idle so a first-time
+     reader can never miss where to go next. */
+  .ls-dk-nav-next { gap: 8px; padding: 14px 22px 14px 25px; border-radius: 999px; border: 1px solid rgba(185,165,240,0.62); background: linear-gradient(180deg, rgba(124,92,214,0.62), rgba(124,92,214,0.34)); color: #ffffff; font-size: 16px; font-weight: 600; letter-spacing: 0.008em; box-shadow: 0 12px 32px rgba(70,40,140,0.46), inset 0 1px 0 rgba(255,255,255,0.12); transition: transform 0.25s ease, box-shadow 0.3s ease, background 0.3s ease; }
+  .ls-dk-nav-next:hover { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(70,40,140,0.56), inset 0 1px 0 rgba(255,255,255,0.14); background: linear-gradient(180deg, rgba(138,104,230,0.7), rgba(124,92,214,0.4)); }
+  .ls-dk-nav-next .ls-dk-nav-label { line-height: 1; }
+  .ls-dk-nav-next svg { width: 18px; height: 18px; flex: 0 0 auto; }
+  .ls-dk-nav-next.is-nudge { animation: lsDkNextPulse 2s ease-in-out 0.9s infinite; }
+  @keyframes lsDkNextPulse {
+    0%, 100% { box-shadow: 0 12px 32px rgba(70,40,140,0.46), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 0 rgba(185,165,240,0); }
+    50% { box-shadow: 0 14px 36px rgba(70,40,140,0.5), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 7px rgba(185,165,240,0.16); }
+  }
+  /* Secondary: a quiet ghost chevron, clearly lower billing than Next. */
+  .ls-dk-nav-back { width: 46px; height: 46px; justify-content: center; border-radius: 50%; border: 1px solid rgba(154,126,230,0.3); background: rgba(154,126,230,0.06); color: rgba(236,236,242,0.6); transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease; }
+  .ls-dk-nav-back:hover { color: rgba(236,236,242,0.92); border-color: rgba(185,165,240,0.55); background: rgba(154,126,230,0.13); }
+  .ls-dk-nav-back svg { width: 22px; height: 22px; }
+  /* The tease is its own terminal card (its CTA is the forward action), so its
+     quiet Back sits top-left, clear of the centered hear pill and the CTA. */
+  .ls-dk-teaseback { position: absolute; top: clamp(44px, 7svh, 70px); left: max(10px, calc(env(safe-area-inset-left) + 6px)); z-index: 8; }
+  /* Narrow phones: drop the hear label to icon-only so the row never overflows. */
+  @media (max-width: 384px) {
+    .ls-dk-hear-foot .ls-nar-ctrl { padding: 6px; gap: 0; }
+    .ls-dk-hear-foot .ls-nar-label { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  }
 
-  /* The voice affordance. Floats above the card in the swipe deck (never shifts
-     the reading), sits inline in the static column and on the tease card. */
-  .ls-dk-hear-wrap { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(60px, calc(env(safe-area-inset-bottom) + 46px)); z-index: 6; }
+  /* The voice affordance sits in the control row on the swipe deck (see
+     .ls-dk-hear-foot), inline in the static column, and at the top of the
+     tease card. */
   .ls-dk-hear-static { display: flex; justify-content: center; margin-top: clamp(16px, 3svh, 24px); }
   .ls-dk-hear-tease { display: flex; justify-content: center; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
-  @media (max-height: 720px) { .ls-dk-hear-wrap { bottom: max(46px, calc(env(safe-area-inset-bottom) + 34px)); } }
-  @media (max-height: 620px) { .ls-dk-hear-wrap { display: none; } }
+  /* Short viewports: drop the hear pill from the row and reclaim its space for
+     the reading. Back and the obvious Next stay — the controls that must never
+     disappear. */
+  @media (max-height: 620px) {
+    .ls-dk-hear-foot { display: none; }
+    .ls-dk-card { padding-bottom: clamp(74px, 12svh, 92px); }
+  }
 
   /* Static column: reduced motion, every card visible in reading order. */
   .ls-dk.is-static { height: auto; margin: 0; touch-action: auto; cursor: default; overflow: visible; display: flex; flex-direction: column; padding: clamp(10px, 2svh, 24px) 0; }
@@ -1855,7 +1935,8 @@ const DECK_CSS = `
 
   @media (prefers-reduced-motion: reduce) {
     .ls-dk-inner > *, .ls-dk-ledger li { opacity: 1 !important; animation: none !important; }
-    .ls-dk-chip, .ls-dk-orb img, .ls-dk-bar-track i, .ls-dk-nudge { animation: none !important; }
+    .ls-dk-chip, .ls-dk-orb img, .ls-dk-bar-track i { animation: none !important; }
+    .ls-dk-nav-next, .ls-dk-nav-next.is-nudge { animation: none !important; opacity: 1 !important; }
     .ls-dk-frame, .ls-dk-frame-glow, .ls-dk-frame-mask img, .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
   }
 
@@ -2050,21 +2131,19 @@ function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthC
             transition={{ duration: 0.35, ease: "easeOut" }}
             aria-live="polite"
           >
-            <DeckCardBody card={cards[active]} reduce={false} floating />
+            <DeckCardBody
+              card={cards[active]}
+              reduce={false}
+              floating
+              showNext={active < last}
+              showBack={active > 0}
+              nudge={nudge}
+              onNext={() => step(1)}
+              onBack={() => step(-1)}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
-      {active > 0 && (
-        <button type="button" className="ls-dk-navbtn ls-dk-back" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label="Back one card">
-          <CtrlPrev />
-        </button>
-      )}
-      {active < last && (
-        <button type="button" className="ls-dk-navbtn ls-dk-next" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label="Next card">
-          <CtrlNext />
-        </button>
-      )}
-      {nudge && <span className="ls-dk-nudge" aria-hidden="true">{NUDGE_WORD}</span>}
       <style>{DECK_CSS}</style>
     </div>
   );
