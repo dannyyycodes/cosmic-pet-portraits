@@ -2154,6 +2154,12 @@ const DECK_CSS = `
   .ls-dk.is-static .ls-dk-houses::before, .ls-dk.is-static .ls-dk-houses::after, .ls-dk.is-static .ls-dk-house-chip,
   .ls-dk.is-static .ls-dk-conj-a, .ls-dk.is-static .ls-dk-conj-b, .ls-dk.is-static .ls-dk-conj-stem { animation: none !important; }
   .ls-dk.is-static .ls-dk-tease { overflow: visible; max-height: none; }
+  /* parity with the reduced-motion block below: the static column never mounts
+     the floating chrome, but the law is every animated class carries BOTH
+     overrides, so the frame / footer / Next pulse are stilled here too. */
+  .ls-dk.is-static .ls-dk-frame, .ls-dk.is-static .ls-dk-frame-glow, .ls-dk.is-static .ls-dk-frame-mask img, .ls-dk.is-static .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
+  .ls-dk.is-static .ls-dk-footer, .ls-dk.is-static .ls-dk-nav-next, .ls-dk.is-static .ls-dk-nav-next.is-nudge { animation: none !important; opacity: 1 !important; }
+  .ls-dk.is-static .ls-dk-hear-tease { animation: none !important; opacity: 1 !important; }
 
   @media (prefers-reduced-motion: reduce) {
     .ls-dk-inner > *, .ls-dk-ledger li, .ls-dk-lockup > *,
@@ -5306,6 +5312,8 @@ function ReviewsWall() {
         .ls-reviews.is-static .ls-drift-set[aria-hidden="true"] { display: none; }
         .ls-reviews.is-static .ls-drift-set .ls-rev { width: auto; }
         .ls-reviews.is-static .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
+        .ls-reviews.is-static .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+        .ls-reviews.is-static .ls-rev-body, .ls-reviews.is-static .ls-rev-fig, .ls-reviews.is-static .ls-rev-fig::before, .ls-reviews.is-static .ls-strip-dot { transition: none; }
         @media (min-width: 1024px) {
           .ls-reviews.is-static .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
@@ -8469,6 +8477,61 @@ function CosmicStyles() {
         .ls-info-back { font-size: 15.5px; }
         .ls-offer-stack { font-size: 21.5px; }
         .ls-offer-trust { font-size: 19.5px; }
+      }
+
+      /* ==== TYPE FLOORS - 2026-07-16 rebuild reconciliation ====
+         Floors for the sections rebuilt in the funnel-ship pass (free deck,
+         rest of their sky, keepsake plate, reviews wall, price lead, sticky
+         begin bar). Each rebuilt section ALSO carries this same block at the
+         tail of its own <style> tag (those tags render after this sheet, so
+         they settle any tie); the values are mirrored here so this end-of-file
+         block stays the single written authority. Keep BOTH copies in step. */
+      .ls-stickybegin button { font-size: 18px; }
+      .ls-pricelead-eyebrow { font-size: 14px; }
+      .ls-rs-eyebrow, .ls-rs-sealline, .ls-rs-hz-label { font-size: 14px; }
+      .ls-rs-lead, .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 18px; }
+      .ls-rs-close-cta { font-size: 19px; }
+      .ls-rs-led-cap { font-size: 13px; }
+      .ls-rs-idx { font-size: 12.5px; }
+      .ls-vm-eyebrow, .ls-vm-label { font-size: 14px; }
+      .ls-vm-line, .ls-vm-pull { font-size: 18px; }
+      .ls-reviews-eyebrow { font-size: 14px; }
+      .ls-rev-quote, .ls-rev-more, .ls-reviews-pull { font-size: 18px; }
+      .ls-spot-quote { font-size: clamp(18.5px, 4.9vw, 20.8px); }
+      @media (min-width: 768px) {
+        .ls-pricelead-eyebrow { font-size: 14.5px; }
+        .ls-rs-eyebrow, .ls-rs-sealline, .ls-rs-hz-label { font-size: 14.5px; }
+        .ls-rs-lead, .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 18.5px; }
+        .ls-rs-close-cta { font-size: 19px; }
+        .ls-rs-led-cap { font-size: 14px; }
+        .ls-rs-idx, .ls-rs-led-sign { font-size: 12.5px; }
+        .ls-vm-eyebrow, .ls-vm-label { font-size: 14.5px; }
+        .ls-vm-line, .ls-vm-pull { font-size: 18.5px; }
+        .ls-reviews-eyebrow { font-size: 14.5px; }
+        .ls-reviews-pull { font-size: 18.5px; }
+        .ls-spot-quote { font-size: clamp(19.5px, 2vw, 24px); }
+      }
+      @media (min-width: 1024px) {
+        .ls-dk-l1 { font-size: 1.02rem; }
+        .ls-dk-beats { font-size: 1.5rem; }
+        .ls-dk-tell { font-size: 1.26rem; }
+        .ls-dk-sealtext { font-size: 14.5px; }
+        .ls-dk-eyebrow { font-size: 13px; }
+      }
+      @media (min-width: 1280px) {
+        .ls-stickybegin button { font-size: 19px; }
+        .ls-pricelead-eyebrow { font-size: 15px; }
+        .ls-rs-eyebrow, .ls-rs-sealline, .ls-rs-hz-label { font-size: 15px; }
+        .ls-rs-lead { font-size: 19.5px; }
+        .ls-rs-hook, .ls-rs-rising, .ls-rs-close-line { font-size: 19px; }
+        .ls-rs-close-cta { font-size: 20px; }
+        .ls-rs-idx { font-size: 13px; }
+        /* led-sign holds 12.5px at 1280: 13px overflows the one-row ledger */
+        .ls-rs-led-sign { font-size: 12.5px; }
+        .ls-vm-eyebrow, .ls-vm-label { font-size: 15px; }
+        .ls-vm-line, .ls-vm-pull { font-size: 19px; }
+        .ls-reviews-eyebrow { font-size: 15px; }
+        .ls-reviews-pull { font-size: 19.5px; }
       }
     `}</style>
   );
