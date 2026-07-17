@@ -285,68 +285,6 @@ const sceneBase: React.SVGProps<SVGSVGElement> = {
   focusable: 'false',
 };
 
-/** A new soul-star descending through the front-door arch. */
-function SceneNew({ className }: GlyphProps) {
-  return (
-    <svg {...sceneBase} className={className}>
-      <path d="M22 78h76" opacity=".6" />
-      <path d="M36 78V44a24 24 0 0 1 48 0v34" />
-      <path d="M60 12v5M60 25v4" opacity=".6" />
-      <path d="M60 40c.55 3.6 2.1 5.7 7.8 8.4-5.7 2.7-7.25 4.8-7.8 8.4-.55-3.6-2.1-5.7-7.8-8.4 5.7-2.7 7.25-4.8 7.8-8.4z" fill="currentColor" stroke="none" />
-      <path d="M26 28l1.3 3.2 3.2 1.3-3.2 1.3-1.3 3.2-1.3-3.2-3.2-1.3 3.2-1.3 1.3-3.2z" fill="currentColor" stroke="none" opacity=".65" />
-      <path d="M94 22l1.1 2.7 2.7 1.1-2.7 1.1-1.1 2.7-1.1-2.7-2.7-1.1 2.7-1.1 1.1-2.7z" fill="currentColor" stroke="none" opacity=".5" />
-    </svg>
-  );
-}
-
-/** Two orbits long entwined, one shared star at the crossing. */
-function SceneDiscover({ className }: GlyphProps) {
-  return (
-    <svg {...sceneBase} className={className}>
-      <ellipse cx="60" cy="48" rx="35" ry="13.5" transform="rotate(-18 60 48)" />
-      <ellipse cx="60" cy="48" rx="35" ry="13.5" transform="rotate(18 60 48)" />
-      <circle cx="30" cy="36" r="2.6" fill="currentColor" stroke="none" />
-      <circle cx="90" cy="36" r="2.6" fill="currentColor" stroke="none" />
-      <path d="M60 26c.55 3.5 2 5.5 7.4 8.1-5.4 2.6-6.85 4.6-7.4 8.1-.55-3.5-2-5.5-7.4-8.1 5.4-2.6 6.85-4.6 7.4-8.1z" fill="currentColor" stroke="none" />
-      <circle cx="60" cy="76" r="1.7" fill="currentColor" stroke="none" opacity=".5" />
-    </svg>
-  );
-}
-
-/** A candle kept lit, the soul risen into its halo. */
-function SceneMemorial({ className }: GlyphProps) {
-  return (
-    <svg {...sceneBase} className={className}>
-      <path d="M34 78h52" opacity=".5" />
-      <rect x="49" y="52" width="22" height="26" rx="3.5" />
-      <path d="M60 45v7" />
-      <path d="M60 31c2.7 3.4 4.1 5.8 4.1 8a4.1 4.1 0 1 1-8.2 0c0-2.2 1.4-4.6 4.1-8z" />
-      <circle cx="62" cy="22" r="1.5" fill="currentColor" stroke="none" opacity=".45" />
-      <circle cx="65" cy="15" r="1.6" fill="currentColor" stroke="none" opacity=".65" />
-      <path d="M70 4l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3z" fill="currentColor" stroke="none" />
-      <circle cx="70" cy="8.2" r="7.4" opacity=".35" />
-    </svg>
-  );
-}
-
-/** One candle on the cake, stars bursting above the flame. */
-function SceneBirthday({ className }: GlyphProps) {
-  return (
-    <svg {...sceneBase} className={className}>
-      <path d="M26 78h68" opacity=".6" />
-      <rect x="34" y="56" width="52" height="22" rx="4" />
-      <path d="M34 65c4.3 3.4 8.7 3.4 13 0s8.7-3.4 13 0 8.7 3.4 13 0 8.7-3.4 13 0" />
-      <path d="M60 40v16" />
-      <path d="M60 28c2.3 3 3.4 5 3.4 6.9a3.4 3.4 0 1 1-6.8 0c0-1.9 1.1-3.9 3.4-6.9z" />
-      <path d="M38 18l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3z" fill="currentColor" stroke="none" opacity=".75" />
-      <path d="M82 14l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3z" fill="currentColor" stroke="none" opacity=".75" />
-      <path d="M60 6l1.4 3.5 3.5 1.4-3.5 1.4-1.4 3.5-1.4-3.5-3.5-1.4 3.5-1.4 1.4-3.5z" fill="currentColor" stroke="none" />
-      <circle cx="48" cy="10" r="1.4" fill="currentColor" stroke="none" opacity=".5" />
-      <circle cx="73" cy="8" r="1.4" fill="currentColor" stroke="none" opacity=".5" />
-    </svg>
-  );
-}
-
 type GlyphComponent = (props: GlyphProps) => JSX.Element;
 
 type GiftOccasionOption = { value: GiftOccasion; Glyph: GlyphComponent; label: string; hint: string };
@@ -624,20 +562,49 @@ function Hero({ fmt, prices, onCta, heroRef }: {
           <path d="M52 300l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6 1.6-4z" fill="rgba(207,192,244,0.7)" stroke="none" />
           <path d="M340 322l1.3 3.2 3.2 1.3-3.2 1.3-1.3 3.2-1.3-3.2-3.2-1.3 3.2-1.3 1.3-3.2z" fill="rgba(185,165,240,0.55)" stroke="none" />
         </svg>
-        <div className="gp-hero-photo">
-          <img
-            src="/gift-hero-v2.webp"
-            alt="A woman opening a Little Souls gift beside her partner, their tabby cat curled on her lap"
-            width={1536}
-            height={1024}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
-          <span className="gp-hero-scrim" aria-hidden="true" />
-        </div>
+        <HeroRotator />
       </div>
     </header>
+  );
+}
+
+/* ── HERO ROTATOR — every gifting scene, slow crossfade. Envelope
+   scenes (the real object: a sealed reveal) lead; box scenes follow.
+   Reduced-motion or missing IntersectionObserver just shows frame 1. ── */
+const HERO_FRAMES = [
+  { src: '/gift-scene-partner-env.webp', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat on her lap' },
+  { src: '/gift-scene-family-env.webp', alt: 'A daughter hugging her laughing mum at the kitchen table, a sealed Little Souls envelope beside her mug, their golden retriever at her knee' },
+  { src: '/gift-scene-friend-env.webp', alt: 'Two friends on a doorstep at dusk, one pressing a wax-sealed Little Souls envelope to her chest, their border collie looking up' },
+  { src: '/gift-hero-v2.webp', alt: 'A woman opening a Little Souls gift box beside her partner, their tabby cat curled on her lap' },
+  { src: '/gift-scene-family.webp', alt: 'A daughter hugging her mum at the kitchen table, a gift open beside her mug, their golden retriever at her knee' },
+  { src: '/gift-scene-friend.webp', alt: 'Two friends on a doorstep at dusk, one holding a wrapped gift, their border collie looking up at it' },
+];
+
+function HeroRotator() {
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = window.setInterval(() => setFrame((f) => (f + 1) % HERO_FRAMES.length), 6000);
+    return () => window.clearInterval(t);
+  }, []);
+  return (
+    <div className="gp-hero-photo">
+      {HERO_FRAMES.map((f, i) => (
+        <img
+          key={f.src}
+          src={f.src}
+          alt={i === frame ? f.alt : ''}
+          aria-hidden={i !== frame}
+          className={`gp-hero-frame ${i === frame ? 'is-front' : ''}`}
+          width={1536}
+          height={1024}
+          loading={i === 0 ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={i === 0 ? 'high' : undefined}
+        />
+      ))}
+      <span className="gp-hero-scrim" aria-hidden="true" />
+    </div>
   );
 }
 
@@ -1185,11 +1152,11 @@ export default function GiftPurchase() {
                   className="gp-occ-grid"
                 >
                   {([
-                    { value: 'new',      Scene: SceneNew,      label: 'They just got a new pet' },
-                    { value: 'discover', Scene: SceneDiscover, label: "They've had their pet for years" },
-                    { value: 'memorial', Scene: SceneMemorial, label: 'Their pet has passed' },
-                    { value: 'birthday', Scene: SceneBirthday, label: "It's their pet's birthday" },
-                  ] as Array<{ value: GiftOccasion; Scene: GlyphComponent; label: string }>).map(({ value, Scene, label }, i) => {
+                    { value: 'new',      art: '/gift-occ-new.webp',      label: 'They just got a new pet' },
+                    { value: 'discover', art: '/gift-occ-years.webp',    label: "They've had their pet for years" },
+                    { value: 'memorial', art: '/gift-occ-memorial.webp', label: 'Their pet has passed' },
+                    { value: 'birthday', art: '/gift-occ-birthday.webp', label: "It's their pet's birthday" },
+                  ] as Array<{ value: GiftOccasion; art: string; label: string }>).map(({ value, art, label }, i) => {
                     const active = selectedOccasion === value;
                     return (
                       <div key={value} className="gp-occ-cell gp-rev" style={{ ['--d' as string]: `${i * 70}ms` }}>
@@ -1201,7 +1168,7 @@ export default function GiftPurchase() {
                           className={`gp-occ-cardbtn ${active ? 'is-active' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
                         >
                           <span className="gp-occ-scene" aria-hidden="true">
-                            <Scene />
+                            <img src={art} alt="" width={512} height={512} loading="lazy" decoding="async" />
                           </span>
                           <span className="gp-occ-name">{label}</span>
                           <span className="gp-occ-tick" aria-hidden="true"><GlyphCheck /></span>
@@ -1855,6 +1822,11 @@ const GP_CSS = `
   border:1px solid rgba(154,126,230,.28);
   box-shadow:0 2px 6px rgba(0,0,0,.4),0 24px 54px rgba(0,0,0,.45)}
 .gp-hero-photo img{display:block;width:100%;height:auto;max-width:100%}
+.gp-hero-photo .gp-hero-frame{position:absolute;inset:0;height:100%;object-fit:cover;opacity:0;
+  transition:opacity 1.4s ease}
+.gp-hero-photo .gp-hero-frame:first-child{position:relative}
+.gp-hero-photo .gp-hero-frame.is-front{opacity:1}
+@media (prefers-reduced-motion: reduce){.gp-hero-photo .gp-hero-frame{transition:none}}
 .gp-hero-scrim{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(13,10,20,0) 55%,rgba(13,10,20,.55) 100%)}
 
@@ -2027,6 +1999,10 @@ const GP_CSS = `
   .gp-occ-cardbtn:hover .gp-occ-scene{color:var(--vio-bright)}
 }
 .gp-occ-cardbtn:active{transform:scale(.97);transition-duration:.06s}
+.gp-occ-scene img{display:block;width:100%;height:auto;border-radius:14px;
+  filter:saturate(.92) brightness(.94);transition:filter .35s var(--ease-settle),transform .35s var(--ease-settle)}
+.gp-occ-cardbtn:hover .gp-occ-scene img{filter:saturate(1.05) brightness(1.06);transform:scale(1.03)}
+.gp-occ-cardbtn.is-active .gp-occ-scene img{filter:saturate(1.1) brightness(1.12)}
 .gp-occ-scene{display:block;width:min(132px,62%);color:var(--vio-soft);
   filter:drop-shadow(0 0 12px rgba(124,92,214,.28));
   transition:color .22s ease}
