@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, forwardRef, type ReactNode, t
 import { supabase } from "@/integrations/supabase/client";
 import { getReferralCode } from "@/lib/referralTracking";
 import { getUtm } from "@/lib/utm";
+import { getIntent } from "@/lib/intent";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { HeartsBackdrop } from "./HeartsBackdrop";
 import { DossierCheckout, REVIEWS } from "./DossierCheckout";
@@ -606,13 +607,17 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     // so mixed Memorial + Soul Reading / Soul Bond carts can signal Memorial
     // on just the memorial placeholders.
     const shouldForwardMemorial = memorialQty > 0 && basicQty === 0 && premiumQty === 0;
-    // Landing path → occasion_mode. Memorial takes priority (own tier). For
-    // non-memorial carts, the landing choice ("new" vs "discover") decides
-    // whether the report is written in arrival-bonding voice or established-
-    // pet-revelation voice. Gift buyers have their own /gift flow and never
-    // hit this code path.
+    // The declared register is authoritative for the cart-level occasion, not
+    // the cart's composition. Previously memorial rode on shouldForwardMemorial
+    // (memorialQty>0 && others===0), so the signal silently dropped the moment
+    // the memorial-only cart constraint loosened. getIntent() is what the reader
+    // actually chose on the landing toggle. Per-row memorial stamping for mixed
+    // carts still rides on memorialCount below (backend splits the rows). For
+    // non-memorial carts the landing path ("new" vs "discover") decides the
+    // arrival-bonding vs established-pet-revelation voice. Gift buyers have
+    // their own /gift flow and never hit this code path.
     const occasionMode: "memorial" | "new" | "discover" | undefined =
-      shouldForwardMemorial ? "memorial"
+      getIntent() === "memorial" ? "memorial"
       : path === "new" ? "new"
       : undefined;
     trackFunnelEvent("v2_checkout_clicked", {

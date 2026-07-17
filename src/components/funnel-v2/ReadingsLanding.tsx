@@ -641,6 +641,20 @@ function HeroSection() {
           <p className="ls-hero-sub ls-reveal" style={revealDelay(0.16)}>
             Every pet arrives under one particular sky. Enter their birthday and see theirs, planet by planet, and what it means about them.
           </p>
+          {/* The birthday field is several screens down, so the hero needs a
+              plain "there is more below" affordance. Quiet violet cue sits under
+              the sub; its chevron drifts on a slow loop, and reduced motion
+              stills it so it reads finished at rest. */}
+          <button
+            type="button"
+            className="ls-hero-cue ls-reveal"
+            style={revealDelay(0.28)}
+            onClick={() => descendTo("#passage-fork")}
+            aria-label="Begin their reading"
+          >
+            <span className="ls-hero-cue-label">Begin</span>
+            <ChevronDown className="ls-hero-cue-arrow" size={18} strokeWidth={1.7} aria-hidden="true" />
+          </button>
         </div>
       </div>
     </section>
@@ -1897,6 +1911,40 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
     inner.style.transform = `translateY(${next.toFixed(1)}px)`;
   }, []);
 
+  // The settle: once the last moment has landed, the camera used to stay pinned
+  // with the seal at 42%, stranding a ~330px void beneath it (the reading looked
+  // broken the instant it finished). Instead, ease the whole column to rest. If
+  // the stack fits the card (desktop / tall viewports) it sits centred with no
+  // pan; if it is taller than the card it bottom-loads so the seal seats at the
+  // base and the earlier, already-read moments ride up off the top. No void.
+  const settleColumn = useCallback(() => {
+    const inner = innerRef.current;
+    const cardEl = inner ? (inner.closest(".ls-dk-card") as HTMLElement | null) : null;
+    if (!inner || !cardEl) return;
+    const kids = Array.from(inner.children) as HTMLElement[];
+    if (!kids.length) return;
+    const cardRect = cardEl.getBoundingClientRect();
+    // The inner box is clamped by max-height:100% while the moment children
+    // overflow it, so its own rect understates the real content height. Measure
+    // the true span from the first child's top to the last child's bottom.
+    const firstTop = kids[0].getBoundingClientRect().top;
+    const lastBottom = kids[kids.length - 1].getBoundingClientRect().bottom;
+    const contentH = lastBottom - firstTop;
+    const naturalTop = firstTop - translateRef.current; // content top with no transform
+    const padTop = 20;
+    const padBottom = 116; // clears the fixed footer + progress band under the card
+    const availTop = cardRect.top + padTop;
+    const availBottom = cardRect.bottom - padBottom;
+    const avail = availBottom - availTop;
+    // Fits (desktop / tall viewport): sit centred, no residual pan. Taller than
+    // the card: bottom-load so the closing law + seal rest fully in view and the
+    // earlier, already-read moments ride up off the top. Either way, no void.
+    const targetTop = contentH <= avail ? availTop + (avail - contentH) / 2 : availBottom - contentH;
+    const next = targetTop - naturalTop;
+    translateRef.current = next;
+    inner.style.transform = `translateY(${next.toFixed(1)}px)`;
+  }, []);
+
   // Auto-play the moments; once the last has landed (or the voice takes over),
   // everything stays shown so a tap can move on to the next card at any time.
   useEffect(() => {
@@ -1918,13 +1966,16 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
     return () => timers.forEach((t) => clearTimeout(t));
   }, [card, reduce, order, total, nar.isActive]);
 
-  // After each auto reveal, pan the camera to the newest moment.
+  // After each auto reveal, pan the camera to the newest moment. On the final
+  // moment, settle the whole column to rest instead of leaving it pinned high
+  // on the seal (kills the dead void underneath).
   useLayoutEffect(() => {
     if (reduce || nar.isActive || shown < 1) return;
+    const isFinal = shown >= total;
     const moment = order[shown - 1];
-    const id = requestAnimationFrame(() => panToMoment(moment));
+    const id = requestAnimationFrame(() => { if (isFinal) settleColumn(); else panToMoment(moment); });
     return () => cancelAnimationFrame(id);
-  }, [shown, reduce, order, panToMoment, nar.isActive]);
+  }, [shown, total, reduce, order, panToMoment, settleColumn, nar.isActive]);
 
   // Voice playing: hold everything open and follow the line being read.
   useLayoutEffect(() => {
@@ -2566,6 +2617,22 @@ const DECK_CSS = `
     /* the staged planet card stays one centred column; just a larger plate */
     .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(190px, 27svh, 226px); }
   }
+
+  /* Discovery tease is the longest terminal card (8-row ledger + bridge + CTA).
+     On phones its closing bridge line and CTA clipped below the fold; tighten
+     the vertical rhythm so both clear the fold. overflow-y:auto stays as the
+     safety net for the very shortest viewports. Memorial tease is shorter and
+     already fits, so this only bites where the copy actually overruns. */
+  @media (max-width: 639px) {
+    .ls-dk-tease { gap: clamp(6px, 1svh, 10px); padding-bottom: 6px; }
+    .ls-dk-tease .ls-dk-keep { font-size: clamp(1.26rem, 5.1vw, 1.56rem); line-height: 1.17; }
+    .ls-dk-tease .ls-dk-deeper { font-size: clamp(1rem, 4vw, 1.14rem); line-height: 1.33; }
+    .ls-dk-tease .ls-dk-ledger { gap: 5px; margin: clamp(1px, 0.5svh, 4px) 0; }
+    .ls-dk-tease .ls-dk-ledger li { font-size: clamp(0.9rem, 3.7vw, 1rem); line-height: 1.3; }
+    .ls-dk-tease .ls-dk-rising { font-size: clamp(0.98rem, 4vw, 1.1rem); }
+    .ls-dk-tease .ls-dk-bridge { font-size: clamp(1.05rem, 4.3vw, 1.22rem); line-height: 1.33; }
+    .ls-dk-tease .ls-dk-cta { margin-top: clamp(4px, 1svh, 10px); padding: 13px 30px; }
+  }
 `;
 
 function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIndex = 0 }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null; initialIndex?: number }) {
@@ -3119,6 +3186,11 @@ function BirthSkyJourney() {
     const cleanEmail = email.trim().toLowerCase();
     handleLead(cleanEmail, "free_reading_start");
     setStatus("computing");
+    // Mobile fresh-submit lands the compute animation + photo step ~59% below
+    // the fold with the primary button clipped at the top. Descend the moment
+    // we switch to computing, mirroring the restore path, so the sequence
+    // opens centred instead of on a dead screen.
+    requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
     setMessage("");
     setChart(null);
     const controller = new AbortController();
@@ -3273,6 +3345,9 @@ function BirthSkyJourney() {
                     setStatus("ready");
                   } else {
                     setStatus("photo");
+                    // Re-centre on the flip so the photo card opens in view,
+                    // not scrolled off under the compute animation's old height.
+                    requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
                   }
                 }}
               />
@@ -3315,7 +3390,7 @@ function BirthSkyJourney() {
                     <p className="ls-seal-hint ls-photo-info ls-reveal is-in">Their photo becomes part of the reveal, something to hold on to.</p>
                   </>
                 )}
-                <p className="ls-photo-privacy ls-reveal is-in">Yours only. We never sell it or use it to train anything.</p>
+                <p className="ls-photo-privacy ls-reveal is-in">Yours only. We never sell it or share it.</p>
                 {photoErr && <p className="ls-photo-err">{photoErr}</p>}
                 <button type="button" className="ls-seal-cta ls-photo-proceed ls-reveal is-in" onClick={proceedToReading}>
                   See their reading <ArrowRight size={18} />
@@ -8685,6 +8760,39 @@ function CosmicStyles() {
       @media (prefers-reduced-motion: reduce) {
         .ls-tgl-slider { transition: none; }
         .ls-tgl-sub { transition: none; }
+      }
+      .ls-hero-cue {
+        margin-top: clamp(16px, 3svh, 30px);
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 6px;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .ls-hero-cue-label {
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 12.5px;
+        font-weight: 500;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: #b6a6e6;
+      }
+      .ls-hero-cue-arrow {
+        color: rgba(185,165,240,0.9);
+        animation: lsHeroCueDrift 2.4s ease-in-out infinite;
+      }
+      .ls-hero-cue:hover .ls-hero-cue-label { color: #cbbdf3; }
+      .ls-hero-cue:hover .ls-hero-cue-arrow { color: #cbbdf3; }
+      .ls-hero-cue:focus-visible { outline: 1px solid rgba(185,165,240,0.75); outline-offset: 4px; border-radius: 8px; }
+      @keyframes lsHeroCueDrift {
+        0%, 100% { transform: translateY(0); opacity: 0.75; }
+        50% { transform: translateY(4px); opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-hero-cue-arrow { animation: none; opacity: 1; transform: none; }
       }
       .ls-hero-section {
         background:
