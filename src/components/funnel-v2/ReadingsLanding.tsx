@@ -4840,7 +4840,7 @@ function FullReadingOpens() {
 // (memorial un-gated 2026-07-17: the £49 path was selling with no value
 // section at all); the memorial register flips only the title's tense, the
 // four holdings already read true in both.
-const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; target: "ring" | "core" | "voice" | "phases" }[] = [
+const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; terms?: string; target: "ring" | "core" | "voice" | "phases" }[] = [
   {
     key: "placements",
     label: "The written reading",
@@ -4864,9 +4864,10 @@ const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; t
   },
   {
     key: "horoscope",
-    label: "Monthly horoscopes",
-    name: "Their year, as it turns.",
-    line: "Every month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
+    label: "Weekly horoscopes",
+    name: "The sky keeps moving. So do they.",
+    line: "Every week the planets pass over their chart and stir something different: a restless Tuesday, a clingy weekend, a sudden burst at the door. The weekly horoscope tells you what is coming before you meet it.",
+    terms: "One month free with the reading, then 4.99 a month. Cancel anytime.",
     target: "phases",
   },
 ];
@@ -5179,7 +5180,7 @@ function ValueMoments() {
             </svg>
           ) : null}
           <ol className="ls-vm-index" ref={indexRef} aria-label="What the full reading holds">
-            {VALUE_MOMENTS.map(({ key, label, name: entryName, line }, i) => (
+            {VALUE_MOMENTS.map(({ key, label, name: entryName, line, terms }, i) => (
               <li key={key} className="ls-vm-entry ls-reveal" data-k={key} style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}>
                 <span className="ls-vm-node" aria-hidden="true" />
                 <span className="ls-vm-ord" aria-hidden="true">{["I", "II", "III", "IV"][i]}</span>
@@ -5187,6 +5188,7 @@ function ValueMoments() {
                   <span className="ls-vm-label">{label}</span>
                   <h3 className="ls-vm-name">{entryName}</h3>
                   <p className="ls-vm-line">{line}</p>
+                  {terms && <p className="ls-vm-terms">{terms}</p>}
                 </div>
               </li>
             ))}
@@ -5314,6 +5316,7 @@ function ValueMoments() {
         .ls-vm-label { display: block; margin: 0 0 6px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 14px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
         .ls-vm-name { margin: 0 0 7px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.6vw, 1.55rem); line-height: 1.12; letter-spacing: -0.01em; }
         .ls-vm-line { margin: 0; max-width: 46ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.55; }
+        .ls-vm-terms { margin: 8px 0 0; max-width: 46ch; color: rgba(206,206,216,0.62); font-family: "Newsreader", Georgia, serif; font-size: 15.5px; line-height: 1.45; }
 
         /* the bridge to the voices below, hairline-flanked */
         .ls-vm-pull { margin: clamp(30px, 5vw, 48px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 18px; line-height: 1.5; }
