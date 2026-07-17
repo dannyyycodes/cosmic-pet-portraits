@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
 import { descendTo } from "@/lib/descend";
+import { readResume, saveResume, patchResume, saveResumeIndex } from "@/lib/deckResume";
 import { SIGN_LINES } from "./signLines";
 import {
   DECK_PLANETS,
@@ -465,6 +466,7 @@ export function ReadingsLanding() {
   return (
     <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
+      <ResumeStrip />
       <HeroSection />
       <IntentFork />
       <CosmicBridge />
@@ -563,6 +565,50 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
     nodes.forEach((node) => io.observe(node));
     return () => io.disconnect();
   }, [pageRef, revealed]);
+}
+
+/* ── Resume strip ─────────────────────────────────────────────────────
+   A quiet inline way back into an open reading. Shows only when a recovery
+   snapshot exists (a chart was computed on a past visit or before a reload)
+   and no deck is open yet. The tap asks BirthSkyJourney to restore
+   ("ls-resume-request"); the strip steps aside the moment any deck opens
+   ("ls-deck-open") or the restore lands/fails ("ls-resume-status"). On an
+   error the form below is already prefilled and carries the message, so the
+   strip simply retires. Not a modal, never blocks the page. */
+function ResumeStrip() {
+  const [snap] = useState(() => readResume());
+  const [state, setState] = useState<"idle" | "busy" | "gone">("idle");
+  useEffect(() => {
+    const onStatus = (e: Event) => {
+      const s = (e as CustomEvent).detail?.state;
+      if (s === "busy") setState("busy");
+      else if (s === "done" || s === "error") setState("gone");
+    };
+    const onOpen = () => setState("gone");
+    window.addEventListener("ls-resume-status", onStatus);
+    window.addEventListener("ls-deck-open", onOpen);
+    return () => {
+      window.removeEventListener("ls-resume-status", onStatus);
+      window.removeEventListener("ls-deck-open", onOpen);
+    };
+  }, []);
+  if (!snap || state === "gone") return null;
+  return (
+    <div className="ls-resume-wrap">
+      <div className="ls-resume-strip" role="status">
+        <p className="ls-resume-line">{snap.name ? `${capName(snap.name)}'s reading is still open.` : "Their reading is still open."}</p>
+        <button
+          type="button"
+          className="ls-resume-btn"
+          disabled={state === "busy"}
+          aria-busy={state === "busy"}
+          onClick={() => window.dispatchEvent(new Event("ls-resume-request"))}
+        >
+          {state === "busy" ? "Opening it now" : "Pick up where you left off"}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function HeroSection() {
@@ -2346,7 +2392,7 @@ const DECK_CSS = `
   }
 `;
 
-function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null }) {
+function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIndex = 0 }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null; initialIndex?: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register swaps every card to its remembered-tense twin.
@@ -2362,10 +2408,18 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart
   const keepsake = useMemo(() => (photoUrl ? { photoUrl, name: name ?? null } : null), [photoUrl, name]);
   const cards = useMemo(() => buildDeck(chart, memorial, { name, species }, keepsake, birthDate), [chart, memorial, name, species, keepsake, birthDate]);
   const last = cards.length - 1;
-  const [active, setActive] = useState(0);
+  // A resumed reading reopens at the stored card, clamped to the deck.
+  const [active, setActive] = useState(() => Math.max(0, Math.min(last, Math.floor(initialIndex) || 0)));
   const activeRef = useRef(0);
   activeRef.current = active;
   const [nudge, setNudge] = useState(false);
+
+  // Persist the open card on every advance so a reload (or an emailed deep
+  // link) can reopen the deck exactly where the reader left it. Patches the
+  // snapshot the chart compute wrote; never creates one on its own.
+  useEffect(() => {
+    saveResumeIndex(active);
+  }, [active]);
 
   // Reading-revealed gate: fire once when the synthesis card takes the stage
   // (or immediately in the static column), so the lower funnel is mounted
@@ -2691,6 +2745,111 @@ function BirthSkyJourney() {
     return () => cancelAnimationFrame(id);
   }, [status]);
 
+  // Hand the pet's identity + computed signs to the checkout (dossier
+  // inscription, eyebrow, sample excerpt). sessionStorage covers later
+  // mounts; the events cover the checkout already mounted further down this
+  // same page. Shared by the form submit and the resume restore.
+  const publishChart = (data: PetBirthChart, pet: { name: string | null; date: string; species: string | null }) => {
+    try {
+      sessionStorage.setItem("ls_chart_pet", JSON.stringify(pet));
+      if (pet.species) sessionStorage.setItem("ls_chart_species", pet.species);
+      window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: pet }));
+    } catch { /* ignore */ }
+    // Computed signs travel too, so the checkout's sample excerpt can quote a
+    // line that is genuinely THIS pet's placement (never a generic tease).
+    try {
+      const signsPayload = {
+        sun: data.sun?.sign || null,
+        moon: data.moon?.sign || null,
+        venus: data.venus?.sign || null,
+        mercury: data.mercury?.sign || null,
+        mars: data.mars?.sign || null,
+        // Sealed placements: the dossier's sample excerpt quotes Saturn
+        // (Chiron as fallback) so the tease never quotes a placement the
+        // free deck already gave.
+        saturn: data.saturn?.sign || null,
+        chiron: data.chiron?.sign || null,
+      };
+      sessionStorage.setItem("ls_chart_signs", JSON.stringify(signsPayload));
+      window.dispatchEvent(new CustomEvent("ls-chart-signs", { detail: signsPayload }));
+    } catch { /* ignore */ }
+  };
+
+  // ── Deck recovery ────────────────────────────────────────────────────
+  // A reload (or a deep link from an email) used to dump a mid-deck reader
+  // back to the landing top with the reading gone, even though the snapshot
+  // held everything needed to rebuild it. The chart is a pure function of
+  // the date, so restore = refetch for the stored date, recompose the deck,
+  // reopen at the stored card. Triggered by the quiet strip near the top of
+  // the page ("ls-resume-request") or by ?resume=1 on load.
+  const [resumeAt, setResumeAt] = useState(0);
+  const restoreReading = async () => {
+    const snap = readResume();
+    if (!snap || status === "computing" || (status === "ready" && chart)) return;
+    window.dispatchEvent(new CustomEvent("ls-resume-status", { detail: { state: "busy" } }));
+    setPetName(snap.name || "");
+    setDate(snap.date);
+    if (snap.species) setSpecies(snap.species);
+    if (snap.email) {
+      setEmail(snap.email);
+      try {
+        sessionStorage.setItem("ls_chart_email", snap.email);
+        window.dispatchEvent(new CustomEvent("ls-chart-email", { detail: { email: snap.email } }));
+      } catch { /* ignore */ }
+    }
+    if (snap.photo) {
+      setPhoto(snap.photo);
+      try {
+        sessionStorage.setItem("ls_chart_photo", snap.photo);
+        window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url: snap.photo } }));
+      } catch { /* ignore */ }
+    }
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    try {
+      const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(snap.date)}`;
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`status ${response.status}`);
+      const data = (await response.json()) as PetBirthChart;
+      if (!data?.sun) throw new Error("incomplete");
+      publishChart(data, { name: snap.name, date: snap.date, species: snap.species });
+      setResumeAt(snap.index);
+      growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
+      setChart(data);
+      setStatus("ready");
+      window.dispatchEvent(new CustomEvent("ls-resume-status", { detail: { state: "done" } }));
+      requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
+    } catch (error) {
+      console.warn("[Little Souls] resume failed", error);
+      setChart(null);
+      setStatus("error");
+      setMessage("The sky could not place that date. Try it again.");
+      window.dispatchEvent(new CustomEvent("ls-resume-status", { detail: { state: "error" } }));
+      // The form below is prefilled from the snapshot; take the reader to it.
+      requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+  const restoreRef = useRef(restoreReading);
+  restoreRef.current = restoreReading;
+  useEffect(() => {
+    const onResume = () => { void restoreRef.current(); };
+    window.addEventListener("ls-resume-request", onResume);
+    // Deep link: /v2?resume=1 restores without a tap. Opened from a fresh
+    // tab (an email link) it works off the localStorage snapshot; with no
+    // snapshot present the page simply loads as normal.
+    try {
+      if (new URLSearchParams(window.location.search).get("resume") === "1") void restoreRef.current();
+    } catch { /* ignore */ }
+    return () => window.removeEventListener("ls-resume-request", onResume);
+  }, []);
+  // Whichever path opened the deck (fresh compute or restore), tell the
+  // resume strip it is no longer needed.
+  useEffect(() => {
+    if (ready && chart) window.dispatchEvent(new Event("ls-deck-open"));
+  }, [ready, chart]);
+
   // ONE gate, at the start: name (optional) + date + email open the chart.
   // The lead fires the moment they start the free reading (source
   // "free_reading_start"), then the fetch runs in parallel with the compute
@@ -2726,33 +2885,12 @@ function BirthSkyJourney() {
       const data = (await response.json()) as PetBirthChart;
       if (!data?.sun) throw new Error("incomplete");
       setChart(data);
-      // Hand the pet's identity to the checkout (dossier inscription +
-      // eyebrow). sessionStorage covers later mounts; the event covers the
-      // already-mounted checkout further down this same page.
-      try {
-        const petPayload = { name: petName.trim() || null, date, species: species || null };
-        sessionStorage.setItem("ls_chart_pet", JSON.stringify(petPayload));
-        if (species) sessionStorage.setItem("ls_chart_species", species);
-        window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: petPayload }));
-      } catch { /* ignore */ }
-      // Computed signs travel too, so the checkout's sample excerpt can quote a
-      // line that is genuinely THIS pet's placement (never a generic tease).
-      try {
-        const signsPayload = {
-          sun: data.sun?.sign || null,
-          moon: data.moon?.sign || null,
-          venus: data.venus?.sign || null,
-          mercury: data.mercury?.sign || null,
-          mars: data.mars?.sign || null,
-          // Sealed placements: the dossier's sample excerpt quotes Saturn
-          // (Chiron as fallback) so the tease never quotes a placement the
-          // free deck already gave.
-          saturn: data.saturn?.sign || null,
-          chiron: data.chiron?.sign || null,
-        };
-        sessionStorage.setItem("ls_chart_signs", JSON.stringify(signsPayload));
-        window.dispatchEvent(new CustomEvent("ls-chart-signs", { detail: signsPayload }));
-      } catch { /* ignore */ }
+      const petPayload = { name: petName.trim() || null, date, species: species || null };
+      publishChart(data, petPayload);
+      // The recovery snapshot: everything needed to rebuild this deck after a
+      // reload or from an emailed deep link. Card index starts at 0 and is
+      // patched by the deck on every advance.
+      saveResume({ ...petPayload, email: cleanEmail, photo, index: 0 });
     } catch (error) {
       console.warn("[Little Souls] birth chart failed", error);
       setChart(null);
@@ -2817,6 +2955,7 @@ function BirthSkyJourney() {
         // Live handoff to the checkout + intake mounted lower on this page.
         window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url } }));
       } catch { /* ignore */ }
+      patchResume({ photo: url });
       // The photo is offered AFTER the email is captured, so the lead already
       // exists. Enrich it with the photo so the drip can greet them with their
       // own dog. Fire-and-forget; the reading never waits on it.
@@ -2843,6 +2982,7 @@ function BirthSkyJourney() {
       sessionStorage.removeItem("ls_chart_photo");
       window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url: null } }));
     } catch { /* ignore */ }
+    patchResume({ photo: null });
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
@@ -2859,7 +2999,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} birthDate={date} />
+        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} birthDate={date} initialIndex={resumeAt} />
       ) : (
         <>
           <div className="ls-stage">
@@ -7210,6 +7350,39 @@ function CosmicStyles() {
         .ls-seal-card[data-thread-arm]:not([data-sealed]) .ls-seal-cta { filter: none; box-shadow: 0 4px 26px rgba(139,123,216,0.28); }
         .ls-seal-card[data-sealed] .ls-seal-cta { animation: none; }
         .ls-seal-cta { transition: none; }
+      }
+
+      /* ── Resume strip: the quiet way back into an open reading ────────── */
+      .ls-resume-wrap {
+        display: flex; justify-content: center;
+        padding: 88px 20px 0;
+      }
+      .ls-resume-strip {
+        display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+        width: 100%; max-width: 640px;
+        padding: 14px 20px;
+        border: 1px solid rgba(167,139,250,0.18); border-radius: 14px;
+        background: rgba(139,123,216,0.08);
+      }
+      .ls-resume-line {
+        margin: 0; color: #f5f2ff;
+        font-family: "Newsreader", Georgia, serif; font-size: 17px; line-height: 1.4;
+      }
+      .ls-resume-btn {
+        flex: 0 0 auto; min-height: 42px; padding: 8px 18px;
+        border: 1px solid rgba(167,139,250,0.45); border-radius: 11px; cursor: pointer;
+        background: transparent; color: #d8ceff;
+        font-family: "Newsreader", Georgia, serif; font-size: 16px;
+        transition: background 300ms ease, color 300ms ease;
+      }
+      .ls-resume-btn:hover { background: rgba(167,139,250,0.16); color: #f5f2ff; }
+      .ls-resume-btn:focus-visible { outline: 2px solid #f5f2ff; outline-offset: 3px; }
+      .ls-resume-btn:disabled { opacity: 0.6; cursor: default; }
+      @media (max-width: 560px) {
+        .ls-resume-strip { flex-direction: column; gap: 10px; text-align: center; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-resume-btn { transition: none; }
       }
 
       /* ── One-tap species (free reading) — cosmic violet, no gold ──────── */
