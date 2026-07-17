@@ -48,8 +48,8 @@ export default function RedeemGift() {
   const handleContinue = () => navigate(`/redeem-intake?gift=${giftCode.toUpperCase()}&pets=${giftData?.petCount || 1}`);
 
   const getTierName = () => {
-    if (giftData?.giftTier === 'portrait') return 'The Portrait Edition';
-    if (giftData?.giftTier === 'essential') return 'The Soul Reading';
+    if (giftData?.giftTier === 'portrait') return 'Soul Bond';
+    if (giftData?.giftTier === 'essential') return 'Soul Reading';
     return 'Cosmic Pet Reading';
   };
 
