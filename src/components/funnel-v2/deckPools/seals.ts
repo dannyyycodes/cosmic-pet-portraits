@@ -122,7 +122,7 @@ export const SEALS: SealBeat[] = [
     "body": "uranus",
     "text": {
       "d": "Which habit {name} will break next, the one Uranus already has a date for, stays sealed.",
-      "m": "Which rules {name} broke on schedule, Uranus keeping the calendar the whole time, stays sealed."
+      "m": "Which of {poss} rules broke on schedule, Uranus keeping the calendar the whole time, stays sealed."
     }
   },
   {
@@ -142,8 +142,8 @@ export const SEALS: SealBeat[] = [
   {
     "body": "neptune",
     "text": {
-      "d": "Which of your moods {name} reads through a closed door, Neptune's favourite channel, stays sealed.",
-      "m": "Which of your moods {name} could read through a closed door, Neptune's channel, and why it never needed telling, stays sealed."
+      "d": "Which of your moods {poss} instinct catches through a closed door, Neptune's favourite channel, stays sealed.",
+      "m": "Which of your moods {poss} instinct caught through a closed door, Neptune's channel, and why it never needed telling, stays sealed."
     }
   },
   {

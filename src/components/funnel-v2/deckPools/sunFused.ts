@@ -58,8 +58,8 @@ export const SUN_FUSED: Beat[] = [
     "key": "sun|mercury|fused",
     "species": "dog",
     "meaning": {
-      "d": "{Poss} Sun is fixed at {DEG} degrees of {SIGN}, and Mercury stands with it at {PDEG} degrees, {ORB}. Mercury is the signal, the notice, the little announcement. Fused to the Sun, it makes {name} a self that enters by declaring, tracking, and answering the room.",
-      "m": "{Poss} Sun is fixed at {DEG} degrees of {SIGN}, and Mercury stands with it at {PDEG} degrees, {ORB}. Mercury is the signal, the notice, the little announcement. Fused to the Sun, it made {name} a self that entered by declaring, tracking, and answering the room."
+      "d": "{Poss} Sun sits at {DEG} degrees of {SIGN}, and Mercury stands with it at {PDEG} degrees, {ORB}. Mercury is the signal, the notice, the little announcement. Fused to the Sun, it makes {name} a self that enters by declaring, tracking, and answering the room.",
+      "m": "{Poss} Sun sits at {DEG} degrees of {SIGN}, and Mercury stands with it at {PDEG} degrees, {ORB}. Mercury is the signal, the notice, the little announcement. Fused to the Sun, it made {name} a self that entered by declaring, tracking, and answering the room."
     },
     "behaviour": {
       "d": "Watch the next time a cupboard opens. {Name} marks it with a sound, a head snap, or a quick step before knowing whether it concerns them. Count the number of tiny replies they give before the cupboard closes.",

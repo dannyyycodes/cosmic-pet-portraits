@@ -169,6 +169,84 @@ function fixDegreeGrammar(text: string): string {
   return text.replace(/(^|[^0-9])1 degrees\b/g, "$11 degree");
 }
 
+/* A placement in the first degree of a sign rounds to 0 and would otherwise
+   read "at 0 degrees of Aries", which looks like an error. Digits only ever
+   arrive via injection, so rewriting the zero case cannot touch authored copy. */
+function fixZeroDegree(text: string): string {
+  return text.replace(/\b0 degrees\b/g, "the first degree");
+}
+
+/* The no-name "Other" subject renders {Name} -> "They" and {name} -> "them".
+   The copy pools were authored with a singular name in the subject slot
+   ("Monty is", "the moods Monty reads"), so the plural fallback would print
+   "They is", "They chooses", "them reads". This pass runs ONLY for that
+   fallback subject: it brings a singular verb after the pronoun into plural
+   agreement and lifts a bare object "them" in subject position to "they".
+   Named / dog / cat subjects are singular and never enter here, so their
+   approved copy is untouched. */
+const THEY_IRREGULAR: Record<string, string> = { is: "are", was: "were", has: "have", does: "do", goes: "go" };
+/* -s words that are NOT third-person-singular verbs, so must never be flattened. */
+const THEY_NONVERB = new Set([
+  "always", "already", "only", "perhaps", "sometimes", "sideways", "its",
+  "this", "thus", "less", "unless", "whose", "yes", "both", "never", "still",
+  "also", "just", "even", "often", "once", "twice", "as",
+]);
+/* Clause-openers that force the following pronoun to read as a SUBJECT. */
+const THEY_SUBORDINATORS = new Set([
+  "what", "which", "how", "where", "when", "why", "that", "who", "whom",
+  "because", "if", "whether", "and", "but", "then", "so", "as",
+]);
+/* Prepositions and object-taking verbs: a lowercase "them" straight after one
+   of these is an OBJECT ("at them", "let them", "promised them") and must be
+   left alone. Any preceding word ending in -s or -ed is also treated as a verb
+   (so "settles them", "promised them" stay object). Everything else before
+   "them" (a noun, an adjective, an adverb, a subordinator) reads it as a
+   SUBJECT and lifts it to "they". Capitalised "They"/"Them" is nominative and
+   is always a subject. */
+const THEY_PREPS = new Set([
+  "at", "to", "for", "with", "in", "on", "of", "into", "from", "between",
+  "near", "beside", "around", "past", "behind", "before", "after", "against",
+  "through", "over", "under", "by", "like", "than", "up", "off", "toward",
+  "towards", "onto", "upon", "without", "within", "across", "about", "among",
+  "beneath", "below", "above",
+]);
+const THEY_OBJECT_VERBS = new Set([
+  "let", "make", "give", "tell", "show", "watch", "keep", "hold", "take",
+  "put", "set", "send", "see", "saw", "meet", "met", "find", "found", "feel",
+  "hear", "heard", "help", "want", "bring", "brought", "leave", "left", "call",
+  "hand", "offer", "teach", "get", "let", "made", "gave", "told", "showed",
+  "kept", "held", "took", "sent", "felt", "meant", "cut", "hit",
+]);
+function pluralizeVerb(v: string): string {
+  const low = v.toLowerCase();
+  if (THEY_IRREGULAR[low]) return THEY_IRREGULAR[low];
+  if (/ies$/.test(low)) return low.slice(0, -3) + "y";
+  if (/(ss|ch|sh|x|z|o)es$/.test(low)) return low.slice(0, -2);
+  if (low.endsWith("s")) return low.slice(0, -1);
+  return low;
+}
+function normalizeTheyThem(text: string): string {
+  return text.replace(/(\b[A-Za-z]+\s+)?\b(They|Them|them)(\s+)([A-Za-z]+)/g,
+    (whole, before: string | undefined, subj: string, gap: string, next: string) => {
+      const prev = before ? before.trim().toLowerCase() : "";
+      let pronoun = subj;
+      if (subj === "them" || subj === "Them") {
+        const isObject =
+          !THEY_SUBORDINATORS.has(prev) &&
+          (THEY_PREPS.has(prev) ||
+            THEY_OBJECT_VERBS.has(prev) ||
+            (prev.length > 2 && /(s|ed)$/.test(prev)));
+        if (isObject) return whole; /* object "them" stays as written */
+        pronoun = subj === "Them" ? "They" : "they";
+      }
+      const low = next.toLowerCase();
+      const nextIsVerb = low === "was" || (/s$/.test(low) && !THEY_NONVERB.has(low));
+      const newNext = nextIsVerb ? pluralizeVerb(next) : next;
+      if (pronoun === subj && newNext === next) return whole;
+      return (before ?? "") + pronoun + gap + newNext;
+    });
+}
+
 /* THE GUARD: a composed string may never carry a brace to the screen. */
 function hasLeak(parts: string[]): boolean {
   return parts.some((p) => p.includes("{") || p.includes("}"));
@@ -228,8 +306,14 @@ export function composeDeck(args: {
   const usedDignities = new Set<string>(); /* "planet|status" facts already told */
   const usedSeals = new Set<SealedBody>();
 
-  const render = (text: string, bag: NumberBag, orbN: number | null = null): string =>
-    fixDegreeGrammar(sentenceCase(fill(inject(prepOrbContexts(text, orbN), bag), subject)));
+  /* True only for the no-name "Other" fallback subject ("They"/"them"), which
+     needs verb-agreement repair the singular name paths never do. */
+  const isPluralSubject = subject.Name === "They" && subject.name === "them";
+
+  const render = (text: string, bag: NumberBag, orbN: number | null = null): string => {
+    const out = fixZeroDegree(fixDegreeGrammar(sentenceCase(fill(inject(prepOrbContexts(text, orbN), bag), subject))));
+    return isPluralSubject ? normalizeTheyThem(out) : out;
+  };
 
   /* Seal choice: the aspect partner when it is genuinely sealed, else the
      card planet's next sealed aspect partner, else the chart's tightest
@@ -432,6 +516,9 @@ export function composeDeck(args: {
       });
     } else if (item.kind === "stellium") {
       const s = item.stellium;
+      /* Only a genuinely tight gathering earns the "one bright knot" storyline;
+         a wide same-sign scatter falls through to the next real signature. */
+      if (!s.tight) continue;
       signature = renderSignature("tightCluster", {
         COUNT: String(s.bodies.length),
         SIGN: s.sign,

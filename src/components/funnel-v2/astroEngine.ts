@@ -390,10 +390,16 @@ export type Stellium = {
   bodies: BodyName[];       /* in BODIES order */
   planetCount: number;      /* how many of them are true planets */
   spanDegrees: number;      /* spread from the lowest to the highest degree */
+  tight: boolean;           /* bodies sit inside TIGHT_STELLIUM_SPAN: a real knot, not a whole-sign scatter */
   summary: string;
 };
 
 const COUNT_WORDS = ["", "one", "two", "three", "four", "five", "six", "seven"] as const;
+
+/* A same-sign gathering only reads as "one bright knot" when its bodies sit
+   close together. Beyond this span it is a sign emphasis, not a stellium that
+   fires as one instrument, so the tight-cluster storyline is withheld. */
+const TIGHT_STELLIUM_SPAN = 10;
 
 /* Three or more bodies gathered in one sign, largest first. All thirteen
    bodies count toward a stellium; planetCount says how many are planets. */
@@ -415,11 +421,13 @@ export function findStelliums(bodies: ChartBodies): Stellium[] {
       (PLANETS as readonly string[]).includes(m)).length;
     const names = members.map((m) => BODY_LABEL[m]).join(", ");
     const countWord = COUNT_WORDS[Math.min(members.length, 7)] || String(members.length);
+    const spanDegrees = Math.max(...degs) - Math.min(...degs);
     out.push({
       sign,
       bodies: members,
       planetCount,
-      spanDegrees: Math.max(...degs) - Math.min(...degs),
+      spanDegrees,
+      tight: spanDegrees <= TIGHT_STELLIUM_SPAN,
       summary: `A gathering of ${countWord} in ${sign}: ${names}`,
     });
   }
@@ -499,10 +507,16 @@ function balanceItem<K extends string>(
   return null;
 }
 
+const OUTER_BODIES: ReadonlySet<BodyName> = new Set(["uranus", "neptune", "pluto"]);
+
 export function chartSignature(bodies: ChartBodies): SignatureItem[] {
   const items: SignatureItem[] = [];
 
   for (const a of computeAspects(bodies)) {
+    /* An outer-to-outer aspect (Uranus/Neptune/Pluto) is a generational angle,
+       true of every pet born that year. It must never headline the signature
+       card as if it were personal, so it is not offered as a storyline. */
+    if (OUTER_BODIES.has(a.a) && OUTER_BODIES.has(a.b)) continue;
     items.push({ kind: "aspect", score: aspectScore(a), summary: a.summary, aspect: a });
   }
 

@@ -254,8 +254,8 @@ export const MERCURY_FUSED: Beat[] = [
       "m": "{Poss} Mercury sits with Saturn, {ORB}. The chart ties signalling to restraint, so the message came with rules around it. They were not vague. They were brief."
     },
     "behaviour": {
-      "d": "Within the next day, notice the request they do not repeat. It may be one look, one sound, one placed paw, then stillness. The silence after it is part of Saturn's grammar.",
-      "m": "There was a request they did not repeat. It was one look, one sound, one placed paw, then stillness. The silence after it was part of Saturn's grammar."
+      "d": "Within the next day, notice the request they do not repeat. It may be one look, one sound, one deliberate approach, then stillness. The silence after it is part of Saturn's grammar.",
+      "m": "There was a request they did not repeat. It was one look, one sound, one deliberate approach, then stillness. The silence after it was part of Saturn's grammar."
     },
     "law": {
       "d": "The request that trusts one clean sentence is {poss} Mercury and Saturn working as one instrument.",

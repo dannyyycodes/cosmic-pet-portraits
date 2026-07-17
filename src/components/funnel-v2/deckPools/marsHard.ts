@@ -18,8 +18,8 @@ export const MARS_HARD: Beat[] = [
       "m": "The sprint would start on its own, then break off halfway, and the look afterwards was almost surprise, as if the engine and the driver had disagreed again. The start and the stop both came from inside."
     },
     "law": {
-      "d": "The starts and the stops both belong to {name}: Mars and the Sun pull the same rope from opposite ends of {poss} chart.",
-      "m": "The starts and the stops both belonged to {name}, because Mars and the Sun still pull the same rope from opposite ends of {poss} chart."
+      "d": "The starts and the stops both belong to {name}: Mars and the Sun pull the same rope across a hard angle in {poss} chart.",
+      "m": "The starts and the stops both belonged to {name}, because Mars and the Sun still pull the same rope across a hard angle in {poss} chart."
     }
   },
   {
@@ -158,8 +158,8 @@ export const MARS_HARD: Beat[] = [
       "m": "With Venus in {PSIGN} caught on a hard angle from Mars at {DEG} degrees of {SIGN}, {ORB}, affection had a direction of travel. Closeness that started with them was pure Venus. Closeness that came at them woke Mars first, and the game reflex answered before the softness could."
     },
     "behaviour": {
-      "d": "Run the experiment today: reach first once, and wait once. The reach gets the play reflex, the dodge, the paw. The wait gets the lean. Same animal, ten minutes apart.",
-      "m": "Affection had a direction of travel, and everyone in the house learned it. Reaching first woke the game reflex, the dodge, the paw. Waiting brought the lean. Same animal, ten minutes apart, and both were the truth."
+      "d": "Run the experiment today: reach first once, and wait once. The reach gets the play reflex, the dodge, the feint. The wait gets the lean. Same animal, ten minutes apart.",
+      "m": "Affection had a direction of travel, and everyone in the house learned it. Reaching first woke the game reflex, the dodge, the feint. Waiting brought the lean. Same animal, ten minutes apart, and both were the truth."
     },
     "law": {
       "d": "Closeness that starts with them lands soft; closeness that goes at them lands in play. Venus and Mars split that line in {poss} chart.",
