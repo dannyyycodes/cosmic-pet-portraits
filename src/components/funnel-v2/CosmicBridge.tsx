@@ -257,13 +257,6 @@ const ANNOT_PLANETS = ["venus", "sun", "moon"] as const;
 const ANNOT_DEGS = ANNOT_PLANETS.map(
   (id) => `${(CHART_BODIES.find((b) => b.id === id)?.lon ?? 0) % 30}°`,
 );
-/* the moon join: the wheel's Moon pointer tick extended outward as a
-   hairline running off the wheel toward the photograph's rim */
-const MOON_LINE = { p1: wP(241, 156), p2: wP(241, 236) };
-const MOON_LINE_LEN = Math.ceil(
-  Math.hypot(MOON_LINE.p2.x - MOON_LINE.p1.x, MOON_LINE.p2.y - MOON_LINE.p1.y),
-) + 2;
-
 /* a chooser flip pends a birth spark on the remounted passage */
 let INTENT_FLIP_PENDING = false;
 
@@ -517,14 +510,6 @@ const LCB_CSS = `
   filter:drop-shadow(0 0 5px rgba(167,139,250,.5));
 }
 .c2-wheel .wptick,.c2-wheel .wconn,.c2-wheel .wdeg{opacity:0;transition:opacity .55s ease}
-/* S5 the moon join: the Moon's pointer tick extends off the wheel toward
-   the photograph, drawn via dashoffset as the moon glyph pops (~1.95s) */
-.c2-wheel .wmoonline{
-  stroke:rgba(167,139,250,.5);stroke-width:.8;fill:none;
-  stroke-dasharray:${MOON_LINE_LEN};stroke-dashoffset:${MOON_LINE_LEN};
-  transition:stroke-dashoffset .7s ease-out 2.05s;
-}
-.c2-b3.is-inview .c2-wheel .wmoonline{stroke-dashoffset:0}
 .c2-b3.is-inview .c2-wheel .wring-a,
 .c2-b3.is-inview .c2-wheel .wring-b,
 .c2-b3.is-inview .c2-wheel .wring-c{stroke-dashoffset:0}
@@ -551,20 +536,26 @@ const LCB_CSS = `
   mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
   background:url("/start/cosmos-moon-blur.webp") center/cover no-repeat;
   opacity:0;filter:blur(16px);
-  transition:opacity 1.2s ease 1.9s, filter 1.6s ease 1.9s;
+  transition:opacity 1.2s ease .5s, filter 1.6s ease .5s;
   will-change:transform;
 }
-.c2-b3.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
+.c2-b1.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
 .c2-moonglow{
   position:absolute;z-index:-2;pointer-events:none;border-radius:50%;
   top:calc(-1 * clamp(60px, 11svh, 120px));
   right:calc(-1 * clamp(30px, 8vw, 108px));
   width:clamp(150px, 36vw, 260px);aspect-ratio:1;
   background:radial-gradient(circle, rgba(167,139,250,.22) 0%, rgba(167,139,250,.08) 45%, transparent 70%);
-  opacity:0;transition:opacity 1.6s ease 2s;mix-blend-mode:screen;
+  opacity:0;transition:opacity 1.6s ease .6s;mix-blend-mode:screen;
 }
-.c2-b3.is-inview .c2-moonglow{opacity:1}
-.lcb-memorial .c2-b3.is-inview .c2-moonglow{opacity:.7}
+.c2-b1.is-inview .c2-moonglow{opacity:1}
+.lcb-memorial .c2-b1.is-inview .c2-moonglow{opacity:.7}
+/* phones: a smaller moon seated in the gap between the chooser's sub-line
+   and the whisper, grazing the right edge so it crowds neither */
+@media (max-width:520px){
+  .c2-moonspine{width:clamp(92px, 23vw, 128px);top:calc(-1 * clamp(64px, 10svh, 84px));right:-30px}
+  .c2-moonglow{width:clamp(120px, 30vw, 170px);top:calc(-1 * clamp(80px, 12svh, 104px));right:-46px}
+}
 
 /* ---- reduced motion: the finished passage at rest ---- */
 @media (prefers-reduced-motion: reduce){
@@ -575,7 +566,7 @@ const LCB_CSS = `
   .c2-rv{opacity:1 !important;transform:none !important}
   .c2-annot-star,.c2-annot-fly{opacity:0 !important}
   .c2-wheel .wring-a,.c2-wheel .wring-b,.c2-wheel .wring-c,
-  .c2-wheel .wspoke,.c2-wheel .waspect,.c2-wheel .wmoonline{stroke-dashoffset:0 !important}
+  .c2-wheel .wspoke,.c2-wheel .waspect{stroke-dashoffset:0 !important}
   .c2-wheel .wcusps,.c2-wheel .wticks,.c2-wheel .wfill,.c2-wheel .wzg,
   .c2-wheel .wpg,.c2-wheel .wptick,.c2-wheel .wconn,.c2-wheel .wdeg{opacity:1 !important}
   .c2-wheel .wpg{transform:scale(1) !important}
@@ -915,6 +906,7 @@ export function CosmicBridge() {
        visual events only when their line is actually on screen ---------- */
     const rvNodes = qa(".c2-rv");
     const b3El = q(".c2-b3");
+    const b1El = q(".c2-b1"); // the moon's home: it rises beside the opening claim
     const xlEl = q("#c2-xl-once");
     const annotLayer = q(".c2-annot");
     const annotEls = annotLayer ? qa(".c2-annot-star", annotLayer) : [];
@@ -980,6 +972,7 @@ export function CosmicBridge() {
     if (reduced || !("IntersectionObserver" in window)) {
       rvNodes.forEach((el) => el.classList.add("is-in"));
       b3El?.classList.add("is-inview", "is-drawn");
+      b1El?.classList.add("is-inview");
     } else {
       io = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
@@ -1001,6 +994,19 @@ export function CosmicBridge() {
         });
       }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
       if (b3El) ioSec.observe(b3El);
+      // B1's own inview flag (moon reveal) - kept OFF ioSec so the wheel
+      // gate never arms from the passage's first beat
+      if (b1El) {
+        const ioB1 = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting || e.boundingClientRect.top < 0) {
+              e.target.classList.add("is-inview");
+              ioB1.disconnect();
+            }
+          });
+        }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
+        ioB1.observe(b1El);
+      }
       const syncMap: [string, (passed: boolean) => void][] = [
         ["#c2-pk-born", (passed) => { if (!passed) window.dispatchEvent(new CustomEvent("lcb-flare")); }],
         ["#c2-frag-1", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 0, instant: passed } }))],
@@ -1041,7 +1047,6 @@ export function CosmicBridge() {
     // placed from an element's offsetTop inside the column, but the birth is
     // pinned to the toggle, which lives in a different section entirely.
     const birthEl = q<HTMLElement>(".c2-birth");
-    const moonSec = q(".c2-b3");
     const moonImg = q<HTMLImageElement>(".c2-moonspine");
     const getCard = () => document.querySelector<HTMLElement>(".ls-seal-card");
 
@@ -1459,9 +1464,9 @@ export function CosmicBridge() {
         ctaLit = true;
         sealCard();
       }
-      // the moon drifts gently in its corner as the birth-sky beat passes
-      if (moonSec && moonImg) {
-        const mr = moonSec.getBoundingClientRect();
+      // the moon drifts gently in its corner as the opening claim passes
+      if (b1El && moonImg) {
+        const mr = b1El.getBoundingClientRect();
         let offm = ((window.innerHeight / 2) - (mr.top + mr.height / 2)) * 0.04;
         offm = Math.max(-14, Math.min(14, offm));
         moonImg.style.transform = `translate3d(0,${offm.toFixed(1)}px,0)`;
@@ -1625,6 +1630,16 @@ export function CosmicBridge() {
         {/* ── Beat 1 · the claim (no artifact: the real sky answers) ── */}
         <section className="c2-beat c2-b1">
           <span className="c2-node" data-node data-for="c2-pk-sky" aria-hidden="true" />
+          <div className="c2-moonglow" aria-hidden="true" />
+          <img
+            className="c2-moonspine"
+            src="/start/cosmos-moon.webp"
+            alt=""
+            width={520}
+            height={520}
+            decoding="async"
+            loading="lazy"
+          />
           <p className="c2-whisper c2-rv">{T.b1whisper}</p>
           <p className="c2-lxl c2-rv" id="c2-pk-born">They were born already themselves.</p>
           <p className="c2-peak c2-rv" id="c2-pk-sky">The sky wrote it all down the day they arrived.</p>
@@ -1655,16 +1670,6 @@ export function CosmicBridge() {
               arriving beside it as a corner presence ── */}
         <section className="c2-beat c2-b3">
           <span className="c2-node" data-node data-for="c2-st-sky" aria-hidden="true" />
-          <div className="c2-moonglow" aria-hidden="true" />
-          <img
-            className="c2-moonspine"
-            src="/start/cosmos-moon.webp"
-            alt=""
-            width={520}
-            height={520}
-            decoding="async"
-            loading="lazy"
-          />
           <p className="c2-whisper c2-rv" id="c2-st-sky">The minute they were born, every planet held a position it will never hold again.</p>
           <div className="c2-wheel c2-rv" aria-hidden="true">
             <svg viewBox="0 0 320 320">
@@ -1677,7 +1682,6 @@ export function CosmicBridge() {
               <path className="wring-a" d="M160,6 A154,154 0 1 1 160,314 A154,154 0 1 1 160,6" />
               <circle className="wring-b" cx="160" cy="160" r="123" />
               <circle className="wring-c" cx="160" cy="160" r="38" />
-              <line className="wmoonline" x1={MOON_LINE.p1.x} y1={MOON_LINE.p1.y} x2={MOON_LINE.p2.x} y2={MOON_LINE.p2.y} />
               <g className="wticks">
                 {WHEEL_TICKS.map((t, i) => (
                   <line key={i} className={t.mj ? "wtick mj" : "wtick"} x1={t.p1.x} y1={t.p1.y} x2={t.p2.x} y2={t.p2.y} />
