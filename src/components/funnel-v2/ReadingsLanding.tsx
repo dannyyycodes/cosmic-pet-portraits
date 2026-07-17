@@ -43,7 +43,7 @@ import { trackSpine, trackSpineOnce, registerSetVia } from "@/lib/funnelSpine";
 import { useNarration, prewarmNarration } from "@/components/narration/useNarration";
 import { NarrationControl } from "@/components/narration/NarrationControl";
 import { NarratedWords, narratedLineClass } from "@/components/narration/NarratedWords";
-import type { NarrationBlock } from "@/components/narration/types";
+import type { NarrationBlock, NarrationHandle } from "@/components/narration/types";
 
 const C = {
   ink: "#141210",
@@ -1851,6 +1851,159 @@ function deckCardBlocks(card: DeckCard): NarrationBlock[] {
   }
 }
 
+type PlanetDeckCard = Extract<DeckCard, { kind: "planet" }>;
+
+// The staged planet card: the reading arrives ONE MOMENT AT A TIME, and a quiet
+// camera pans down to keep the moment that just landed centred. So the reader
+// always sees the placement land first, then the discovery, then the behaviour,
+// then the seal — never a wall of six blocks, and nothing ever clipped off the
+// bottom however long the copy runs. The deck's own advance paths (tap, swipe,
+// wheel, keys, Next/Back) are untouched: they still turn cards. Narration is
+// untouched too — when the voice plays, every moment is shown and the camera
+// follows the line being read. Reduced motion shows all four at rest, no pan.
+function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: NarrationHandle; reduce: boolean }) {
+  const lc = (id: string, base: string) => narratedLineClass(id, nar, base);
+  const angle = card.deg != null ? (card.deg / 30) * 360 : 0;
+  const engine = !!card.fact;
+
+  const innerRef = useRef<HTMLDivElement>(null);
+  const momentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const translateRef = useRef(0);
+  const doneRef = useRef(reduce);
+
+  // Which moments exist, in reveal order (the discovery only when there is a fact).
+  const order = useMemo(() => (engine ? [1, 2, 3, 4] : [1, 3, 4]), [engine]);
+  const total = order.length;
+  const [shown, setShown] = useState(reduce ? total : 0);
+
+  const blockMoment = (id: string | null | undefined): number => {
+    if (id === "l1") return 1;
+    if (id === "fact" || id === "teaching") return 2;
+    if (id === "beats" || id === "tell") return 3;
+    return 4; // law, sealed
+  };
+
+  const panToMoment = useCallback((moment: number) => {
+    const inner = innerRef.current;
+    const el = momentRefs.current[moment];
+    const cardEl = inner ? (inner.closest(".ls-dk-card") as HTMLElement | null) : null;
+    if (!inner || !el || !cardEl) return;
+    const cardRect = cardEl.getBoundingClientRect();
+    const desired = cardRect.top + cardRect.height * 0.42;
+    const elRect = el.getBoundingClientRect();
+    const elCenter = elRect.top + elRect.height / 2;
+    const next = translateRef.current + (desired - elCenter);
+    translateRef.current = next;
+    inner.style.transform = `translateY(${next.toFixed(1)}px)`;
+  }, []);
+
+  // Auto-play the moments; once the last has landed (or the voice takes over),
+  // everything stays shown so a tap can move on to the next card at any time.
+  useEffect(() => {
+    if (reduce || nar.isActive || doneRef.current) {
+      setShown(total);
+      doneRef.current = doneRef.current || reduce || nar.isActive;
+      return;
+    }
+    translateRef.current = 0;
+    if (innerRef.current) innerRef.current.style.transform = "translateY(0px)";
+    setShown(0);
+    const times = [140, 1500, 3050, 4550];
+    const timers = order.map((_, i) =>
+      window.setTimeout(() => {
+        setShown(i + 1);
+        if (i === order.length - 1) doneRef.current = true;
+      }, times[Math.min(i, times.length - 1)]),
+    );
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, [card, reduce, order, total, nar.isActive]);
+
+  // After each auto reveal, pan the camera to the newest moment.
+  useLayoutEffect(() => {
+    if (reduce || nar.isActive || shown < 1) return;
+    const moment = order[shown - 1];
+    const id = requestAnimationFrame(() => panToMoment(moment));
+    return () => cancelAnimationFrame(id);
+  }, [shown, reduce, order, panToMoment, nar.isActive]);
+
+  // Voice playing: hold everything open and follow the line being read.
+  useLayoutEffect(() => {
+    if (reduce || !nar.isActive) return;
+    const moment = blockMoment(nar.activeBlockId);
+    const id = requestAnimationFrame(() => panToMoment(moment));
+    return () => cancelAnimationFrame(id);
+  }, [nar.isActive, nar.activeBlockId, reduce, panToMoment]);
+
+  const setRef = (n: number) => (el: HTMLDivElement | null) => { momentRefs.current[n] = el; };
+  const on = (moment: number) => (shown >= order.indexOf(moment) + 1 ? " is-shown" : "");
+
+  return (
+    <div ref={innerRef} className={`ls-dk-inner ls-dk-pl ls-dk-staged${engine ? " is-engine" : ""}`}>
+      {/* MOMENT 1 — the placement lands alone */}
+      <div ref={setRef(1)} className={`ls-dk-m ls-dk-m1${on(1)}`}>
+        <div className="ls-dk-plate">
+          <DeckWheel deg={card.deg} />
+          <div className="ls-dk-orbit" style={{ "--dk-angle": `${angle.toFixed(2)}deg` } as React.CSSProperties} aria-hidden="true">
+            <div className="ls-dk-orb">
+              <span className="ls-dk-halo" />
+              <img src={DECK_PHOTO[card.key]} alt="" draggable={false} />
+            </div>
+          </div>
+          <div className="ls-dk-lockup">
+            <p className="ls-dk-eyebrow">
+              <span className="ls-dk-eyelabel">
+                <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
+                {DECK_LABEL[card.key]}
+              </span>
+              <span className="ls-dk-count">{counterLabel(card.count)}</span>
+            </p>
+            <div className="ls-dk-chipwrap">
+              <p className="ls-dk-chip">
+                {card.sign}
+                {card.deg != null && (
+                  <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+        <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
+      </div>
+
+      {/* MOMENT 2 — the discovery */}
+      {engine && (
+        <div ref={setRef(2)} className={`ls-dk-m ls-dk-m2${on(2)}`}>
+          <p className="ls-dk-mlabel">What we found</p>
+          <p className={lc("fact", "ls-dk-fact")}><NarratedWords blockId="fact" text={card.fact} nar={nar} /></p>
+          {card.teaching && (
+            <p className={lc("teaching", "ls-dk-teach")}><NarratedWords blockId="teaching" text={card.teaching} nar={nar} /></p>
+          )}
+        </div>
+      )}
+
+      {/* MOMENT 3 — the behaviour beat */}
+      <div ref={setRef(3)} className={`ls-dk-m ls-dk-m3${on(3)}`}>
+        <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+        {card.tell && (
+          <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+        )}
+      </div>
+
+      {/* MOMENT 4 — the quiet close + the teaser seal */}
+      <div ref={setRef(4)} className={`ls-dk-m ls-dk-m4${on(4)}`}>
+        {card.law && (
+          <p className={lc("law", "ls-dk-tell ls-dk-law")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="law" text={card.law} nar={nar} /></p>
+        )}
+        <div className="ls-dk-sealbar">
+          <SealMark />
+          <p className={lc("sealed", "ls-dk-sealtext")}><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
+          <span className="ls-dk-sealtag">In the full reading</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DeckCardBody({ card, reduce, floating = false, showNext = false, showBack = false, nudge = false, onNext, onBack }: { card: DeckCard; reduce: boolean; floating?: boolean; showNext?: boolean; showBack?: boolean; nudge?: boolean; onNext?: () => void; onBack?: () => void }) {
   const blocks = useMemo(() => deckCardBlocks(card), [card]);
   const nar = useNarration(blocks);
@@ -1930,64 +2083,9 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
   }
 
   if (card.kind === "planet") {
-    // THE PLATE (spec-0): the card is one composed instrument plate in three
-    // strata. (A) FACT: an engraved chart wheel with the real disc riding the
-    // rim at its true degree; sign lockup + l1 caption live INSIDE the ring.
-    // (B) READING: beats as the left-aligned hero with an inset quote-rule,
-    // tell as the indented italic margin note with a dash anchor. (C) SEAL: a
-    // labelled sealed-drawer footer bar. Copy verbatim; block ids unchanged.
-    const angle = card.deg != null ? (card.deg / 30) * 360 : 0;
-    return wrap(
-      <div className={`ls-dk-inner ls-dk-pl${card.fact ? " is-engine" : ""}`}>
-        <div className="ls-dk-plate">
-          <DeckWheel deg={card.deg} />
-          <div className="ls-dk-orbit" style={{ "--dk-angle": `${angle.toFixed(2)}deg` } as React.CSSProperties} aria-hidden="true">
-            <div className="ls-dk-orb">
-              <span className="ls-dk-halo" />
-              <img src={DECK_PHOTO[card.key]} alt="" draggable={false} />
-            </div>
-          </div>
-          <div className="ls-dk-lockup">
-            <p className="ls-dk-eyebrow">
-              <span className="ls-dk-eyelabel">
-                <AstroGlyph name={card.key} className="ls-dk-glyphmark" />
-                {DECK_LABEL[card.key]}
-              </span>
-              <span className="ls-dk-count">{counterLabel(card.count)}</span>
-            </p>
-            <div className="ls-dk-chipwrap">
-              <p className="ls-dk-chip">
-                {card.sign}
-                {card.deg != null && (
-                  <span className="ls-dk-deg"> <DegCount value={card.deg} reduce={reduce} />°</span>
-                )}
-              </p>
-            </div>
-            <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
-          </div>
-        </div>
-        <div className={`ls-dk-read${card.fact ? " is-engine" : ""}`}>
-          {card.fact && (
-            <p className={lc("fact", "ls-dk-fact")}><NarratedWords blockId="fact" text={card.fact} nar={nar} /></p>
-          )}
-          {card.teaching && (
-            <p className={lc("teaching", "ls-dk-teach")}><NarratedWords blockId="teaching" text={card.teaching} nar={nar} /></p>
-          )}
-          <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
-          {card.tell && (
-            <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
-          )}
-          {card.law && (
-            <p className={lc("law", "ls-dk-tell ls-dk-law")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="law" text={card.law} nar={nar} /></p>
-          )}
-        </div>
-        <div className="ls-dk-sealbar">
-          <SealMark />
-          <p className={lc("sealed", "ls-dk-sealtext")}><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
-          <span className="ls-dk-sealtag">In the full reading</span>
-        </div>
-      </div>,
-    );
+    // The staged plate is its own component so the camera-follow reveal can own
+    // its refs and timers without disturbing the deck. See StagedPlanet.
+    return wrap(<StagedPlanet card={card} nar={nar} reduce={reduce} />);
   }
 
   if (card.kind === "element") {
@@ -2182,8 +2280,9 @@ const DECK_CSS = `
   .ls-dk-chip { margin: 0; white-space: nowrap; font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.015em; font-size: clamp(1.5rem, 6vw, 2rem); line-height: 1; color: #ffffff; text-shadow: 0 0 34px rgba(154,126,230,0.35); transform-origin: 50% 115%; animation: lsDkFlip 0.7s cubic-bezier(0.3,1.26,0.44,1) 0.25s both; }
   @keyframes lsDkFlip { from { transform: rotateX(-92deg); opacity: 0; } to { transform: rotateX(0deg); opacity: 1; } }
   .ls-dk-deg { color: #b9a5f0; font-size: 0.52em; font-weight: 500; letter-spacing: 0.02em; vertical-align: 0.35em; }
-  .ls-dk-l1 { margin: 0; max-width: 26ch; color: #d9d2ea; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(0.92rem, 3.6vw, 1.02rem); line-height: 1.4; }
-  .ls-dk-lockup .ls-dk-l1 { animation-delay: 0.38s; }
+  /* the identity line: the card's plain caption, pulled BELOW the plate so it
+     reads big and clear (no longer cramped inside the ring). */
+  .ls-dk-l1 { margin: 4px auto 0; max-width: 30ch; color: #f2eefc; font-family: "Newsreader", Georgia, serif; font-size: clamp(1.08rem, 4.6vw, 1.24rem); line-height: 1.44; text-align: center; }
   /* READING stratum: two left-aligned voices at two indents. The block itself
      centers on the card axis; inside it the words stage as spoken lines. */
   .ls-dk-read { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; text-align: left; width: fit-content; max-width: min(100%, 36ch); margin-inline: auto; animation: none; opacity: 1; }
@@ -2194,6 +2293,34 @@ const DECK_CSS = `
   /* the warm tell: the indented italic margin note, dash-anchored */
   .ls-dk-tell { position: relative; margin: 0; max-width: 30ch; padding-left: 36px; text-align: left; color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 4.2vw, 1.16rem); line-height: 1.5; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.68s forwards; }
   .ls-dk-tell-mark { position: absolute; left: 6px; top: 0.66em; width: 22px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #b9a5f0, transparent); }
+
+  /* ── STAGED REVEAL (spec-1): the planet card in four moments, with a camera ─
+     Each moment fades + rises + unblurs as ONE unit as it is revealed (by the
+     StagedPlanet component, in order), and the inner column translates so the
+     moment that just landed sits centred — the reader feels the placement land,
+     then the discovery, then the behaviour, then the seal, and nothing is ever
+     clipped however long the copy runs. Reduced motion / the static column show
+     all four at rest with no camera (handled in the reduced blocks below). */
+  .ls-dk-staged { gap: clamp(14px, 2.3svh, 20px); }
+  .ls-dk-inner.ls-dk-staged { transition: transform 0.72s cubic-bezier(0.22,0.7,0.2,1); will-change: transform; }
+  .ls-dk-card:has(.ls-dk-staged) { align-items: flex-start; }
+  .ls-dk-staged > .ls-dk-m { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 9px; width: 100%; opacity: 0; transform: translateY(14px); filter: blur(5px); animation: none !important; transition: opacity 0.6s cubic-bezier(0.22,0.7,0.2,1), transform 0.6s cubic-bezier(0.22,0.7,0.2,1), filter 0.6s cubic-bezier(0.22,0.7,0.2,1); }
+  .ls-dk-staged > .ls-dk-m.is-shown { opacity: 1; transform: none; filter: blur(0); }
+  .ls-dk-m1 { gap: 6px; }
+  /* inside a moment the pieces are already settled — the moment IS the reveal */
+  .ls-dk-staged .ls-dk-eyebrow, .ls-dk-staged .ls-dk-l1, .ls-dk-staged .ls-dk-mlabel,
+  .ls-dk-staged .ls-dk-fact, .ls-dk-staged .ls-dk-teach, .ls-dk-staged .ls-dk-beats,
+  .ls-dk-staged .ls-dk-tell, .ls-dk-staged .ls-dk-sealbar > svg,
+  .ls-dk-staged .ls-dk-sealtext, .ls-dk-staged .ls-dk-sealtag { opacity: 1; animation: none; }
+  .ls-dk-staged .ls-dk-beats::before, .ls-dk-staged .ls-dk-sealbar::before { animation: none; transform: none; }
+  /* the discovery marker: a quiet violet index over the computed fact */
+  .ls-dk-mlabel { margin: 0; color: #b9a5f0; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-indent: 0.2em; text-transform: uppercase; }
+  /* moment bodies — big and readable (>=17px at 390); each text block is left-set
+     but centres on the card axis so the moments still stack down the middle */
+  .ls-dk-staged .ls-dk-fact { max-width: 33ch; text-align: left; color: #ececf2; font-size: clamp(1.06rem, 4.4vw, 1.17rem); line-height: 1.46; }
+  .ls-dk-staged .ls-dk-teach { max-width: 33ch; text-align: left; font-size: clamp(1.07rem, 4.4vw, 1.13rem); line-height: 1.44; }
+  .ls-dk-staged .ls-dk-beats { max-width: 31ch; font-size: clamp(1.2rem, 5vw, 1.48rem); line-height: 1.42; }
+  .ls-dk-staged .ls-dk-tell { max-width: 31ch; font-size: clamp(1.06rem, 4.4vw, 1.2rem); }
   /* ENGINE ANATOMY (the real astrology read) — three staged tiers so the card
      reads with air, not as one grey column. TIER 1, the chart note: the
      numbers-led fact + one-line teaching, quiet and compact, one unit. TIER 2,
@@ -2212,28 +2339,24 @@ const DECK_CSS = `
   .ls-dk-read.is-engine .ls-dk-beats::before { animation-delay: 0.7s; }
   /* tier 3 — the quotable law */
   .ls-dk-read.is-engine .ls-dk-tell { max-width: 36ch; font-size: clamp(0.88rem, 3.4vw, 1.06rem); animation-delay: 0.84s; }
-  .ls-dk-pl.is-engine { gap: clamp(9px, 1.6svh, 16px); }
-  .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(150px, 19svh, 198px); }
-  .ls-dk-pl.is-engine .ls-dk-orb { width: clamp(44px, 6.4svh, 56px); }
-  .ls-dk-pl.is-engine .ls-dk-eyebrow { font-size: 11px; }
-  .ls-dk-pl.is-engine .ls-dk-sealbar { padding-top: 10px; }
-  .ls-dk-pl.is-engine .ls-dk-sealtext { font-size: 12.5px; }
-  .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.32rem, 5.2vw, 1.7rem); }
-  .ls-dk-pl.is-engine .ls-dk-l1 { font-size: clamp(0.86rem, 3.4vw, 0.95rem); max-width: 30ch; line-height: 1.34; }
+  .ls-dk-pl.is-engine { gap: clamp(14px, 2.3svh, 20px); }
+  .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(140px, 19svh, 178px); }
+  .ls-dk-pl.is-engine .ls-dk-orb { width: clamp(42px, 6svh, 54px); }
+  .ls-dk-pl.is-engine .ls-dk-eyebrow { font-size: 11.5px; }
+  .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.4rem, 5.6vw, 1.82rem); }
   /* the chart-signature revelation card shares the engine read grammar */
   .ls-dk-sig { gap: clamp(8px, 1.4svh, 13px); }
   .ls-dk-sig-eyebrow { animation-delay: 0.1s; }
   /* SEAL stratum: the labelled sealed drawer. Hairline top, lock left, the
      sealed line, the destination tag right. A drawer with a destination. */
-  .ls-dk-sealbar { position: relative; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; width: min(100%, 420px); padding-top: 13px; margin-inline: auto; text-align: left; animation: none; opacity: 1; }
-  .ls-dk-sealbar::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(154,126,230,0.22) 20%, rgba(154,126,230,0.22) 80%, transparent); transform-origin: left; animation: lsDkRuleX 0.45s cubic-bezier(0.4,0,0.2,1) 0.86s both; }
   @keyframes lsDkRuleX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  .ls-dk-sealbar > svg { flex: 0 0 auto; margin-top: 3px; font-size: 13px; color: rgba(185,165,240,0.7); opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.9s forwards; }
-  .ls-dk-sealtext { margin: 0; flex: 1 1 0; min-width: 0; color: rgba(206,206,216,0.72); font-family: "Newsreader", Georgia, serif; font-size: 13.5px; line-height: 1.45; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.9s forwards; }
-  .ls-dk-sealtag { flex: 0 0 auto; margin-top: 3px; color: rgba(185,165,240,0.75); font-family: "Newsreader", Georgia, serif; font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; white-space: nowrap; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.9s forwards; }
-  @media (max-width: 390px) {
-    .ls-dk-sealtag { flex-basis: 100%; text-align: right; margin-top: 0; }
-  }
+  /* the sealed drawer: a quiet locked panel that tells the reader this glance is
+     only a teaser — the tag "In the full reading" is the teaser message, set as
+     a small violet pill so it registers. */
+  .ls-dk-sealbar { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 11px; width: min(100%, 460px); margin-inline: auto; padding: 11px 14px; border: 1px solid rgba(154,126,230,0.26); border-radius: 13px; background: linear-gradient(180deg, rgba(124,92,214,0.11), rgba(124,92,214,0.04)); text-align: left; animation: none; opacity: 1; }
+  .ls-dk-sealbar > svg { flex: 0 0 auto; align-self: flex-start; margin-top: 2px; font-size: 14px; color: rgba(185,165,240,0.85); }
+  .ls-dk-sealtext { margin: 0; flex: 1 1 190px; min-width: 0; color: rgba(214,210,228,0.82); font-family: "Newsreader", Georgia, serif; font-size: 17.5px; line-height: 1.42; }
+  .ls-dk-sealtag { flex: 0 0 auto; margin-left: auto; padding: 4px 11px; border-radius: 999px; border: 1px solid rgba(185,165,240,0.45); background: rgba(124,92,214,0.2); color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
 
   /* THE FOUR HOUSES (element card): his five planets standing in four
      hairline-divided element columns. The dominant column lit, the empty
@@ -2261,7 +2384,7 @@ const DECK_CSS = `
   .ls-dk-house-n { color: rgba(200,200,210,0.7); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; }
   .ls-dk-house.is-dom .ls-dk-house-n { color: #cfc0f4; }
   .ls-dk-house.is-empty .ls-dk-house-n { opacity: 0.4; }
-  .ls-dk-el-meaning { max-width: 30ch; color: #d9d2ea; font-style: italic; animation-delay: 0.5s; }
+  .ls-dk-el-meaning { max-width: 30ch; color: #d9d2ea; font-style: italic; font-size: clamp(0.92rem, 3.6vw, 1.02rem); animation-delay: 0.5s; }
   .ls-dk-el .ls-dk-beats { animation-delay: 0.66s; }
   .ls-dk-el .ls-dk-beats::before { animation-delay: 0.68s; }
   .ls-dk-el .ls-dk-tell { animation-delay: 0.85s; }
@@ -2354,13 +2477,16 @@ const DECK_CSS = `
     .ls-dk-card { padding-bottom: clamp(96px, 15svh, 108px); }
   }
 
-  /* Desktop >=1024px: the plate and the reading face each other like a
-     spread; the seal drawer underlines them both. */
+  /* Desktop >=1024px: the SAME staged single column, centred, just given more
+     width and a larger plate. The staged reveal reads identically to the phone
+     so the placement always lands alone first (no side-by-side spread that used
+     to split the identity from its reading). */
   @media (min-width: 1024px) {
-    .ls-dk-pl { display: grid; grid-template-columns: 300px minmax(0, 400px); column-gap: 56px; row-gap: 22px; align-items: center; justify-content: center; width: min(100%, 800px); }
-    .ls-dk-plate { width: clamp(220px, 34svh, 280px); justify-self: center; }
-    .ls-dk-pl .ls-dk-read { margin-inline: 0; }
-    .ls-dk-pl .ls-dk-sealbar { grid-column: 1 / -1; width: min(100%, 640px); justify-self: center; }
+    .ls-dk-pl { width: min(100%, 640px); }
+    .ls-dk-plate { width: clamp(206px, 30svh, 252px); }
+    .ls-dk-pl .ls-dk-sealbar { width: min(100%, 520px); }
+    .ls-dk-staged .ls-dk-fact, .ls-dk-staged .ls-dk-teach { max-width: 42ch; }
+    .ls-dk-staged .ls-dk-beats, .ls-dk-staged .ls-dk-tell { max-width: 38ch; }
   }
 
   /* Static column: reduced motion, every card visible in reading order.
@@ -2383,6 +2509,9 @@ const DECK_CSS = `
   .ls-dk.is-static .ls-dk-houses::before, .ls-dk.is-static .ls-dk-houses::after, .ls-dk.is-static .ls-dk-house-chip,
   .ls-dk.is-static .ls-dk-conj-a, .ls-dk.is-static .ls-dk-conj-b, .ls-dk.is-static .ls-dk-conj-stem { animation: none !important; }
   .ls-dk.is-static .ls-dk-tease { overflow: visible; max-height: none; }
+  /* staged planet: no camera, every moment shown at rest in reading order */
+  .ls-dk.is-static .ls-dk-staged { transform: none !important; transition: none !important; }
+  .ls-dk.is-static .ls-dk-staged > .ls-dk-m { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
   /* parity with the reduced-motion block below: the static column never mounts
      the floating chrome, but the law is every animated class carries BOTH
      overrides, so the frame / footer / Next pulse are stilled here too. */
@@ -2405,35 +2534,37 @@ const DECK_CSS = `
     .ls-dk-nav-next, .ls-dk-nav-next.is-nudge { animation: none !important; opacity: 1 !important; }
     .ls-dk-frame, .ls-dk-frame-glow, .ls-dk-frame-mask img, .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
     .ls-dk-footer { animation: none !important; opacity: 1 !important; }
+    .ls-dk-staged { transform: none !important; transition: none !important; }
+    .ls-dk-staged > .ls-dk-m { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
   }
 
   @media (max-height: 640px) {
-    .ls-dk-plate { width: clamp(150px, 26svh, 190px); }
-    .ls-dk-orb { width: clamp(46px, 7svh, 58px); }
+    .ls-dk-plate { width: clamp(132px, 22svh, 170px); }
+    .ls-dk-orb { width: clamp(42px, 6svh, 52px); }
     .ls-dk-inner { gap: 8px; }
-    .ls-dk-pl { gap: 14px; }
+    .ls-dk-pl { gap: 12px; }
+    .ls-dk-staged { gap: 12px; }
+    .ls-dk-staged > .ls-dk-m { gap: 7px; }
     .ls-dk-chip { font-size: clamp(1.3rem, 5.4vw, 1.7rem); }
-    .ls-dk-l1 { font-size: 0.88rem; }
+    .ls-dk-l1 { font-size: 1rem; }
   }
 
   /* ==== TYPE FLOORS - tuned per viewport ==== */
   @media (min-width: 1024px) {
-    .ls-dk-l1 { font-size: 1.02rem; }
+    .ls-dk-l1 { font-size: 1.22rem; }
     .ls-dk-beats { font-size: 1.5rem; }
     .ls-dk-tell { font-size: 1.26rem; }
-    .ls-dk-sealtext { font-size: 14.5px; }
+    .ls-dk-sealtext { font-size: 17.5px; }
     .ls-dk-eyebrow { font-size: 13px; }
-    /* the engine anatomy has the room here: a quiet chart-note tier, a
-       full-size behaviour hero, a law that carries. Plate and reading balance
-       as a facing spread. */
     .ls-dk-fact { font-size: 1.12rem; }
     .ls-dk-teach { font-size: 1rem; }
+    /* the signature card keeps its own facing-spread reading grammar */
     .ls-dk-read.is-engine .ls-dk-fact { font-size: 1.06rem; }
     .ls-dk-read.is-engine .ls-dk-teach { font-size: 0.98rem; }
     .ls-dk-read.is-engine .ls-dk-beats { font-size: 1.46rem; }
     .ls-dk-read.is-engine .ls-dk-tell { font-size: 1.2rem; }
-    .ls-dk-pl.is-engine { grid-template-columns: 300px minmax(0, 430px); column-gap: 60px; align-items: center; }
-    .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(230px, 33svh, 290px); }
+    /* the staged planet card stays one centred column; just a larger plate */
+    .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(190px, 27svh, 226px); }
   }
 `;
 
@@ -4254,14 +4385,16 @@ function FullReadingOpens() {
   const nm = capName(nmRaw) || "them";
   const nmPoss = nmRaw ? `${capName(nmRaw)}'s` : "their";
 
-  // One door, rendered at one of three scales so the eight escalate instead of
-  // repeating: the flagship (Saturn), the facing pairs, the sealed wall. The
-  // anatomy and every word are identical across scales; only the composition
-  // changes. Both registers honoured (memorial drops idx + seals).
-  const door = (body: RestBody, i: number, tier: "hero" | "pair" | "wall") => (
+  // One door, one compact tile — all eight at a single consistent scale so the
+  // section is a quick, even grid to move through (not a flagship + pairs +
+  // wall crescendo, which re-listed the same eight the ledger strip already
+  // named). Each tile is the DEPTH moment: a visible sealed world, its title,
+  // its hook. The strip stays the quick name ledger; the tiles carry the
+  // substance. Both registers honoured (memorial drops seals).
+  const door = (body: RestBody, i: number) => (
     <article
       key={body.key}
-      className={`ls-rs-row ls-rs-door is-${tier} ls-rs-rv`}
+      className={`ls-rs-row ls-rs-door ls-rs-rv`}
       style={{ ["--glow" as string]: body.glow, ["--rsi" as string]: i } as CSSProperties}
       onPointerDown={(e) => {
         const el = e.currentTarget;
@@ -4299,7 +4432,6 @@ function FullReadingOpens() {
         )}
       </div>
       <div className="ls-rs-copy">
-        {!memorial && <span className="ls-rs-idx">{REST_IDX[i]} of eight</span>}
         <div className="ls-rs-name">{body.name}</div>
         <h3 className="ls-rs-placement">
           {body.place.pre}<em>{body.place.em}</em>{body.place.post}
@@ -4385,17 +4517,13 @@ function FullReadingOpens() {
           <p className="ls-rs-sealline ls-rs-rv"><RestLock />Sealed in the full reading</p>
         )}
 
-        {/* BEAT 2 — the eight as eclipsed worlds, composed as ONE crescendo so
-            they escalate rather than repeat: the flagship seal (Saturn) full and
-            large, then the facing pairs, then the faint outer worlds held as a
-            sealed wall. Every hook verbatim, both registers, anatomy unchanged. */}
+        {/* BEAT 2 — the eight as eclipsed worlds, one even grid of compact
+            tiles (Saturn first). Every world is visible — a real sealed disc,
+            dimmed and locked, not blacked out — so the eight read as depth to
+            open, not a second name-list. Every hook verbatim, both registers. */}
         <div className="ls-rs-sky">
-          {door(REST_SKY[0], 0, "hero")}
-          <div className="ls-rs-pairs">
-            {[1, 2, 3, 4].map((i) => door(REST_SKY[i], i, "pair"))}
-          </div>
-          <div className="ls-rs-wall">
-            {[5, 6, 7].map((i) => door(REST_SKY[i], i, "wall"))}
+          <div className="ls-rs-grid">
+            {REST_SKY.map((b, i) => door(b, i))}
           </div>
         </div>
 
@@ -4489,7 +4617,7 @@ function FullReadingOpens() {
         .ls-rs-led-grp.is-lit .ls-rs-led-disc img { filter: brightness(1.02); }
         .ls-rs-led-grp.is-lit .ls-rs-led-disc::after { content: ""; position: absolute; inset: -30%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.35), transparent 70%); filter: blur(6px); z-index: -1; opacity: 0; }
         .ls-rs-led-grp.is-dark .ls-rs-led-disc { width: 32px; height: 32px; box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
-        .ls-rs-led-grp.is-dark .ls-rs-led-disc img { filter: brightness(0.16) saturate(0.55); }
+        .ls-rs-led-grp.is-dark .ls-rs-led-disc img { filter: brightness(0.5) saturate(0.72); }
         .ls-rs-led-glyph { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #120c24 0%, #090618 62%, #050310 100%); }
         .ls-rs-led-glyph svg { width: 55%; height: 55%; color: rgba(154,126,230,0.4); }
         .ls-rs-led-sign { font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; line-height: 1.35; }
@@ -4514,47 +4642,21 @@ function FullReadingOpens() {
            the section reads as a descent into the still-sealed dark, not a
            copy-paste. The disc machinery is scale-driven by --rs-disc, so each
            tier just resizes the same world. */
-        .ls-rs-sky { position: relative; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(34px, 6vw, 52px); }
+        .ls-rs-sky { position: relative; max-width: 1000px; margin: 0 auto; }
+        .ls-rs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(28px, 6.5vw, 40px) clamp(14px, 4vw, 26px); }
         .ls-rs-spine { display: none; }
-        .ls-rs-row { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+        .ls-rs-row { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: clamp(11px, 2.6vw, 15px); }
 
-        /* the flagship — the first, heaviest seal, given the room to land */
-        .ls-rs-door.is-hero { gap: clamp(16px, 3.5vw, 22px); }
-        .ls-rs-door.is-hero .ls-rs-stage { --rs-disc: clamp(150px, 44vw, 196px); width: clamp(176px, 50vw, 224px); height: clamp(176px, 50vw, 224px); }
-        .ls-rs-door.is-hero .ls-rs-placement { font-size: clamp(1.9rem, 7.4vw, 2.35rem); }
-
-        /* the facing pairs — medium worlds, two across where width allows */
-        .ls-rs-pairs { display: grid; grid-template-columns: 1fr; gap: clamp(30px, 5vw, 44px); }
-        .ls-rs-door.is-pair .ls-rs-stage { --rs-disc: clamp(116px, 32vw, 132px); width: clamp(138px, 38vw, 156px); height: clamp(138px, 38vw, 156px); }
-        .ls-rs-door.is-pair .ls-rs-placement { font-size: clamp(1.6rem, 6vw, 1.95rem); }
-
-        /* the sealed wall — the faint outer worlds, smallest, held as a set. On
-           the phone they read as a shelf: a small sealed disc beside its name +
-           hook, left-aligned, plainly a different rhythm from the big centred
-           worlds above. On wider screens they shelve three-across (below). */
-        .ls-rs-wall { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 4vw, 34px); }
-        .ls-rs-door.is-wall { flex-direction: row; align-items: center; text-align: left; gap: clamp(16px, 4.5vw, 22px); }
-        .ls-rs-door.is-wall .ls-rs-stage { flex: 0 0 auto; --rs-disc: clamp(76px, 20vw, 96px); width: clamp(92px, 24vw, 114px); height: clamp(92px, 24vw, 114px); }
-        .ls-rs-door.is-wall .ls-rs-copy { flex: 1 1 auto; min-width: 0; }
-        .ls-rs-door.is-wall .ls-rs-name { justify-content: flex-start; }
-        .ls-rs-door.is-wall .ls-rs-placement { font-size: clamp(1.4rem, 5.4vw, 1.72rem); }
-        .ls-rs-door.is-wall .ls-rs-hook { margin: 0; text-align: left; }
-
-        /* pairs go two-across on the phone (they still hold a readable hook at
-           half width); the wall stays a single small band until there is room
-           to shelve all three across — so the phone reads flagship → pair rows
-           → wall, three distinct rhythms, not one stacked column */
-        @media (min-width: 384px) {
-          .ls-rs-pairs { grid-template-columns: repeat(2, 1fr); column-gap: clamp(16px, 4vw, 60px); row-gap: clamp(28px, 5vw, 52px); }
-          .ls-rs-door.is-pair .ls-rs-stage { --rs-disc: clamp(90px, 23vw, 120px); width: clamp(106px, 27vw, 142px); height: clamp(106px, 27vw, 142px); }
-          .ls-rs-door.is-pair .ls-rs-placement { font-size: clamp(1.32rem, 4.4vw, 1.7rem); }
+        /* one even scale for all eight compact tiles (Saturn first). The disc
+           stays large enough to read the world at a glance on a phone. */
+        .ls-rs-door .ls-rs-stage { --rs-disc: clamp(98px, 28vw, 128px); width: clamp(114px, 32vw, 150px); height: clamp(114px, 32vw, 150px); }
+        .ls-rs-door .ls-rs-placement { font-size: clamp(1.26rem, 5vw, 1.52rem); }
+        @media (min-width: 560px) {
+          .ls-rs-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: clamp(16px, 2.4vw, 30px); row-gap: clamp(32px, 4vw, 48px); }
         }
-        @media (min-width: 600px) {
-          .ls-rs-wall { grid-template-columns: repeat(3, 1fr); column-gap: clamp(20px, 3vw, 40px); row-gap: clamp(30px, 4vw, 44px); }
-          .ls-rs-door.is-wall { flex-direction: column; align-items: center; text-align: center; gap: 14px; }
-          .ls-rs-door.is-wall .ls-rs-stage { --rs-disc: clamp(96px, 15vw, 116px); width: clamp(114px, 18vw, 136px); height: clamp(114px, 18vw, 136px); }
-          .ls-rs-door.is-wall .ls-rs-name { justify-content: center; }
-          .ls-rs-door.is-wall .ls-rs-hook { margin: 0 auto; text-align: center; }
+        @media (min-width: 900px) {
+          .ls-rs-door .ls-rs-stage { --rs-disc: clamp(112px, 11vw, 132px); width: clamp(132px, 13vw, 156px); height: clamp(132px, 13vw, 156px); }
+          .ls-rs-door .ls-rs-placement { font-size: clamp(1.36rem, 1.7vw, 1.58rem); }
         }
 
         /* the eclipsed world - dark behind its seal, one thin crescent of life */
@@ -4586,20 +4688,22 @@ function FullReadingOpens() {
         @keyframes lsRsBreatheDisc { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.016); } }
         .ls-rs-photo {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
-          transform: scale(1.03); filter: brightness(0.30) contrast(1.05) saturate(0.72); background: #050310;
+          transform: scale(1.03); filter: brightness(0.66) contrast(1.02) saturate(0.85); background: #050310;
         }
         /* STILL day/night shading - light reads from the upper-left. */
         .ls-rs-term {
           position: absolute; top: 0; left: 0; z-index: 3; width: 100%; height: 100%; border-radius: 50%;
           transform: none; pointer-events: none;
           background: radial-gradient(circle at 66% 40%,
-            rgba(6,4,14,0) 40%, rgba(6,4,14,0.30) 74%, rgba(8,5,17,0.55) 100%);
+            rgba(6,4,14,0) 44%, rgba(6,4,14,0.20) 76%, rgba(8,5,17,0.40) 100%);
         }
-        /* the eclipse - swallows the lower-right three-quarters of the world */
+        /* the seal shadow - a soft terminator across the lower-right so the world
+           reads sealed and dimmed, while the lit upper-left keeps every disc's
+           real features visible (never crushed to black). */
         .ls-rs-eclipse {
           position: absolute; inset: 0; z-index: 3; border-radius: 50%; pointer-events: none;
-          background: radial-gradient(circle at 72% 62%,
-            rgba(6,4,14,0.92) 0%, rgba(6,4,14,0.78) 46%, rgba(6,4,14,0.30) 78%, rgba(6,4,14,0.12) 100%);
+          background: radial-gradient(circle at 74% 64%,
+            rgba(6,4,14,0.60) 0%, rgba(6,4,14,0.38) 44%, rgba(6,4,14,0.14) 76%, transparent 100%);
         }
         /* the limb crescent - one language for all eight; alive, never lit.
            Amber survives ONLY here (Saturn/Jupiter limb light on the photo). */
@@ -4618,7 +4722,7 @@ function FullReadingOpens() {
         /* Saturn - hold the full rings inside the circular frame (square 512 asset) */
         .ls-rs-disc.rs-saturn .ls-rs-photo { transform: scale(0.98); }
         /* Lilith is already the shadowed Moon - ease her eclipse so she never goes fully black */
-        .ls-rs-disc.rs-lilith .ls-rs-eclipse { opacity: 0.6; }
+        .ls-rs-disc.rs-lilith .ls-rs-eclipse { opacity: 0.5; }
 
         /* the seal - a ring held shut by a wax mark (discovery only) */
         .ls-rs-sealring {
@@ -4638,11 +4742,12 @@ function FullReadingOpens() {
         .ls-rs-row:hover .ls-rs-spec, .ls-rs-row.is-tried .ls-rs-spec { animation: none; opacity: 0.42; transform: rotate(8deg); }
         .ls-rs-row:hover .ls-rs-halo, .ls-rs-row.is-tried .ls-rs-halo { animation: none; opacity: 0.5; }
         .ls-rs-row:hover .ls-rs-sealmark, .ls-rs-row.is-tried .ls-rs-sealmark { box-shadow: 0 0 0 4px rgba(185,165,240,0.18); }
-        /* limb darkening, rocky worlds read as spheres */
-        .ls-rs-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 26px 8px rgba(4,2,12,0.55); }
+        /* limb darkening, rocky worlds read as spheres (softened so the disc
+           stays legible, not a black ball) */
+        .ls-rs-disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 0 0 22px 6px rgba(4,2,12,0.36); }
         /* limb brighten, gas giants + atmospheres get a warm rim */
-        .ls-rs-disc.is-gas::after { box-shadow: inset 0 0 26px 8px rgba(4,2,12,0.36), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 40%, transparent); }
-        .ls-rs-disc.is-ice::after { box-shadow: inset 0 0 24px 7px rgba(4,2,12,0.42), inset 0 0 10px 1px color-mix(in srgb, var(--glow) 34%, transparent); }
+        .ls-rs-disc.is-gas::after { box-shadow: inset 0 0 22px 6px rgba(4,2,12,0.24), inset 0 0 12px 2px color-mix(in srgb, var(--glow) 40%, transparent); }
+        .ls-rs-disc.is-ice::after { box-shadow: inset 0 0 20px 6px rgba(4,2,12,0.28), inset 0 0 10px 1px color-mix(in srgb, var(--glow) 34%, transparent); }
         .ls-rs-rim { position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 55%, transparent); }
         .ls-rs-disc.is-gas .ls-rs-rim, .ls-rs-disc.is-ice .ls-rs-rim { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glow) 70%, transparent), inset 0 0 8px 0 color-mix(in srgb, var(--glow) 40%, transparent); }
         /* calculated points (North Node) - no photograph exists, so the bespoke
@@ -4651,7 +4756,7 @@ function FullReadingOpens() {
         .ls-rs-glyphdisc svg { width: 44%; height: 44%; color: color-mix(in srgb, var(--glow) 85%, white); opacity: 0.92; filter: drop-shadow(0 0 16px color-mix(in srgb, var(--glow) 50%, transparent)); }
         /* Lilith - the real Moon held in shadow (the dark Moon). Important so the
            memorial and reduced-motion photo filters never lift the dark. */
-        .ls-rs-disc.rs-lilith .ls-rs-photo { filter: brightness(0.5) contrast(1.06) saturate(0.7) !important; }
+        .ls-rs-disc.rs-lilith .ls-rs-photo { filter: brightness(0.62) contrast(1.05) saturate(0.75) !important; }
         /* foreground cosmic dust */
         .ls-rs-dust { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
         .ls-rs-dust span { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #efe8ff; opacity: 0; box-shadow: 0 0 6px 1px rgba(224,214,250,0.7); animation: lsRsDust 9s linear infinite; animation-play-state: paused; }
@@ -4667,14 +4772,18 @@ function FullReadingOpens() {
         .ls-rs-row.is-live .ls-rs-spec,
         .ls-rs-row.is-live .ls-rs-dust span { animation-play-state: running; }
 
-        /* the copy */
-        .ls-rs-copy { flex: 1 1 auto; min-width: 0; }
-        .ls-rs-idx { display: block; margin: 0 0 6px; color: rgba(200,200,210,0.5); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
-        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 12px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 16px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
-        .ls-rs-name::before, .ls-rs-name::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5)); }
-        .ls-rs-placement { margin: 0 0 10px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5.4vw, 2.05rem); line-height: 1.08; letter-spacing: -0.015em; }
+        /* the copy — compact tile: a small planet name, the evocative title as
+           the star, one hook line beneath. Tight vertical rhythm so the eight
+           read quickly and never as a second name-list. */
+        .ls-rs-copy { width: 100%; min-width: 0; }
+        .ls-rs-idx { display: none; }
+        .ls-rs-name { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 6px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 12.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; }
+        .ls-rs-name::before, .ls-rs-name::after { content: ""; width: 14px; height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5)); }
+        .ls-rs-placement { margin: 0 0 7px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 5.4vw, 2.05rem); line-height: 1.1; letter-spacing: -0.015em; }
         .ls-rs-placement em { font-style: italic; color: ${C.goldSoft}; }
-        .ls-rs-hook { margin: 0 auto; max-width: 40ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(1rem, 2.6vw, 1.14rem); line-height: 1.5; }
+        .ls-rs-hook { margin: 0 auto; max-width: 25ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: clamp(0.95rem, 3.7vw, 1.02rem); line-height: 1.46; }
+        .ls-rs-door .ls-rs-hook { font-size: 15.5px; }
+        @media (min-width: 900px) { .ls-rs-door .ls-rs-hook { font-size: 16px; max-width: 24ch; } }
 
         /* BEAT 3 - the rising as a horizon hinge */
         .ls-rs-horizon { margin: clamp(48px, 7vw, 72px) auto 0; text-align: center; }
@@ -4696,7 +4805,7 @@ function FullReadingOpens() {
         .ls-rs-ring-orb { position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; opacity: 0; transform: rotate(var(--ra)) translateY(calc(-1 * var(--ring-r))) rotate(calc(-1 * var(--ra))); }
         .ls-rs-ring-orb img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #050310; }
         .ls-rs-ring-orb.is-lit img { filter: brightness(1.02); box-shadow: 0 0 0 1px rgba(207,192,244,0.3), 0 0 10px rgba(154,126,230,0.35); }
-        .ls-rs-ring-orb.is-dark img { filter: brightness(0.16) saturate(0.55); box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
+        .ls-rs-ring-orb.is-dark img { filter: brightness(0.48) saturate(0.7); box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
         .ls-rs-ring-glyph { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #120c24 0%, #090618 62%, #050310 100%); box-shadow: 0 0 0 1px rgba(154,126,230,0.18); }
         .ls-rs-ring-glyph svg { width: 60%; height: 60%; color: rgba(154,126,230,0.4); }
         .ls-rs-ring-orb.is-dark::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 26%, rgba(207,192,244,0.9) 0%, rgba(207,192,244,0.25) 30%, transparent 55%); opacity: 0; pointer-events: none; }
@@ -4724,19 +4833,6 @@ function FullReadingOpens() {
 
         @media (min-width: 768px) {
           .ls-rs { padding: clamp(48px, 6svh, 104px) 24px clamp(48px, 6vw, 104px); }
-          .ls-rs-sky { gap: clamp(52px, 7vw, 80px); }
-          /* the flagship becomes a full-bleed facing row: the world large on
-             one side, its copy set beside it */
-          .ls-rs-door.is-hero { flex-direction: row; align-items: center; text-align: left; gap: clamp(40px, 5vw, 68px); }
-          .ls-rs-door.is-hero .ls-rs-stage { --rs-disc: clamp(196px, 24vw, 244px); width: clamp(228px, 28vw, 286px); height: clamp(228px, 28vw, 286px); }
-          .ls-rs-door.is-hero .ls-rs-name { justify-content: flex-start; }
-          .ls-rs-door.is-hero .ls-rs-placement { font-size: clamp(2.4rem, 4.4vw, 3.1rem); }
-          .ls-rs-door.is-hero .ls-rs-hook { margin: 0; max-width: 40ch; }
-          /* pair + wall discs settle to their desktop scale */
-          .ls-rs-door.is-pair .ls-rs-stage { --rs-disc: clamp(120px, 13vw, 146px); width: clamp(140px, 15vw, 170px); height: clamp(140px, 15vw, 170px); }
-          .ls-rs-door.is-pair .ls-rs-placement { font-size: clamp(1.65rem, 2.6vw, 2rem); }
-          .ls-rs-door.is-wall .ls-rs-stage { --rs-disc: clamp(96px, 9.5vw, 118px); width: clamp(114px, 11vw, 138px); height: clamp(114px, 11vw, 138px); }
-          .ls-rs-door.is-wall .ls-rs-placement { font-size: clamp(1.4rem, 2vw, 1.6rem); }
           .ls-rs-hook { margin: 0 auto; }
           .ls-rs-led-grp.is-lit .ls-rs-led-disc { width: 56px; height: 56px; }
           .ls-rs-led-grp.is-dark .ls-rs-led-disc { width: 44px; height: 44px; }
