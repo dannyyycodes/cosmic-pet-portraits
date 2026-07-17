@@ -341,21 +341,24 @@ const LCB_CSS = `
   filter:drop-shadow(0 0 5px rgba(167,139,250,.8))}
 .c2-beat{position:relative;z-index:1;display:block}
 
-/* ---- reveal motion ---- */
-.c2-rv{ opacity:0; transform:translate3d(0,34px,0); }
+/* ---- reveal motion ----
+   Near-instant: fast opacity so the words read immediately, transform runs
+   a touch longer for the composed rise (NN/g: scroll-triggered text
+   animations delay readers — the wait is the enemy, not the motion). */
+.c2-rv{ opacity:0; transform:translate3d(0,14px,0); }
 .c2-rv.is-in{
   opacity:1; transform:translate3d(0,0,0);
-  transition:transform .62s cubic-bezier(.2,.9,.25,1.06), opacity .48s ease-out;
+  transition:transform .48s cubic-bezier(.2,.9,.25,1.06), opacity .3s ease-out;
   transition-delay:var(--d,0s);
 }
-.c2-rv-x{ transform:translate3d(-18px,22px,0); }
+.c2-rv-x{ transform:translate3d(-18px,12px,0); }
 /* S8: the fragment triple varies — 0/60/120ms stagger, -18/-14/-22px slide */
-.c2-frags .c2-rv-x:nth-child(1){transform:translate3d(-18px,22px,0);--d:0s}
-.c2-frags .c2-rv-x:nth-child(2){transform:translate3d(-14px,22px,0);--d:.06s}
-.c2-frags .c2-rv-x:nth-child(3){transform:translate3d(-22px,22px,0);--d:.12s}
+.c2-frags .c2-rv-x:nth-child(1){transform:translate3d(-18px,12px,0);--d:0s}
+.c2-frags .c2-rv-x:nth-child(2){transform:translate3d(-14px,12px,0);--d:.06s}
+.c2-frags .c2-rv-x:nth-child(3){transform:translate3d(-22px,12px,0);--d:.12s}
 .c2-frags .c2-rv-x.is-in{transform:translate3d(0,0,0)}
 .lcb-memorial .c2-rv.is-in{
-  transition-duration:.95s,.78s;
+  transition-duration:.62s,.42s;
 }
 /* pattern break 1: the pivot lines land opacity-only, no vertical motion —
    the crosshair/degree geometry arriving IS the break */
@@ -363,7 +366,7 @@ const LCB_CSS = `
 .c2-pivot .c2-rv.is-in{transform:none}
 /* S4: the verdict waits for the proof — the XL line reveals only after
    the wheel finishes drawing (is-drawn set on the last planet's pop) */
-.c2-b3:not(.is-drawn) .c2-lxl.c2-rv{opacity:0;transform:translate3d(0,34px,0)}
+.c2-b3:not(.is-drawn) .c2-lxl.c2-rv{opacity:0;transform:translate3d(0,14px,0)}
 
 /* ---- type scale: whisper to huge. Fraunces peaks, Newsreader voice. ---- */
 /* The quiet lines had NO text-wrap and were dropping orphans: the first
@@ -982,7 +985,9 @@ export function CosmicBridge() {
             if (e.target === xlEl) tryMeteor();
           }
         });
-      }, { threshold: 0.12, rootMargin: "600px 0px -9% 0px" });
+      // threshold 0 + positive bottom margin: lines start fading in ~8% of a
+      // viewport BEFORE entry, so fast scrollers never meet an empty screen.
+      }, { threshold: 0, rootMargin: "600px 0px 8% 0px" });
       rvNodes.forEach((el) => io?.observe(el));
       ioSec = new IntersectionObserver((entries) => {
         entries.forEach((e) => {

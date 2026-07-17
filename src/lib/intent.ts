@@ -6,9 +6,17 @@
  * absent      — never answered. Treated as discovery everywhere, and the
  *               threshold prompt stays eligible to render.
  *
- * Precedence: URL param (?memorial=1 / ?occasion=memorial) wins once and
- * is then stripped from the address bar; after that the stored choice
- * holds. Grief state is never fixed: clearIntent() restores the prompt.
+ * Precedence: URL param (?r=memorial / ?memorial=1 / ?occasion=memorial)
+ * wins once and is then stripped from the address bar; after that the
+ * stored choice holds. Grief state is never fixed: clearIntent() restores
+ * the prompt.
+ *
+ * REGISTER CARRY FOR TRAFFIC SOURCES: append ?r=memorial to any
+ * memorial-targeted link (ads, posts, emails) and the page opens with
+ * "Held in memory" preselected and the whole passage in past tense,
+ * before first paint, no flicker. Links without the param default to
+ * discovery ("Here with you"). Example:
+ *   https://littlesouls.app/v2?r=memorial
  */
 
 export type Intent = "memorial" | "discovery";
@@ -39,9 +47,14 @@ function persist(v: Intent | null): void {
 function stripUrlIntent(): void {
   try {
     const url = new URL(window.location.href);
-    if (!url.searchParams.has("memorial") && url.searchParams.get("occasion") !== "memorial") return;
+    if (
+      !url.searchParams.has("memorial") &&
+      url.searchParams.get("occasion") !== "memorial" &&
+      url.searchParams.get("r") !== "memorial"
+    ) return;
     url.searchParams.delete("memorial");
     if (url.searchParams.get("occasion") === "memorial") url.searchParams.delete("occasion");
+    if (url.searchParams.get("r") === "memorial") url.searchParams.delete("r");
     window.history.replaceState(window.history.state, "", url.pathname + (url.searchParams.toString() ? "?" + url.searchParams.toString() : "") + url.hash);
   } catch {
     /* ignore */
@@ -52,7 +65,7 @@ export function getIntent(): Intent | null {
   if (typeof window === "undefined") return null;
   try {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("memorial") === "1" || params.get("occasion") === "memorial") {
+    if (params.get("r") === "memorial" || params.get("memorial") === "1" || params.get("occasion") === "memorial") {
       persist("memorial");
       stripUrlIntent();
       return "memorial";

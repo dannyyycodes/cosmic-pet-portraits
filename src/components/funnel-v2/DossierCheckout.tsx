@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SIGN_LINES } from "./signLines";
 import { capName } from "./freeDeck";
 import { THIRTEEN_ORDER } from "./ReadingsLanding";
+import { PaymentMethodsRow } from "./PaymentMethodsRow";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -928,66 +929,11 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           <p className="dsr-fx-note">Billed in {currencyCode}. Exactly the price shown.</p>
         )}
 
-        <div className="dsr-pay-row" aria-label="Payment methods">
-          <span className="dsr-pay-chip">
-            <svg viewBox="0 0 72 32" role="img" aria-label="Visa" xmlns="http://www.w3.org/2000/svg">
-              <g transform="skewX(-10) translate(9,0)" fill="#1434CB" fillRule="evenodd">
-                <path d="M0 6H5.2L8 18.6 10.8 6H16L10 26H6Z" />
-                <path d="M19 6h5v20h-5z" />
-                <path d="M42 26 48.6 6h5L60 26h-5.4l-1-3.4h-6.4l-1 3.4Zm6.5-7.6 1.9-6.4 2 6.4Z" />
-              </g>
-              <g transform="skewX(-10) translate(9,0)">
-                <path d="M38 9.2C35.5 6.8 29.5 6.6 28.6 10.4 27.7 14.2 38.3 14 37.4 19.6 36.7 23.9 30 24.6 27.2 22" fill="none" stroke="#1434CB" strokeWidth="4.6" />
-              </g>
-            </svg>
-          </span>
-          <span className="dsr-pay-chip">
-            <svg viewBox="0 0 48 30" role="img" aria-label="Mastercard" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="17" cy="15" r="14" fill="#EB001B" />
-              <circle cx="31" cy="15" r="14" fill="#F79E1B" />
-              <path d="M24 2.88A14 14 0 0 1 24 27.12 14 14 0 0 1 24 2.88Z" fill="#FF5F00" />
-            </svg>
-          </span>
-          <span className="dsr-pay-chip">
-            <svg viewBox="0 0 48 32" role="img" aria-label="American Express" xmlns="http://www.w3.org/2000/svg">
-              <rect width="48" height="32" rx="5" fill="#006FCF" />
-              <g stroke="#fff" strokeWidth="2.4" fill="none" strokeLinecap="butt">
-                <path d="M5.5 22 9.5 10l4 12M6.9 17.6h5.2" />
-                <path d="M17 22V10l4 7 4-7v12" />
-                <path d="M34 10h-6v12h6M28 16h5" />
-                <path d="m37.5 10 7 12m0-12-7 12" />
-              </g>
-            </svg>
-          </span>
-          <span className="dsr-pay-chip dsr-pay-chip--dark">
-            <svg viewBox="0 0 58 26" role="img" aria-label="Apple Pay" xmlns="http://www.w3.org/2000/svg">
-              <g fill="#fff">
-                <path d="M14.6 7.7c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.5.6-1 1.6-.9 2.6 1 .1 2.1-.5 2.6-1.2z" />
-                <path d="M17.3 14.4c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.6-1.3-.1-2.5.7-3.1.7-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2-1.5 2.5-.4 6.3 1 8.4.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7s1.6.7 2.7.7c1.1 0 1.8-1 2.5-2 .8-1.2 1.1-2.3 1.1-2.4 0 0-2.2-.8-2.2-3.3z" />
-              </g>
-              <g fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M27 20.5V6.5h4.2a4.1 4.1 0 0 1 0 8.2H27" />
-                <circle cx="39" cy="15.4" r="4" /><path d="M43 11.4v9.1" />
-                <path d="m47 11.4 3.4 8.6M54 11.4l-4.6 11.6c-.5 1.3-1.4 2-2.7 2" />
-              </g>
-            </svg>
-          </span>
-          <span className="dsr-pay-chip">
-            <svg viewBox="0 0 62 26" role="img" aria-label="Google Pay" xmlns="http://www.w3.org/2000/svg">
-              <g transform="translate(1,1)">
-                <path fill="#4285F4" d="M23.06 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h6.2a5.3 5.3 0 0 1-2.3 3.48v2.88h3.72c2.18-2 3.44-4.96 3.44-8.37z" />
-                <path fill="#34A853" d="M12 24c3.11 0 5.72-1.03 7.62-2.79l-3.72-2.88c-1.03.69-2.35 1.1-3.9 1.1-3 0-5.54-2.03-6.45-4.75H1.7v2.97A11.5 11.5 0 0 0 12 24z" />
-                <path fill="#FBBC05" d="M5.55 14.68a6.9 6.9 0 0 1 0-4.36V7.35H1.7a11.5 11.5 0 0 0 0 10.3l3.85-2.97z" />
-                <path fill="#EA4335" d="M12 4.77c1.69 0 3.21.58 4.4 1.72l3.3-3.3C17.71 1.19 15.1 0 12 0 7.5 0 3.6 2.58 1.7 6.35l3.85 2.97C6.46 6.8 9 4.77 12 4.77z" />
-              </g>
-              <g fill="none" stroke="#5F6368" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M31 20.5V6.5h4.2a4.1 4.1 0 0 1 0 8.2H31" />
-                <circle cx="43" cy="15.4" r="4" /><path d="M47 11.4v9.1" />
-                <path d="m51 11.4 3.4 8.6M58 11.4l-4.6 11.6c-.5 1.3-1.4 2-2.7 2" />
-              </g>
-            </svg>
-          </span>
-        </div>
+        {/* Payment badges: ONE shared component mirrors exactly what the
+            Stripe session offers (B10, 2026-07-17). The dossier renders only
+            on the discovery path, whose horoscope-bundled sessions narrow to
+            card + Link, so Klarna never shows here. */}
+        <PaymentMethodsRow />
 
         <details className="dsr-details dsr-charity">
           <summary>

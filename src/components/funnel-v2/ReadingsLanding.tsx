@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getUtm } from "@/lib/utm";
 import { getCheckoutVariant, type CheckoutVariant } from "@/lib/checkoutVariant";
 import { descendTo } from "@/lib/descend";
+import { readResume, saveResume, patchResume, saveResumeIndex } from "@/lib/deckResume";
 import { SIGN_LINES } from "./signLines";
 import {
   DECK_PLANETS,
@@ -38,7 +39,8 @@ import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
 import { composeDeck } from "./deckCompose";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
-import { useNarration } from "@/components/narration/useNarration";
+import { trackSpine, trackSpineOnce, registerSetVia } from "@/lib/funnelSpine";
+import { useNarration, prewarmNarration } from "@/components/narration/useNarration";
 import { NarrationControl } from "@/components/narration/NarrationControl";
 import { NarratedWords, narratedLineClass } from "@/components/narration/NarratedWords";
 import type { NarrationBlock } from "@/components/narration/types";
@@ -446,6 +448,17 @@ export function ReadingsLanding() {
   useScrollReveal(pageRef, revealed);
   const reduceMotion = useReducedMotion();
 
+  // Measurement spine: how this visit's register was decided. "url_param"
+  // when a memorial-targeted link carried ?r=memorial; otherwise "default"
+  // (organic arrival or a stored prior choice). User taps on the chooser fire
+  // their own register_set from IntentFork. Analytics only.
+  useEffect(() => {
+    trackSpineOnce("register_set_load", "register_set", {
+      value: getIntent() === "memorial" ? "memorial" : "discovery",
+      via: registerSetVia(),
+    });
+  }, []);
+
   // Lenis smooth scroll for the whole page (native touch momentum kept on mobile).
   useEffect(() => {
     if (reduceMotion || typeof window === "undefined") return;
@@ -465,6 +478,7 @@ export function ReadingsLanding() {
   return (
     <main ref={pageRef} className="ls-cosmic-page min-h-screen" style={{ background: C.cosmos, color: C.cream, overflowX: "clip" }}>
       <CosmicStyles />
+      <ResumeStrip />
       <HeroSection />
       <IntentFork />
       <CosmicBridge />
@@ -549,6 +563,10 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
     // (its ratio stays 0), stranding the node at opacity 0. With the sky-high
     // top margin, "already scrolled past" IS an intersection, so the latch
     // always lands no matter how the reader travels.
+    // Bottom margin is POSITIVE (pre-warm): a node starts fading in ~10% of
+    // a viewport before it enters, so even a fast flick-scroller meets copy
+    // that is already visible, never an empty screen (NN/g scroll-triggered
+    // text finding). threshold 0 = the first pixel is enough.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -558,11 +576,55 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
           }
         });
       },
-      { rootMargin: "20000px 0px -12% 0px", threshold: 0.12 },
+      { rootMargin: "20000px 0px 10% 0px", threshold: 0 },
     );
     nodes.forEach((node) => io.observe(node));
     return () => io.disconnect();
   }, [pageRef, revealed]);
+}
+
+/* ── Resume strip ─────────────────────────────────────────────────────
+   A quiet inline way back into an open reading. Shows only when a recovery
+   snapshot exists (a chart was computed on a past visit or before a reload)
+   and no deck is open yet. The tap asks BirthSkyJourney to restore
+   ("ls-resume-request"); the strip steps aside the moment any deck opens
+   ("ls-deck-open") or the restore lands/fails ("ls-resume-status"). On an
+   error the form below is already prefilled and carries the message, so the
+   strip simply retires. Not a modal, never blocks the page. */
+function ResumeStrip() {
+  const [snap] = useState(() => readResume());
+  const [state, setState] = useState<"idle" | "busy" | "gone">("idle");
+  useEffect(() => {
+    const onStatus = (e: Event) => {
+      const s = (e as CustomEvent).detail?.state;
+      if (s === "busy") setState("busy");
+      else if (s === "done" || s === "error") setState("gone");
+    };
+    const onOpen = () => setState("gone");
+    window.addEventListener("ls-resume-status", onStatus);
+    window.addEventListener("ls-deck-open", onOpen);
+    return () => {
+      window.removeEventListener("ls-resume-status", onStatus);
+      window.removeEventListener("ls-deck-open", onOpen);
+    };
+  }, []);
+  if (!snap || state === "gone") return null;
+  return (
+    <div className="ls-resume-wrap">
+      <div className="ls-resume-strip" role="status">
+        <p className="ls-resume-line">{snap.name ? `${capName(snap.name)}'s reading is still open.` : "Their reading is still open."}</p>
+        <button
+          type="button"
+          className="ls-resume-btn"
+          disabled={state === "busy"}
+          aria-busy={state === "busy"}
+          onClick={() => window.dispatchEvent(new Event("ls-resume-request"))}
+        >
+          {state === "busy" ? "Opening it now" : "Pick up where you left off"}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function HeroSection() {
@@ -576,6 +638,9 @@ function HeroSection() {
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
             Behind every soul, a cosmos.
           </h1>
+          <p className="ls-hero-sub ls-reveal" style={revealDelay(0.16)}>
+            Every pet arrives under one particular sky. Enter their birthday and see theirs, planet by planet, and what it means about them.
+          </p>
         </div>
       </div>
     </section>
@@ -686,7 +751,10 @@ function IntentFork() {
               id="ls-intent-here"
               value="here"
               checked={!memorialOn}
-              onChange={() => setIntent("discovery")}
+              onChange={() => {
+                setIntent("discovery");
+                trackSpine("register_set", { value: "discovery", via: "user_tap" });
+              }}
             />
             <label htmlFor="ls-intent-here">Here with you</label>
             <input
@@ -695,7 +763,10 @@ function IntentFork() {
               id="ls-intent-memory"
               value="memory"
               checked={memorialOn}
-              onChange={() => setIntent("memorial")}
+              onChange={() => {
+                setIntent("memorial");
+                trackSpine("register_set", { value: "memorial", via: "user_tap" });
+              }}
             />
             <label htmlFor="ls-intent-memory">Held in memory</label>
           </div>
@@ -1095,6 +1166,21 @@ function DegCount({ value, reduce }: { value: number; reduce: boolean }) {
 // real latency is the only suspense, and the readouts persist as the deck's
 // chips instead of vanishing. The 8s abort + error line live upstream in the
 // form handler, unchanged.
+// Soft typo-catch for the compute moment: saying "31 years ago" out loud is
+// the gentlest way to surface a year typo (1995 for 2015) without a form error.
+function skyAgePhrase(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return "";
+  const then = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const now = new Date();
+  let years = now.getFullYear() - then.getFullYear();
+  const anniversary = new Date(now.getFullYear(), then.getMonth(), then.getDate());
+  if (now < anniversary) years -= 1;
+  if (years < 1) return "less than a year ago";
+  if (years === 1) return "a year ago";
+  return `${years} years ago`;
+}
+
 function ComputeSequence({
   chart,
   name,
@@ -1143,12 +1229,17 @@ function ComputeSequence({
     return `${Number(m[3])} ${MON[Number(m[2]) - 1]} ${m[1]}`;
   }, [date]);
 
+  // Echo the chosen date AND how long ago it was, so a year typo is caught
+  // here, before it silently sets the wrong sky.
+  const agePhrase = useMemo(() => skyAgePhrase(date), [date]);
+  const dateEcho = agePhrase ? `${dateLabel}, ${agePhrase}` : dateLabel;
+
   if (reduce) {
     return (
       <div className="ls-compute" role="status" aria-live="polite">
         <div className="ls-compute-dust" aria-hidden="true" />
         <span className="ls-compute-mote is-lit" aria-hidden="true" />
-        <p className="ls-compute-line">Setting the chart for that date.</p>
+        <p className="ls-compute-line">Setting the chart for {dateEcho}.</p>
       </div>
     );
   }
@@ -1163,7 +1254,7 @@ function ComputeSequence({
         <span className="ls-compute-sweep" />
         <span className={`ls-compute-mote ${landed ? "is-lit" : ""}`} />
       </div>
-      <p className="ls-compute-line">Reading the sky over {dateLabel}.</p>
+      <p className="ls-compute-line">Reading the sky over {dateEcho}.</p>
       <div className="ls-compute-tick" aria-hidden={!landed}>
         {landed && (
           <>
@@ -1765,7 +1856,7 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
   const nar = useNarration(blocks);
   const lc = (id: string, base: string) => narratedLineClass(id, nar, base);
   const control = blocks.length > 0 ? (
-    <NarrationControl nar={nar} idleLabel="Hear it read to you" playingLabel="Reading aloud" />
+    <NarrationControl nar={nar} idleLabel="Hear it read to you" playingLabel="Reading aloud" failedLabel="Try the voice again" />
   ) : null;
 
   // The card-anchored control row: one grouped cluster under the reading, in a
@@ -2346,7 +2437,7 @@ const DECK_CSS = `
   }
 `;
 
-function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null }) {
+function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIndex = 0 }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null; initialIndex?: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register swaps every card to its remembered-tense twin.
@@ -2362,10 +2453,34 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart
   const keepsake = useMemo(() => (photoUrl ? { photoUrl, name: name ?? null } : null), [photoUrl, name]);
   const cards = useMemo(() => buildDeck(chart, memorial, { name, species }, keepsake, birthDate), [chart, memorial, name, species, keepsake, birthDate]);
   const last = cards.length - 1;
-  const [active, setActive] = useState(0);
+  // A resumed reading reopens at the stored card, clamped to the deck.
+  const [active, setActive] = useState(() => Math.max(0, Math.min(last, Math.floor(initialIndex) || 0)));
   const activeRef = useRef(0);
   activeRef.current = active;
   const [nudge, setNudge] = useState(false);
+
+  // Persist the open card on every advance so a reload (or an emailed deep
+  // link) can reopen the deck exactly where the reader left it. Patches the
+  // snapshot the chart compute wrote; never creates one on its own.
+  useEffect(() => {
+    saveResumeIndex(active);
+  }, [active]);
+
+  // Spine: card_advance — the highest-value missing instrument in the synth.
+  // index is the 1-based card arrived at, dwell_ms is the time spent on the
+  // card just left, direction is forward or back. Powers the per-card
+  // drop-off funnels the testFirst experiments need. Analytics only.
+  const dwellRef = useRef<{ t: number; idx: number }>({ t: Date.now(), idx: active });
+  useEffect(() => {
+    const prev = dwellRef.current;
+    if (active === prev.idx) return;
+    trackSpine("card_advance", {
+      index: active + 1,
+      dwell_ms: Date.now() - prev.t,
+      direction: active > prev.idx ? "forward" : "back",
+    });
+    dwellRef.current = { t: Date.now(), idx: active };
+  }, [active]);
 
   // Reading-revealed gate: fire once when the synthesis card takes the stage
   // (or immediately in the static column), so the lower funnel is mounted
@@ -2400,6 +2515,18 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart
     },
     [last],
   );
+
+  // Warm the voice ahead of the tap: card 1's narration as soon as the deck
+  // mounts, then each next card's as the current one opens. The server
+  // content-hashes and caches every segment, so this costs one cheap request
+  // per card and lets play start almost instantly instead of after a long
+  // generation wait.
+  useEffect(() => {
+    const now = cards[active];
+    if (now) prewarmNarration(deckCardBlocks(now));
+    const next = cards[active + 1];
+    if (next) prewarmNarration(deckCardBlocks(next));
+  }, [cards, active]);
 
   // Idle nudge: after 4s without input, one quiet word invites the next card.
   useEffect(() => {
@@ -2541,6 +2668,17 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart
   );
 }
 
+const EMAIL_RE = /.+@.+\..+/;
+
+// Local-time today in ISO shape, for the date field's max and the
+// future-date check (a year typo like 2027 used to compute a wrong chart
+// silently: the old max was 2030-12-31).
+function todayIso(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 function BirthSkyJourney() {
   const reduce = useReducedMotion() ?? false;
   const infoBtnRef = useRef<HTMLButtonElement>(null);
@@ -2566,6 +2704,11 @@ function BirthSkyJourney() {
   const [status, setStatus] = useState<"idle" | "computing" | "photo" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
+  // Per-field errors, all surfaced at once on submit (adjacent to their
+  // fields), instead of the old serial one-at-a-time bottom message.
+  const [fieldErrs, setFieldErrs] = useState<{ date?: string; species?: string; email?: string }>({});
+  // Quiet success mark on the email field, set on blur when the address parses.
+  const [emailOk, setEmailOk] = useState(false);
 
   // Optional pet photo. Uploaded to the same pet-photos bucket the post-purchase
   // intake uses, so ONE photo carries the whole journey. Prefills from a prior
@@ -2651,9 +2794,9 @@ function BirthSkyJourney() {
           }
         });
       },
-      // Deeper bottom margin: the empty shell is SEEN for a beat before its
-      // content seats into it — the visible wait is the telegraph.
-      { rootMargin: "0px 0px -14% 0px", threshold: 0.2 },
+      // A shallow bottom margin keeps one short beat of the empty-shell
+      // telegraph without holding the copy hostage (near-instant reveals).
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.08 },
     );
     rows.forEach((r) => io.observe(r));
     return () => io.disconnect();
@@ -2679,70 +2822,200 @@ function BirthSkyJourney() {
     return () => cancelAnimationFrame(id);
   }, [status]);
 
+  // Hand the pet's identity + computed signs to the checkout (dossier
+  // inscription, eyebrow, sample excerpt). sessionStorage covers later
+  // mounts; the events cover the checkout already mounted further down this
+  // same page. Shared by the form submit and the resume restore.
+  const publishChart = (data: PetBirthChart, pet: { name: string | null; date: string; species: string | null }) => {
+    try {
+      sessionStorage.setItem("ls_chart_pet", JSON.stringify(pet));
+      if (pet.species) sessionStorage.setItem("ls_chart_species", pet.species);
+      window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: pet }));
+    } catch { /* ignore */ }
+    // Computed signs travel too, so the checkout's sample excerpt can quote a
+    // line that is genuinely THIS pet's placement (never a generic tease).
+    try {
+      const signsPayload = {
+        sun: data.sun?.sign || null,
+        moon: data.moon?.sign || null,
+        venus: data.venus?.sign || null,
+        mercury: data.mercury?.sign || null,
+        mars: data.mars?.sign || null,
+        // Sealed placements: the dossier's sample excerpt quotes Saturn
+        // (Chiron as fallback) so the tease never quotes a placement the
+        // free deck already gave.
+        saturn: data.saturn?.sign || null,
+        chiron: data.chiron?.sign || null,
+      };
+      sessionStorage.setItem("ls_chart_signs", JSON.stringify(signsPayload));
+      window.dispatchEvent(new CustomEvent("ls-chart-signs", { detail: signsPayload }));
+    } catch { /* ignore */ }
+  };
+
+  // ── Deck recovery ────────────────────────────────────────────────────
+  // A reload (or a deep link from an email) used to dump a mid-deck reader
+  // back to the landing top with the reading gone, even though the snapshot
+  // held everything needed to rebuild it. The chart is a pure function of
+  // the date, so restore = refetch for the stored date, recompose the deck,
+  // reopen at the stored card. Triggered by the quiet strip near the top of
+  // the page ("ls-resume-request") or by ?resume=1 on load.
+  const [resumeAt, setResumeAt] = useState(0);
+  const restoreReading = async () => {
+    const snap = readResume();
+    if (!snap || status === "computing" || (status === "ready" && chart)) return;
+    window.dispatchEvent(new CustomEvent("ls-resume-status", { detail: { state: "busy" } }));
+    setPetName(snap.name || "");
+    setDate(snap.date);
+    if (snap.species) setSpecies(snap.species);
+    if (snap.email) {
+      setEmail(snap.email);
+      try {
+        sessionStorage.setItem("ls_chart_email", snap.email);
+        window.dispatchEvent(new CustomEvent("ls-chart-email", { detail: { email: snap.email } }));
+      } catch { /* ignore */ }
+    }
+    if (snap.photo) {
+      setPhoto(snap.photo);
+      try {
+        sessionStorage.setItem("ls_chart_photo", snap.photo);
+        window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url: snap.photo } }));
+      } catch { /* ignore */ }
+    }
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    try {
+      const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(snap.date)}`;
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`status ${response.status}`);
+      const data = (await response.json()) as PetBirthChart;
+      if (!data?.sun) throw new Error("incomplete");
+      publishChart(data, { name: snap.name, date: snap.date, species: snap.species });
+      setResumeAt(snap.index);
+      growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
+      setChart(data);
+      setStatus("ready");
+      window.dispatchEvent(new CustomEvent("ls-resume-status", { detail: { state: "done" } }));
+      requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
+    } catch (error) {
+      console.warn("[Little Souls] resume failed", error);
+      setChart(null);
+      setStatus("error");
+      setMessage("The sky could not place that date. Try it again.");
+      window.dispatchEvent(new CustomEvent("ls-resume-status", { detail: { state: "error" } }));
+      // The form below is prefilled from the snapshot; take the reader to it.
+      requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+  const restoreRef = useRef(restoreReading);
+  restoreRef.current = restoreReading;
+  useEffect(() => {
+    const onResume = () => { void restoreRef.current(); };
+    window.addEventListener("ls-resume-request", onResume);
+    // Deep link: /v2?resume=1 restores without a tap. Opened from a fresh
+    // tab (an email link) it works off the localStorage snapshot; with no
+    // snapshot present the page simply loads as normal.
+    try {
+      if (new URLSearchParams(window.location.search).get("resume") === "1") void restoreRef.current();
+    } catch { /* ignore */ }
+    return () => window.removeEventListener("ls-resume-request", onResume);
+  }, []);
+  // Whichever path opened the deck (fresh compute or restore), tell the
+  // resume strip it is no longer needed.
+  useEffect(() => {
+    if (ready && chart) window.dispatchEvent(new Event("ls-deck-open"));
+  }, [ready, chart]);
+
   // ONE gate, at the start: name (optional) + date + email open the chart.
   // The lead fires the moment they start the free reading (source
   // "free_reading_start"), then the fetch runs in parallel with the compute
   // animation; an 8s abort keeps us off a spinner-of-death.
+  // The email error keeps its register-aware wording (copy is locked; only the
+  // delivery system changed: adjacent, persistent, never the browser bubble).
+  const emailErrCopy = () =>
+    memorial ? "Add your email to begin their reading." : "Add your email to get their free reading.";
+
+  // Validate the whole form at once so a two-miss visitor sees both messages
+  // beside their fields on the first failed submit, not one per attempt.
+  const validateAll = (): { date?: string; species?: string; email?: string } => {
+    const errs: { date?: string; species?: string; email?: string } = {};
+    if (!date) errs.date = "Choose their birth or adoption date first.";
+    else if (date > todayIso()) errs.date = "That day has not happened yet. Choose the day they were born, or the day they came home.";
+    if (!species) errs.species = "One tap: are they a dog, a cat, or other?";
+    if (!EMAIL_RE.test(email.trim().toLowerCase())) errs.email = emailErrCopy();
+    return errs;
+  };
+
+  // Bring the first failing field into view and hand it focus.
+  const focusFirstError = (errs: { date?: string; species?: string; email?: string }) => {
+    const order: Array<["date" | "species" | "email", string]> = [
+      ["date", "seal-date"],
+      ["species", "seal-species-group"],
+      ["email", "seal-email"],
+    ];
+    const first = order.find(([k]) => errs[k]);
+    if (!first) return;
+    const el = document.getElementById(first[1]);
+    if (!el) return;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    const target = el instanceof HTMLInputElement ? el : el.querySelector<HTMLElement>("button");
+    window.setTimeout(() => target?.focus({ preventScroll: true }), reduce ? 0 : 380);
+  };
+
   const handleOpen = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!date) {
-      setStatus("error");
-      setMessage("Choose their birth or adoption date first.");
+    const errs = validateAll();
+    if (errs.date || errs.species || errs.email) {
+      setFieldErrs(errs);
+      setStatus("idle");
+      setMessage("");
+      focusFirstError(errs);
+      // Spine: one form_error per failing field so per-field failure rates
+      // read straight out of the table. Analytics only.
+      (["date", "species", "email"] as const).forEach((field) => {
+        if (!errs[field]) return;
+        const errorType =
+          field === "date" && date && date > todayIso() ? "future_date"
+          : field === "email" && email.trim() ? "invalid_format"
+          : "missing";
+        trackSpine("form_error", { field, error_type: errorType });
+      });
       return;
     }
-    if (!species) {
-      setStatus("error");
-      setMessage("One tap: are they a dog, a cat, or other?");
-      return;
-    }
+    setFieldErrs({});
+    trackSpine("form_submit", {});
     const cleanEmail = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(cleanEmail)) {
-      setStatus("error");
-      setMessage(memorial ? "Add your email to begin their reading." : "Add your email to get their free reading.");
-      return;
-    }
     handleLead(cleanEmail, "free_reading_start");
     setStatus("computing");
     setMessage("");
     setChart(null);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
+    const computeStart = Date.now();
     try {
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
       const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as PetBirthChart;
       if (!data?.sun) throw new Error("incomplete");
+      trackSpine("chart_computed", { latency_ms: Date.now() - computeStart, ok: true });
       setChart(data);
-      // Hand the pet's identity to the checkout (dossier inscription +
-      // eyebrow). sessionStorage covers later mounts; the event covers the
-      // already-mounted checkout further down this same page.
-      try {
-        const petPayload = { name: petName.trim() || null, date, species: species || null };
-        sessionStorage.setItem("ls_chart_pet", JSON.stringify(petPayload));
-        if (species) sessionStorage.setItem("ls_chart_species", species);
-        window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: petPayload }));
-      } catch { /* ignore */ }
-      // Computed signs travel too, so the checkout's sample excerpt can quote a
-      // line that is genuinely THIS pet's placement (never a generic tease).
-      try {
-        const signsPayload = {
-          sun: data.sun?.sign || null,
-          moon: data.moon?.sign || null,
-          venus: data.venus?.sign || null,
-          mercury: data.mercury?.sign || null,
-          mars: data.mars?.sign || null,
-          // Sealed placements: the dossier's sample excerpt quotes Saturn
-          // (Chiron as fallback) so the tease never quotes a placement the
-          // free deck already gave.
-          saturn: data.saturn?.sign || null,
-          chiron: data.chiron?.sign || null,
-        };
-        sessionStorage.setItem("ls_chart_signs", JSON.stringify(signsPayload));
-        window.dispatchEvent(new CustomEvent("ls-chart-signs", { detail: signsPayload }));
-      } catch { /* ignore */ }
+      const petPayload = { name: petName.trim() || null, date, species: species || null };
+      publishChart(data, petPayload);
+      // The recovery snapshot: everything needed to rebuild this deck after a
+      // reload or from an emailed deep link. Card index starts at 0 and is
+      // patched by the deck on every advance.
+      saveResume({ ...petPayload, email: cleanEmail, photo, index: 0 });
     } catch (error) {
       console.warn("[Little Souls] birth chart failed", error);
+      // Spine: the silent-failure log the synth called for — every compute
+      // failure that used to vanish now leaves a row.
+      trackSpine("chart_computed", {
+        latency_ms: Date.now() - computeStart,
+        ok: false,
+        reason: error instanceof Error ? error.message : String(error),
+      });
       setChart(null);
       setStatus("error");
       setMessage("The sky could not place that date. Try it again.");
@@ -2805,6 +3078,7 @@ function BirthSkyJourney() {
         // Live handoff to the checkout + intake mounted lower on this page.
         window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url } }));
       } catch { /* ignore */ }
+      patchResume({ photo: url });
       // The photo is offered AFTER the email is captured, so the lead already
       // exists. Enrich it with the photo so the drip can greet them with their
       // own dog. Fire-and-forget; the reading never waits on it.
@@ -2831,6 +3105,7 @@ function BirthSkyJourney() {
       sessionStorage.removeItem("ls_chart_photo");
       window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url: null } }));
     } catch { /* ignore */ }
+    patchResume({ photo: null });
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
@@ -2847,7 +3122,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} birthDate={date} />
+        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} birthDate={date} initialIndex={resumeAt} />
       ) : (
         <>
           <div className="ls-stage">
@@ -2916,56 +3191,105 @@ function BirthSkyJourney() {
                 </button>
               </div>
             ) : (
-              <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen}>
+              <form
+                className="ls-seal-card ls-stage-card"
+                onSubmit={handleOpen}
+                noValidate
+                // Spine: form_start fires once, on the first focus of any
+                // field, carrying which field opened the form. Analytics only.
+                onFocusCapture={(e) => {
+                  const t = e.target as HTMLElement;
+                  const field =
+                    t.id === "seal-name" ? "name"
+                    : t.id === "seal-date" ? "date"
+                    : t.id === "seal-email" ? "email"
+                    : t.closest("#seal-species-group") ? "species"
+                    : null;
+                  if (field) trackSpineOnce("form_start", "form_start", { first_field: field });
+                }}
+              >
                 <p className="ls-seal-lead ls-reveal">Just what you already know about them.</p>
+                <p className="ls-seal-deliv ls-reveal" style={revealDelay(0.04)}>Press the button and their chart is drawn from that day's sky. The first part of their reading opens right here, moments later.</p>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
                   <label htmlFor="seal-name">Their name <span>optional</span></label>
-                  <input id="seal-name" type="text" autoComplete="off" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
+                  <input id="seal-name" type="text" autoComplete="off" autoCapitalize="words" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
                 </div>
-                <div className="ls-seal-field ls-reveal" style={revealDelay(0.12)}>
+                {/* Error state rides in data-err, NOT className: the page reveal
+                    observer adds is-in to these .ls-reveal nodes, and a dynamic
+                    className would wipe it on re-render (fields vanish). */}
+                <div className="ls-seal-field ls-reveal" data-err={fieldErrs.date ? "1" : undefined} style={revealDelay(0.12)}>
                   <label htmlFor="seal-date">The day they were born</label>
                   <input
                     id="seal-date"
                     type="date"
                     value={date}
-                    max="2030-12-31"
-                    onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                    max={todayIso()}
+                    aria-invalid={fieldErrs.date ? true : undefined}
+                    aria-describedby={fieldErrs.date ? "seal-date-err seal-date-hint" : "seal-date-hint"}
+                    onChange={(e) => { setDate(e.target.value); setFieldErrs((p) => ({ ...p, date: undefined })); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
-                  <p className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
+                  {fieldErrs.date && <p id="seal-date-err" className="ls-field-err" role="alert">{fieldErrs.date}</p>}
+                  <p id="seal-date-hint" className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
                 </div>
-                <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
+                <div id="seal-species-group" className="ls-seal-field ls-reveal" data-err={fieldErrs.species ? "1" : undefined} style={revealDelay(0.18)}>
                   <label id="seal-species-label">Are they…</label>
-                  <div className="ls-seal-species" role="group" aria-labelledby="seal-species-label">
+                  <div
+                    className="ls-seal-species"
+                    role="group"
+                    aria-labelledby="seal-species-label"
+                    aria-describedby={fieldErrs.species ? "seal-species-err" : undefined}
+                  >
                     {SPECIES_PICKS.map((s) => (
                       <button
                         key={s.value}
                         type="button"
                         className={`ls-species-btn${species === s.value ? " is-sel" : ""}`}
                         aria-pressed={species === s.value}
-                        onClick={() => { setSpecies(s.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                        onClick={() => { setSpecies(s.value); setFieldErrs((p) => ({ ...p, species: undefined })); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                       >
                         {s.label}
                       </button>
                     ))}
                   </div>
+                  {fieldErrs.species && <p id="seal-species-err" className="ls-field-err" role="alert">{fieldErrs.species}</p>}
                 </div>
-                <div className="ls-seal-field ls-reveal" style={revealDelay(0.24)}>
+                <div className="ls-seal-field ls-reveal" data-err={fieldErrs.email ? "1" : undefined} style={revealDelay(0.24)}>
                   <label htmlFor="seal-email">Your email</label>
-                  <input
-                    id="seal-email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    value={email}
-                    required
-                    onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
-                  />
-                  <p className="ls-seal-hint">No account needed.</p>
+                  <div className="ls-email-wrap">
+                    <input
+                      id="seal-email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      required
+                      aria-invalid={fieldErrs.email ? true : undefined}
+                      aria-describedby={fieldErrs.email ? "seal-email-err seal-email-hint" : "seal-email-hint"}
+                      onChange={(e) => { setEmail(e.target.value); setEmailOk(false); setFieldErrs((p) => ({ ...p, email: undefined })); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                      onBlur={() => {
+                        const clean = email.trim().toLowerCase();
+                        if (!clean) { setEmailOk(false); return; }
+                        if (EMAIL_RE.test(clean)) {
+                          setEmailOk(true);
+                          setFieldErrs((p) => ({ ...p, email: undefined }));
+                        } else {
+                          setEmailOk(false);
+                          setFieldErrs((p) => ({ ...p, email: emailErrCopy() }));
+                        }
+                      }}
+                    />
+                    <span className={`ls-email-ok${emailOk ? " is-on" : ""}`} aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 8.5l3.5 3.5 7.5-8" /></svg>
+                    </span>
+                  </div>
+                  {fieldErrs.email && <p id="seal-email-err" className="ls-field-err" role="alert">{fieldErrs.email}</p>}
+                  <p id="seal-email-hint" className="ls-seal-hint">No account needed. Only so their reading can find its way back to you if you step away.</p>
                 </div>
                 <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.30)}>
                   Set the chart <ArrowRight size={18} />
                 </button>
-                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+                <p className="ls-seal-free ls-reveal" style={revealDelay(0.34)}>Free. No card, nothing to cancel.</p>
+                {message && status === "error" && <p className="ls-chart-message is-error" role="alert">{message}</p>}
               </form>
             )}
           </div>
@@ -3501,8 +3825,29 @@ function CheckoutSection({
     } catch { /* ignore */ }
   }, [variant]);
 
+  // Spine: checkout_view — fires once when the checkout section (#begin)
+  // first enters the viewport. Analytics only.
+  const sectionSpineRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const root = sectionSpineRef.current;
+    if (!root || typeof window === "undefined") return;
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          trackSpineOnce("checkout_view", "checkout_view", {});
+          io.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section
+      ref={sectionSpineRef}
       id="begin"
       className="ls-parallax-band relative px-5 pb-16 sm:pb-28"
       style={{ paddingTop: "var(--funnel-gap, clamp(34px, 5svh, 64px))" }}
@@ -3545,12 +3890,14 @@ function CheckoutSection({
   );
 }
 
-// ── Sticky begin bar (mobile) ─────────────────────────────────────────────────
+// ── Sticky begin bar (mobile + desktop) ───────────────────────────────────────
 // A slim fixed CTA that appears once the reader passes the desire peak ("Break
 // every seal.") and rides with them until the checkout section is on screen —
-// no more CTA-less scroll between the peak and the price. Mobile only (CSS),
-// discovery path only, never on memorial. Anchors to #begin via the shared
-// descent so the dawn grade is still seen, not skipped.
+// no more CTA-less scroll between the peak and the price. Shows on phones
+// (<768px) and desktop (>=1024px, enabled 2026-07-17: the long sell run had no
+// reachable purchase action on desktop); the 768-1023 tablet band stays clear
+// of the shorter layout there. Discovery path only, never on memorial. Anchors
+// to #begin via the shared descent so the dawn grade is still seen, not skipped.
 function StickyBeginBar() {
   const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
   const [on, setOn] = useState(false);
@@ -3560,13 +3907,20 @@ function StickyBeginBar() {
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
-  // The peak (.ls-rs-close) only exists once a chart is computed; re-run the
-  // observer effect when the chart lands so the bar works on first visits too.
+  // The peak (.ls-rs-close) only exists once the gated lower funnel mounts,
+  // which happens on "ls-reading-revealed" (synthesis card takes the stage) —
+  // AFTER the chart computes. Re-run the observer effect on BOTH beats:
+  // chart-pet alone fired too early (the peak was not in the DOM yet), so the
+  // bar never attached on a first visit (regression QA 2026-07-17).
   const [chartTick, setChartTick] = useState(0);
   useEffect(() => {
-    const onPet = () => setChartTick((t) => t + 1);
-    window.addEventListener("ls-chart-pet", onPet);
-    return () => window.removeEventListener("ls-chart-pet", onPet);
+    const bump = () => setChartTick((t) => t + 1);
+    window.addEventListener("ls-chart-pet", bump);
+    window.addEventListener("ls-reading-revealed", bump);
+    return () => {
+      window.removeEventListener("ls-chart-pet", bump);
+      window.removeEventListener("ls-reading-revealed", bump);
+    };
   }, []);
   useEffect(() => {
     if (memorial || typeof window === "undefined" || !("IntersectionObserver" in window)) {
@@ -3609,7 +3963,7 @@ function StickyBeginBar() {
         .ls-stickybegin.show { transform: none; pointer-events: auto; }
         .ls-stickybegin button { display: block; width: 100%; max-width: 560px; margin: 0 auto; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: linear-gradient(180deg, #a78bfa 0%, #8266d9 45%, #6a4cc4 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 16.5px; font-weight: 700; letter-spacing: 0.02em; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 6px 18px -6px rgba(124,92,214,0.45); }
         .ls-stickybegin button:focus-visible { outline: 2px solid #cfc0f4; outline-offset: 3px; }
-        @media (min-width: 768px) { .ls-stickybegin { display: none; } }
+        @media (min-width: 768px) and (max-width: 1023.98px) { .ls-stickybegin { display: none; } }
         @media (prefers-reduced-motion: reduce) { .ls-stickybegin { transition: none; } }
 
         /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
@@ -3805,6 +4159,25 @@ function FullReadingOpens() {
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);
   }, [pet, memorial]);
+
+  // Spine: sell_view — fires once when the sell section (#the-rest) first
+  // enters the viewport. Analytics only.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          trackSpineOnce("sell_view", "sell_view", {});
+          io.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, []);
 
   // One IntersectionObserver drives both the reveal latch (data-in, permanent) and
   // the per-planet ASMR play-state (is-live, toggles so only on-screen discs run).
@@ -4463,9 +4836,11 @@ function FullReadingOpens() {
 // (their photo at the centre, all thirteen bodies assembled around it) sits as
 // the specimen; the four holdings are set as an engraved index beside it, tied
 // to the object by fine leader lines the way a museum plate labels a specimen.
-// Copy is verbatim from the approved card version. Discovery path only — the
-// memorial path keeps its hush (null return, unchanged).
-const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; target: "ring" | "core" | "voice" | "phases" }[] = [
+// Copy is verbatim from the approved card version. Both registers show it
+// (memorial un-gated 2026-07-17: the £49 path was selling with no value
+// section at all); the memorial register flips only the title's tense, the
+// four holdings already read true in both.
+const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; terms?: string; target: "ring" | "core" | "voice" | "phases" }[] = [
   {
     key: "placements",
     label: "The written reading",
@@ -4489,9 +4864,10 @@ const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; t
   },
   {
     key: "horoscope",
-    label: "Monthly horoscopes",
-    name: "Their year, as it turns.",
-    line: "Every month a new horoscope arrives for the season of their soul, so there is always more of them to meet.",
+    label: "Weekly horoscopes",
+    name: "The sky keeps moving. So do they.",
+    line: "Every week the planets pass over their chart and stir something different: a restless Tuesday, a clingy weekend, a sudden burst at the door. The weekly horoscope tells you what is coming before you meet it.",
+    terms: "One month free with the reading, then 4.99 a month. Cancel anytime.",
     target: "phases",
   },
 ];
@@ -4595,7 +4971,6 @@ function ValueMoments() {
   // One observer latches the reveal (data-in, permanent); a second gates the
   // ambient orbit + halo breath (is-live) so nothing runs off-screen.
   useEffect(() => {
-    if (memorialIntent) return;
     const obj = objRef.current;
     if (!obj || typeof window === "undefined") return;
     if (reduce || !("IntersectionObserver" in window)) {
@@ -4623,14 +4998,13 @@ function ValueMoments() {
       ioLatch.disconnect();
       ioLive.disconnect();
     };
-  }, [memorialIntent, reduce]);
+  }, [reduce]);
 
   // Leader-line geometry: measured plate-local via the offsetParent chain
   // (transform-free, so the .ls-reveal rise never skews an endpoint), redrawn
   // on any plate resize and again once fonts settle. Desktop >=900px only;
   // the section is complete without the lines if measurement ever fails.
   useLayoutEffect(() => {
-    if (memorialIntent) return;
     const plate = plateRef.current;
     if (!plate || typeof window === "undefined") return;
     const compute = () => {
@@ -4692,9 +5066,7 @@ function ValueMoments() {
       ro.disconnect();
       window.removeEventListener("resize", compute);
     };
-  }, [memorialIntent]);
-
-  if (memorialIntent) return null;
+  }, []);
 
   const petName = capName(pet?.name);
   const objLabel = `The full reading, kept as one keepsake with ${petName ? `${petName}'s` : "their"} photo at the centre`;
@@ -4712,7 +5084,11 @@ function ValueMoments() {
       <div className="ls-vm-inner">
         <header className="ls-vm-head ls-reveal">
           <p className="ls-vm-eyebrow">Inside the full reading</p>
-          <h2 id="ls-vm-title" className="ls-vm-title">Everything that makes them who they are, kept in one place.</h2>
+          <h2 id="ls-vm-title" className="ls-vm-title">
+            {memorialIntent
+              ? "Everything that made them who they were, kept in one place."
+              : "Everything that makes them who they are, kept in one place."}
+          </h2>
         </header>
         <div className="ls-vm-plate" ref={plateRef}>
           <div className="ls-vm-objcol">
@@ -4804,7 +5180,7 @@ function ValueMoments() {
             </svg>
           ) : null}
           <ol className="ls-vm-index" ref={indexRef} aria-label="What the full reading holds">
-            {VALUE_MOMENTS.map(({ key, label, name: entryName, line }, i) => (
+            {VALUE_MOMENTS.map(({ key, label, name: entryName, line, terms }, i) => (
               <li key={key} className="ls-vm-entry ls-reveal" data-k={key} style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}>
                 <span className="ls-vm-node" aria-hidden="true" />
                 <span className="ls-vm-ord" aria-hidden="true">{["I", "II", "III", "IV"][i]}</span>
@@ -4812,6 +5188,7 @@ function ValueMoments() {
                   <span className="ls-vm-label">{label}</span>
                   <h3 className="ls-vm-name">{entryName}</h3>
                   <p className="ls-vm-line">{line}</p>
+                  {terms && <p className="ls-vm-terms">{terms}</p>}
                 </div>
               </li>
             ))}
@@ -4939,6 +5316,7 @@ function ValueMoments() {
         .ls-vm-label { display: block; margin: 0 0 6px; color: ${C.gold}; font-family: "Newsreader", Georgia, serif; font-size: 14px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
         .ls-vm-name { margin: 0 0 7px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.3rem, 4.6vw, 1.55rem); line-height: 1.12; letter-spacing: -0.01em; }
         .ls-vm-line { margin: 0; max-width: 46ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.55; }
+        .ls-vm-terms { margin: 8px 0 0; max-width: 46ch; color: rgba(206,206,216,0.62); font-family: "Newsreader", Georgia, serif; font-size: 15.5px; line-height: 1.45; }
 
         /* the bridge to the voices below, hairline-flanked */
         .ls-vm-pull { margin: clamp(30px, 5vw, 48px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 18px; line-height: 1.5; }
@@ -5017,85 +5395,101 @@ function ValueMoments() {
 }
 
 // The ONE reviews wall on the path, curated from the full approved set of
-// seventeen. Nine quotes, verbatim. The converted sceptic is the SPOTLIGHT,
-// set open on the sky above the rest: an editorial two-column read, not a
-// card. The other eight drift past in two slow counter-moving rows of
-// violet-glass cards (row A left, row B right), pausable by an explicit
-// control, by hover/focus, or by opening a card. Phones swap the drift for
-// a user-driven snap strip in the same order (row A then row B) with
-// decorative progress dots. Two four-star voices keep it believable; species
-// run whippet to horse to guinea pig so every reader finds a shape like
-// their own. None of these quotes render inside the dossier checkout (it
-// carries grief / joy / gift / practical / returner), so no quote ever
+// seventeen. Quotes verbatim. The converted sceptic is the SPOTLIGHT, set
+// open on the sky above the rest: an editorial two-column read, not a card.
+// The rest sit in a STATIC grid of violet-glass cards — no marquee, no
+// auto-advance (NN/g: readers assume moving content is an ad and skip it;
+// the old drift also clipped cards at both viewport edges). Phones keep the
+// user-driven snap strip with decorative progress dots. The wall is
+// register-aware (wall repair 2026-07-17):
+//   discovery — seven voices; the two blemished four-star cards (Colin B.,
+//     Alan R.) lead the grid OPEN so their honest niggles are readable
+//     (Ein-Gar/Shiv/Tormala: a small negative after positives builds trust);
+//     the death-mention grief voice never shows here.
+//   memorial — the £49 path finally gets voices of its own: the For-grief
+//     card leads, flanked by the steady senior-dog card and a converted
+//     sceptic, under the same sceptic spotlight.
+// Species run whippet to horse to guinea pig so every reader finds a shape
+// like their own. None of these quotes render inside the dossier checkout
+// (it carries grief / joy / gift / practical / returner), so no quote ever
 // appears twice on one path. Wording verbatim.
 type WallReview = {
   img: string; alt: string; stars: number; quote: string; attr: string;
-  label?: string; placement: "hero" | "rowA" | "rowB";
+  label?: string;
 };
-const WALL_REVIEWS: WallReview[] = [
-  { ...REVIEWS.skeptic, label: "For sceptics", placement: "hero" },
-  {
-    placement: "rowA",
+const WALL_HERO: WallReview = { ...REVIEWS.skeptic, label: "For sceptics" };
+const WALL_CARDS: Record<string, WallReview> = {
+  otis: {
     img: "/reviews/review-8.webp", alt: "Otis", stars: 5,
     quote: "otis spent his first three months under our bed in Cardiff, only coming out after midnight for biscuits. The reading described a guarded Moon placement and a creature who watches the room from a border before choosing anyone. I had not written anything about him being formerly feral, so that line stayed with me.",
     attr: "Grace O. · Otis, rescue shorthair cat",
   },
-  {
-    placement: "rowA",
+  bracken: {
     img: "/reviews/review-12.webp", alt: "Bracken", stars: 5,
     quote: "I was not sure a reading would make sense for a horse, especially Bracken, who has opinions about everything at the Devon yard. Then it mentioned a stubborn Saturn edge around thresholds and moving boxes, which is exactly his trailer-loading face on a wet Tuesday. The yard owner laughed because only the people here would know that.",
     attr: "Emily F. · Bracken, cob-type horse",
     label: "Felt exactly like them",
   },
-  {
-    placement: "rowA",
+  marmite: {
     img: "/reviews/review-7.webp", alt: "Marmite", stars: 5,
     quote: "I ordered Marmite's reading for the anniversary of the day we brought him back to Leeds in a borrowed blanket. It picked up his restless little Mars rhythm by the front door at about 6pm, which is exactly the hour he still starts pacing every October as if the car is coming again. Too specific to brush off, really.",
     attr: "Freya H. · Marmite, cockapoo",
   },
-  {
-    placement: "rowA",
+  loki: {
     img: "/reviews/review-16.webp", alt: "Loki", stars: 5,
     quote: "Sam was openly dismissive when I ordered Loki's reading, mainly because astrology is not their thing. Then the reading described a fixed, territorial streak around shared spaces, and Loki had spent that same week blocking our other cat from the Manchester flat's hallway rug. Sam went quiet, read that paragraph twice, and has mentioned Loki's Mars placement more than I have.",
     attr: "Ben H. · Loki, Maine Coon cat",
   },
-  {
-    placement: "rowB",
+  willow: {
     img: "/reviews/review-13.webp", alt: "Willow", stars: 5,
     quote: "weeks after Willow died, I ordered her reading during a rough patch when the house in Nottingham felt very quiet. It gave me a way to talk with my kids about her little routines, the radiator spot, the paw on the newspaper, the way she chose one person at a time. Nothing overblown. Just enough shape around the missing.",
     attr: "Daniel K. · Willow, senior cat",
     label: "For grief",
   },
-  {
-    placement: "rowB",
+  nugget: {
     img: "/reviews/review-14.webp", alt: "Nugget", stars: 4,
     quote: "I did roll my eyes at spending money on a guinea pig of all things, but Nugget's reading had his number. The bit about comfort-seeking Venus and always choosing the covered end of the run was bang on, right down to him ignoring the parsley until he has dragged it under the little red shelter. For less than we paid last month for bedding and hay, it was fair value. I would have liked a cheaper way to add our second guinea pig afterwards.",
     attr: "Colin B. · Nugget, guinea pig",
   },
-  {
-    placement: "rowB",
+  meg: {
     img: "/reviews/review-9.webp", alt: "Meg", stars: 4,
     quote: "Meg is fourteen now, grey round the muzzle and slower on the lane behind our house near Sheffield. Her reading did not try to make her sound young again, it spoke about Saturn steadiness and the comfort of doing the same small jobs well. I was glad of that. Only niggle is that it took closer to a day to arrive, rather than the couple of hours I had expected.",
     attr: "Alan R. · Meg, border collie, fourteen",
   },
-  {
-    placement: "rowB",
+  figAndNorm: {
     img: "/reviews/review-11.webp", alt: "Fig and Norm", stars: 5,
     quote: "We ordered Fig and Norm's readings together, assuming two dogs in the same Glasgow house would come out much the same. Fig's was all bright Mars, cupboard doors and sudden decisions, while Norm's had this older Beagle patience and a Moon that sounded exactly like him refusing the rain at the back step. Same sofa, same walks, totally different souls.",
     attr: "Isla M. · Fig and Norm, sprocker spaniel and beagle",
   },
+};
+/* Register sets. Discovery leads with the two blemished four-star voices
+ * (readable, open by default); the grief voice belongs to memorial only. */
+const DISCOVERY_WALL: WallReview[] = [
+  WALL_CARDS.nugget, WALL_CARDS.meg, WALL_CARDS.otis, WALL_CARDS.bracken,
+  WALL_CARDS.marmite, WALL_CARDS.loki, WALL_CARDS.figAndNorm,
 ];
+const MEMORIAL_WALL: WallReview[] = [WALL_CARDS.willow, WALL_CARDS.meg, WALL_CARDS.loki];
+const DISCOVERY_OPEN: Record<string, boolean> = {
+  [WALL_CARDS.nugget.img]: true,
+  [WALL_CARDS.meg.img]: true,
+};
 
 function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
-  // Drift state: explicit pause control (WCAG 2.2.2) + per-card expand.
-  const [paused, setPaused] = useState(false);
-  const [opened, setOpened] = useState<Record<string, boolean>>({});
+  // Per-card expand. Discovery opens the two blemished cards so their honest
+  // niggles read without a tap; memorial rests everything closed.
+  const [opened, setOpened] = useState<Record<string, boolean>>(() =>
+    getIntent() === "memorial" ? {} : { ...DISCOVERY_OPEN },
+  );
   // Decorative progress dot for the mobile snap strip.
   const [activeDot, setActiveDot] = useState(0);
   const stripRef = useRef<HTMLUListElement | null>(null);
   useEffect(() => {
-    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    const onIntent = () => {
+      const memorial = getIntent() === "memorial";
+      setMemorialIntent(memorial);
+      setOpened(memorial ? {} : { ...DISCOVERY_OPEN });
+    };
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
@@ -5115,13 +5509,9 @@ function ReviewsWall() {
     cards.forEach((c) => io.observe(c));
     return () => io.disconnect();
   }, [memorialIntent]);
-  if (memorialIntent) return null;
 
-  const hero = WALL_REVIEWS.find((r) => r.placement === "hero")!;
-  const rowA = WALL_REVIEWS.filter((r) => r.placement === "rowA");
-  const rowB = WALL_REVIEWS.filter((r) => r.placement === "rowB");
-  const rowAOpen = rowA.some((r) => opened[r.img]);
-  const rowBOpen = rowB.some((r) => opened[r.img]);
+  const hero = WALL_HERO;
+  const cards = memorialIntent ? MEMORIAL_WALL : DISCOVERY_WALL;
   const [heroWho, ...heroRest] = hero.attr.split(" · ");
 
   const starRow = (n: number, cls: string) => (
@@ -5138,15 +5528,13 @@ function ReviewsWall() {
     </div>
   );
 
-  // One card renderer for the drift rows AND the mobile strip. `ghost` marks
-  // the aria-hidden duplicate set inside a drift track: its button leaves the
-  // tab order so keyboard focus never chases a moving clone.
-  const card = (r: WallReview, ghost: boolean, stripIdx?: number) => {
+  // One card renderer for the desktop grid AND the mobile strip.
+  const card = (r: WallReview, stripIdx?: number) => {
     const open = !!opened[r.img];
     const [who, ...rest] = r.attr.split(" · ");
     return (
       <li
-        key={`${r.img}${ghost ? "-dup" : ""}`}
+        key={r.img}
         className={`ls-rev${open ? " is-open" : ""}`}
         {...(typeof stripIdx === "number" ? { "data-strip-idx": stripIdx } : {})}
       >
@@ -5154,7 +5542,7 @@ function ReviewsWall() {
           {r.label && <p className="ls-rev-chip">{r.label}</p>}
           <div className="ls-rev-top">
             <span className="ls-rev-ph">
-              <img src={r.img} alt={ghost ? "" : r.alt} width={128} height={128} loading="lazy" decoding="async" />
+              <img src={r.img} alt={r.alt} width={128} height={128} loading="lazy" decoding="async" />
             </span>
             <div className="ls-rev-meta">
               {starRow(r.stars, "is-sm")}
@@ -5171,7 +5559,7 @@ function ReviewsWall() {
             type="button"
             className="ls-rev-more"
             aria-expanded={open}
-            tabIndex={ghost ? -1 : 0}
+            tabIndex={0}
             onClick={() => setOpened((o) => ({ ...o, [r.img]: !o[r.img] }))}
           >
             {open ? "Close" : "Read on"}
@@ -5180,24 +5568,6 @@ function ReviewsWall() {
       </li>
     );
   };
-
-  // NOTE: has-open lives on the TRACK, never the viewport: the viewport
-  // carries .ls-reveal whose .is-in is added imperatively by the reveal
-  // observer, and a React className update there would wipe it.
-  const driftRow = (rows: WallReview[], cls: string, hasOpen: boolean, delay: string) => (
-    <div
-      className={`ls-drift-vp ls-reveal ${cls}`}
-      style={{ "--ls-delay": delay } as CSSProperties}
-    >
-      <div className={`ls-drift-track${hasOpen ? " has-open" : ""}`}>
-        <ul className="ls-drift-set" role="list">{rows.map((r) => card(r, false))}</ul>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <ul className="ls-drift-set" aria-hidden="true" {...({ inert: "" } as any)}>
-          {rows.map((r) => card(r, true))}
-        </ul>
-      </div>
-    </div>
-  );
 
   return (
     <section
@@ -5243,33 +5613,17 @@ function ReviewsWall() {
           </div>
         </figure>
 
-        {/* 2. The drift (>=768px): eight voices in two counter-moving rows. */}
-        <div className={`ls-drift-wrap${paused ? " is-paused" : ""}`}>
-          <button
-            type="button"
-            className="ls-drift-pause"
-            aria-pressed={paused}
-            aria-label={paused ? "Resume the moving reviews" : "Pause the moving reviews"}
-            onClick={() => setPaused((p) => !p)}
-          >
-            <svg className="ls-dp-pause" viewBox="0 0 16 16" aria-hidden="true">
-              <rect x="3.6" y="2.6" width="2.6" height="10.8" rx="1.1" />
-              <rect x="9.8" y="2.6" width="2.6" height="10.8" rx="1.1" />
-            </svg>
-            <svg className="ls-dp-play" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M5.4 2.9v10.2c0 .62.68 1 1.2.67l7.9-5.1a.8.8 0 0 0 0-1.35L6.6 2.23a.8.8 0 0 0-1.2.67z" />
-            </svg>
-          </button>
-          {driftRow(rowA, "is-a", rowAOpen, "0.15s")}
-          {driftRow(rowB, "is-b", rowBOpen, "0.27s")}
-        </div>
+        {/* 2. The grid (>=768px): every voice at rest, full cards, nothing moves. */}
+        <ul className="ls-rev-grid ls-reveal" role="list" style={{ "--ls-delay": "0.15s" } as CSSProperties}>
+          {cards.map((r) => card(r))}
+        </ul>
 
-        {/* 3. Mobile <768px: user-driven snap strip, same eight in the same order. */}
+        {/* 3. Mobile <768px: user-driven snap strip, same voices in the same order. */}
         <ul className="ls-strip" role="list" ref={stripRef}>
-          {[...rowA, ...rowB].map((r, i) => card(r, false, i))}
+          {cards.map((r, i) => card(r, i))}
         </ul>
         <div className="ls-strip-dots" aria-hidden="true">
-          {[...rowA, ...rowB].map((r, i) => (
+          {cards.map((r, i) => (
             <span key={r.img} className={`ls-strip-dot${i === activeDot ? " is-on" : ""}`} />
           ))}
         </div>
@@ -5434,49 +5788,16 @@ function ReviewsWall() {
         }
         .ls-rev-more:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; border-radius: 4px; }
         @media (hover: hover) and (pointer: fine) {
-          .ls-drift-set .ls-rev-fig:hover {
+          .ls-rev-grid .ls-rev-fig:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 20px 44px rgba(0,0,0,0.42);
             transition-duration: 180ms;
           }
-          .ls-drift-set .ls-rev-fig:hover::before { filter: brightness(1.3); }
+          .ls-rev-grid .ls-rev-fig:hover::before { filter: brightness(1.3); }
         }
 
-        /* ── the drift: two counter-moving rows, full-bleed, pausable ── */
-        .ls-drift-wrap { position: relative; display: none; }
-        .ls-drift-pause {
-          position: absolute; top: -52px; right: 20px; z-index: 2;
-          width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          border: 1px solid rgba(154,126,230,0.44); background: rgba(124,92,214,0.12);
-        }
-        .ls-drift-pause:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
-        .ls-drift-pause svg { position: absolute; width: 15px; height: 15px; fill: ${C.creamDim}; transition: opacity 150ms cubic-bezier(0.22, 0.7, 0.2, 1); }
-        .ls-dp-play { opacity: 0; }
-        .ls-drift-wrap.is-paused .ls-dp-play { opacity: 1; }
-        .ls-drift-wrap.is-paused .ls-dp-pause { opacity: 0; }
-        .ls-drift-vp {
-          position: relative; width: 100vw; margin-inline: calc(50% - 50vw); overflow: hidden;
-          -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
-        }
-        .ls-drift-vp + .ls-drift-vp { margin-top: 20px; }
-        .ls-drift-vp.ls-reveal {
-          transform: translate3d(0, 10px, 0);
-          transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-          transition-delay: var(--ls-delay, 0s);
-        }
-        .ls-drift-vp.ls-reveal.is-in { transform: translate3d(0, 0, 0); }
-        .ls-drift-track { display: flex; width: max-content; will-change: transform; padding: 6px 0 10px; }
-        .ls-drift-set { list-style: none; margin: 0; padding: 0 18px 0 0; display: flex; gap: 18px; align-items: flex-start; }
-        .ls-drift-set .ls-rev { width: 400px; }
-        @keyframes lsDrift { to { transform: translateX(-50%); } }
-        .ls-drift-vp.is-a .ls-drift-track { animation: lsDrift 60s linear infinite; }
-        .ls-drift-vp.is-b .ls-drift-track { animation: lsDrift 75s linear infinite reverse; }
-        .ls-drift-vp:hover .ls-drift-track,
-        .ls-drift-vp:focus-within .ls-drift-track,
-        .ls-drift-wrap.is-paused .ls-drift-track,
-        .ls-drift-track.has-open { animation-play-state: paused; }
+        /* ── the grid (>=768px): every card whole, at rest, no motion to ignore ── */
+        .ls-rev-grid { display: none; }
 
         /* ── mobile snap strip: user-driven, no auto-motion ── */
         .ls-strip {
@@ -5496,44 +5817,36 @@ function ReviewsWall() {
         }
         .ls-strip-dot.is-on { background: ${C.violetBright}; transform: scale(1.3); }
         @media (min-width: 768px) {
-          .ls-drift-wrap { display: block; }
+          .ls-rev-grid {
+            list-style: none; margin: 0; padding: 6px 0 10px;
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px; align-items: start;
+          }
+          /* a lone last card sits centred, never stretched across the row */
+          .ls-rev-grid > li:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: 100%; max-width: 480px; }
           .ls-strip, .ls-strip-dots { display: none; }
+        }
+        @media (min-width: 1024px) {
+          .ls-rev-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .ls-rev-grid > li:last-child:nth-child(odd) { grid-column: auto; justify-self: stretch; max-width: none; }
+          .ls-rev-grid > li:last-child:nth-child(3n + 1) { grid-column: 2; }
         }
 
         .ls-reviews-pull { margin: clamp(36px, 5vw, 56px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
 
-        /* ── REDUCED MOTION: the rest state IS the finished composition.
-             Drift becomes a static wrapped grid inside the rail. ── */
+        /* ── REDUCED MOTION: the grid is already at rest; only the glint and
+             micro-transitions step aside. ── */
         @media (prefers-reduced-motion: reduce) {
-          .ls-drift-pause { display: none; }
-          .ls-drift-vp { width: auto; margin-inline: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
-          .ls-drift-vp + .ls-drift-vp { margin-top: 18px; }
-          .ls-drift-track { animation: none !important; display: block; width: auto; padding: 0; }
-          .ls-drift-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0; }
-          .ls-drift-set[aria-hidden="true"] { display: none; }
-          .ls-drift-set .ls-rev { width: auto; }
           .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
           .ls-rev-body, .ls-rev-fig, .ls-rev-fig::before, .ls-strip-dot { transition: none; }
         }
-        @media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
-          .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
         /* .is-static mirror (same rest-state law, togglable in code) */
-        .ls-reviews.is-static .ls-drift-pause { display: none; }
-        .ls-reviews.is-static .ls-drift-vp { width: auto; margin-inline: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
-        .ls-reviews.is-static .ls-drift-track { animation: none !important; display: block; width: auto; padding: 0; }
-        .ls-reviews.is-static .ls-drift-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0; }
-        .ls-reviews.is-static .ls-drift-set[aria-hidden="true"] { display: none; }
-        .ls-reviews.is-static .ls-drift-set .ls-rev { width: auto; }
         .ls-reviews.is-static .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
         .ls-reviews.is-static .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
         .ls-reviews.is-static .ls-rev-body, .ls-reviews.is-static .ls-rev-fig, .ls-reviews.is-static .ls-rev-fig::before, .ls-reviews.is-static .ls-strip-dot { transition: none; }
-        @media (min-width: 1024px) {
-          .ls-reviews.is-static .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
 
         /* ==== TYPE FLOORS - tuned per viewport (2026-07-14; wall rebuild 2026-07-16) ====
-           Drift/strip card quotes deliberately HOLD 18px at every width (no
+           Grid/strip card quotes deliberately HOLD 18px at every width (no
            19px 1280 bump: the spotlight carries the large voice). */
         .ls-reviews-eyebrow { font-size: 14px; }
         .ls-rev-quote { font-size: 18px; }
@@ -5663,12 +5976,16 @@ function CosmicStyles() {
       .ls-parallax-band {
         isolation: isolate;
       }
+      /* Near-instant reveal (NN/g: scroll-triggered text animations delay
+         readers). Fast fade so the words are legible almost immediately;
+         the rise runs a touch longer than the fade to keep the composed
+         feel without ever making anyone wait for copy. */
       .ls-reveal {
         opacity: 0;
-        transform: translate3d(0, 30px, 0);
+        transform: translate3d(0, 12px, 0);
         transition:
-          opacity 0.85s cubic-bezier(0.22, 0.7, 0.2, 1),
-          transform 0.85s cubic-bezier(0.22, 0.7, 0.2, 1);
+          opacity 0.32s ease-out,
+          transform 0.5s cubic-bezier(0.22, 0.7, 0.2, 1);
         transition-delay: var(--ls-delay, 0s);
         will-change: opacity, transform;
       }
@@ -5689,12 +6006,12 @@ function CosmicStyles() {
         margin: 0;
         max-width: 40ch;
         opacity: 0;
-        transform: translate3d(0, 20px, 0);
-        filter: blur(8px);
+        transform: translate3d(0, 10px, 0);
+        filter: blur(5px);
         transition:
-          opacity 0.9s cubic-bezier(0.22, 0.7, 0.2, 1),
-          transform 0.9s cubic-bezier(0.22, 0.7, 0.2, 1),
-          filter 0.9s cubic-bezier(0.22, 0.7, 0.2, 1);
+          opacity 0.38s ease-out,
+          transform 0.55s cubic-bezier(0.22, 0.7, 0.2, 1),
+          filter 0.45s cubic-bezier(0.22, 0.7, 0.2, 1);
         transition-delay: var(--ls-delay, 0s);
         will-change: opacity, transform, filter;
         color: ${C.creamDim};
@@ -7139,10 +7456,25 @@ function CosmicStyles() {
         background: rgba(139,123,216,0.055);
       }
       .ls-seal-lead {
-        margin: 0 0 28px;
+        margin: 0 0 10px;
         color: #f5f2ff; font-family: "Fraunces", Georgia, serif; font-weight: 400;
         font-size: clamp(1.25rem, 1.8vw + 0.7rem, 1.6rem); line-height: 1.3;
         letter-spacing: -0.008em;
+      }
+      .ls-seal-deliv {
+        margin: 0 0 26px; max-width: 44ch;
+        color: rgba(245,242,255,0.8); font-family: "Newsreader", Georgia, serif;
+        font-size: 18px; line-height: 1.55;
+      }
+      .ls-seal-free {
+        margin: 12px 0 0; text-align: center;
+        color: rgba(245,242,255,0.82); font-family: "Newsreader", Georgia, serif;
+        font-size: 17.5px; line-height: 1.4;
+      }
+      .ls-hero-sub {
+        margin: 18px 0 0; max-width: 46ch;
+        color: rgba(245,242,255,0.86); font-family: "Newsreader", Georgia, serif;
+        font-size: clamp(1.1rem, 1.2vw + 0.85rem, 1.35rem); line-height: 1.55;
       }
       .ls-seal-field { display: block; width: 100%; margin-bottom: 26px; text-align: left; }
       .ls-seal-field label {
@@ -7169,6 +7501,30 @@ function CosmicStyles() {
       .ls-seal-hint {
         margin: 9px 0 0; color: rgba(245,242,255,0.55);
         font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.5;
+      }
+      /* Per-field error: the message sits beside its field in the same voice
+         and colour as the branded chart message, and the field's underline
+         lifts to match, so eye lands on both together. */
+      .ls-field-err {
+        margin: 9px 0 0; color: ${C.goldSoft};
+        font-family: "Newsreader", Georgia, serif; font-size: 15.5px; line-height: 1.5;
+      }
+      .ls-seal-field[data-err] input {
+        border-bottom-color: ${C.goldSoft};
+        box-shadow: 0 1px 0 0 rgba(207,192,244,0.35);
+      }
+      .ls-seal-field[data-err] label { color: ${C.goldSoft}; }
+      /* Quiet success mark on the email field: a small check that fades in on
+         blur when the address parses. Decorative only, announced by nothing. */
+      .ls-email-wrap { position: relative; }
+      .ls-email-ok {
+        position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+        display: inline-flex; color: ${C.violetBright};
+        opacity: 0; transition: opacity 400ms ease; pointer-events: none;
+      }
+      .ls-email-ok.is-on { opacity: 1; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-email-ok { transition: none; }
       }
       .ls-seal-card .ls-seal-cta {
         display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -7198,6 +7554,39 @@ function CosmicStyles() {
         .ls-seal-card[data-thread-arm]:not([data-sealed]) .ls-seal-cta { filter: none; box-shadow: 0 4px 26px rgba(139,123,216,0.28); }
         .ls-seal-card[data-sealed] .ls-seal-cta { animation: none; }
         .ls-seal-cta { transition: none; }
+      }
+
+      /* ── Resume strip: the quiet way back into an open reading ────────── */
+      .ls-resume-wrap {
+        display: flex; justify-content: center;
+        padding: 88px 20px 0;
+      }
+      .ls-resume-strip {
+        display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+        width: 100%; max-width: 640px;
+        padding: 14px 20px;
+        border: 1px solid rgba(167,139,250,0.18); border-radius: 14px;
+        background: rgba(139,123,216,0.08);
+      }
+      .ls-resume-line {
+        margin: 0; color: #f5f2ff;
+        font-family: "Newsreader", Georgia, serif; font-size: 17px; line-height: 1.4;
+      }
+      .ls-resume-btn {
+        flex: 0 0 auto; min-height: 42px; padding: 8px 18px;
+        border: 1px solid rgba(167,139,250,0.45); border-radius: 11px; cursor: pointer;
+        background: transparent; color: #d8ceff;
+        font-family: "Newsreader", Georgia, serif; font-size: 16px;
+        transition: background 300ms ease, color 300ms ease;
+      }
+      .ls-resume-btn:hover { background: rgba(167,139,250,0.16); color: #f5f2ff; }
+      .ls-resume-btn:focus-visible { outline: 2px solid #f5f2ff; outline-offset: 3px; }
+      .ls-resume-btn:disabled { opacity: 0.6; cursor: default; }
+      @media (max-width: 560px) {
+        .ls-resume-strip { flex-direction: column; gap: 10px; text-align: center; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-resume-btn { transition: none; }
       }
 
       /* ── One-tap species (free reading) — cosmic violet, no gold ──────── */
@@ -8752,7 +9141,9 @@ function CosmicStyles() {
 }
 
 function revealDelay(seconds: number): CSSProperties {
-  return { ["--ls-delay" as string]: `${seconds}s` } as CSSProperties;
+  // Stagger scaled down 40%: the relative choreography survives, the
+  // absolute wait for copy does not (reveals must feel near-instant).
+  return { ["--ls-delay" as string]: `${(seconds * 0.6).toFixed(3)}s` } as CSSProperties;
 }
 
 const heroLeadStyle = {
