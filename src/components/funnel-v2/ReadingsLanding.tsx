@@ -3794,12 +3794,14 @@ function CheckoutSection({
   );
 }
 
-// ── Sticky begin bar (mobile) ─────────────────────────────────────────────────
+// ── Sticky begin bar (mobile + desktop) ───────────────────────────────────────
 // A slim fixed CTA that appears once the reader passes the desire peak ("Break
 // every seal.") and rides with them until the checkout section is on screen —
-// no more CTA-less scroll between the peak and the price. Mobile only (CSS),
-// discovery path only, never on memorial. Anchors to #begin via the shared
-// descent so the dawn grade is still seen, not skipped.
+// no more CTA-less scroll between the peak and the price. Shows on phones
+// (<768px) and desktop (>=1024px, enabled 2026-07-17: the long sell run had no
+// reachable purchase action on desktop); the 768-1023 tablet band stays clear
+// of the shorter layout there. Discovery path only, never on memorial. Anchors
+// to #begin via the shared descent so the dawn grade is still seen, not skipped.
 function StickyBeginBar() {
   const [memorial, setMemorial] = useState<boolean>(() => getIntent() === "memorial");
   const [on, setOn] = useState(false);
@@ -3858,7 +3860,7 @@ function StickyBeginBar() {
         .ls-stickybegin.show { transform: none; pointer-events: auto; }
         .ls-stickybegin button { display: block; width: 100%; max-width: 560px; margin: 0 auto; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: linear-gradient(180deg, #a78bfa 0%, #8266d9 45%, #6a4cc4 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 16.5px; font-weight: 700; letter-spacing: 0.02em; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 6px 18px -6px rgba(124,92,214,0.45); }
         .ls-stickybegin button:focus-visible { outline: 2px solid #cfc0f4; outline-offset: 3px; }
-        @media (min-width: 768px) { .ls-stickybegin { display: none; } }
+        @media (min-width: 768px) and (max-width: 1023.98px) { .ls-stickybegin { display: none; } }
         @media (prefers-reduced-motion: reduce) { .ls-stickybegin { transition: none; } }
 
         /* ==== TYPE FLOORS - tuned per viewport (2026-07-14) ==== */
@@ -4712,8 +4714,10 @@ function FullReadingOpens() {
 // (their photo at the centre, all thirteen bodies assembled around it) sits as
 // the specimen; the four holdings are set as an engraved index beside it, tied
 // to the object by fine leader lines the way a museum plate labels a specimen.
-// Copy is verbatim from the approved card version. Discovery path only — the
-// memorial path keeps its hush (null return, unchanged).
+// Copy is verbatim from the approved card version. Both registers show it
+// (memorial un-gated 2026-07-17: the £49 path was selling with no value
+// section at all); the memorial register flips only the title's tense, the
+// four holdings already read true in both.
 const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; target: "ring" | "core" | "voice" | "phases" }[] = [
   {
     key: "placements",
@@ -4844,7 +4848,6 @@ function ValueMoments() {
   // One observer latches the reveal (data-in, permanent); a second gates the
   // ambient orbit + halo breath (is-live) so nothing runs off-screen.
   useEffect(() => {
-    if (memorialIntent) return;
     const obj = objRef.current;
     if (!obj || typeof window === "undefined") return;
     if (reduce || !("IntersectionObserver" in window)) {
@@ -4872,14 +4875,13 @@ function ValueMoments() {
       ioLatch.disconnect();
       ioLive.disconnect();
     };
-  }, [memorialIntent, reduce]);
+  }, [reduce]);
 
   // Leader-line geometry: measured plate-local via the offsetParent chain
   // (transform-free, so the .ls-reveal rise never skews an endpoint), redrawn
   // on any plate resize and again once fonts settle. Desktop >=900px only;
   // the section is complete without the lines if measurement ever fails.
   useLayoutEffect(() => {
-    if (memorialIntent) return;
     const plate = plateRef.current;
     if (!plate || typeof window === "undefined") return;
     const compute = () => {
@@ -4941,9 +4943,7 @@ function ValueMoments() {
       ro.disconnect();
       window.removeEventListener("resize", compute);
     };
-  }, [memorialIntent]);
-
-  if (memorialIntent) return null;
+  }, []);
 
   const petName = capName(pet?.name);
   const objLabel = `The full reading, kept as one keepsake with ${petName ? `${petName}'s` : "their"} photo at the centre`;
@@ -4961,7 +4961,11 @@ function ValueMoments() {
       <div className="ls-vm-inner">
         <header className="ls-vm-head ls-reveal">
           <p className="ls-vm-eyebrow">Inside the full reading</p>
-          <h2 id="ls-vm-title" className="ls-vm-title">Everything that makes them who they are, kept in one place.</h2>
+          <h2 id="ls-vm-title" className="ls-vm-title">
+            {memorialIntent
+              ? "Everything that made them who they were, kept in one place."
+              : "Everything that makes them who they are, kept in one place."}
+          </h2>
         </header>
         <div className="ls-vm-plate" ref={plateRef}>
           <div className="ls-vm-objcol">
@@ -5266,85 +5270,101 @@ function ValueMoments() {
 }
 
 // The ONE reviews wall on the path, curated from the full approved set of
-// seventeen. Nine quotes, verbatim. The converted sceptic is the SPOTLIGHT,
-// set open on the sky above the rest: an editorial two-column read, not a
-// card. The other eight drift past in two slow counter-moving rows of
-// violet-glass cards (row A left, row B right), pausable by an explicit
-// control, by hover/focus, or by opening a card. Phones swap the drift for
-// a user-driven snap strip in the same order (row A then row B) with
-// decorative progress dots. Two four-star voices keep it believable; species
-// run whippet to horse to guinea pig so every reader finds a shape like
-// their own. None of these quotes render inside the dossier checkout (it
-// carries grief / joy / gift / practical / returner), so no quote ever
+// seventeen. Quotes verbatim. The converted sceptic is the SPOTLIGHT, set
+// open on the sky above the rest: an editorial two-column read, not a card.
+// The rest sit in a STATIC grid of violet-glass cards — no marquee, no
+// auto-advance (NN/g: readers assume moving content is an ad and skip it;
+// the old drift also clipped cards at both viewport edges). Phones keep the
+// user-driven snap strip with decorative progress dots. The wall is
+// register-aware (wall repair 2026-07-17):
+//   discovery — seven voices; the two blemished four-star cards (Colin B.,
+//     Alan R.) lead the grid OPEN so their honest niggles are readable
+//     (Ein-Gar/Shiv/Tormala: a small negative after positives builds trust);
+//     the death-mention grief voice never shows here.
+//   memorial — the £49 path finally gets voices of its own: the For-grief
+//     card leads, flanked by the steady senior-dog card and a converted
+//     sceptic, under the same sceptic spotlight.
+// Species run whippet to horse to guinea pig so every reader finds a shape
+// like their own. None of these quotes render inside the dossier checkout
+// (it carries grief / joy / gift / practical / returner), so no quote ever
 // appears twice on one path. Wording verbatim.
 type WallReview = {
   img: string; alt: string; stars: number; quote: string; attr: string;
-  label?: string; placement: "hero" | "rowA" | "rowB";
+  label?: string;
 };
-const WALL_REVIEWS: WallReview[] = [
-  { ...REVIEWS.skeptic, label: "For sceptics", placement: "hero" },
-  {
-    placement: "rowA",
+const WALL_HERO: WallReview = { ...REVIEWS.skeptic, label: "For sceptics" };
+const WALL_CARDS: Record<string, WallReview> = {
+  otis: {
     img: "/reviews/review-8.webp", alt: "Otis", stars: 5,
     quote: "otis spent his first three months under our bed in Cardiff, only coming out after midnight for biscuits. The reading described a guarded Moon placement and a creature who watches the room from a border before choosing anyone. I had not written anything about him being formerly feral, so that line stayed with me.",
     attr: "Grace O. · Otis, rescue shorthair cat",
   },
-  {
-    placement: "rowA",
+  bracken: {
     img: "/reviews/review-12.webp", alt: "Bracken", stars: 5,
     quote: "I was not sure a reading would make sense for a horse, especially Bracken, who has opinions about everything at the Devon yard. Then it mentioned a stubborn Saturn edge around thresholds and moving boxes, which is exactly his trailer-loading face on a wet Tuesday. The yard owner laughed because only the people here would know that.",
     attr: "Emily F. · Bracken, cob-type horse",
     label: "Felt exactly like them",
   },
-  {
-    placement: "rowA",
+  marmite: {
     img: "/reviews/review-7.webp", alt: "Marmite", stars: 5,
     quote: "I ordered Marmite's reading for the anniversary of the day we brought him back to Leeds in a borrowed blanket. It picked up his restless little Mars rhythm by the front door at about 6pm, which is exactly the hour he still starts pacing every October as if the car is coming again. Too specific to brush off, really.",
     attr: "Freya H. · Marmite, cockapoo",
   },
-  {
-    placement: "rowA",
+  loki: {
     img: "/reviews/review-16.webp", alt: "Loki", stars: 5,
     quote: "Sam was openly dismissive when I ordered Loki's reading, mainly because astrology is not their thing. Then the reading described a fixed, territorial streak around shared spaces, and Loki had spent that same week blocking our other cat from the Manchester flat's hallway rug. Sam went quiet, read that paragraph twice, and has mentioned Loki's Mars placement more than I have.",
     attr: "Ben H. · Loki, Maine Coon cat",
   },
-  {
-    placement: "rowB",
+  willow: {
     img: "/reviews/review-13.webp", alt: "Willow", stars: 5,
     quote: "weeks after Willow died, I ordered her reading during a rough patch when the house in Nottingham felt very quiet. It gave me a way to talk with my kids about her little routines, the radiator spot, the paw on the newspaper, the way she chose one person at a time. Nothing overblown. Just enough shape around the missing.",
     attr: "Daniel K. · Willow, senior cat",
     label: "For grief",
   },
-  {
-    placement: "rowB",
+  nugget: {
     img: "/reviews/review-14.webp", alt: "Nugget", stars: 4,
     quote: "I did roll my eyes at spending money on a guinea pig of all things, but Nugget's reading had his number. The bit about comfort-seeking Venus and always choosing the covered end of the run was bang on, right down to him ignoring the parsley until he has dragged it under the little red shelter. For less than we paid last month for bedding and hay, it was fair value. I would have liked a cheaper way to add our second guinea pig afterwards.",
     attr: "Colin B. · Nugget, guinea pig",
   },
-  {
-    placement: "rowB",
+  meg: {
     img: "/reviews/review-9.webp", alt: "Meg", stars: 4,
     quote: "Meg is fourteen now, grey round the muzzle and slower on the lane behind our house near Sheffield. Her reading did not try to make her sound young again, it spoke about Saturn steadiness and the comfort of doing the same small jobs well. I was glad of that. Only niggle is that it took closer to a day to arrive, rather than the couple of hours I had expected.",
     attr: "Alan R. · Meg, border collie, fourteen",
   },
-  {
-    placement: "rowB",
+  figAndNorm: {
     img: "/reviews/review-11.webp", alt: "Fig and Norm", stars: 5,
     quote: "We ordered Fig and Norm's readings together, assuming two dogs in the same Glasgow house would come out much the same. Fig's was all bright Mars, cupboard doors and sudden decisions, while Norm's had this older Beagle patience and a Moon that sounded exactly like him refusing the rain at the back step. Same sofa, same walks, totally different souls.",
     attr: "Isla M. · Fig and Norm, sprocker spaniel and beagle",
   },
+};
+/* Register sets. Discovery leads with the two blemished four-star voices
+ * (readable, open by default); the grief voice belongs to memorial only. */
+const DISCOVERY_WALL: WallReview[] = [
+  WALL_CARDS.nugget, WALL_CARDS.meg, WALL_CARDS.otis, WALL_CARDS.bracken,
+  WALL_CARDS.marmite, WALL_CARDS.loki, WALL_CARDS.figAndNorm,
 ];
+const MEMORIAL_WALL: WallReview[] = [WALL_CARDS.willow, WALL_CARDS.meg, WALL_CARDS.loki];
+const DISCOVERY_OPEN: Record<string, boolean> = {
+  [WALL_CARDS.nugget.img]: true,
+  [WALL_CARDS.meg.img]: true,
+};
 
 function ReviewsWall() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
-  // Drift state: explicit pause control (WCAG 2.2.2) + per-card expand.
-  const [paused, setPaused] = useState(false);
-  const [opened, setOpened] = useState<Record<string, boolean>>({});
+  // Per-card expand. Discovery opens the two blemished cards so their honest
+  // niggles read without a tap; memorial rests everything closed.
+  const [opened, setOpened] = useState<Record<string, boolean>>(() =>
+    getIntent() === "memorial" ? {} : { ...DISCOVERY_OPEN },
+  );
   // Decorative progress dot for the mobile snap strip.
   const [activeDot, setActiveDot] = useState(0);
   const stripRef = useRef<HTMLUListElement | null>(null);
   useEffect(() => {
-    const onIntent = () => setMemorialIntent(getIntent() === "memorial");
+    const onIntent = () => {
+      const memorial = getIntent() === "memorial";
+      setMemorialIntent(memorial);
+      setOpened(memorial ? {} : { ...DISCOVERY_OPEN });
+    };
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
@@ -5364,13 +5384,9 @@ function ReviewsWall() {
     cards.forEach((c) => io.observe(c));
     return () => io.disconnect();
   }, [memorialIntent]);
-  if (memorialIntent) return null;
 
-  const hero = WALL_REVIEWS.find((r) => r.placement === "hero")!;
-  const rowA = WALL_REVIEWS.filter((r) => r.placement === "rowA");
-  const rowB = WALL_REVIEWS.filter((r) => r.placement === "rowB");
-  const rowAOpen = rowA.some((r) => opened[r.img]);
-  const rowBOpen = rowB.some((r) => opened[r.img]);
+  const hero = WALL_HERO;
+  const cards = memorialIntent ? MEMORIAL_WALL : DISCOVERY_WALL;
   const [heroWho, ...heroRest] = hero.attr.split(" · ");
 
   const starRow = (n: number, cls: string) => (
@@ -5387,15 +5403,13 @@ function ReviewsWall() {
     </div>
   );
 
-  // One card renderer for the drift rows AND the mobile strip. `ghost` marks
-  // the aria-hidden duplicate set inside a drift track: its button leaves the
-  // tab order so keyboard focus never chases a moving clone.
-  const card = (r: WallReview, ghost: boolean, stripIdx?: number) => {
+  // One card renderer for the desktop grid AND the mobile strip.
+  const card = (r: WallReview, stripIdx?: number) => {
     const open = !!opened[r.img];
     const [who, ...rest] = r.attr.split(" · ");
     return (
       <li
-        key={`${r.img}${ghost ? "-dup" : ""}`}
+        key={r.img}
         className={`ls-rev${open ? " is-open" : ""}`}
         {...(typeof stripIdx === "number" ? { "data-strip-idx": stripIdx } : {})}
       >
@@ -5403,7 +5417,7 @@ function ReviewsWall() {
           {r.label && <p className="ls-rev-chip">{r.label}</p>}
           <div className="ls-rev-top">
             <span className="ls-rev-ph">
-              <img src={r.img} alt={ghost ? "" : r.alt} width={128} height={128} loading="lazy" decoding="async" />
+              <img src={r.img} alt={r.alt} width={128} height={128} loading="lazy" decoding="async" />
             </span>
             <div className="ls-rev-meta">
               {starRow(r.stars, "is-sm")}
@@ -5420,7 +5434,7 @@ function ReviewsWall() {
             type="button"
             className="ls-rev-more"
             aria-expanded={open}
-            tabIndex={ghost ? -1 : 0}
+            tabIndex={0}
             onClick={() => setOpened((o) => ({ ...o, [r.img]: !o[r.img] }))}
           >
             {open ? "Close" : "Read on"}
@@ -5429,24 +5443,6 @@ function ReviewsWall() {
       </li>
     );
   };
-
-  // NOTE: has-open lives on the TRACK, never the viewport: the viewport
-  // carries .ls-reveal whose .is-in is added imperatively by the reveal
-  // observer, and a React className update there would wipe it.
-  const driftRow = (rows: WallReview[], cls: string, hasOpen: boolean, delay: string) => (
-    <div
-      className={`ls-drift-vp ls-reveal ${cls}`}
-      style={{ "--ls-delay": delay } as CSSProperties}
-    >
-      <div className={`ls-drift-track${hasOpen ? " has-open" : ""}`}>
-        <ul className="ls-drift-set" role="list">{rows.map((r) => card(r, false))}</ul>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <ul className="ls-drift-set" aria-hidden="true" {...({ inert: "" } as any)}>
-          {rows.map((r) => card(r, true))}
-        </ul>
-      </div>
-    </div>
-  );
 
   return (
     <section
@@ -5492,33 +5488,17 @@ function ReviewsWall() {
           </div>
         </figure>
 
-        {/* 2. The drift (>=768px): eight voices in two counter-moving rows. */}
-        <div className={`ls-drift-wrap${paused ? " is-paused" : ""}`}>
-          <button
-            type="button"
-            className="ls-drift-pause"
-            aria-pressed={paused}
-            aria-label={paused ? "Resume the moving reviews" : "Pause the moving reviews"}
-            onClick={() => setPaused((p) => !p)}
-          >
-            <svg className="ls-dp-pause" viewBox="0 0 16 16" aria-hidden="true">
-              <rect x="3.6" y="2.6" width="2.6" height="10.8" rx="1.1" />
-              <rect x="9.8" y="2.6" width="2.6" height="10.8" rx="1.1" />
-            </svg>
-            <svg className="ls-dp-play" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M5.4 2.9v10.2c0 .62.68 1 1.2.67l7.9-5.1a.8.8 0 0 0 0-1.35L6.6 2.23a.8.8 0 0 0-1.2.67z" />
-            </svg>
-          </button>
-          {driftRow(rowA, "is-a", rowAOpen, "0.15s")}
-          {driftRow(rowB, "is-b", rowBOpen, "0.27s")}
-        </div>
+        {/* 2. The grid (>=768px): every voice at rest, full cards, nothing moves. */}
+        <ul className="ls-rev-grid ls-reveal" role="list" style={{ "--ls-delay": "0.15s" } as CSSProperties}>
+          {cards.map((r) => card(r))}
+        </ul>
 
-        {/* 3. Mobile <768px: user-driven snap strip, same eight in the same order. */}
+        {/* 3. Mobile <768px: user-driven snap strip, same voices in the same order. */}
         <ul className="ls-strip" role="list" ref={stripRef}>
-          {[...rowA, ...rowB].map((r, i) => card(r, false, i))}
+          {cards.map((r, i) => card(r, i))}
         </ul>
         <div className="ls-strip-dots" aria-hidden="true">
-          {[...rowA, ...rowB].map((r, i) => (
+          {cards.map((r, i) => (
             <span key={r.img} className={`ls-strip-dot${i === activeDot ? " is-on" : ""}`} />
           ))}
         </div>
@@ -5683,49 +5663,16 @@ function ReviewsWall() {
         }
         .ls-rev-more:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; border-radius: 4px; }
         @media (hover: hover) and (pointer: fine) {
-          .ls-drift-set .ls-rev-fig:hover {
+          .ls-rev-grid .ls-rev-fig:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.45), 0 20px 44px rgba(0,0,0,0.42);
             transition-duration: 180ms;
           }
-          .ls-drift-set .ls-rev-fig:hover::before { filter: brightness(1.3); }
+          .ls-rev-grid .ls-rev-fig:hover::before { filter: brightness(1.3); }
         }
 
-        /* ── the drift: two counter-moving rows, full-bleed, pausable ── */
-        .ls-drift-wrap { position: relative; display: none; }
-        .ls-drift-pause {
-          position: absolute; top: -52px; right: 20px; z-index: 2;
-          width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          border: 1px solid rgba(154,126,230,0.44); background: rgba(124,92,214,0.12);
-        }
-        .ls-drift-pause:focus-visible { outline: 2px solid ${C.violetSoft}; outline-offset: 3px; }
-        .ls-drift-pause svg { position: absolute; width: 15px; height: 15px; fill: ${C.creamDim}; transition: opacity 150ms cubic-bezier(0.22, 0.7, 0.2, 1); }
-        .ls-dp-play { opacity: 0; }
-        .ls-drift-wrap.is-paused .ls-dp-play { opacity: 1; }
-        .ls-drift-wrap.is-paused .ls-dp-pause { opacity: 0; }
-        .ls-drift-vp {
-          position: relative; width: 100vw; margin-inline: calc(50% - 50vw); overflow: hidden;
-          -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
-        }
-        .ls-drift-vp + .ls-drift-vp { margin-top: 20px; }
-        .ls-drift-vp.ls-reveal {
-          transform: translate3d(0, 10px, 0);
-          transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-          transition-delay: var(--ls-delay, 0s);
-        }
-        .ls-drift-vp.ls-reveal.is-in { transform: translate3d(0, 0, 0); }
-        .ls-drift-track { display: flex; width: max-content; will-change: transform; padding: 6px 0 10px; }
-        .ls-drift-set { list-style: none; margin: 0; padding: 0 18px 0 0; display: flex; gap: 18px; align-items: flex-start; }
-        .ls-drift-set .ls-rev { width: 400px; }
-        @keyframes lsDrift { to { transform: translateX(-50%); } }
-        .ls-drift-vp.is-a .ls-drift-track { animation: lsDrift 60s linear infinite; }
-        .ls-drift-vp.is-b .ls-drift-track { animation: lsDrift 75s linear infinite reverse; }
-        .ls-drift-vp:hover .ls-drift-track,
-        .ls-drift-vp:focus-within .ls-drift-track,
-        .ls-drift-wrap.is-paused .ls-drift-track,
-        .ls-drift-track.has-open { animation-play-state: paused; }
+        /* ── the grid (>=768px): every card whole, at rest, no motion to ignore ── */
+        .ls-rev-grid { display: none; }
 
         /* ── mobile snap strip: user-driven, no auto-motion ── */
         .ls-strip {
@@ -5745,44 +5692,36 @@ function ReviewsWall() {
         }
         .ls-strip-dot.is-on { background: ${C.violetBright}; transform: scale(1.3); }
         @media (min-width: 768px) {
-          .ls-drift-wrap { display: block; }
+          .ls-rev-grid {
+            list-style: none; margin: 0; padding: 6px 0 10px;
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px; align-items: start;
+          }
+          /* a lone last card sits centred, never stretched across the row */
+          .ls-rev-grid > li:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: 100%; max-width: 480px; }
           .ls-strip, .ls-strip-dots { display: none; }
+        }
+        @media (min-width: 1024px) {
+          .ls-rev-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .ls-rev-grid > li:last-child:nth-child(odd) { grid-column: auto; justify-self: stretch; max-width: none; }
+          .ls-rev-grid > li:last-child:nth-child(3n + 1) { grid-column: 2; }
         }
 
         .ls-reviews-pull { margin: clamp(36px, 5vw, 56px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
 
-        /* ── REDUCED MOTION: the rest state IS the finished composition.
-             Drift becomes a static wrapped grid inside the rail. ── */
+        /* ── REDUCED MOTION: the grid is already at rest; only the glint and
+             micro-transitions step aside. ── */
         @media (prefers-reduced-motion: reduce) {
-          .ls-drift-pause { display: none; }
-          .ls-drift-vp { width: auto; margin-inline: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
-          .ls-drift-vp + .ls-drift-vp { margin-top: 18px; }
-          .ls-drift-track { animation: none !important; display: block; width: auto; padding: 0; }
-          .ls-drift-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0; }
-          .ls-drift-set[aria-hidden="true"] { display: none; }
-          .ls-drift-set .ls-rev { width: auto; }
           .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
           .ls-rev-body, .ls-rev-fig, .ls-rev-fig::before, .ls-strip-dot { transition: none; }
         }
-        @media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
-          .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
         /* .is-static mirror (same rest-state law, togglable in code) */
-        .ls-reviews.is-static .ls-drift-pause { display: none; }
-        .ls-reviews.is-static .ls-drift-vp { width: auto; margin-inline: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
-        .ls-reviews.is-static .ls-drift-track { animation: none !important; display: block; width: auto; padding: 0; }
-        .ls-reviews.is-static .ls-drift-set { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0; }
-        .ls-reviews.is-static .ls-drift-set[aria-hidden="true"] { display: none; }
-        .ls-reviews.is-static .ls-drift-set .ls-rev { width: auto; }
         .ls-reviews.is-static .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
         .ls-reviews.is-static .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
         .ls-reviews.is-static .ls-rev-body, .ls-reviews.is-static .ls-rev-fig, .ls-reviews.is-static .ls-rev-fig::before, .ls-reviews.is-static .ls-strip-dot { transition: none; }
-        @media (min-width: 1024px) {
-          .ls-reviews.is-static .ls-drift-set { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
 
         /* ==== TYPE FLOORS - tuned per viewport (2026-07-14; wall rebuild 2026-07-16) ====
-           Drift/strip card quotes deliberately HOLD 18px at every width (no
+           Grid/strip card quotes deliberately HOLD 18px at every width (no
            19px 1280 bump: the spotlight carries the large voice). */
         .ls-reviews-eyebrow { font-size: 14px; }
         .ls-rev-quote { font-size: 18px; }
