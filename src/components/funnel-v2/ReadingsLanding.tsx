@@ -638,6 +638,9 @@ function HeroSection() {
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
             Behind every soul, a cosmos.
           </h1>
+          <p className="ls-hero-sub ls-reveal" style={revealDelay(0.16)}>
+            Every pet arrives under one particular sky. Enter their birthday and see theirs, planet by planet, and what it means about them.
+          </p>
         </div>
       </div>
     </section>
@@ -3206,6 +3209,7 @@ function BirthSkyJourney() {
                 }}
               >
                 <p className="ls-seal-lead ls-reveal">Just what you already know about them.</p>
+                <p className="ls-seal-deliv ls-reveal" style={revealDelay(0.04)}>Press the button and their chart is drawn from that day's sky. The first part of their reading opens right here, moments later.</p>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
                   <label htmlFor="seal-name">Their name <span>optional</span></label>
                   <input id="seal-name" type="text" autoComplete="off" autoCapitalize="words" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
@@ -3279,11 +3283,12 @@ function BirthSkyJourney() {
                     </span>
                   </div>
                   {fieldErrs.email && <p id="seal-email-err" className="ls-field-err" role="alert">{fieldErrs.email}</p>}
-                  <p id="seal-email-hint" className="ls-seal-hint">No account needed.</p>
+                  <p id="seal-email-hint" className="ls-seal-hint">No account needed. Only so their reading can find its way back to you if you step away.</p>
                 </div>
                 <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.30)}>
                   Set the chart <ArrowRight size={18} />
                 </button>
+                <p className="ls-seal-free ls-reveal" style={revealDelay(0.34)}>Free. No card, nothing to cancel.</p>
                 {message && status === "error" && <p className="ls-chart-message is-error" role="alert">{message}</p>}
               </form>
             )}
@@ -7448,10 +7453,25 @@ function CosmicStyles() {
         background: rgba(139,123,216,0.055);
       }
       .ls-seal-lead {
-        margin: 0 0 28px;
+        margin: 0 0 10px;
         color: #f5f2ff; font-family: "Fraunces", Georgia, serif; font-weight: 400;
         font-size: clamp(1.25rem, 1.8vw + 0.7rem, 1.6rem); line-height: 1.3;
         letter-spacing: -0.008em;
+      }
+      .ls-seal-deliv {
+        margin: 0 0 26px; max-width: 44ch;
+        color: rgba(245,242,255,0.8); font-family: "Newsreader", Georgia, serif;
+        font-size: 18px; line-height: 1.55;
+      }
+      .ls-seal-free {
+        margin: 12px 0 0; text-align: center;
+        color: rgba(245,242,255,0.82); font-family: "Newsreader", Georgia, serif;
+        font-size: 17.5px; line-height: 1.4;
+      }
+      .ls-hero-sub {
+        margin: 18px 0 0; max-width: 46ch;
+        color: rgba(245,242,255,0.86); font-family: "Newsreader", Georgia, serif;
+        font-size: clamp(1.1rem, 1.2vw + 0.85rem, 1.35rem); line-height: 1.55;
       }
       .ls-seal-field { display: block; width: 100%; margin-bottom: 26px; text-align: left; }
       .ls-seal-field label {
