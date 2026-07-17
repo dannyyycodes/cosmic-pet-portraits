@@ -3902,13 +3902,20 @@ function StickyBeginBar() {
     window.addEventListener(INTENT_EVENT, onIntent);
     return () => window.removeEventListener(INTENT_EVENT, onIntent);
   }, []);
-  // The peak (.ls-rs-close) only exists once a chart is computed; re-run the
-  // observer effect when the chart lands so the bar works on first visits too.
+  // The peak (.ls-rs-close) only exists once the gated lower funnel mounts,
+  // which happens on "ls-reading-revealed" (synthesis card takes the stage) —
+  // AFTER the chart computes. Re-run the observer effect on BOTH beats:
+  // chart-pet alone fired too early (the peak was not in the DOM yet), so the
+  // bar never attached on a first visit (regression QA 2026-07-17).
   const [chartTick, setChartTick] = useState(0);
   useEffect(() => {
-    const onPet = () => setChartTick((t) => t + 1);
-    window.addEventListener("ls-chart-pet", onPet);
-    return () => window.removeEventListener("ls-chart-pet", onPet);
+    const bump = () => setChartTick((t) => t + 1);
+    window.addEventListener("ls-chart-pet", bump);
+    window.addEventListener("ls-reading-revealed", bump);
+    return () => {
+      window.removeEventListener("ls-chart-pet", bump);
+      window.removeEventListener("ls-reading-revealed", bump);
+    };
   }, []);
   useEffect(() => {
     if (memorial || typeof window === "undefined" || !("IntersectionObserver" in window)) {
