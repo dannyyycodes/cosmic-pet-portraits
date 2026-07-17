@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SIGN_LINES } from "./signLines";
+import { capName } from "./freeDeck";
 import { THIRTEEN_ORDER } from "./ReadingsLanding";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -272,7 +273,9 @@ export function DossierCheckout(props: DossierCheckoutProps) {
     window.addEventListener("ls-chart-pet", onPet);
     return () => window.removeEventListener("ls-chart-pet", onPet);
   }, []);
-  const petName = pet?.name || "";
+  // Display form only (owners type "monty"; the checkout says "Monty"). The
+  // stored pet.name is never overwritten — capName touches the rendered string.
+  const petName = capName(pet?.name) || "";
   const bornLabel = pet?.date ? longBornLabel(pet.date) : "";
   const hasChart = !!pet?.date;
 

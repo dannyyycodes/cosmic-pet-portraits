@@ -81,6 +81,16 @@ function pickFrom<T>(arr: readonly T[], seed: string): T {
   return arr[hashSeed(seed) % arr.length];
 }
 
+/* The law line is the card's quotable close: it must read as plain speech.
+   Among a key's beats, prefer ones whose law carries no raw number
+   placeholder ("86 degrees out of Venus's reach" is machine talk); numbers
+   belong in the fact block. Falls back to the full pool when every law in
+   the key uses one. */
+function pickBeat<T extends { law: { d: string; m: string } }>(arr: readonly T[], seed: string): T {
+  const plain = arr.filter((b) => !/\{(SEP|DEG|PDEG|ORB)\}/.test(b.law.d + " " + b.law.m));
+  return pickFrom(plain.length ? plain : arr, seed);
+}
+
 /* ── Number formatting (all display degrees are integers) ───────────────── */
 
 const SMALL_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"] as const;
@@ -286,7 +296,7 @@ export function composeDeck(args: {
       const ppos = bodies[partner];
       if (!ppos) continue;
       candidates.push({
-        beat: pickFrom(pool, `${seed}|${planet}|${partner}|${asp.type}`),
+        beat: pickBeat(pool, `${seed}|${planet}|${partner}|${asp.type}`),
         bag: {
           DEG: String(Math.round(pos.degree)),
           SIGN: pos.sign,
@@ -309,7 +319,7 @@ export function composeDeck(args: {
       const pool = beatsFor(dignityKey(planet, dig.primary), species);
       if (pool.length) {
         candidates.push({
-          beat: pickFrom(pool, `${seed}|${planet}|${dig.primary}`),
+          beat: pickBeat(pool, `${seed}|${planet}|${dig.primary}`),
           bag: { DEG: String(Math.round(pos.degree)), SIGN: pos.sign },
           teaching: TEACHING[dig.primary as TeachingKey],
           orb: null,
@@ -324,7 +334,7 @@ export function composeDeck(args: {
       const pool = beatsFor(dignityKey(planet, "face"), species);
       if (pool.length) {
         candidates.push({
-          beat: pickFrom(pool, `${seed}|${planet}|face`),
+          beat: pickBeat(pool, `${seed}|${planet}|face`),
           bag: { DEG: String(Math.round(pos.degree)), SIGN: pos.sign },
           teaching: TEACHING.face,
           orb: null,

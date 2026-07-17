@@ -30,10 +30,21 @@ export type Subject = {
   Poss: string; // sentence-start possessive: "Monty's" | "Your dog's" | "Their"
 };
 
+/** Display form for an owner-typed pet name: first character uppercased, the
+ *  rest left untouched, so "monty" reads "Monty" while "DJ" and "McFly"
+ *  survive. Display only — the stored name is never overwritten. */
+export function capName(raw?: string | null): string {
+  const n = (raw || "").trim();
+  return n ? n.charAt(0).toUpperCase() + n.slice(1) : n;
+}
+
 export function makeSubject(name?: string | null, species?: string | null): Subject {
   const n = (name || "").trim();
   if (n) {
-    return { self: `a ${n}`, name: n, Name: n, poss: `${n}'s`, Poss: `${n}'s` };
+    // display form: first letter up (owners type "monty"; the reading says
+    // "Monty"). Only the first char is touched so "DJ" and "McFly" survive.
+    const d = n.charAt(0).toUpperCase() + n.slice(1);
+    return { self: `a ${d}`, name: d, Name: d, poss: `${d}'s`, Poss: `${d}'s` };
   }
   if (species === "dog") {
     return { self: "a side of your dog", name: "your dog", Name: "Your dog", poss: "your dog's", Poss: "Your dog's" };

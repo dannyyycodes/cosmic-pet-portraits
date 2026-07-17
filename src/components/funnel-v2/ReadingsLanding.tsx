@@ -31,6 +31,7 @@ import {
   TEASE,
   counterLabel,
   makeSubject,
+  capName,
   fill,
 } from "./freeDeck";
 import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
@@ -1826,11 +1827,11 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
           <div className="ls-dk-frame">
             <span className="ls-dk-frame-glow" aria-hidden="true" />
             <span className="ls-dk-frame-mask">
-              <img src={card.photoUrl} alt={card.name ? card.name : "Their photo"} draggable={false} />
+              <img src={card.photoUrl} alt={card.name ? capName(card.name) : "Their photo"} draggable={false} />
             </span>
             <span className="ls-dk-frame-ring" aria-hidden="true" />
           </div>
-          {card.name && <p className="ls-dk-keepname">{card.name}</p>}
+          {card.name && <p className="ls-dk-keepname">{capName(card.name)}</p>}
         </div>
         {footer}
       </>
@@ -2102,26 +2103,32 @@ const DECK_CSS = `
   /* the warm tell: the indented italic margin note, dash-anchored */
   .ls-dk-tell { position: relative; margin: 0; max-width: 30ch; padding-left: 36px; text-align: left; color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 4.2vw, 1.16rem); line-height: 1.5; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.68s forwards; }
   .ls-dk-tell-mark { position: absolute; left: 6px; top: 0.66em; width: 22px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #b9a5f0, transparent); }
-  /* ENGINE ANATOMY (the real astrology read): the numbers-led fact and the
-     one-line teaching sit above the hero beat; the quotable law takes the
-     indented italic slot. The denser card tightens the type one step and
-     the plate gives back a little height, same grammar throughout. */
+  /* ENGINE ANATOMY (the real astrology read) — three staged tiers so the card
+     reads with air, not as one grey column. TIER 1, the chart note: the
+     numbers-led fact + one-line teaching, quiet and compact, one unit. TIER 2,
+     the behaviour beat: the unmistakable hero, brightest and largest, off its
+     inset rule, air on both sides. TIER 3, the quotable law: the indented
+     italic close. Air lives in the margins BETWEEN tiers, never inside them, so
+     the eye lands on the hero first. The plate gives back a little height. */
   .ls-dk-fact { margin: 0; max-width: 38ch; text-align: left; color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: clamp(0.91rem, 3.55vw, 1.08rem); line-height: 1.42; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.44s forwards; }
   .ls-dk-teach { margin: 0; max-width: 38ch; text-align: left; color: rgba(185,165,240,0.85); font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(0.83rem, 3.25vw, 0.97rem); line-height: 1.4; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.56s forwards; }
-  .ls-dk-read.is-engine { gap: 9px; max-width: min(100%, 42ch); }
-  .ls-dk-read.is-engine .ls-dk-beats { max-width: 38ch; font-size: clamp(0.97rem, 3.85vw, 1.22rem); line-height: 1.4; animation-delay: 0.68s; }
+  .ls-dk-read.is-engine { gap: 0; max-width: min(100%, 42ch); }
+  /* tier 1 — the chart note, quieted so it never competes with the hero */
+  .ls-dk-read.is-engine .ls-dk-fact { color: rgba(236,236,242,0.74); font-size: clamp(0.88rem, 3.4vw, 1.04rem); line-height: 1.44; margin-bottom: 5px; }
+  .ls-dk-read.is-engine .ls-dk-teach { font-size: clamp(0.8rem, 3.05vw, 0.94rem); line-height: 1.42; margin-bottom: clamp(13px, 2.1svh, 22px); }
+  /* tier 2 — the behaviour hero: brighter + set apart, air held after it */
+  .ls-dk-read.is-engine .ls-dk-beats { max-width: 38ch; font-size: clamp(1.0rem, 3.95vw, 1.32rem); line-height: 1.44; margin-bottom: clamp(12px, 1.9svh, 20px); animation-delay: 0.68s; }
   .ls-dk-read.is-engine .ls-dk-beats::before { animation-delay: 0.7s; }
-  .ls-dk-read.is-engine .ls-dk-tell { max-width: 36ch; font-size: clamp(0.89rem, 3.45vw, 1.04rem); animation-delay: 0.84s; }
-  .ls-dk-pl.is-engine { gap: clamp(8px, 1.4svh, 14px); }
-  .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(172px, 23.5svh, 216px); }
+  /* tier 3 — the quotable law */
+  .ls-dk-read.is-engine .ls-dk-tell { max-width: 36ch; font-size: clamp(0.88rem, 3.4vw, 1.06rem); animation-delay: 0.84s; }
+  .ls-dk-pl.is-engine { gap: clamp(9px, 1.6svh, 16px); }
+  .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(150px, 19svh, 198px); }
   .ls-dk-pl.is-engine .ls-dk-orb { width: clamp(44px, 6.4svh, 56px); }
   .ls-dk-pl.is-engine .ls-dk-eyebrow { font-size: 11px; }
-  .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.22rem, 4.7vw, 1.58rem); }
-  .ls-dk-pl.is-engine .ls-dk-l1 { font-size: clamp(0.79rem, 3.1vw, 0.9rem); max-width: 27ch; line-height: 1.34; }
   .ls-dk-pl.is-engine .ls-dk-sealbar { padding-top: 10px; }
   .ls-dk-pl.is-engine .ls-dk-sealtext { font-size: 12.5px; }
   .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.32rem, 5.2vw, 1.7rem); }
-  .ls-dk-pl.is-engine .ls-dk-l1 { font-size: clamp(0.86rem, 3.4vw, 0.95rem); max-width: 30ch; }
+  .ls-dk-pl.is-engine .ls-dk-l1 { font-size: clamp(0.86rem, 3.4vw, 0.95rem); max-width: 30ch; line-height: 1.34; }
   /* the chart-signature revelation card shares the engine read grammar */
   .ls-dk-sig { gap: clamp(8px, 1.4svh, 13px); }
   .ls-dk-sig-eyebrow { animation-delay: 0.1s; }
@@ -2325,13 +2332,17 @@ const DECK_CSS = `
     .ls-dk-tell { font-size: 1.26rem; }
     .ls-dk-sealtext { font-size: 14.5px; }
     .ls-dk-eyebrow { font-size: 13px; }
-    /* the engine anatomy carries twice the reading, one type step down */
+    /* the engine anatomy has the room here: a quiet chart-note tier, a
+       full-size behaviour hero, a law that carries. Plate and reading balance
+       as a facing spread. */
     .ls-dk-fact { font-size: 1.12rem; }
     .ls-dk-teach { font-size: 1rem; }
-    .ls-dk-read.is-engine .ls-dk-beats { font-size: 1.3rem; }
-    .ls-dk-read.is-engine .ls-dk-tell { font-size: 1.1rem; }
-    .ls-dk-pl.is-engine { grid-template-columns: 260px minmax(0, 460px); }
-    .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(200px, 30svh, 250px); }
+    .ls-dk-read.is-engine .ls-dk-fact { font-size: 1.06rem; }
+    .ls-dk-read.is-engine .ls-dk-teach { font-size: 0.98rem; }
+    .ls-dk-read.is-engine .ls-dk-beats { font-size: 1.46rem; }
+    .ls-dk-read.is-engine .ls-dk-tell { font-size: 1.2rem; }
+    .ls-dk-pl.is-engine { grid-template-columns: 300px minmax(0, 430px); column-gap: 60px; align-items: center; }
+    .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(230px, 33svh, 290px); }
   }
 `;
 
@@ -3307,7 +3318,7 @@ function JourneyReveal({ chart, name, onBegin }: { chart: PetBirthChart | null; 
   const dom = chart?.dominantElement;
   return (
     <div className="ls-journey-reveal">
-      <span className="ls-journey-focus-label">{name ? `${name}'s sky` : "Their sky"}</span>
+      <span className="ls-journey-focus-label">{name ? `${capName(name)}'s sky` : "Their sky"}</span>
       <div className="ls-journey-reveal-grid">
         {sun?.sign && (
           <div className="ls-journey-reveal-item">
@@ -3866,8 +3877,64 @@ function FullReadingOpens() {
   }, [memorial, pet, reduce]);
 
   if (!pet) return null;
-  const nm = (pet.name || "").trim() || "them";
-  const nmPoss = (pet.name || "").trim() ? `${(pet.name || "").trim()}'s` : "their";
+  const nmRaw = (pet.name || "").trim();
+  const nm = capName(nmRaw) || "them";
+  const nmPoss = nmRaw ? `${capName(nmRaw)}'s` : "their";
+
+  // One door, rendered at one of three scales so the eight escalate instead of
+  // repeating: the flagship (Saturn), the facing pairs, the sealed wall. The
+  // anatomy and every word are identical across scales; only the composition
+  // changes. Both registers honoured (memorial drops idx + seals).
+  const door = (body: RestBody, i: number, tier: "hero" | "pair" | "wall") => (
+    <article
+      key={body.key}
+      className={`ls-rs-row ls-rs-door is-${tier} ls-rs-rv`}
+      style={{ ["--glow" as string]: body.glow, ["--rsi" as string]: i } as CSSProperties}
+      onPointerDown={(e) => {
+        const el = e.currentTarget;
+        el.classList.add("is-tried");
+        window.setTimeout(() => el.classList.remove("is-tried"), 700);
+      }}
+    >
+      <div className="ls-rs-stage">
+        <div className="ls-rs-halo" />
+        <div className={`ls-rs-disc is-${body.kind} rs-${body.key}`}>
+          {body.img ? (
+            <img
+              className="ls-rs-photo"
+              src={body.img}
+              alt={body.imgAlt ?? `The real ${body.name}`}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+            />
+          ) : (
+            <div className="ls-rs-glyphdisc" aria-hidden="true">
+              <AstroGlyph name={body.key} />
+            </div>
+          )}
+          <div className="ls-rs-term" />
+          <div className="ls-rs-eclipse" />
+          <div className="ls-rs-spec" />
+          <div className="ls-rs-rim" />
+          <div className="ls-rs-dust" aria-hidden="true" />
+        </div>
+        {!memorial && (
+          <div className="ls-rs-sealring" aria-hidden="true">
+            <span className="ls-rs-sealmark"><RestLock /></span>
+          </div>
+        )}
+      </div>
+      <div className="ls-rs-copy">
+        {!memorial && <span className="ls-rs-idx">{REST_IDX[i]} of eight</span>}
+        <div className="ls-rs-name">{body.name}</div>
+        <h3 className="ls-rs-placement">
+          {body.place.pre}<em>{body.place.em}</em>{body.place.post}
+        </h3>
+        <p className="ls-rs-hook">{memorial && body.memHook ? body.memHook : body.hook}</p>
+      </div>
+    </article>
+  );
 
   return (
     <section ref={rootRef} id="the-rest" className={`ls-rs ls-parallax-band${memorial ? " is-memorial" : ""}`} aria-labelledby="ls-rs-title">
@@ -3945,60 +4012,18 @@ function FullReadingOpens() {
           <p className="ls-rs-sealline ls-rs-rv"><RestLock />Sealed in the full reading</p>
         )}
 
-        {/* BEAT 2 — the eight as eclipsed worlds behind wax-sealed rings,
-            threaded on one meridian spine. Hooks verbatim, both registers. */}
+        {/* BEAT 2 — the eight as eclipsed worlds, composed as ONE crescendo so
+            they escalate rather than repeat: the flagship seal (Saturn) full and
+            large, then the facing pairs, then the faint outer worlds held as a
+            sealed wall. Every hook verbatim, both registers, anatomy unchanged. */}
         <div className="ls-rs-sky">
-          <div className="ls-rs-spine" aria-hidden="true" />
-          {REST_SKY.map((body, i) => (
-            <article
-              key={body.key}
-              className={`ls-rs-row ls-rs-rv${i % 2 === 1 ? " is-rev" : ""}`}
-              style={{ ["--glow" as string]: body.glow, ["--rsi" as string]: i } as CSSProperties}
-              onPointerDown={(e) => {
-                const el = e.currentTarget;
-                el.classList.add("is-tried");
-                window.setTimeout(() => el.classList.remove("is-tried"), 700);
-              }}
-            >
-              <div className="ls-rs-stage">
-                <div className="ls-rs-halo" />
-                <div className={`ls-rs-disc is-${body.kind} rs-${body.key}`}>
-                  {body.img ? (
-                    <img
-                      className="ls-rs-photo"
-                      src={body.img}
-                      alt={body.imgAlt ?? `The real ${body.name}`}
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                    />
-                  ) : (
-                    <div className="ls-rs-glyphdisc" aria-hidden="true">
-                      <AstroGlyph name={body.key} />
-                    </div>
-                  )}
-                  <div className="ls-rs-term" />
-                  <div className="ls-rs-eclipse" />
-                  <div className="ls-rs-spec" />
-                  <div className="ls-rs-rim" />
-                  <div className="ls-rs-dust" aria-hidden="true" />
-                </div>
-                {!memorial && (
-                  <div className="ls-rs-sealring" aria-hidden="true">
-                    <span className="ls-rs-sealmark"><RestLock /></span>
-                  </div>
-                )}
-              </div>
-              <div className="ls-rs-copy">
-                {!memorial && <span className="ls-rs-idx">{REST_IDX[i]} of eight</span>}
-                <div className="ls-rs-name">{body.name}</div>
-                <h3 className="ls-rs-placement">
-                  {body.place.pre}<em>{body.place.em}</em>{body.place.post}
-                </h3>
-                <p className="ls-rs-hook">{memorial && body.memHook ? body.memHook : body.hook}</p>
-              </div>
-            </article>
-          ))}
+          {door(REST_SKY[0], 0, "hero")}
+          <div className="ls-rs-pairs">
+            {[1, 2, 3, 4].map((i) => door(REST_SKY[i], i, "pair"))}
+          </div>
+          <div className="ls-rs-wall">
+            {[5, 6, 7].map((i) => door(REST_SKY[i], i, "wall"))}
+          </div>
         </div>
 
         {/* BEAT 3 — the rising as a horizon hinge: a half-risen disc on a
@@ -4111,10 +4136,53 @@ function FullReadingOpens() {
         .ls-rs-sealline { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto clamp(26px, 4vw, 40px); color: ${C.gold}; opacity: 0.9; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
         .ls-rs-sealline svg { width: 12px; height: 13px; flex: 0 0 auto; }
 
-        /* BEAT 2 - the sealed sky: eclipsed worlds on one meridian spine */
-        .ls-rs-sky { position: relative; max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(26px, 4.5vw, 44px); }
+        /* BEAT 2 - the sealed sky: eclipsed worlds staged as ONE crescendo.
+           Three scales (flagship / pair / wall) replace the eight equal rows so
+           the section reads as a descent into the still-sealed dark, not a
+           copy-paste. The disc machinery is scale-driven by --rs-disc, so each
+           tier just resizes the same world. */
+        .ls-rs-sky { position: relative; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(34px, 6vw, 52px); }
         .ls-rs-spine { display: none; }
-        .ls-rs-row { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+        .ls-rs-row { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+
+        /* the flagship — the first, heaviest seal, given the room to land */
+        .ls-rs-door.is-hero { gap: clamp(16px, 3.5vw, 22px); }
+        .ls-rs-door.is-hero .ls-rs-stage { --rs-disc: clamp(150px, 44vw, 196px); width: clamp(176px, 50vw, 224px); height: clamp(176px, 50vw, 224px); }
+        .ls-rs-door.is-hero .ls-rs-placement { font-size: clamp(1.9rem, 7.4vw, 2.35rem); }
+
+        /* the facing pairs — medium worlds, two across where width allows */
+        .ls-rs-pairs { display: grid; grid-template-columns: 1fr; gap: clamp(30px, 5vw, 44px); }
+        .ls-rs-door.is-pair .ls-rs-stage { --rs-disc: clamp(116px, 32vw, 132px); width: clamp(138px, 38vw, 156px); height: clamp(138px, 38vw, 156px); }
+        .ls-rs-door.is-pair .ls-rs-placement { font-size: clamp(1.6rem, 6vw, 1.95rem); }
+
+        /* the sealed wall — the faint outer worlds, smallest, held as a set. On
+           the phone they read as a shelf: a small sealed disc beside its name +
+           hook, left-aligned, plainly a different rhythm from the big centred
+           worlds above. On wider screens they shelve three-across (below). */
+        .ls-rs-wall { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 4vw, 34px); }
+        .ls-rs-door.is-wall { flex-direction: row; align-items: center; text-align: left; gap: clamp(16px, 4.5vw, 22px); }
+        .ls-rs-door.is-wall .ls-rs-stage { flex: 0 0 auto; --rs-disc: clamp(76px, 20vw, 96px); width: clamp(92px, 24vw, 114px); height: clamp(92px, 24vw, 114px); }
+        .ls-rs-door.is-wall .ls-rs-copy { flex: 1 1 auto; min-width: 0; }
+        .ls-rs-door.is-wall .ls-rs-name { justify-content: flex-start; }
+        .ls-rs-door.is-wall .ls-rs-placement { font-size: clamp(1.4rem, 5.4vw, 1.72rem); }
+        .ls-rs-door.is-wall .ls-rs-hook { margin: 0; text-align: left; }
+
+        /* pairs go two-across on the phone (they still hold a readable hook at
+           half width); the wall stays a single small band until there is room
+           to shelve all three across — so the phone reads flagship → pair rows
+           → wall, three distinct rhythms, not one stacked column */
+        @media (min-width: 384px) {
+          .ls-rs-pairs { grid-template-columns: repeat(2, 1fr); column-gap: clamp(16px, 4vw, 60px); row-gap: clamp(28px, 5vw, 52px); }
+          .ls-rs-door.is-pair .ls-rs-stage { --rs-disc: clamp(90px, 23vw, 120px); width: clamp(106px, 27vw, 142px); height: clamp(106px, 27vw, 142px); }
+          .ls-rs-door.is-pair .ls-rs-placement { font-size: clamp(1.32rem, 4.4vw, 1.7rem); }
+        }
+        @media (min-width: 600px) {
+          .ls-rs-wall { grid-template-columns: repeat(3, 1fr); column-gap: clamp(20px, 3vw, 40px); row-gap: clamp(30px, 4vw, 44px); }
+          .ls-rs-door.is-wall { flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+          .ls-rs-door.is-wall .ls-rs-stage { --rs-disc: clamp(96px, 15vw, 116px); width: clamp(114px, 18vw, 136px); height: clamp(114px, 18vw, 136px); }
+          .ls-rs-door.is-wall .ls-rs-name { justify-content: center; }
+          .ls-rs-door.is-wall .ls-rs-hook { margin: 0 auto; text-align: center; }
+        }
 
         /* the eclipsed world - dark behind its seal, one thin crescent of life */
         .ls-rs-stage {
@@ -4283,16 +4351,20 @@ function FullReadingOpens() {
 
         @media (min-width: 768px) {
           .ls-rs { padding: clamp(48px, 6svh, 104px) 24px clamp(48px, 6vw, 104px); }
-          .ls-rs-sky { gap: clamp(34px, 5vw, 52px); }
-          .ls-rs-spine { display: block; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-0.5px); background: linear-gradient(180deg, transparent, rgba(154,126,230,0.26) 6%, rgba(154,126,230,0.26) 94%, transparent); z-index: 0; }
-          .ls-rs-row { flex-direction: row; text-align: left; gap: clamp(30px, 5vw, 56px); }
-          .ls-rs-row::before { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: rgba(154,126,230,0.5); }
-          .ls-rs-row.is-rev { flex-direction: row-reverse; text-align: right; }
-          .ls-rs-name { justify-content: flex-start; }
-          .ls-rs-row.is-rev .ls-rs-name { justify-content: flex-end; }
-          .ls-rs-hook { margin: 0; }
-          .ls-rs-row.is-rev .ls-rs-hook { margin-left: auto; }
-          .ls-rs-stage { --rs-disc: clamp(120px, 30vw, 150px); width: clamp(140px, 34vw, 176px); height: clamp(140px, 34vw, 176px); }
+          .ls-rs-sky { gap: clamp(52px, 7vw, 80px); }
+          /* the flagship becomes a full-bleed facing row: the world large on
+             one side, its copy set beside it */
+          .ls-rs-door.is-hero { flex-direction: row; align-items: center; text-align: left; gap: clamp(40px, 5vw, 68px); }
+          .ls-rs-door.is-hero .ls-rs-stage { --rs-disc: clamp(196px, 24vw, 244px); width: clamp(228px, 28vw, 286px); height: clamp(228px, 28vw, 286px); }
+          .ls-rs-door.is-hero .ls-rs-name { justify-content: flex-start; }
+          .ls-rs-door.is-hero .ls-rs-placement { font-size: clamp(2.4rem, 4.4vw, 3.1rem); }
+          .ls-rs-door.is-hero .ls-rs-hook { margin: 0; max-width: 40ch; }
+          /* pair + wall discs settle to their desktop scale */
+          .ls-rs-door.is-pair .ls-rs-stage { --rs-disc: clamp(120px, 13vw, 146px); width: clamp(140px, 15vw, 170px); height: clamp(140px, 15vw, 170px); }
+          .ls-rs-door.is-pair .ls-rs-placement { font-size: clamp(1.65rem, 2.6vw, 2rem); }
+          .ls-rs-door.is-wall .ls-rs-stage { --rs-disc: clamp(96px, 9.5vw, 118px); width: clamp(114px, 11vw, 138px); height: clamp(114px, 11vw, 138px); }
+          .ls-rs-door.is-wall .ls-rs-placement { font-size: clamp(1.4rem, 2vw, 1.6rem); }
+          .ls-rs-hook { margin: 0 auto; }
           .ls-rs-led-grp.is-lit .ls-rs-led-disc { width: 56px; height: 56px; }
           .ls-rs-led-grp.is-dark .ls-rs-led-disc { width: 44px; height: 44px; }
           .ls-rs-ring-orb { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
@@ -4624,7 +4696,7 @@ function ValueMoments() {
 
   if (memorialIntent) return null;
 
-  const petName = (pet?.name || "").trim();
+  const petName = capName(pet?.name);
   const objLabel = `The full reading, kept as one keepsake with ${petName ? `${petName}'s` : "their"} photo at the centre`;
 
   return (

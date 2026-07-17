@@ -113,15 +113,18 @@ export function ReadingsNav() {
           left: 0,
           right: 0,
           top: 0,
-          height: 96,
+          height: 120,
           pointerEvents: "none",
           background: scrolled
-            ? "linear-gradient(180deg, rgba(11,9,17,0.82) 0%, rgba(11,9,17,0.42) 52%, rgba(11,9,17,0) 100%)"
-            : "linear-gradient(180deg, rgba(11,9,17,0.55) 0%, rgba(11,9,17,0.22) 52%, rgba(11,9,17,0) 100%)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-          maskImage: "linear-gradient(180deg, #000 0%, #000 42%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(180deg, #000 0%, #000 42%, transparent 100%)",
+            ? "linear-gradient(180deg, rgba(11,9,17,0.94) 0%, rgba(11,9,17,0.78) 38%, rgba(11,9,17,0.4) 64%, rgba(11,9,17,0) 100%)"
+            : "linear-gradient(180deg, rgba(11,9,17,0.7) 0%, rgba(11,9,17,0.4) 44%, rgba(11,9,17,0.14) 70%, rgba(11,9,17,0) 100%)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          // the solid mask now spans the full 64px nav band before it fades, so
+          // a heading scrolling under the bar recedes behind glass instead of
+          // colliding with the nav text — still a soft vignette, never a hard bar
+          maskImage: "linear-gradient(180deg, #000 0%, #000 56%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(180deg, #000 0%, #000 56%, transparent 100%)",
           transition: "background 0.3s ease",
         }}
       />
