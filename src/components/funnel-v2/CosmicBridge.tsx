@@ -1744,7 +1744,6 @@ export function CosmicBridge() {
         {/* ── Beat 4 · release: two lines, straight into the form ── */}
         <section className="c2-beat c2-b4">
           <span className="c2-node" data-node data-for="c2-st-set" aria-hidden="true" />
-          <p className="c2-lm c2-rv">It opens with what you already know about them.</p>
           <p className="c2-peak c2-peak-v c2-rv" id="c2-st-set">Set the chart.</p>
         </section>
       </div>
