@@ -627,7 +627,7 @@ function Hero({ fmt, prices, onCta, heroRef }: {
         <div className="gp-hero-photo">
           <img
             src="/gift-hero-v2.webp"
-            alt="A couple giving a Little Souls gift card, their golden retriever beside them"
+            alt="A woman opening a Little Souls gift beside her partner, their tabby cat curled on her lap"
             width={1536}
             height={1024}
             loading="eager"
@@ -752,6 +752,29 @@ function MessageBeats() {
         <p className="gp-rev gp-beat" key={b}>{b}</p>
       ))}
       <p className="gp-rev gp-beat gp-beat-last">And you gave it.</p>
+    </section>
+  );
+}
+
+/* ── SCENES — the three people you'd give this to, pets present.
+   Recognition beat: the buyer sees exactly who they're buying for
+   right before the funnel. Three labels, zero body copy. ── */
+function ScenesBand() {
+  const scenes = [
+    { src: '/gift-scene-family.webp', label: 'For a parent.', alt: 'A daughter hugging her mum at the kitchen table, their golden retriever resting its chin on her knee' },
+    { src: '/gift-hero-v2.webp', label: 'For a partner.', alt: 'A woman opening a Little Souls gift beside her partner, their tabby cat curled on her lap' },
+    { src: '/gift-scene-friend.webp', label: 'For a friend.', alt: 'Two friends on a doorstep at dusk, one holding a wrapped gift, their border collie looking up at it' },
+  ];
+  return (
+    <section className="gp-wrap gp-scenes" aria-label="Who to gift it to">
+      <div className="gp-scenes-grid">
+        {scenes.map((s, i) => (
+          <figure className="gp-rev gp-scene" style={{ transitionDelay: `${i * 90}ms` }} key={s.label}>
+            <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={512} height={341} />
+            <figcaption>{s.label}</figcaption>
+          </figure>
+        ))}
+      </div>
     </section>
   );
 }
@@ -1127,6 +1150,7 @@ export default function GiftPurchase() {
         <GifterProof />
 
         <MessageBeats />
+        <ScenesBand />
 
         <hr className="gp-hr" />
 
@@ -1906,6 +1930,20 @@ const GP_CSS = `
   transition-delay:var(--d,0ms)}
 .gp-beat.is-in{filter:none}
 .gp-beat-last{font-style:italic;color:var(--vio-pale);text-shadow:0 0 28px rgba(167,139,250,.4)}
+
+/* scenes — three ways to give it */
+.gp-scenes{padding-top:0;padding-bottom:clamp(56px,9vw,110px)}
+.gp-scenes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);max-width:1120px;margin:0 auto}
+.gp-scene{margin:0;position:relative;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(185,165,240,.14);background:rgba(124,92,214,.06);
+  box-shadow:0 18px 44px rgba(8,5,18,.5);
+  transition:transform .45s var(--ease-settle),box-shadow .45s var(--ease-settle)}
+@media (hover:hover){.gp-scene:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(124,92,214,.28)}}
+.gp-scene img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;display:block}
+.gp-scene figcaption{position:absolute;left:0;right:0;bottom:0;padding:34px 16px 12px;
+  font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:clamp(16px,1.5vw,19px);color:#fff;
+  background:linear-gradient(180deg,transparent,rgba(8,5,18,.78));text-shadow:0 1px 10px rgba(8,5,18,.8)}
+@media (max-width:760px){.gp-scenes-grid{grid-template-columns:1fr;max-width:440px}}
 
 /* rigor */
 .gp-rigor{text-align:center}
