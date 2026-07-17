@@ -551,6 +551,10 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
     // (its ratio stays 0), stranding the node at opacity 0. With the sky-high
     // top margin, "already scrolled past" IS an intersection, so the latch
     // always lands no matter how the reader travels.
+    // Bottom margin is POSITIVE (pre-warm): a node starts fading in ~10% of
+    // a viewport before it enters, so even a fast flick-scroller meets copy
+    // that is already visible, never an empty screen (NN/g scroll-triggered
+    // text finding). threshold 0 = the first pixel is enough.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -560,7 +564,7 @@ function useScrollReveal(pageRef: RefObject<HTMLElement>, revealed = false) {
           }
         });
       },
-      { rootMargin: "20000px 0px -12% 0px", threshold: 0.12 },
+      { rootMargin: "20000px 0px 10% 0px", threshold: 0 },
     );
     nodes.forEach((node) => io.observe(node));
     return () => io.disconnect();
@@ -2753,9 +2757,9 @@ function BirthSkyJourney() {
           }
         });
       },
-      // Deeper bottom margin: the empty shell is SEEN for a beat before its
-      // content seats into it — the visible wait is the telegraph.
-      { rootMargin: "0px 0px -14% 0px", threshold: 0.2 },
+      // A shallow bottom margin keeps one short beat of the empty-shell
+      // telegraph without holding the copy hostage (near-instant reveals).
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.08 },
     );
     rows.forEach((r) => io.observe(r));
     return () => io.disconnect();
@@ -5908,12 +5912,16 @@ function CosmicStyles() {
       .ls-parallax-band {
         isolation: isolate;
       }
+      /* Near-instant reveal (NN/g: scroll-triggered text animations delay
+         readers). Fast fade so the words are legible almost immediately;
+         the rise runs a touch longer than the fade to keep the composed
+         feel without ever making anyone wait for copy. */
       .ls-reveal {
         opacity: 0;
-        transform: translate3d(0, 30px, 0);
+        transform: translate3d(0, 12px, 0);
         transition:
-          opacity 0.85s cubic-bezier(0.22, 0.7, 0.2, 1),
-          transform 0.85s cubic-bezier(0.22, 0.7, 0.2, 1);
+          opacity 0.32s ease-out,
+          transform 0.5s cubic-bezier(0.22, 0.7, 0.2, 1);
         transition-delay: var(--ls-delay, 0s);
         will-change: opacity, transform;
       }
@@ -5934,12 +5942,12 @@ function CosmicStyles() {
         margin: 0;
         max-width: 40ch;
         opacity: 0;
-        transform: translate3d(0, 20px, 0);
-        filter: blur(8px);
+        transform: translate3d(0, 10px, 0);
+        filter: blur(5px);
         transition:
-          opacity 0.9s cubic-bezier(0.22, 0.7, 0.2, 1),
-          transform 0.9s cubic-bezier(0.22, 0.7, 0.2, 1),
-          filter 0.9s cubic-bezier(0.22, 0.7, 0.2, 1);
+          opacity 0.38s ease-out,
+          transform 0.55s cubic-bezier(0.22, 0.7, 0.2, 1),
+          filter 0.45s cubic-bezier(0.22, 0.7, 0.2, 1);
         transition-delay: var(--ls-delay, 0s);
         will-change: opacity, transform, filter;
         color: ${C.creamDim};
@@ -9054,7 +9062,9 @@ function CosmicStyles() {
 }
 
 function revealDelay(seconds: number): CSSProperties {
-  return { ["--ls-delay" as string]: `${seconds}s` } as CSSProperties;
+  // Stagger scaled down 40%: the relative choreography survives, the
+  // absolute wait for copy does not (reveals must feel near-instant).
+  return { ["--ls-delay" as string]: `${(seconds * 0.6).toFixed(3)}s` } as CSSProperties;
 }
 
 const heroLeadStyle = {
