@@ -38,7 +38,7 @@ import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
 import { composeDeck } from "./deckCompose";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
-import { useNarration } from "@/components/narration/useNarration";
+import { useNarration, prewarmNarration } from "@/components/narration/useNarration";
 import { NarrationControl } from "@/components/narration/NarrationControl";
 import { NarratedWords, narratedLineClass } from "@/components/narration/NarratedWords";
 import type { NarrationBlock } from "@/components/narration/types";
@@ -1765,7 +1765,7 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
   const nar = useNarration(blocks);
   const lc = (id: string, base: string) => narratedLineClass(id, nar, base);
   const control = blocks.length > 0 ? (
-    <NarrationControl nar={nar} idleLabel="Hear it read to you" playingLabel="Reading aloud" />
+    <NarrationControl nar={nar} idleLabel="Hear it read to you" playingLabel="Reading aloud" failedLabel="Try the voice again" />
   ) : null;
 
   // The card-anchored control row: one grouped cluster under the reading, in a
@@ -2400,6 +2400,18 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart
     },
     [last],
   );
+
+  // Warm the voice ahead of the tap: card 1's narration as soon as the deck
+  // mounts, then each next card's as the current one opens. The server
+  // content-hashes and caches every segment, so this costs one cheap request
+  // per card and lets play start almost instantly instead of after a long
+  // generation wait.
+  useEffect(() => {
+    const now = cards[active];
+    if (now) prewarmNarration(deckCardBlocks(now));
+    const next = cards[active + 1];
+    if (next) prewarmNarration(deckCardBlocks(next));
+  }, [cards, active]);
 
   // Idle nudge: after 4s without input, one quiet word invites the next card.
   useEffect(() => {
