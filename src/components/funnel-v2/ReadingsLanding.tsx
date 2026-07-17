@@ -34,6 +34,7 @@ import {
   fill,
 } from "./freeDeck";
 import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
+import { composeDeck } from "./deckCompose";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
 import { useNarration } from "@/components/narration/useNarration";
@@ -1493,9 +1494,16 @@ const TEASE_GLYPH: Record<string, string> = {
 
 type DeckCard =
   | { kind: "keepsake"; photoUrl: string; name: string | null }
-  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; essence: string; l1: string; beats: string; tell: string; sealed: string; count: number }
+  /* A planet card carries EITHER the engine anatomy (fact + teaching + beats
+     + law, composed from the real chart by deckCompose) OR the legacy static
+     anatomy (beats + tell) as the always-safe fallback. beats holds the hero
+     line in both shapes; sealed holds the drawer line in both shapes. */
+  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; essence: string; l1: string; fact?: string; teaching?: string; beats: string; tell?: string; law?: string; sealed: string; count: number }
   | { kind: "element"; counts: Record<DeckElement, number>; byElement: Record<DeckElement, DeckPlanet[]>; dominant: DeckElement; l1: string; beats: string; tell: string }
   | { kind: "synthesis"; lead: string; wants: string; needs: string; close: string }
+  /* The chart-signature revelation card: the engine's top storyline that no
+     planet card has already told, rendered from the signature templates. */
+  | { kind: "signature"; fact: string; meaning: string; behaviour: string; law: string }
   | { kind: "tease"; copy: TeaseCopy };
 
 // The planet-in-sign hook is one sentence: "Monty's Sun sits in Cancer, the
@@ -1515,11 +1523,25 @@ function buildDeck(
   memorial: boolean,
   subject: { name?: string | null; species?: string | null },
   keepsake?: { photoUrl: string; name: string | null } | null,
+  birthDate?: string | null,
 ): DeckCard[] {
   const voice = memorial ? ("m" as const) : ("d" as const);
   const S = makeSubject(subject.name, subject.species);
   const cards: DeckCard[] = [];
   let count = 0;
+
+  // The real astrology engine + the gated pools. Every composed card is
+  // guard-checked inside composeDeck (no placeholder ever renders); any
+  // planet it cannot compose stays undefined and that card falls back to
+  // the legacy static entry below. The seed keeps pool picks stable per
+  // pet and different across pets.
+  const composed = composeDeck({
+    raw: chart,
+    voice,
+    species: subject.species,
+    subject: S,
+    seed: `${(subject.name || "").trim().toLowerCase()}|${birthDate || ""}`,
+  });
 
   // If they added a photo, the reading opens on them: their own face, framed in
   // violet, the moment the sky finishes computing. No photo = this card is never
@@ -1534,11 +1556,33 @@ function buildDeck(
     const entry = sign ? DECK_READS[key][sign] : undefined;
     if (!sign || !entry) continue;
     count += 1;
+    const deg = typeof body?.degree === "number" ? Math.round(body.degree) : null;
+    const engine = composed.planets[key];
+    if (engine && deg != null) {
+      // ENGINE ANATOMY: l1 (degree woven in), fact, teaching, behaviour
+      // beat, law, seal keyed to a real sealed body.
+      cards.push({
+        kind: "planet",
+        key,
+        sign,
+        deg,
+        essence: PLANET_ESSENCE[key],
+        l1: fill(DECK_L1[key](sign), S).replace(`sits in ${sign}`, `sits at ${deg} ${deg === 1 ? "degree" : "degrees"} of ${sign}`),
+        fact: engine.fact,
+        teaching: engine.teaching,
+        beats: engine.behaviour,
+        law: engine.law,
+        sealed: engine.seal,
+        count,
+      });
+      continue;
+    }
+    // LEGACY ANATOMY: the static freeDeck entry, unchanged.
     cards.push({
       kind: "planet",
       key,
       sign,
-      deg: typeof body?.degree === "number" ? Math.round(body.degree) : null,
+      deg,
       essence: PLANET_ESSENCE[key],
       l1: fill(DECK_L1[key](sign), S),
       beats: fill(entry.beats[voice], S),
@@ -1573,16 +1617,30 @@ function buildDeck(
     });
   }
 
-  const sunSign = chart.sun?.sign;
-  const moonSign = chart.moon?.sign;
-  if (sunSign && moonSign && SUN_WANTS[sunSign] && MOON_NEEDS[moonSign]) {
+  // The revelation card: the chart signature (the engine's strongest
+  // storyline not already told by a planet card). When the engine cannot
+  // compose one (missing degrees, pool gap), the legacy Sun-wants /
+  // Moon-needs synthesis holds the slot so the deck never loses its turn.
+  if (composed.signature) {
     cards.push({
-      kind: "synthesis",
-      lead: SYNTH_LEAD,
-      wants: `${signArticle(sunSign)} ${sunSign} Sun wants ${SUN_WANTS[sunSign]}.`,
-      needs: `${signArticle(moonSign)} ${moonSign} Moon needs ${MOON_NEEDS[moonSign]}.`,
-      close: fill(SYNTH_CLOSE[voice], S),
+      kind: "signature",
+      fact: composed.signature.fact,
+      meaning: composed.signature.meaning,
+      behaviour: composed.signature.behaviour,
+      law: composed.signature.law,
     });
+  } else {
+    const sunSign = chart.sun?.sign;
+    const moonSign = chart.moon?.sign;
+    if (sunSign && moonSign && SUN_WANTS[sunSign] && MOON_NEEDS[moonSign]) {
+      cards.push({
+        kind: "synthesis",
+        lead: SYNTH_LEAD,
+        wants: `${signArticle(sunSign)} ${sunSign} Sun wants ${SUN_WANTS[sunSign]}.`,
+        needs: `${signArticle(moonSign)} ${moonSign} Moon needs ${MOON_NEEDS[moonSign]}.`,
+        close: fill(SYNTH_CLOSE[voice], S),
+      });
+    }
   }
 
   const teaseCopy = TEASE[voice];
@@ -1677,11 +1735,23 @@ function deckCardBlocks(card: DeckCard): NarrationBlock[] {
     text && text.trim() ? [{ id, text }] : [];
   switch (card.kind) {
     case "planet":
-      return [...mk("l1", card.l1), ...mk("beats", card.beats), ...mk("tell", card.tell), ...mk("sealed", card.sealed)];
+      // Engine anatomy reads l1 -> fact -> teaching -> beat -> law -> seal;
+      // the legacy anatomy (no fact/teaching/law) keeps its original order.
+      return [
+        ...mk("l1", card.l1),
+        ...mk("fact", card.fact),
+        ...mk("teaching", card.teaching),
+        ...mk("beats", card.beats),
+        ...mk("tell", card.tell),
+        ...mk("law", card.law),
+        ...mk("sealed", card.sealed),
+      ];
     case "element":
       return [...mk("l1", card.l1), ...mk("beats", card.beats), ...mk("tell", card.tell)];
     case "synthesis":
       return [...mk("lead", card.lead), ...mk("wants", card.wants), ...mk("needs", card.needs), ...mk("close", card.close)];
+    case "signature":
+      return [...mk("fact", card.fact), ...mk("meaning", card.meaning), ...mk("behaviour", card.behaviour), ...mk("law", card.law)];
     case "tease":
       return [...mk("keep", card.copy.keep), ...mk("deeper", card.copy.deeper), ...mk("rising", card.copy.rising), ...mk("bridge", card.copy.bridge)];
     default:
@@ -1776,7 +1846,7 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
     // labelled sealed-drawer footer bar. Copy verbatim; block ids unchanged.
     const angle = card.deg != null ? (card.deg / 30) * 360 : 0;
     return wrap(
-      <div className="ls-dk-inner ls-dk-pl">
+      <div className={`ls-dk-inner ls-dk-pl${card.fact ? " is-engine" : ""}`}>
         <div className="ls-dk-plate">
           <DeckWheel deg={card.deg} />
           <div className="ls-dk-orbit" style={{ "--dk-angle": `${angle.toFixed(2)}deg` } as React.CSSProperties} aria-hidden="true">
@@ -1804,9 +1874,20 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
             <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
           </div>
         </div>
-        <div className="ls-dk-read">
+        <div className={`ls-dk-read${card.fact ? " is-engine" : ""}`}>
+          {card.fact && (
+            <p className={lc("fact", "ls-dk-fact")}><NarratedWords blockId="fact" text={card.fact} nar={nar} /></p>
+          )}
+          {card.teaching && (
+            <p className={lc("teaching", "ls-dk-teach")}><NarratedWords blockId="teaching" text={card.teaching} nar={nar} /></p>
+          )}
           <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
-          <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+          {card.tell && (
+            <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+          )}
+          {card.law && (
+            <p className={lc("law", "ls-dk-tell ls-dk-law")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="law" text={card.law} nar={nar} /></p>
+          )}
         </div>
         <div className="ls-dk-sealbar">
           <SealMark />
@@ -1883,6 +1964,32 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
           <p className={lc("needs", "ls-dk-syn ls-dk-syn2")}><AstroGlyph name="moon" className="ls-dk-syn-g" /><NarratedWords blockId="needs" text={card.needs} nar={nar} /></p>
         </div>
         <p className={lc("close", "ls-dk-close")}><NarratedWords blockId="close" text={card.close} nar={nar} /></p>
+      </div>,
+    );
+  }
+
+  if (card.kind === "signature") {
+    // THE CHART SIGNATURE (the revelation card): the engine's strongest
+    // storyline, told in the same reading grammar as the planet plates:
+    // the numbers-led fact, the plain teaching of the mechanism, the
+    // behaviour hero beat off the inset rule, the quotable law as the
+    // indented italic note. The conjunction mark keeps the slot's geometry.
+    return wrap(
+      <div className="ls-dk-inner ls-dk-sy ls-dk-sig">
+        <span className="ls-dk-conj" aria-hidden="true">
+          <svg viewBox="0 0 64 48" width="64" height="48" fill="none" stroke="#b9a5f0" strokeWidth="1.4">
+            <circle className="ls-dk-conj-a" cx="26" cy="16" r="10" />
+            <circle className="ls-dk-conj-b" cx="38" cy="16" r="10" fill="rgba(185,165,240,0.22)" />
+            <line className="ls-dk-conj-stem" x1="32" y1="29" x2="32" y2="47" strokeWidth="1" stroke="rgba(154,126,230,0.5)" />
+          </svg>
+        </span>
+        <p className="ls-dk-eyebrow ls-dk-sig-eyebrow">The chart signature</p>
+        <div className="ls-dk-read is-engine">
+          <p className={lc("fact", "ls-dk-fact")}><NarratedWords blockId="fact" text={card.fact} nar={nar} /></p>
+          <p className={lc("meaning", "ls-dk-teach")}><NarratedWords blockId="meaning" text={card.meaning} nar={nar} /></p>
+          <p className={lc("behaviour", "ls-dk-beats")}><NarratedWords blockId="behaviour" text={card.behaviour} nar={nar} /></p>
+          <p className={lc("law", "ls-dk-tell ls-dk-law")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="law" text={card.law} nar={nar} /></p>
+        </div>
       </div>,
     );
   }
@@ -1995,6 +2102,29 @@ const DECK_CSS = `
   /* the warm tell: the indented italic margin note, dash-anchored */
   .ls-dk-tell { position: relative; margin: 0; max-width: 30ch; padding-left: 36px; text-align: left; color: #cfc0f4; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 4.2vw, 1.16rem); line-height: 1.5; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.68s forwards; }
   .ls-dk-tell-mark { position: absolute; left: 6px; top: 0.66em; width: 22px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, #b9a5f0, transparent); }
+  /* ENGINE ANATOMY (the real astrology read): the numbers-led fact and the
+     one-line teaching sit above the hero beat; the quotable law takes the
+     indented italic slot. The denser card tightens the type one step and
+     the plate gives back a little height, same grammar throughout. */
+  .ls-dk-fact { margin: 0; max-width: 38ch; text-align: left; color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: clamp(0.91rem, 3.55vw, 1.08rem); line-height: 1.42; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.44s forwards; }
+  .ls-dk-teach { margin: 0; max-width: 38ch; text-align: left; color: rgba(185,165,240,0.85); font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(0.83rem, 3.25vw, 0.97rem); line-height: 1.4; opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) 0.56s forwards; }
+  .ls-dk-read.is-engine { gap: 9px; max-width: min(100%, 42ch); }
+  .ls-dk-read.is-engine .ls-dk-beats { max-width: 38ch; font-size: clamp(0.97rem, 3.85vw, 1.22rem); line-height: 1.4; animation-delay: 0.68s; }
+  .ls-dk-read.is-engine .ls-dk-beats::before { animation-delay: 0.7s; }
+  .ls-dk-read.is-engine .ls-dk-tell { max-width: 36ch; font-size: clamp(0.89rem, 3.45vw, 1.04rem); animation-delay: 0.84s; }
+  .ls-dk-pl.is-engine { gap: clamp(8px, 1.4svh, 14px); }
+  .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(172px, 23.5svh, 216px); }
+  .ls-dk-pl.is-engine .ls-dk-orb { width: clamp(44px, 6.4svh, 56px); }
+  .ls-dk-pl.is-engine .ls-dk-eyebrow { font-size: 11px; }
+  .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.22rem, 4.7vw, 1.58rem); }
+  .ls-dk-pl.is-engine .ls-dk-l1 { font-size: clamp(0.79rem, 3.1vw, 0.9rem); max-width: 27ch; line-height: 1.34; }
+  .ls-dk-pl.is-engine .ls-dk-sealbar { padding-top: 10px; }
+  .ls-dk-pl.is-engine .ls-dk-sealtext { font-size: 12.5px; }
+  .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.32rem, 5.2vw, 1.7rem); }
+  .ls-dk-pl.is-engine .ls-dk-l1 { font-size: clamp(0.86rem, 3.4vw, 0.95rem); max-width: 30ch; }
+  /* the chart-signature revelation card shares the engine read grammar */
+  .ls-dk-sig { gap: clamp(8px, 1.4svh, 13px); }
+  .ls-dk-sig-eyebrow { animation-delay: 0.1s; }
   /* SEAL stratum: the labelled sealed drawer. Hairline top, lock left, the
      sealed line, the destination tag right. A drawer with a destination. */
   .ls-dk-sealbar { position: relative; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; width: min(100%, 420px); padding-top: 13px; margin-inline: auto; text-align: left; animation: none; opacity: 1; }
@@ -2145,6 +2275,7 @@ const DECK_CSS = `
   .ls-dk.is-static .ls-dk-inner { margin: 0 auto; }
   .ls-dk.is-static .ls-dk-inner > *, .ls-dk.is-static .ls-dk-ledger li, .ls-dk.is-static .ls-dk-lockup > *,
   .ls-dk.is-static .ls-dk-beats, .ls-dk.is-static .ls-dk-tell,
+  .ls-dk.is-static .ls-dk-fact, .ls-dk.is-static .ls-dk-teach,
   .ls-dk.is-static .ls-dk-sealbar > svg, .ls-dk.is-static .ls-dk-sealtext, .ls-dk.is-static .ls-dk-sealtag,
   .ls-dk.is-static .ls-dk-syn, .ls-dk.is-static .ls-dk-syn2 { opacity: 1 !important; animation: none !important; }
   .ls-dk.is-static .ls-dk-chip, .ls-dk.is-static .ls-dk-orb img,
@@ -2164,6 +2295,7 @@ const DECK_CSS = `
   @media (prefers-reduced-motion: reduce) {
     .ls-dk-inner > *, .ls-dk-ledger li, .ls-dk-lockup > *,
     .ls-dk-beats, .ls-dk-tell,
+    .ls-dk-fact, .ls-dk-teach,
     .ls-dk-sealbar > svg, .ls-dk-sealtext, .ls-dk-sealtag,
     .ls-dk-syn, .ls-dk-syn2 { opacity: 1 !important; animation: none !important; }
     .ls-dk-chip, .ls-dk-orb img,
@@ -2193,10 +2325,17 @@ const DECK_CSS = `
     .ls-dk-tell { font-size: 1.26rem; }
     .ls-dk-sealtext { font-size: 14.5px; }
     .ls-dk-eyebrow { font-size: 13px; }
+    /* the engine anatomy carries twice the reading, one type step down */
+    .ls-dk-fact { font-size: 1.12rem; }
+    .ls-dk-teach { font-size: 1rem; }
+    .ls-dk-read.is-engine .ls-dk-beats { font-size: 1.3rem; }
+    .ls-dk-read.is-engine .ls-dk-tell { font-size: 1.1rem; }
+    .ls-dk-pl.is-engine { grid-template-columns: 260px minmax(0, 460px); }
+    .ls-dk-pl.is-engine .ls-dk-plate { width: clamp(200px, 30svh, 250px); }
   }
 `;
 
-function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null }) {
+function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register swaps every card to its remembered-tense twin.
@@ -2210,7 +2349,7 @@ function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthC
   const reduced = reduce || (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   const keepsake = useMemo(() => (photoUrl ? { photoUrl, name: name ?? null } : null), [photoUrl, name]);
-  const cards = useMemo(() => buildDeck(chart, memorial, { name, species }, keepsake), [chart, memorial, name, species, keepsake]);
+  const cards = useMemo(() => buildDeck(chart, memorial, { name, species }, keepsake, birthDate), [chart, memorial, name, species, keepsake, birthDate]);
   const last = cards.length - 1;
   const [active, setActive] = useState(0);
   const activeRef = useRef(0);
@@ -2220,7 +2359,7 @@ function FreeDeck({ chart, reduce, photoUrl, name, species }: { chart: PetBirthC
   // Reading-revealed gate: fire once when the synthesis card takes the stage
   // (or immediately in the static column), so the lower funnel is mounted
   // and #the-rest exists before the tease CTA is tapped.
-  const synthIndex = useMemo(() => cards.findIndex((c) => c.kind === "synthesis"), [cards]);
+  const synthIndex = useMemo(() => cards.findIndex((c) => c.kind === "synthesis" || c.kind === "signature"), [cards]);
   const firedReveal = useRef(false);
   useEffect(() => {
     if (firedReveal.current) return;
@@ -2697,7 +2836,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} />
+        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} birthDate={date} />
       ) : (
         <>
           <div className="ls-stage">
