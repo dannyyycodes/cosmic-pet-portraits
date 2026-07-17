@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { getUtm, getLandingAvenue } from '@/lib/utm';
+import { currentRegister, viewportClass, trafficSource } from '@/lib/funnelSpine';
 
 // Generate or retrieve session ID
 const getSessionId = () => {
@@ -62,6 +63,12 @@ export const usePageAnalytics = (pagePath: string) => {
         // value, so absent params add nothing to the payload.
         ...getUtm(),
         landing_avenue: getLandingAvenue(pagePath),
+        // Measurement spine props (synth 2026-07-16): every event carries the
+        // active register + viewport class so page_view splits cleanly per
+        // register and per device without a join. Analytics only.
+        register: currentRegister(),
+        viewport: viewportClass(),
+        source: trafficSource(),
       };
       
       await supabase.from('page_analytics').insert([{

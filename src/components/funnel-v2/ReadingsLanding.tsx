@@ -39,6 +39,7 @@ import type { DeckPlanet, DeckElement, TeaseCopy } from "./freeDeck";
 import { composeDeck } from "./deckCompose";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { getIntent, setIntent, INTENT_EVENT, type Intent } from "@/lib/intent";
+import { trackSpine, trackSpineOnce, registerSetVia } from "@/lib/funnelSpine";
 import { useNarration, prewarmNarration } from "@/components/narration/useNarration";
 import { NarrationControl } from "@/components/narration/NarrationControl";
 import { NarratedWords, narratedLineClass } from "@/components/narration/NarratedWords";
@@ -447,6 +448,17 @@ export function ReadingsLanding() {
   useScrollReveal(pageRef, revealed);
   const reduceMotion = useReducedMotion();
 
+  // Measurement spine: how this visit's register was decided. "url_param"
+  // when a memorial-targeted link carried ?r=memorial; otherwise "default"
+  // (organic arrival or a stored prior choice). User taps on the chooser fire
+  // their own register_set from IntentFork. Analytics only.
+  useEffect(() => {
+    trackSpineOnce("register_set_load", "register_set", {
+      value: getIntent() === "memorial" ? "memorial" : "discovery",
+      via: registerSetVia(),
+    });
+  }, []);
+
   // Lenis smooth scroll for the whole page (native touch momentum kept on mobile).
   useEffect(() => {
     if (reduceMotion || typeof window === "undefined") return;
@@ -736,7 +748,10 @@ function IntentFork() {
               id="ls-intent-here"
               value="here"
               checked={!memorialOn}
-              onChange={() => setIntent("discovery")}
+              onChange={() => {
+                setIntent("discovery");
+                trackSpine("register_set", { value: "discovery", via: "user_tap" });
+              }}
             />
             <label htmlFor="ls-intent-here">Here with you</label>
             <input
@@ -745,7 +760,10 @@ function IntentFork() {
               id="ls-intent-memory"
               value="memory"
               checked={memorialOn}
-              onChange={() => setIntent("memorial")}
+              onChange={() => {
+                setIntent("memorial");
+                trackSpine("register_set", { value: "memorial", via: "user_tap" });
+              }}
             />
             <label htmlFor="ls-intent-memory">Held in memory</label>
           </div>
@@ -2445,6 +2463,22 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIn
     saveResumeIndex(active);
   }, [active]);
 
+  // Spine: card_advance — the highest-value missing instrument in the synth.
+  // index is the 1-based card arrived at, dwell_ms is the time spent on the
+  // card just left, direction is forward or back. Powers the per-card
+  // drop-off funnels the testFirst experiments need. Analytics only.
+  const dwellRef = useRef<{ t: number; idx: number }>({ t: Date.now(), idx: active });
+  useEffect(() => {
+    const prev = dwellRef.current;
+    if (active === prev.idx) return;
+    trackSpine("card_advance", {
+      index: active + 1,
+      dwell_ms: Date.now() - prev.t,
+      direction: active > prev.idx ? "forward" : "back",
+    });
+    dwellRef.current = { t: Date.now(), idx: active };
+  }, [active]);
+
   // Reading-revealed gate: fire once when the synthesis card takes the stage
   // (or immediately in the static column), so the lower funnel is mounted
   // and #the-rest exists before the tease CTA is tapped.
@@ -2934,9 +2968,20 @@ function BirthSkyJourney() {
       setStatus("idle");
       setMessage("");
       focusFirstError(errs);
+      // Spine: one form_error per failing field so per-field failure rates
+      // read straight out of the table. Analytics only.
+      (["date", "species", "email"] as const).forEach((field) => {
+        if (!errs[field]) return;
+        const errorType =
+          field === "date" && date && date > todayIso() ? "future_date"
+          : field === "email" && email.trim() ? "invalid_format"
+          : "missing";
+        trackSpine("form_error", { field, error_type: errorType });
+      });
       return;
     }
     setFieldErrs({});
+    trackSpine("form_submit", {});
     const cleanEmail = email.trim().toLowerCase();
     handleLead(cleanEmail, "free_reading_start");
     setStatus("computing");
@@ -2944,12 +2989,14 @@ function BirthSkyJourney() {
     setChart(null);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
+    const computeStart = Date.now();
     try {
       const url = `${BIRTH_CHART_ENDPOINT}?date=${encodeURIComponent(date)}`;
       const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as PetBirthChart;
       if (!data?.sun) throw new Error("incomplete");
+      trackSpine("chart_computed", { latency_ms: Date.now() - computeStart, ok: true });
       setChart(data);
       const petPayload = { name: petName.trim() || null, date, species: species || null };
       publishChart(data, petPayload);
@@ -2959,6 +3006,13 @@ function BirthSkyJourney() {
       saveResume({ ...petPayload, email: cleanEmail, photo, index: 0 });
     } catch (error) {
       console.warn("[Little Souls] birth chart failed", error);
+      // Spine: the silent-failure log the synth called for — every compute
+      // failure that used to vanish now leaves a row.
+      trackSpine("chart_computed", {
+        latency_ms: Date.now() - computeStart,
+        ok: false,
+        reason: error instanceof Error ? error.message : String(error),
+      });
       setChart(null);
       setStatus("error");
       setMessage("The sky could not place that date. Try it again.");
@@ -3134,7 +3188,23 @@ function BirthSkyJourney() {
                 </button>
               </div>
             ) : (
-              <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen} noValidate>
+              <form
+                className="ls-seal-card ls-stage-card"
+                onSubmit={handleOpen}
+                noValidate
+                // Spine: form_start fires once, on the first focus of any
+                // field, carrying which field opened the form. Analytics only.
+                onFocusCapture={(e) => {
+                  const t = e.target as HTMLElement;
+                  const field =
+                    t.id === "seal-name" ? "name"
+                    : t.id === "seal-date" ? "date"
+                    : t.id === "seal-email" ? "email"
+                    : t.closest("#seal-species-group") ? "species"
+                    : null;
+                  if (field) trackSpineOnce("form_start", "form_start", { first_field: field });
+                }}
+              >
                 <p className="ls-seal-lead ls-reveal">Just what you already know about them.</p>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
                   <label htmlFor="seal-name">Their name <span>optional</span></label>
@@ -3750,8 +3820,29 @@ function CheckoutSection({
     } catch { /* ignore */ }
   }, [variant]);
 
+  // Spine: checkout_view — fires once when the checkout section (#begin)
+  // first enters the viewport. Analytics only.
+  const sectionSpineRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const root = sectionSpineRef.current;
+    if (!root || typeof window === "undefined") return;
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          trackSpineOnce("checkout_view", "checkout_view", {});
+          io.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section
+      ref={sectionSpineRef}
       id="begin"
       className="ls-parallax-band relative px-5 pb-16 sm:pb-28"
       style={{ paddingTop: "var(--funnel-gap, clamp(34px, 5svh, 64px))" }}
@@ -4056,6 +4147,25 @@ function FullReadingOpens() {
     const id = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(id);
   }, [pet, memorial]);
+
+  // Spine: sell_view — fires once when the sell section (#the-rest) first
+  // enters the viewport. Analytics only.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return;
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          trackSpineOnce("sell_view", "sell_view", {});
+          io.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, []);
 
   // One IntersectionObserver drives both the reveal latch (data-in, permanent) and
   // the per-planet ASMR play-state (is-live, toggles so only on-screen discs run).
