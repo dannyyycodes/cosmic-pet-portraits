@@ -34,6 +34,14 @@ serve(async (req) => {
     const rawInput = await req.json();
     const input = trackSchema.parse(rawInput);
 
+    // First-letter title-case on the stored pet name ("monty" -> "Monty",
+    // while "DJ" and "McFly" survive). Mirrors the client's display rule so
+    // every later email greets the pet the way the reading does.
+    if (input.petName) {
+      const trimmed = input.petName.trim();
+      input.petName = trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : null;
+    }
+
     console.log("[TRACK-SUBSCRIBER] Tracking:", input.event, "for:", input.email);
 
     const supabase = createClient(

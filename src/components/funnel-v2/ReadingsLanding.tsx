@@ -1141,6 +1141,21 @@ function DegCount({ value, reduce }: { value: number; reduce: boolean }) {
 // real latency is the only suspense, and the readouts persist as the deck's
 // chips instead of vanishing. The 8s abort + error line live upstream in the
 // form handler, unchanged.
+// Soft typo-catch for the compute moment: saying "31 years ago" out loud is
+// the gentlest way to surface a year typo (1995 for 2015) without a form error.
+function skyAgePhrase(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return "";
+  const then = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const now = new Date();
+  let years = now.getFullYear() - then.getFullYear();
+  const anniversary = new Date(now.getFullYear(), then.getMonth(), then.getDate());
+  if (now < anniversary) years -= 1;
+  if (years < 1) return "less than a year ago";
+  if (years === 1) return "a year ago";
+  return `${years} years ago`;
+}
+
 function ComputeSequence({
   chart,
   name,
@@ -1189,12 +1204,17 @@ function ComputeSequence({
     return `${Number(m[3])} ${MON[Number(m[2]) - 1]} ${m[1]}`;
   }, [date]);
 
+  // Echo the chosen date AND how long ago it was, so a year typo is caught
+  // here, before it silently sets the wrong sky.
+  const agePhrase = useMemo(() => skyAgePhrase(date), [date]);
+  const dateEcho = agePhrase ? `${dateLabel}, ${agePhrase}` : dateLabel;
+
   if (reduce) {
     return (
       <div className="ls-compute" role="status" aria-live="polite">
         <div className="ls-compute-dust" aria-hidden="true" />
         <span className="ls-compute-mote is-lit" aria-hidden="true" />
-        <p className="ls-compute-line">Setting the chart for that date.</p>
+        <p className="ls-compute-line">Setting the chart for {dateEcho}.</p>
       </div>
     );
   }
@@ -1209,7 +1229,7 @@ function ComputeSequence({
         <span className="ls-compute-sweep" />
         <span className={`ls-compute-mote ${landed ? "is-lit" : ""}`} />
       </div>
-      <p className="ls-compute-line">Reading the sky over {dateLabel}.</p>
+      <p className="ls-compute-line">Reading the sky over {dateEcho}.</p>
       <div className="ls-compute-tick" aria-hidden={!landed}>
         {landed && (
           <>
@@ -2607,6 +2627,17 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIn
   );
 }
 
+const EMAIL_RE = /.+@.+\..+/;
+
+// Local-time today in ISO shape, for the date field's max and the
+// future-date check (a year typo like 2027 used to compute a wrong chart
+// silently: the old max was 2030-12-31).
+function todayIso(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 function BirthSkyJourney() {
   const reduce = useReducedMotion() ?? false;
   const infoBtnRef = useRef<HTMLButtonElement>(null);
@@ -2632,6 +2663,11 @@ function BirthSkyJourney() {
   const [status, setStatus] = useState<"idle" | "computing" | "photo" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
+  // Per-field errors, all surfaced at once on submit (adjacent to their
+  // fields), instead of the old serial one-at-a-time bottom message.
+  const [fieldErrs, setFieldErrs] = useState<{ date?: string; species?: string; email?: string }>({});
+  // Quiet success mark on the email field, set on blur when the address parses.
+  const [emailOk, setEmailOk] = useState(false);
 
   // Optional pet photo. Uploaded to the same pet-photos bucket the post-purchase
   // intake uses, so ONE photo carries the whole journey. Prefills from a prior
@@ -2854,24 +2890,50 @@ function BirthSkyJourney() {
   // The lead fires the moment they start the free reading (source
   // "free_reading_start"), then the fetch runs in parallel with the compute
   // animation; an 8s abort keeps us off a spinner-of-death.
+  // The email error keeps its register-aware wording (copy is locked; only the
+  // delivery system changed: adjacent, persistent, never the browser bubble).
+  const emailErrCopy = () =>
+    memorial ? "Add your email to begin their reading." : "Add your email to get their free reading.";
+
+  // Validate the whole form at once so a two-miss visitor sees both messages
+  // beside their fields on the first failed submit, not one per attempt.
+  const validateAll = (): { date?: string; species?: string; email?: string } => {
+    const errs: { date?: string; species?: string; email?: string } = {};
+    if (!date) errs.date = "Choose their birth or adoption date first.";
+    else if (date > todayIso()) errs.date = "That day has not happened yet. Choose the day they were born, or the day they came home.";
+    if (!species) errs.species = "One tap: are they a dog, a cat, or other?";
+    if (!EMAIL_RE.test(email.trim().toLowerCase())) errs.email = emailErrCopy();
+    return errs;
+  };
+
+  // Bring the first failing field into view and hand it focus.
+  const focusFirstError = (errs: { date?: string; species?: string; email?: string }) => {
+    const order: Array<["date" | "species" | "email", string]> = [
+      ["date", "seal-date"],
+      ["species", "seal-species-group"],
+      ["email", "seal-email"],
+    ];
+    const first = order.find(([k]) => errs[k]);
+    if (!first) return;
+    const el = document.getElementById(first[1]);
+    if (!el) return;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    const target = el instanceof HTMLInputElement ? el : el.querySelector<HTMLElement>("button");
+    window.setTimeout(() => target?.focus({ preventScroll: true }), reduce ? 0 : 380);
+  };
+
   const handleOpen = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!date) {
-      setStatus("error");
-      setMessage("Choose their birth or adoption date first.");
+    const errs = validateAll();
+    if (errs.date || errs.species || errs.email) {
+      setFieldErrs(errs);
+      setStatus("idle");
+      setMessage("");
+      focusFirstError(errs);
       return;
     }
-    if (!species) {
-      setStatus("error");
-      setMessage("One tap: are they a dog, a cat, or other?");
-      return;
-    }
+    setFieldErrs({});
     const cleanEmail = email.trim().toLowerCase();
-    if (!/.+@.+\..+/.test(cleanEmail)) {
-      setStatus("error");
-      setMessage(memorial ? "Add your email to begin their reading." : "Add your email to get their free reading.");
-      return;
-    }
     handleLead(cleanEmail, "free_reading_start");
     setStatus("computing");
     setMessage("");
@@ -3068,56 +3130,87 @@ function BirthSkyJourney() {
                 </button>
               </div>
             ) : (
-              <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen}>
+              <form className="ls-seal-card ls-stage-card" onSubmit={handleOpen} noValidate>
                 <p className="ls-seal-lead ls-reveal">Just what you already know about them.</p>
                 <div className="ls-seal-field ls-reveal" style={revealDelay(0.06)}>
                   <label htmlFor="seal-name">Their name <span>optional</span></label>
-                  <input id="seal-name" type="text" autoComplete="off" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
+                  <input id="seal-name" type="text" autoComplete="off" autoCapitalize="words" value={petName} maxLength={40} onChange={(e) => setPetName(e.target.value)} />
                 </div>
-                <div className="ls-seal-field ls-reveal" style={revealDelay(0.12)}>
+                {/* Error state rides in data-err, NOT className: the page reveal
+                    observer adds is-in to these .ls-reveal nodes, and a dynamic
+                    className would wipe it on re-render (fields vanish). */}
+                <div className="ls-seal-field ls-reveal" data-err={fieldErrs.date ? "1" : undefined} style={revealDelay(0.12)}>
                   <label htmlFor="seal-date">The day they were born</label>
                   <input
                     id="seal-date"
                     type="date"
                     value={date}
-                    max="2030-12-31"
-                    onChange={(e) => { setDate(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                    max={todayIso()}
+                    aria-invalid={fieldErrs.date ? true : undefined}
+                    aria-describedby={fieldErrs.date ? "seal-date-err seal-date-hint" : "seal-date-hint"}
+                    onChange={(e) => { setDate(e.target.value); setFieldErrs((p) => ({ ...p, date: undefined })); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                   />
-                  <p className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
+                  {fieldErrs.date && <p id="seal-date-err" className="ls-field-err" role="alert">{fieldErrs.date}</p>}
+                  <p id="seal-date-hint" className="ls-seal-hint">Or the day they came home. That chart is just as true.</p>
                 </div>
-                <div className="ls-seal-field ls-reveal" style={revealDelay(0.18)}>
+                <div id="seal-species-group" className="ls-seal-field ls-reveal" data-err={fieldErrs.species ? "1" : undefined} style={revealDelay(0.18)}>
                   <label id="seal-species-label">Are they…</label>
-                  <div className="ls-seal-species" role="group" aria-labelledby="seal-species-label">
+                  <div
+                    className="ls-seal-species"
+                    role="group"
+                    aria-labelledby="seal-species-label"
+                    aria-describedby={fieldErrs.species ? "seal-species-err" : undefined}
+                  >
                     {SPECIES_PICKS.map((s) => (
                       <button
                         key={s.value}
                         type="button"
                         className={`ls-species-btn${species === s.value ? " is-sel" : ""}`}
                         aria-pressed={species === s.value}
-                        onClick={() => { setSpecies(s.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                        onClick={() => { setSpecies(s.value); setFieldErrs((p) => ({ ...p, species: undefined })); if (status === "error") { setStatus("idle"); setMessage(""); } }}
                       >
                         {s.label}
                       </button>
                     ))}
                   </div>
+                  {fieldErrs.species && <p id="seal-species-err" className="ls-field-err" role="alert">{fieldErrs.species}</p>}
                 </div>
-                <div className="ls-seal-field ls-reveal" style={revealDelay(0.24)}>
+                <div className="ls-seal-field ls-reveal" data-err={fieldErrs.email ? "1" : undefined} style={revealDelay(0.24)}>
                   <label htmlFor="seal-email">Your email</label>
-                  <input
-                    id="seal-email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    value={email}
-                    required
-                    onChange={(e) => { setEmail(e.target.value); if (status === "error") { setStatus("idle"); setMessage(""); } }}
-                  />
-                  <p className="ls-seal-hint">No account needed.</p>
+                  <div className="ls-email-wrap">
+                    <input
+                      id="seal-email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      required
+                      aria-invalid={fieldErrs.email ? true : undefined}
+                      aria-describedby={fieldErrs.email ? "seal-email-err seal-email-hint" : "seal-email-hint"}
+                      onChange={(e) => { setEmail(e.target.value); setEmailOk(false); setFieldErrs((p) => ({ ...p, email: undefined })); if (status === "error") { setStatus("idle"); setMessage(""); } }}
+                      onBlur={() => {
+                        const clean = email.trim().toLowerCase();
+                        if (!clean) { setEmailOk(false); return; }
+                        if (EMAIL_RE.test(clean)) {
+                          setEmailOk(true);
+                          setFieldErrs((p) => ({ ...p, email: undefined }));
+                        } else {
+                          setEmailOk(false);
+                          setFieldErrs((p) => ({ ...p, email: emailErrCopy() }));
+                        }
+                      }}
+                    />
+                    <span className={`ls-email-ok${emailOk ? " is-on" : ""}`} aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 8.5l3.5 3.5 7.5-8" /></svg>
+                    </span>
+                  </div>
+                  {fieldErrs.email && <p id="seal-email-err" className="ls-field-err" role="alert">{fieldErrs.email}</p>}
+                  <p id="seal-email-hint" className="ls-seal-hint">No account needed.</p>
                 </div>
                 <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.30)}>
                   Set the chart <ArrowRight size={18} />
                 </button>
-                {message && status === "error" && <p className="ls-chart-message is-error">{message}</p>}
+                {message && status === "error" && <p className="ls-chart-message is-error" role="alert">{message}</p>}
               </form>
             )}
           </div>
@@ -7321,6 +7414,30 @@ function CosmicStyles() {
       .ls-seal-hint {
         margin: 9px 0 0; color: rgba(245,242,255,0.55);
         font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.5;
+      }
+      /* Per-field error: the message sits beside its field in the same voice
+         and colour as the branded chart message, and the field's underline
+         lifts to match, so eye lands on both together. */
+      .ls-field-err {
+        margin: 9px 0 0; color: ${C.goldSoft};
+        font-family: "Newsreader", Georgia, serif; font-size: 15.5px; line-height: 1.5;
+      }
+      .ls-seal-field[data-err] input {
+        border-bottom-color: ${C.goldSoft};
+        box-shadow: 0 1px 0 0 rgba(207,192,244,0.35);
+      }
+      .ls-seal-field[data-err] label { color: ${C.goldSoft}; }
+      /* Quiet success mark on the email field: a small check that fades in on
+         blur when the address parses. Decorative only, announced by nothing. */
+      .ls-email-wrap { position: relative; }
+      .ls-email-ok {
+        position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+        display: inline-flex; color: ${C.violetBright};
+        opacity: 0; transition: opacity 400ms ease; pointer-events: none;
+      }
+      .ls-email-ok.is-on { opacity: 1; }
+      @media (prefers-reduced-motion: reduce) {
+        .ls-email-ok { transition: none; }
       }
       .ls-seal-card .ls-seal-cta {
         display: flex; align-items: center; justify-content: center; gap: 10px;
