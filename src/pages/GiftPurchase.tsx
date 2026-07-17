@@ -7,19 +7,22 @@ import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 import { REVIEWS } from '@/components/funnel-v2/DossierCheckout';
 
 /* ═══════════════════════════════════════════════════════════════════
-   GIFT PAGE v9 — cosmic purple + white, matched to the live readings
+   GIFT PAGE v10 — cosmic purple + white, matched to the live readings
    funnel (funnel-v2 design system). Fraunces display / Newsreader
    body. Violet metal CTAs. Star gold appears ONLY as review-star
    fills.
 
-   v9 visual-craft pass (Danny, 2026-07-17):
+   v10 life pass (Danny, 2026-07-17): echo sentences cut page-wide
+   (one sentence lands, no explainer after it); occasion picker
+   reimagined as four scene cards with bespoke scene SVGs; aurora
+   nebula layer + alternating tint bands + glow-lifted hover/press
+   states for depth. Entrances 550-600ms ease-out, feedback under
+   250ms, no bounce, reduced-motion kill intact.
    · ZERO stock icons — every mark is a bespoke inline SVG drawn for
      this page (one stroke system: 1.6 weight, round caps, celestial
-     geometry, currentColor).
-   · Layered depth: three-plane parallax star field via CSS
-     scroll-driven animation (@supports gated, reduced-motion off).
-   · One ceremony: the paw constellation draws itself over the sample
-     reading as it enters view.
+     geometry, currentColor; scenes on a 120×88 grid).
+   · Layered depth: aurora plane + three-plane parallax star field via
+     CSS scroll-driven animation (@supports gated, reduced-motion off).
    · The emotional argument arrives beat by beat on scroll — four
      short lines rising one at a time, never a paragraph wall.
    · No em-dashes in visible copy (the localized-billing note is
@@ -266,6 +269,84 @@ function GlyphCake({ className }: GlyphProps) {
   );
 }
 
+/* ═══ OCCASION SCENES ═══════════════════════════════════════════════
+   Four larger scene drawings for the occasion cards — same house
+   geometry (round caps, currentColor, star fills only), drawn on a
+   120×88 scene grid so each occasion gets real art, not a list row. ═══ */
+
+const sceneBase: React.SVGProps<SVGSVGElement> = {
+  viewBox: '0 0 120 88',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  'aria-hidden': true,
+  focusable: 'false',
+};
+
+/** A new soul-star descending through the front-door arch. */
+function SceneNew({ className }: GlyphProps) {
+  return (
+    <svg {...sceneBase} className={className}>
+      <path d="M22 78h76" opacity=".6" />
+      <path d="M36 78V44a24 24 0 0 1 48 0v34" />
+      <path d="M60 12v5M60 25v4" opacity=".6" />
+      <path d="M60 40c.55 3.6 2.1 5.7 7.8 8.4-5.7 2.7-7.25 4.8-7.8 8.4-.55-3.6-2.1-5.7-7.8-8.4 5.7-2.7 7.25-4.8 7.8-8.4z" fill="currentColor" stroke="none" />
+      <path d="M26 28l1.3 3.2 3.2 1.3-3.2 1.3-1.3 3.2-1.3-3.2-3.2-1.3 3.2-1.3 1.3-3.2z" fill="currentColor" stroke="none" opacity=".65" />
+      <path d="M94 22l1.1 2.7 2.7 1.1-2.7 1.1-1.1 2.7-1.1-2.7-2.7-1.1 2.7-1.1 1.1-2.7z" fill="currentColor" stroke="none" opacity=".5" />
+    </svg>
+  );
+}
+
+/** Two orbits long entwined, one shared star at the crossing. */
+function SceneDiscover({ className }: GlyphProps) {
+  return (
+    <svg {...sceneBase} className={className}>
+      <ellipse cx="60" cy="48" rx="35" ry="13.5" transform="rotate(-18 60 48)" />
+      <ellipse cx="60" cy="48" rx="35" ry="13.5" transform="rotate(18 60 48)" />
+      <circle cx="30" cy="36" r="2.6" fill="currentColor" stroke="none" />
+      <circle cx="90" cy="36" r="2.6" fill="currentColor" stroke="none" />
+      <path d="M60 26c.55 3.5 2 5.5 7.4 8.1-5.4 2.6-6.85 4.6-7.4 8.1-.55-3.5-2-5.5-7.4-8.1 5.4-2.6 6.85-4.6 7.4-8.1z" fill="currentColor" stroke="none" />
+      <circle cx="60" cy="76" r="1.7" fill="currentColor" stroke="none" opacity=".5" />
+    </svg>
+  );
+}
+
+/** A candle kept lit, the soul risen into its halo. */
+function SceneMemorial({ className }: GlyphProps) {
+  return (
+    <svg {...sceneBase} className={className}>
+      <path d="M34 78h52" opacity=".5" />
+      <rect x="49" y="52" width="22" height="26" rx="3.5" />
+      <path d="M60 45v7" />
+      <path d="M60 31c2.7 3.4 4.1 5.8 4.1 8a4.1 4.1 0 1 1-8.2 0c0-2.2 1.4-4.6 4.1-8z" />
+      <circle cx="62" cy="22" r="1.5" fill="currentColor" stroke="none" opacity=".45" />
+      <circle cx="65" cy="15" r="1.6" fill="currentColor" stroke="none" opacity=".65" />
+      <path d="M70 4l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3z" fill="currentColor" stroke="none" />
+      <circle cx="70" cy="8.2" r="7.4" opacity=".35" />
+    </svg>
+  );
+}
+
+/** One candle on the cake, stars bursting above the flame. */
+function SceneBirthday({ className }: GlyphProps) {
+  return (
+    <svg {...sceneBase} className={className}>
+      <path d="M26 78h68" opacity=".6" />
+      <rect x="34" y="56" width="52" height="22" rx="4" />
+      <path d="M34 65c4.3 3.4 8.7 3.4 13 0s8.7-3.4 13 0 8.7 3.4 13 0 8.7-3.4 13 0" />
+      <path d="M60 40v16" />
+      <path d="M60 28c2.3 3 3.4 5 3.4 6.9a3.4 3.4 0 1 1-6.8 0c0-1.9 1.1-3.9 3.4-6.9z" />
+      <path d="M38 18l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3z" fill="currentColor" stroke="none" opacity=".75" />
+      <path d="M82 14l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3z" fill="currentColor" stroke="none" opacity=".75" />
+      <path d="M60 6l1.4 3.5 3.5 1.4-3.5 1.4-1.4 3.5-1.4-3.5-3.5-1.4 3.5-1.4 1.4-3.5z" fill="currentColor" stroke="none" />
+      <circle cx="48" cy="10" r="1.4" fill="currentColor" stroke="none" opacity=".5" />
+      <circle cx="73" cy="8" r="1.4" fill="currentColor" stroke="none" opacity=".5" />
+    </svg>
+  );
+}
+
 type GlyphComponent = (props: GlyphProps) => JSX.Element;
 
 type GiftOccasionOption = { value: GiftOccasion; Glyph: GlyphComponent; label: string; hint: string };
@@ -487,6 +568,7 @@ function CosmicSky() {
   return (
     <div className="gp-sky" aria-hidden="true">
       <div className="gp-sky-base" />
+      <div className="gp-sky-aurora" />
       <div className="gp-sky-far" />
       <div className="gp-sky-near" />
     </div>
@@ -544,7 +626,7 @@ function Hero({ fmt, prices, onCta, heroRef }: {
         </svg>
         <div className="gp-hero-photo">
           <img
-            src="/gift-hero.webp"
+            src="/gift-hero-v2.webp"
             alt="A couple giving a Little Souls gift card, their golden retriever beside them"
             width={1536}
             height={1024}
@@ -571,48 +653,15 @@ function TrustStrip() {
   );
 }
 
-/* ── The ceremony: a paw drawn in stars. The line traces itself as
-   the section enters view (the page's ONE choreographed moment);
-   reduced motion sees it fully drawn. ── */
-const CONST_DOTS: Array<[number, number]> = [
-  [84, 66], [128, 44], [176, 42], [224, 62],
-  [100, 118], [156, 92], [212, 114], [158, 148],
-];
-
-function PawConstellation() {
-  return (
-    <svg className="gp-const gp-rev" viewBox="0 0 320 170" aria-hidden="true" focusable="false">
-      <path
-        className="gp-const-line"
-        pathLength={1}
-        d="M84 66 L128 44 L176 42 L224 62 M100 118 L156 92 L212 114 L158 148 Z"
-        fill="none" stroke="rgba(185,165,240,0.55)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
-      />
-      {CONST_DOTS.map(([x, y], i) => (
-        <path
-          key={i}
-          className="gp-const-dot"
-          style={{ ['--cd' as string]: `${i * 70}ms` }}
-          d={`M${x} ${y - 5.2}l1.5 3.7 3.7 1.5-3.7 1.5-1.5 3.7-1.5-3.7-3.7-1.5 3.7-1.5 1.5-3.7z`}
-          fill="#cfc0f4" stroke="none"
-        />
-      ))}
-    </svg>
-  );
-}
-
 /* ── SEE WHAT THEY'LL OPEN — the product, visible without interaction.
    Sample keepsake for Bella the cockapoo, locked chapters beneath. ── */
 function SampleReading() {
   return (
-    <section className="gp-wrap gp-band">
+    <section className="gp-wrap gp-band gp-tintband">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">See what they'll open.</h2>
-        <p className="gp-support">Made for Bella, a cockapoo. Theirs is written from their own pet's chart.</p>
       </div>
-      <PawConstellation />
       <div className="gp-sample gp-glass gp-rev" style={{ ['--d' as string]: '120ms' }}>
-        <p className="gp-sample-kicker">The moment they open it, for their own dog or cat.</p>
         <span className="gp-sample-ring">
           <img src="/breeds/cockapoo.jpg" alt="Bella, a cockapoo, looking up" width={84} height={84} loading="lazy" decoding="async" />
         </span>
@@ -627,7 +676,6 @@ function SampleReading() {
             </div>
           ))}
         </div>
-        <p className="gp-sample-cue">Their full reading opens the moment you give it.</p>
       </div>
     </section>
   );
@@ -644,7 +692,7 @@ function HowItWorks() {
     <section className="gp-wrap gp-band">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">How it works.</h2>
-        <p className="gp-support">You need no pet details. <strong>They add everything</strong> when they open it.</p>
+        <p className="gp-support">You need <strong>no pet details</strong>.</p>
       </div>
       <div className="gp-steps">
         {steps.map((st, i) => (
@@ -717,20 +765,32 @@ function RigorBand() {
     { v: '< 0.01°', l: 'Geometric precision' },
   ];
   return (
-    <section className="gp-wrap gp-band gp-rigor">
+    <section className="gp-wrap gp-band gp-rigor gp-tintband">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">Real astronomy underneath.</h2>
       </div>
-      <div className="gp-rigor-row gp-rev" style={{ ['--d' as string]: '100ms' }}>
-        {items.map((it) => (
-          <div className="gp-rigor-item" key={it.v}>
-            <p className="gp-rigor-v">{it.v}</p>
-            <p className="gp-rigor-l">{it.l}</p>
-          </div>
-        ))}
+      <div className="gp-rigor-stage">
+        <svg className="gp-rigor-orbit" viewBox="0 0 760 240" aria-hidden="true" focusable="false">
+          <ellipse cx="380" cy="120" rx="356" ry="82" transform="rotate(-6 380 120)"
+            fill="none" stroke="currentColor" strokeWidth="1" />
+          <ellipse cx="380" cy="120" rx="292" ry="56" transform="rotate(-6 380 120)"
+            fill="none" stroke="currentColor" strokeWidth="0.75" opacity="0.55" />
+          <circle cx="700" cy="66" r="4.5" fill="#cfc0f4" stroke="none" />
+          <circle cx="92" cy="176" r="2.5" fill="rgba(185,165,240,0.8)" stroke="none" />
+          <path d="M148 44l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6 1.6-4z" fill="rgba(207,192,244,0.7)" stroke="none" />
+          <path d="M628 196l1.3 3.2 3.2 1.3-3.2 1.3-1.3 3.2-1.3-3.2-3.2-1.3 3.2-1.3 1.3-3.2z" fill="rgba(185,165,240,0.55)" stroke="none" />
+        </svg>
+        <div className="gp-rigor-row">
+          {items.map((it, i) => (
+            <div className="gp-rigor-item gp-rev" style={{ ['--d' as string]: `${80 + i * 90}ms` }} key={it.v}>
+              <p className="gp-rigor-v">{it.v}</p>
+              <p className="gp-rigor-l">{it.l}</p>
+            </div>
+          ))}
+        </div>
       </div>
-      <p className="gp-rigor-line gp-rev" style={{ ['--d' as string]: '180ms' }}>
-        Every placement is computed from their own chart. No generic filler.
+      <p className="gp-rigor-line gp-rev" style={{ ['--d' as string]: '440ms' }}>
+        Every placement is computed from their own chart.
       </p>
     </section>
   );
@@ -1074,7 +1134,7 @@ export default function GiftPurchase() {
              Occasion picker gates the tier cards, which drive
              handleTierSelect and the preserved 3-step flow. All
              logic/state/handlers unchanged; presentation is new. ── */}
-        <section className="gp-wrap gp-band gp-funnel" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
+        <section className="gp-wrap gp-band gp-funnel gp-tintband" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
           <div className="gp-shead gp-rev">
             <h2 className="gp-h2">Choose their reading.</h2>
             <p className="gp-support">
@@ -1091,37 +1151,38 @@ export default function GiftPurchase() {
               transition={{ delay: 0.06 }}
               style={{ marginBottom: 40 }}
             >
-              <div className="gp-occ-card gp-panel">
+              <div className="gp-occ-card">
                 <p className="gp-kicker">Start here</p>
                 <p className="gp-occ-q">Who's it for?</p>
 
                 <div
                   role="radiogroup"
                   aria-label="Gift occasion"
-                  className="gp-occ-list"
+                  className="gp-occ-grid"
                 >
                   {([
-                    { value: 'new',      Glyph: GlyphSprout, label: 'They just got a new pet' },
-                    { value: 'discover', Glyph: GlyphPaw,    label: "They've had their pet for years" },
-                    { value: 'memorial', Glyph: GlyphCandle, label: 'Their pet has passed' },
-                    { value: 'birthday', Glyph: GlyphCake,   label: "It's their pet's birthday" },
-                  ] as Array<{ value: GiftOccasion; Glyph: GlyphComponent; label: string }>).map(({ value, Glyph, label }) => {
+                    { value: 'new',      Scene: SceneNew,      label: 'They just got a new pet' },
+                    { value: 'discover', Scene: SceneDiscover, label: "They've had their pet for years" },
+                    { value: 'memorial', Scene: SceneMemorial, label: 'Their pet has passed' },
+                    { value: 'birthday', Scene: SceneBirthday, label: "It's their pet's birthday" },
+                  ] as Array<{ value: GiftOccasion; Scene: GlyphComponent; label: string }>).map(({ value, Scene, label }, i) => {
                     const active = selectedOccasion === value;
                     return (
-                      <button
-                        key={value}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        onClick={() => handleOccasionSelect(value)}
-                        className={`gp-occ-row ${active ? 'is-active' : ''}`}
-                      >
-                        <span className="gp-occ-glyph" aria-hidden="true">
-                          <Glyph />
-                        </span>
-                        <span className="gp-occ-label">{label}</span>
-                        <span aria-hidden="true" className="gp-occ-arrow">&rarr;</span>
-                      </button>
+                      <div key={value} className="gp-occ-cell gp-rev" style={{ ['--d' as string]: `${i * 70}ms` }}>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          onClick={() => handleOccasionSelect(value)}
+                          className={`gp-occ-cardbtn ${active ? 'is-active' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
+                        >
+                          <span className="gp-occ-scene" aria-hidden="true">
+                            <Scene />
+                          </span>
+                          <span className="gp-occ-name">{label}</span>
+                          <span className="gp-occ-tick" aria-hidden="true"><GlyphCheck /></span>
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -1211,7 +1272,7 @@ export default function GiftPurchase() {
                         <motion.div key="ds1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                           className="gp-step-col">
 
-                          <p className="gp-flow-q">Who's it for?</p>
+                          <p className="gp-flow-q">One gift or a few?</p>
 
                           <div className="gp-two-col">
                             {[
@@ -1325,7 +1386,7 @@ export default function GiftPurchase() {
                                     })}
                                   </div>
                                   <p className="gp-help">
-                                    Not sure? Leave it on Discover. It fits any pet they already have.
+                                    Not sure? Leave it on Discover.
                                   </p>
                                 </div>
                               </div>
@@ -1605,7 +1666,6 @@ const GP_CSS = `
   --line-bright:rgba(185,165,240,0.35);
   --ease-stage:cubic-bezier(0.22,0.7,0.2,1);
   --ease-settle:cubic-bezier(0.16,1,0.3,1);
-  --ease-draw:cubic-bezier(0.4,0,0.2,1);
   position:relative;min-height:100vh;background:var(--bg);overflow-x:hidden;
   color:var(--body);
   font-family:'Newsreader',Georgia,serif;font-weight:400;
@@ -1627,6 +1687,12 @@ const GP_CSS = `
   radial-gradient(900px 620px at 82% 0%, rgba(124,92,214,.14), transparent 70%),
   radial-gradient(760px 560px at 6% 8%, rgba(93,71,160,.16), transparent 72%),
   linear-gradient(180deg,#16112c 0%,#110d1f 24%,#0d0a14 50%,#0d0a14 100%)}
+.gp-sky-aurora{position:absolute;inset:-24% -12%;pointer-events:none;
+  filter:blur(46px);mix-blend-mode:screen;
+  background:
+    radial-gradient(46% 34% at 20% 26%, rgba(124,92,214,.22), transparent 70%),
+    radial-gradient(40% 30% at 82% 14%, rgba(185,165,240,.15), transparent 70%),
+    radial-gradient(52% 38% at 62% 74%, rgba(98,67,176,.20), transparent 72%)}
 .gp-sky-far{position:absolute;inset:-10vh 0;background:
   radial-gradient(1px 1px at 18% 14%, rgba(236,236,242,.34), transparent 60%),
   radial-gradient(1px 1px at 72% 9%, rgba(185,165,240,.28), transparent 60%),
@@ -1648,21 +1714,31 @@ const GP_CSS = `
   @media (prefers-reduced-motion: no-preference) {
     .gp-sky-far{animation:gpSkyFar linear both;animation-timeline:scroll(root)}
     .gp-sky-near{animation:gpSkyNear linear both;animation-timeline:scroll(root)}
+    .gp-sky-aurora{animation:gpAurora linear both;animation-timeline:scroll(root)}
   }
 }
 @keyframes gpSkyFar{to{transform:translateY(-7vh)}}
 @keyframes gpSkyNear{to{transform:translateY(-13vh)}}
+@keyframes gpAurora{from{transform:translateY(4vh) rotate(0deg)}to{transform:translateY(-9vh) rotate(3deg)}}
 
 /* layout */
 .gp-wrap{max-width:1080px;margin:0 auto;padding-left:22px;padding-right:22px}
 .gp-band{padding-top:clamp(64px,9vw,104px);padding-bottom:clamp(64px,9vw,104px)}
 .gp-hr{height:1px;border:0;max-width:1080px;margin:0 auto;
-  background:linear-gradient(90deg,transparent,rgba(154,126,230,0.22) 20%,rgba(154,126,230,0.22) 80%,transparent)}
+  background:linear-gradient(90deg,transparent,rgba(154,126,230,0.30) 35%,rgba(185,165,240,0.42) 50%,rgba(154,126,230,0.30) 65%,transparent)}
+
+/* alternating density: full-bleed violet wash behind chosen bands */
+.gp-tintband{position:relative}
+.gp-tintband::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
+  transform:translateX(-50%);z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(124,92,214,.08) 16%,rgba(124,92,214,.08) 84%,transparent)}
 
 /* type */
 .gp-h1{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
   font-size:clamp(2.5rem,7vw,4.6rem);line-height:.98;letter-spacing:-.018em;text-wrap:balance}
-.gp-h1 em{font-style:italic;color:var(--vio-pale)}
+.gp-h1 em{font-style:italic;color:var(--vio-pale);
+  background:linear-gradient(115deg,#e6dcff 10%,#b9a5f0 55%,#8b7bd8 95%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .gp-h2{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
   font-size:clamp(1.9rem,4.8vw,3rem);line-height:1.02;letter-spacing:-.018em;text-wrap:balance}
 .gp-eyebrow{font-weight:600;font-size:clamp(14px,1.2vw + 9px,15px);letter-spacing:.14em;
@@ -1672,16 +1748,16 @@ const GP_CSS = `
 .gp-lead{font-size:clamp(1.05rem,2.1vw,1.3rem);line-height:1.5;color:var(--body);max-width:34em}
 .gp-support{color:var(--muted);font-size:clamp(18px,1vw + 14px,19px);margin-top:12px}
 .gp-shead{text-align:center;max-width:720px;margin:0 auto clamp(34px,5vw,52px)}
+.gp-shead::after{content:"";display:block;width:56px;height:2px;margin:18px auto 0;border-radius:2px;
+  background:linear-gradient(90deg,transparent,#a78bfa,transparent)}
 
 /* reveal */
 .gp-rev{opacity:0;transform:translateY(16px);
-  transition:opacity .65s var(--ease-settle),transform .65s var(--ease-settle);
+  transition:opacity .55s var(--ease-settle),transform .55s var(--ease-settle);
   transition-delay:var(--d,0ms)}
 .gp-rev.is-in{opacity:1;transform:none}
 @media (prefers-reduced-motion: reduce){
   .gp-rev{opacity:1 !important;transform:none !important;filter:none !important;transition:none !important}
-  .gp-const-line{stroke-dashoffset:0 !important}
-  .gp-const-dot{opacity:1 !important}
   .gp *,.gp *::before,.gp *::after{animation:none !important;transition:none !important}
 }
 
@@ -1706,7 +1782,8 @@ const GP_CSS = `
 .gp-cta::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.32) 50%,transparent 58%);
   transform:translateX(-130%);transition:transform .6s ease}
-.gp-cta:hover{transform:translateY(-1px)}
+.gp-cta:hover{transform:translateY(-1px);
+  box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 -1px 0 rgba(0,0,0,.28) inset,0 12px 34px -8px rgba(124,92,214,.65)}
 .gp-cta:hover::after{transform:translateX(130%)}
 .gp-cta:active{transform:scale(.98) translateY(1px);transition-duration:.06s}
 .gp-cta:disabled{cursor:default;color:var(--dim);background:rgba(124,92,214,.16);box-shadow:none;transform:none}
@@ -1740,7 +1817,7 @@ const GP_CSS = `
 .gp-badges svg{width:16px;height:16px;color:var(--vio-soft);flex-shrink:0}
 .gp-hero-visual{position:relative}
 .gp-hero-visual::before{content:"";position:absolute;inset:-14%;pointer-events:none;
-  background:radial-gradient(closest-side, rgba(124,92,214,.22), transparent 72%)}
+  background:radial-gradient(closest-side, rgba(124,92,214,.30), transparent 72%)}
 .gp-hero-orbit{position:absolute;left:-12%;top:-9%;width:124%;height:118%;
   color:rgba(154,126,230,.4);pointer-events:none}
 @supports (animation-timeline: view()) {
@@ -1759,22 +1836,14 @@ const GP_CSS = `
 
 /* trust strip */
 .gp-trust{padding-bottom:clamp(40px,6vw,64px)}
-.gp-trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 34px;list-style:none;padding:0}
-.gp-trust-row li{display:inline-flex;align-items:center;gap:9px;font-size:16.5px;color:var(--body)}
+.gp-trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;list-style:none;padding:0}
+.gp-trust-row li{display:inline-flex;align-items:center;gap:9px;font-size:16.5px;color:var(--body);
+  padding:10px 18px;border-radius:999px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(124,92,214,.12),rgba(124,92,214,.04))}
 .gp-trust-row svg{width:18px;height:18px;color:var(--vio-bright);flex-shrink:0}
-
-/* constellation ceremony */
-.gp-const{display:block;width:min(320px,72vw);height:auto;margin:0 auto clamp(18px,3vw,30px)}
-.gp-const-line{stroke-dasharray:1;stroke-dashoffset:1;
-  transition:stroke-dashoffset 1.15s var(--ease-draw) .15s}
-.gp-const.is-in .gp-const-line{stroke-dashoffset:0}
-.gp-const-dot{opacity:.3;transition:opacity .5s var(--ease-settle);transition-delay:calc(.45s + var(--cd,0ms))}
-.gp-const.is-in .gp-const-dot{opacity:1}
 
 /* sample reading */
 .gp-sample{max-width:520px;margin:0 auto;padding:clamp(30px,5vw,44px) clamp(22px,4vw,36px);text-align:center}
-.gp-sample-kicker{font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--vio-bright);margin-bottom:24px}
 .gp-sample-ring{display:inline-block;width:88px;height:88px;border-radius:50%;padding:2px;
   background:linear-gradient(165deg,rgba(185,165,240,.8),rgba(124,92,214,.35));
   box-shadow:0 0 28px rgba(124,92,214,.35)}
@@ -1787,12 +1856,16 @@ const GP_CSS = `
 .gp-lock-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:13px 4px;border-bottom:1px solid var(--line);font-size:17.5px;color:var(--body);text-align:left}
 .gp-lock-row svg{width:15px;height:15px;color:var(--dim);flex-shrink:0}
-.gp-sample-cue{font-style:italic;color:var(--muted);font-size:16.5px;margin-top:20px}
 
 /* steps */
 .gp-steps{display:grid;gap:16px}
 @media (min-width:760px){.gp-steps{grid-template-columns:repeat(3,1fr)}}
-.gp-step{padding:clamp(24px,3.4vw,32px)}
+.gp-step{padding:clamp(24px,3.4vw,32px);
+  transition:transform .25s var(--ease-settle),border-color .2s ease,box-shadow .25s ease}
+@media (hover:hover){
+  .gp-step:hover{transform:translateY(-4px);border-color:var(--line-bright);
+    box-shadow:0 14px 34px -12px rgba(124,92,214,.4)}
+}
 .gp-step-n{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;
   font-size:1.1rem;color:var(--vio-bright);margin-bottom:12px}
 .gp-step h3{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:1.35rem;line-height:1.15;color:var(--white)}
@@ -1809,28 +1882,55 @@ const GP_CSS = `
   border:1px solid rgba(185,165,240,.35)}
 .gp-proof-grid{display:grid;gap:16px}
 @media (min-width:900px){.gp-proof-grid{grid-template-columns:repeat(3,1fr)}}
-.gp-proof-card{padding:22px}
+.gp-proof-card{padding:22px;
+  transition:transform .25s var(--ease-settle),border-color .2s ease,box-shadow .25s ease}
+@media (hover:hover){
+  .gp-proof-card:hover{transform:translateY(-4px);border-color:var(--line-bright);
+    box-shadow:0 2px 6px rgba(0,0,0,.4),0 18px 44px rgba(0,0,0,.4),0 0 30px -6px rgba(124,92,214,.35)}
+}
 .gp-proof-card blockquote{font-style:italic;font-size:17.5px;line-height:1.6;color:var(--body);margin:14px 0 16px}
 .gp-proof-card figcaption{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14.5px}
 .gp-proof-card figcaption img{width:40px;height:40px;border-radius:11px;object-fit:cover;
   border:1px solid rgba(185,165,240,.3)}
 
 /* the argument — beat by beat */
-.gp-beats{text-align:center;padding-top:clamp(40px,7vw,84px);padding-bottom:clamp(48px,8vw,92px)}
+.gp-beats{position:relative;text-align:center;padding-top:clamp(40px,7vw,84px);padding-bottom:clamp(48px,8vw,92px)}
+.gp-beats::before{content:"";position:absolute;top:50%;left:50%;width:min(760px,92vw);height:72%;
+  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;filter:blur(30px);
+  background:radial-gradient(closest-side, rgba(124,92,214,.18), transparent 72%)}
 .gp-beat{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--body);
   font-size:clamp(1.55rem,4.6vw,2.5rem);line-height:1.15;letter-spacing:-.014em;text-wrap:balance;
   max-width:18em;margin:0 auto;padding:clamp(24px,5vh,44px) 0;
   filter:blur(8px);
-  transition:opacity .7s var(--ease-settle),transform .7s var(--ease-settle),filter .7s var(--ease-settle);
+  transition:opacity .6s var(--ease-settle),transform .6s var(--ease-settle),filter .6s var(--ease-settle);
   transition-delay:var(--d,0ms)}
 .gp-beat.is-in{filter:none}
-.gp-beat-last{font-style:italic;color:var(--vio-pale)}
+.gp-beat-last{font-style:italic;color:var(--vio-pale);text-shadow:0 0 28px rgba(167,139,250,.4)}
 
 /* rigor */
 .gp-rigor{text-align:center}
-.gp-rigor-row{display:grid;grid-template-columns:repeat(2,1fr);gap:26px 16px;max-width:760px;margin:0 auto}
+.gp-rigor-stage{position:relative;max-width:760px;margin:0 auto}
+.gp-rigor-stage::before{content:"";position:absolute;left:50%;top:50%;width:min(820px,108%);height:190%;
+  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;filter:blur(34px);
+  background:radial-gradient(closest-side, rgba(124,92,214,.16), transparent 74%)}
+.gp-rigor-orbit{position:absolute;left:50%;top:50%;width:min(880px,116%);height:auto;
+  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;color:rgba(154,126,230,.34)}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .gp-rigor-orbit{animation:gpRigorDrift linear both;animation-timeline:view();
+      animation-range:entry 0% exit 100%}
+  }
+}
+@keyframes gpRigorDrift{from{transform:translate(-50%,-46%) rotate(2deg)}to{transform:translate(-50%,-54%) rotate(-2deg)}}
+.gp-rigor-row{position:relative;display:grid;grid-template-columns:repeat(2,1fr);gap:26px 16px}
 @media (min-width:700px){.gp-rigor-row{grid-template-columns:repeat(4,1fr)}}
-.gp-rigor-v{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:clamp(1.5rem,3vw,1.9rem);color:var(--vio-pale)}
+.gp-rigor-item{position:relative;padding:8px 2px}
+.gp-rigor-item::before{content:"";position:absolute;left:50%;top:50%;width:130px;height:110px;
+  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;filter:blur(20px);
+  background:radial-gradient(closest-side, rgba(124,92,214,.28), transparent 72%)}
+.gp-rigor-v{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:clamp(1.5rem,3vw,1.9rem);color:var(--vio-pale);
+  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .gp-rigor-l{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:6px}
 .gp-rigor-line{font-style:italic;color:var(--muted);margin-top:clamp(26px,4vw,36px);font-size:17.5px}
 
@@ -1854,7 +1954,7 @@ const GP_CSS = `
 .gp-sticky{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;justify-content:center;gap:16px;
   padding:12px 18px calc(12px + env(safe-area-inset-bottom));
   background:rgba(13,10,20,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  border-top:1px solid var(--line);
+  border-top:1px solid var(--line);box-shadow:0 -10px 34px rgba(124,92,214,.18);
   transform:translateY(110%);transition:transform .35s var(--ease-settle)}
 .gp-sticky.is-shown{transform:translateY(0)}
 .gp-sticky-price{color:var(--muted);font-size:15.5px;white-space:nowrap}
@@ -1864,37 +1964,69 @@ const GP_CSS = `
 
 /* ── funnel ── */
 .gp-funnel-col{max-width:560px;margin:0 auto}
-.gp-occ-card{padding:clamp(28px,4.4vw,40px) clamp(20px,3.6vw,32px)}
+.gp-occ-card{padding:6px 0 4px;text-align:center}
 .gp-occ-q{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:clamp(1.5rem,3.4vw,1.8rem);
   color:var(--white);text-align:center;margin:10px 0 26px}
-.gp-occ-list{display:flex;flex-direction:column;max-width:460px;margin:0 auto;border-top:1px solid var(--line)}
-.gp-occ-row{appearance:none;-webkit-appearance:none;background:transparent;border:0;
-  border-bottom:1px solid var(--line);border-left:4px solid transparent;cursor:pointer;width:100%;
-  display:flex;align-items:center;gap:14px;padding:clamp(18px,3vw,22px) clamp(14px,2.6vw,20px);
-  color:var(--body);font-style:italic;line-height:1.25;text-align:left;
-  font-size:clamp(1.05rem,3.4vw,1.2rem);
-  transition:background-color .2s ease,color .2s ease,border-color .2s ease;
+
+/* occasion cards — four scene cards, 2×2, depth + glow */
+.gp-occ-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:520px;margin:0 auto}
+.gp-occ-cell{display:flex}
+.gp-occ-cardbtn{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:clamp(18px,3.4vw,26px) 12px clamp(16px,3vw,22px);border-radius:20px;cursor:pointer;text-align:center;
+  border:1.5px solid var(--line);
+  background:radial-gradient(130% 100% at 50% 0%,rgba(124,92,214,.17),rgba(124,92,214,.03) 62%),#15101c;
+  box-shadow:0 2px 10px rgba(0,0,0,.35);
+  transition:transform .18s var(--ease-stage),border-color .2s ease,box-shadow .25s ease;
   -webkit-tap-highlight-color:transparent}
-.gp-occ-glyph{display:inline-flex;align-items:center;justify-content:center;line-height:0;
-  opacity:.85;flex-shrink:0;width:28px;min-height:22px;color:var(--vio-soft)}
-.gp-occ-glyph svg{width:22px;height:22px}
-.gp-occ-label{flex:1}
-.gp-occ-arrow{font-style:normal;font-size:1.18em;color:var(--dim);margin-left:12px;line-height:1;
-  transition:transform .22s ease,color .2s ease}
+.gp-occ-cardbtn::before{content:"";position:absolute;left:50%;top:-18%;width:120%;height:70%;
+  transform:translateX(-50%);border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(154,126,230,.30),transparent 72%);
+  opacity:0;transition:opacity .25s ease}
 @media (hover:hover){
-  .gp-occ-row:hover{background-color:rgba(124,92,214,.08)}
-  .gp-occ-row:hover .gp-occ-arrow{transform:translateX(4px);color:var(--vio-bright)}
+  .gp-occ-cardbtn:hover{transform:translateY(-3px);border-color:var(--line-bright);
+    box-shadow:0 12px 32px -10px rgba(124,92,214,.45)}
+  .gp-occ-cardbtn:hover::before{opacity:1}
+  .gp-occ-cardbtn:hover .gp-occ-scene{color:var(--vio-bright)}
 }
-.gp-occ-row.is-active{color:var(--vio-pale);border-left-color:#a78bfa;background-color:rgba(124,92,214,.10)}
-.gp-occ-row.is-active .gp-occ-arrow{color:var(--vio-bright);transform:translateX(4px)}
+.gp-occ-cardbtn:active{transform:scale(.97);transition-duration:.06s}
+.gp-occ-scene{display:block;width:min(132px,62%);color:var(--vio-soft);
+  filter:drop-shadow(0 0 12px rgba(124,92,214,.28));
+  transition:color .22s ease}
+.gp-occ-scene svg{display:block;width:100%;height:auto}
+.gp-occ-name{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:clamp(1.02rem,2.8vw,1.18rem);
+  line-height:1.22;color:var(--body);text-wrap:balance;transition:color .2s ease}
+.gp-occ-tick{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  background:linear-gradient(180deg,#a78bfa,#7452c8);
+  opacity:0;transform:scale(.5);transition:opacity .18s ease,transform .18s var(--ease-settle)}
+.gp-occ-tick svg{width:13px;height:13px}
+.gp-occ-cardbtn.is-active{border-color:#a78bfa;
+  background:radial-gradient(130% 100% at 50% 0%,rgba(124,92,214,.30),rgba(124,92,214,.08) 62%),#171126;
+  box-shadow:0 0 0 4px rgba(154,126,230,.20),0 14px 36px -12px rgba(124,92,214,.55)}
+.gp-occ-cardbtn.is-active::before{opacity:1}
+.gp-occ-cardbtn.is-active .gp-occ-scene{color:var(--vio-pale)}
+.gp-occ-cardbtn.is-active .gp-occ-name{color:var(--white)}
+.gp-occ-cardbtn.is-active .gp-occ-tick{opacity:1;transform:scale(1)}
+.gp-occ-cardbtn.is-mem.is-active{border-color:#b8b2cc;
+  box-shadow:0 0 0 4px rgba(200,196,216,.16),0 14px 36px -12px rgba(148,140,180,.5)}
+.gp-occ-cardbtn.is-mem.is-active .gp-occ-scene{color:#d8d4e8}
+.gp-occ-cardbtn.is-mem.is-active .gp-occ-tick{background:linear-gradient(180deg,#c9c4dd,#948caa)}
 
 /* tier cards */
 .gp-tier{width:100%;text-align:left;padding:24px 22px;border-radius:20px;cursor:pointer;position:relative;
   border:2px solid var(--line);
   background:linear-gradient(180deg,rgba(124,92,214,.13),rgba(124,92,214,.05)),#15101c;
   transition:border-color .2s,background .2s,box-shadow .2s}
+.gp-tier::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% 0%,rgba(154,126,230,.14),transparent 60%);
+  opacity:0;transition:opacity .2s ease}
+@media (hover:hover){
+  .gp-tier:hover{border-color:var(--line-bright)}
+  .gp-tier:hover::after{opacity:1}
+}
 .gp-tier.is-selected{border-color:#a78bfa;
   background:linear-gradient(180deg,rgba(124,92,214,.20),rgba(124,92,214,.08)),#15101c}
+.gp-tier.is-selected::after{opacity:1}
 .gp-tier-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);color:#0d0a14;
   font-size:12px;font-weight:700;padding:3px 14px;border-radius:20px;letter-spacing:.1em;white-space:nowrap}
 .gp-tier-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
@@ -1924,7 +2056,8 @@ const GP_CSS = `
 .gp-stepper-seg{display:flex;align-items:center;gap:8px}
 .gp-stepper-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:14px;font-weight:700;background:rgba(154,126,230,.16);color:var(--dim);transition:all .3s}
-.gp-stepper-dot.is-on{background:linear-gradient(180deg,#a78bfa,#7452c8);color:#fff}
+.gp-stepper-dot.is-on{background:linear-gradient(180deg,#a78bfa,#7452c8);color:#fff;
+  box-shadow:0 0 14px rgba(167,139,250,.45)}
 .gp-stepper-dot svg{width:14px;height:14px}
 .gp-stepper-bar{width:28px;height:2px;background:rgba(154,126,230,.16);border-radius:2px;transition:background .3s}
 .gp-stepper-bar.is-on{background:var(--vio-soft)}
@@ -1933,7 +2066,13 @@ const GP_CSS = `
 .gp-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .gp-choice{position:relative;padding:22px 14px;border-radius:18px;cursor:pointer;text-align:center;
   border:2px solid var(--line);background:rgba(124,92,214,.05);transition:all .2s}
-.gp-choice.is-on{border-color:#a78bfa;background:rgba(124,92,214,.14)}
+@media (hover:hover){
+  .gp-choice:hover{transform:translateY(-2px);border-color:var(--line-bright);
+    box-shadow:0 10px 26px -10px rgba(124,92,214,.4)}
+}
+.gp-choice:active{transform:scale(.98);transition-duration:.06s}
+.gp-choice.is-on{border-color:#a78bfa;background:rgba(124,92,214,.14);
+  box-shadow:0 0 0 3px rgba(154,126,230,.16)}
 .gp-choice-left{text-align:left;padding:16px 14px}
 .gp-choice-icon{width:30px;height:30px;margin:0 auto 10px;color:var(--dim);display:block}
 .gp-choice-left .gp-choice-icon{margin:0 0 8px}
@@ -1941,7 +2080,7 @@ const GP_CSS = `
 .gp-choice.is-on .gp-choice-icon{color:var(--vio-bright)}
 .gp-choice-t{font-weight:700;font-size:16.5px;color:var(--white)}
 .gp-choice-s{font-size:14.5px;color:var(--dim);margin-top:3px;line-height:1.35}
-.gp-save-chip{position:absolute;top:8px;right:8px;font-size:11px;font-weight:700;
+.gp-save-chip{position:absolute;top:-9px;right:12px;font-size:11px;font-weight:700;
   background:linear-gradient(180deg,#a78bfa,#8266d9);color:#fff;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
 .gp-flex-chip{position:absolute;top:-9px;left:12px;font-size:11.5px;font-weight:700;
   background:linear-gradient(180deg,#a78bfa,#8266d9);color:#fff;padding:2px 9px;border-radius:20px}
@@ -1960,7 +2099,7 @@ const GP_CSS = `
   border:1px solid rgba(139,123,216,.38);background:rgba(11,8,18,.55);
   font-size:17px;color:var(--body);outline:none;transition:border-color .2s}
 .gp-field::placeholder{color:var(--dim)}
-.gp-field:focus{border-color:#a78bfa}
+.gp-field:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.16)}
 .gp-field-sm{padding:10px 14px;min-height:44px;font-size:16px}
 .gp-field-col{display:flex;flex-direction:column;gap:10px}
 .gp-field-label{font-size:16.5px;font-weight:600;color:var(--white);display:block;margin-bottom:10px}
@@ -1996,7 +2135,11 @@ const GP_CSS = `
 .gp-recip-fields.has-email{grid-template-columns:1fr 1fr}
 .gp-add-row{padding:14px;border-radius:14px;border:2px dashed rgba(154,126,230,.4);
   background:rgba(124,92,214,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  color:var(--vio-bright);font-weight:600;font-size:15.5px}
+  color:var(--vio-bright);font-weight:600;font-size:15.5px;
+  transition:border-color .2s ease,background-color .2s ease}
+@media (hover:hover){
+  .gp-add-row:hover{border-color:rgba(185,165,240,.7);background:rgba(124,92,214,.15)}
+}
 .gp-add-row svg{width:18px;height:18px}
 .gp-add-bonus{font-size:13px;color:var(--vio-pale);margin-left:4px}
 
@@ -2025,6 +2168,8 @@ const GP_CSS = `
 .gp-apply{padding:0 20px;border-radius:10px;min-height:48px;border:none;cursor:pointer;
   background:linear-gradient(180deg,#a78bfa,#7452c8);color:#fff;font-weight:600;font-size:15px;white-space:nowrap}
 .gp-apply:disabled{opacity:.5;cursor:default}
+@media (hover:hover){.gp-apply:not(:disabled):hover{filter:brightness(1.1)}}
+.gp-apply:not(:disabled):active{transform:scale(.97)}
 .gp-promo-err{color:var(--body);font-size:14px;margin-top:6px;padding-left:10px;border-left:2px solid var(--vio-soft)}
 .gp-promo-chip{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
   border-radius:10px;background:rgba(124,92,214,.12);border:1px solid rgba(185,165,240,.35)}
