@@ -723,22 +723,6 @@ function GifterProof() {
 
 /* ── THE ARGUMENT — four beats, one at a time, paced by their own
    scroll. Never a paragraph wall. ── */
-function MessageBeats() {
-  const beats = [
-    'Some gifts get opened once.',
-    'This one gets kept.',
-    'It is about the soul they love most.',
-  ];
-  return (
-    <section className="gp-wrap gp-beats" aria-label="Why this gift matters">
-      {beats.map((b) => (
-        <p className="gp-rev gp-beat" key={b}>{b}</p>
-      ))}
-      <p className="gp-rev gp-beat gp-beat-last">And you gave it.</p>
-    </section>
-  );
-}
-
 /* ── SCENES — full-bleed cinematic photo breaks. Each envelope scene
    spans the whole viewport width (the envelope is the true product
    object), one caption line per frame, staggered reveal on scroll.
@@ -1146,7 +1130,6 @@ export default function GiftPurchase() {
         <HowItWorks />
         <GifterProof />
 
-        <MessageBeats />
         <ScenesBand />
 
         {/* ── CREATE THEIR GIFT — the interactive purchase funnel.
@@ -1957,18 +1940,6 @@ const GP_CSS = `
   border:1px solid rgba(185,165,240,.3)}
 
 /* the argument — beat by beat */
-.gp-beats{position:relative;text-align:center;padding-top:clamp(40px,7vw,84px);padding-bottom:clamp(48px,8vw,92px)}
-.gp-beats::before{content:"";position:absolute;top:50%;left:50%;width:min(760px,92vw);height:72%;
-  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;filter:blur(30px);
-  background:radial-gradient(closest-side, rgba(124,92,214,.18), transparent 72%)}
-.gp-beat{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--body);
-  font-size:clamp(1.55rem,4.6vw,2.5rem);line-height:1.15;letter-spacing:-.014em;text-wrap:balance;
-  max-width:18em;margin:0 auto;padding:clamp(24px,5vh,44px) 0;
-  filter:blur(8px);
-  transition:opacity .6s var(--ease-settle),transform .6s var(--ease-settle),filter .6s var(--ease-settle);
-  transition-delay:var(--d,0ms)}
-.gp-beat.is-in{filter:none}
-.gp-beat-last{font-style:italic;color:var(--vio-pale);text-shadow:0 0 28px rgba(167,139,250,.4)}
 
 /* scenes — full-bleed cinematic photo breaks, envelope frames */
 .gp-breaks{display:grid;gap:clamp(3px,.5vw,6px)}
