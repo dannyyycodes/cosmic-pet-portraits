@@ -635,10 +635,10 @@ function HeroSection() {
       <div className="relative z-10 mx-auto flex w-full max-w-7xl items-center">
         <div className="ls-hero-copy max-w-2xl">
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
-            Behind every soul, a cosmos.
+            Until one has loved an animal, a part of one&rsquo;s soul remains asleep.
           </h1>
-          <p className="ls-hero-sub ls-reveal" style={revealDelay(0.16)}>
-            Every pet arrives under one particular sky. Enter their birthday and see theirs, planet by planet, and what it means about them.
+          <p className="ls-hero-attr ls-reveal" style={revealDelay(0.16)}>
+            Anatole France
           </p>
           {/* The birthday field is several screens down, so the hero needs a
               plain "there is more below" affordance. Quiet violet cue sits under
@@ -7430,6 +7430,11 @@ function CosmicStyles() {
         margin: 18px 0 0; max-width: 46ch;
         color: rgba(245,242,255,0.86); font-family: "Newsreader", Georgia, serif;
         font-size: clamp(1.1rem, 1.2vw + 0.85rem, 1.35rem); line-height: 1.55;
+      }
+      .ls-hero-attr {
+        margin: 16px 0 0; font-family: "Newsreader", Georgia, serif;
+        font-style: italic; font-size: 1.02rem; letter-spacing: 0.02em;
+        color: rgba(245,242,255,0.62);
       }
       .ls-seal-field { display: block; width: 100%; margin-bottom: 26px; text-align: left; }
       .ls-seal-field label {
