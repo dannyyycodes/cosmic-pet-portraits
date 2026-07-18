@@ -1079,22 +1079,52 @@ function ComputeSequence({
   reduce: boolean;
   onDone: () => void;
 }) {
-  void name;
-  const startedFinish = useRef(false);
-  const [landed, setLanded] = useState(false);
+  // The compute moment is a real MOMENT: a staged "reading the sky" sequence
+  // that always holds to a premium minimum before it hands into the deck, even
+  // when the fetch returns in a blink. The reveal is gated on BOTH the minimum
+  // having elapsed AND the real chart being present, so the deck is NEVER shown
+  // before the data exists; a slow fetch simply extends the calm holding state
+  // until it lands.
+  const MIN_MS = reduce ? 620 : 4000;   // the floor the animation holds to
+  const SETTLE_MS = reduce ? 220 : 660; // the closing "sky is set" beat
 
-  // Flip the moment the fetch resolves (+ a beat for the ticker to register).
+  // Wall-clock start, set once on first render.
+  const startRef = useRef(0);
+  if (startRef.current === 0) {
+    startRef.current = typeof performance !== "undefined" ? performance.now() : Date.now();
+  }
+  const nowMs = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
+
+  const chartReady = !!chart;
+  const [stage, setStage] = useState(0);                      // staged copy 0..3
+  const [phase, setPhase] = useState<"run" | "settle">("run");
+
+  // Staged-copy ticker: advances the headline through its beats on a timer,
+  // independent of the fetch, so the sequence reads one line at a time. Held
+  // still under reduced motion (one calm line, no churn).
   useEffect(() => {
-    if (!chart || startedFinish.current) return;
-    startedFinish.current = true;
-    if (reduce) {
-      const t = window.setTimeout(onDone, 460);
-      return () => clearTimeout(t);
-    }
-    setLanded(true);
-    const t = window.setTimeout(onDone, 520);
+    if (reduce) return;
+    const marks = [1150, 2100, 2950, 3650];
+    const timers = marks.map((m, i) => window.setTimeout(() => setStage(i + 1), m));
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, [reduce]);
+
+  // Enter the closing settle ONLY once the chart is here AND the minimum has
+  // elapsed. If the chart is slower than the floor, this waits for it (the
+  // holding state keeps running); if faster, it holds to the floor.
+  useEffect(() => {
+    if (!chartReady || phase !== "run") return;
+    const wait = Math.max(0, MIN_MS - (nowMs() - startRef.current));
+    const t = window.setTimeout(() => setPhase("settle"), wait);
     return () => clearTimeout(t);
-  }, [chart, reduce, onDone]);
+  }, [chartReady, phase, MIN_MS]);
+
+  // The settle beat plays, then the deck is revealed.
+  useEffect(() => {
+    if (phase !== "settle") return;
+    const t = window.setTimeout(onDone, SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [phase, onDone, SETTLE_MS]);
 
   const aspectCount = useMemo(() => {
     if (!chart) return 0;
@@ -1119,44 +1149,77 @@ function ComputeSequence({
   const agePhrase = useMemo(() => skyAgePhrase(date), [date]);
   const dateEcho = agePhrase ? `${dateLabel}, ${agePhrase}` : dateLabel;
 
+  const who = name ? `${capName(name)}'s` : "Their";
+  const LINES = [
+    `Reading the sky over ${dateEcho}.`,
+    "Placing the Sun, then the Moon.",
+    "Measuring the angles between them.",
+    "Letting the planets settle.",
+  ];
+  const line = phase === "settle" ? `${who} sky is set.` : LINES[Math.min(stage, LINES.length - 1)];
+  // Key so React remounts the line on each beat, replaying its blur/rise reveal.
+  const lineKey = phase === "settle" ? "set" : String(Math.min(stage, LINES.length - 1));
+
+  // The zodiac wheel's 12 house ticks, drawn once and shared by both paths.
+  const wheelTicks = Array.from({ length: 12 }).map((_, i) => {
+    const a = (i * 30 - 90) * (Math.PI / 180);
+    const x1 = +(100 + 78 * Math.cos(a)).toFixed(2);
+    const y1 = +(100 + 78 * Math.sin(a)).toFixed(2);
+    const x2 = +(100 + 88 * Math.cos(a)).toFixed(2);
+    const y2 = +(100 + 88 * Math.sin(a)).toFixed(2);
+    return (
+      <line key={i} className="ls-cw-tick" x1={x1} y1={y1} x2={x2} y2={y2} style={{ animationDelay: `${0.55 + i * 0.05}s` }} />
+    );
+  });
+
+  // Reduced motion: a calm, quick, non-animated version. The wheel is drawn
+  // whole (no draw-in), nothing spins, the copy simply reads the two states.
   if (reduce) {
     return (
-      <div className="ls-compute" role="status" aria-live="polite">
+      <div className="ls-compute" role="status" aria-live="polite" data-phase={phase}>
         <div className="ls-compute-dust" aria-hidden="true" />
-        <span className="ls-compute-mote is-lit" aria-hidden="true" />
-        <p className="ls-compute-line">Setting the chart for {dateEcho}.</p>
+        <div className="ls-compute-aura" aria-hidden="true" />
+        <div className="ls-compute-instrument is-static" aria-hidden="true">
+          <svg className="ls-compute-wheel" viewBox="0 0 200 200">
+            <circle className="ls-cw-draw" cx="100" cy="100" r="86" />
+            {wheelTicks}
+            <circle className="ls-cw-inner" cx="100" cy="100" r="52" />
+          </svg>
+          <span className="ls-compute-core is-lit" />
+        </div>
+        <div className="ls-compute-copy">
+          <p className="ls-compute-line">{line}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="ls-compute" role="status" aria-live="polite">
+    <div className="ls-compute" role="status" aria-live="polite" data-phase={phase}>
       <div className="ls-compute-dust" aria-hidden="true" />
-      <div className="ls-compute-instrument" aria-hidden="true">
-        <span className="ls-compute-ring ls-compute-ring-1"><i /></span>
-        <span className="ls-compute-ring ls-compute-ring-2"><i /></span>
-        <span className="ls-compute-ring ls-compute-ring-3" />
+      <div className="ls-compute-aura" aria-hidden="true" />
+      <div className={`ls-compute-instrument${phase === "settle" ? " is-settle" : ""}`} aria-hidden="true">
+        {/* The zodiac wheel drawing itself in. */}
+        <svg className="ls-compute-wheel" viewBox="0 0 200 200">
+          <circle className="ls-cw-draw" cx="100" cy="100" r="86" />
+          {wheelTicks}
+          <circle className="ls-cw-inner" cx="100" cy="100" r="52" />
+        </svg>
+        {/* Orbits, each carrying a planet that settles onto its ring. */}
+        <span className="ls-compute-ring ls-compute-ring-1"><span className="ls-cr-orbit"><i /></span></span>
+        <span className="ls-compute-ring ls-compute-ring-2"><span className="ls-cr-orbit"><i /></span></span>
+        <span className="ls-compute-ring ls-compute-ring-3"><span className="ls-cr-orbit"><i /></span></span>
         <span className="ls-compute-sweep" />
-        <span className={`ls-compute-mote ${landed ? "is-lit" : ""}`} />
+        <span className="ls-compute-core" />
       </div>
-      <p className="ls-compute-line">Reading the sky over {dateEcho}.</p>
-      <div className="ls-compute-tick" aria-hidden={!landed}>
-        {landed && (
-          <>
-            <span className="ls-ctk">Sun found</span>
-            <span className="ls-ctk ls-ctk-dot" style={{ animationDelay: "0.10s" }}>·</span>
-            <span className="ls-ctk" style={{ animationDelay: "0.10s" }}>Moon found</span>
-            <span className="ls-ctk ls-ctk-dot" style={{ animationDelay: "0.20s" }}>·</span>
-            <span className="ls-ctk" style={{ animationDelay: "0.20s" }}>{aspectCount} angles measured</span>
-          </>
-        )}
+      <div className="ls-compute-copy">
+        <p className="ls-compute-line" key={lineKey}>{line}</p>
       </div>
-      <style>{`
-        .ls-compute-tick { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 22px; margin-top: 10px; }
-        .ls-ctk { color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 15px; letter-spacing: 0.04em; opacity: 0; animation: lsCtkIn 0.26s ease-out forwards; }
-        .ls-ctk-dot { color: rgba(200,200,210,0.55); }
-        @keyframes lsCtkIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
+      <div className="ls-compute-chips" aria-hidden="true">
+        <span className={`ls-cchip${stage >= 1 ? " is-on" : ""}`}>Sun</span>
+        <span className={`ls-cchip${stage >= 2 ? " is-on" : ""}`}>Moon</span>
+        <span className={`ls-cchip${stage >= 3 ? " is-on" : ""}`}>{chartReady ? `${aspectCount} angles` : "angles"}</span>
+      </div>
     </div>
   );
 }
@@ -1520,13 +1583,11 @@ function buildDeck(
     seed: `${(subject.name || "").trim().toLowerCase()}|${birthDate || ""}`,
   });
 
-  // If they added a photo, the reading opens on them: their own face, framed in
-  // violet, the moment the sky finishes computing. No photo = this card is never
-  // built, so the deck degrades to the chart-only open with nothing missing.
-  if (keepsake?.photoUrl) {
-    cards.push({ kind: "keepsake", photoUrl: keepsake.photoUrl, name: keepsake.name });
-  }
-
+  // A photo NEVER pushes the Sun off the opening card. The reading always opens
+  // on the Sun (the self under everything); if they added a photo, their own
+  // face rides in as the warm held-image beat right before the keep bridge (see
+  // the keepsake push below the synthesis). No photo = that card is never built,
+  // so the deck degrades to the chart-only close with nothing missing.
   for (const key of DECK_PLANETS) {
     const body = chart[key] as ChartBody | undefined;
     const sign = body?.sign;
@@ -1618,6 +1679,13 @@ function buildDeck(
         close: fill(SYNTH_CLOSE[voice], S),
       });
     }
+  }
+
+  // Their own face, framed in violet, as the reading's warm held-image close,
+  // right before the keep bridge. Only built when a photo was added; the Sun
+  // still owns the opening card either way.
+  if (keepsake?.photoUrl) {
+    cards.push({ kind: "keepsake", photoUrl: keepsake.photoUrl, name: keepsake.name });
   }
 
   const teaseCopy = TEASE[voice];
@@ -2152,7 +2220,7 @@ const DECK_CSS = `
   .ls-dk-inner > * { opacity: 0; animation: lsDkIn 0.55s cubic-bezier(0.22,0.7,0.2,1) forwards; }
   @keyframes lsDkIn { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
-  /* The keepsake: their own photo, framed in violet, the reading's warm open. */
+  /* The keepsake: their own photo, framed in violet, the reading's warm close. */
   .ls-dk-keep-inner { gap: clamp(16px, 3svh, 30px); }
   .ls-dk-frame { position: relative; width: clamp(178px, 34svh, 268px); aspect-ratio: 1; display: grid; place-items: center; animation: lsDkFrameRise 1.1s cubic-bezier(0.22,0.7,0.2,1) both; }
   @keyframes lsDkFrameRise { from { opacity: 0; transform: scale(0.9); filter: blur(6px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
@@ -2770,7 +2838,7 @@ function BirthSkyJourney() {
     try { return sessionStorage.getItem("ls_chart_email") || ""; } catch { return ""; }
   });
   const [chart, setChart] = useState<PetBirthChart | null>(null);
-  const [status, setStatus] = useState<"idle" | "computing" | "photo" | "ready" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "computing" | "ready" | "error">("idle");
   const [message, setMessage] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   // Per-field errors, all surfaced at once on submit (adjacent to their
@@ -3153,9 +3221,11 @@ function BirthSkyJourney() {
         window.dispatchEvent(new CustomEvent("ls-chart-photo", { detail: { url } }));
       } catch { /* ignore */ }
       patchResume({ photo: url });
-      // The photo is offered AFTER the email is captured, so the lead already
-      // exists. Enrich it with the photo so the drip can greet them with their
-      // own dog. Fire-and-forget; the reading never waits on it.
+      // If they have already typed a valid email, enrich the lead now so the
+      // drip can greet them with their own dog. If the email is not in yet (the
+      // photo can be added before it on the form), this simply skips: the submit
+      // handler still carries petPhotoUrl into the lead. Fire-and-forget; the
+      // reading never waits on it.
       const em = email.trim().toLowerCase();
       if (/.+@.+\..+/.test(em)) {
         supabase.functions
@@ -3183,14 +3253,6 @@ function BirthSkyJourney() {
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
-  // Leave the optional-photo card for the deck. Capture the pre-swap height so
-  // the reveal growth tween (SEAM 3) measures from here, exactly as it did when
-  // the compute screen handed straight into the deck.
-  const proceedToReading = () => {
-    growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
-    setStatus("ready");
-  };
-
   const scrollToCheckout = () => descendTo("#begin");
 
   return (
@@ -3207,66 +3269,15 @@ function BirthSkyJourney() {
                 date={date}
                 reduce={reduce}
                 onDone={() => {
-                  // Email is already captured (the lead fired at submit). Now, and
-                  // only now, offer the optional photo as a non-blocking card on the
-                  // results screen. A returning visitor whose photo we already have
-                  // skips straight into the reading.
-                  if (photo) {
-                    growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
-                    setStatus("ready");
-                  } else {
-                    setStatus("photo");
-                    // Re-centre on the flip so the photo card opens in view,
-                    // not scrolled off under the compute animation's old height.
-                    requestAnimationFrame(() => descendTo("#computed-sky", 0.9));
-                  }
+                  // Photo (if any) was captured up front on the form, so there is
+                  // no photo interrupt here: the compute animation hands STRAIGHT
+                  // into the reading, which always opens on the Sun. Capture the
+                  // pre-swap height so the reveal growth tween (SEAM 3) measures
+                  // from the compute screen exactly as before.
+                  growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
+                  setStatus("ready");
                 }}
               />
-            ) : status === "photo" ? (
-              <div className="ls-seal-card ls-stage-card ls-photo-card">
-                <input
-                  ref={photoInputRef}
-                  id="seal-photo"
-                  type="file"
-                  accept="image/*,.heic,.heif"
-                  className="ls-photo-input"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhoto(f); }}
-                />
-                {photo ? (
-                  <div className="ls-photo-preview ls-reveal is-in">
-                    <span className="ls-photo-thumb">
-                      <span className="ls-photo-thumb-glow" aria-hidden="true" />
-                      <img src={photo} alt={name || "Their photo"} draggable={false} />
-                    </span>
-                    <div className="ls-photo-preview-side">
-                      <p className="ls-photo-ready">Their photo becomes part of the reveal, something to hold on to.</p>
-                      <div className="ls-photo-actions">
-                        <button type="button" className="ls-photo-link" onClick={() => photoInputRef.current?.click()}>Change</button>
-                        <span aria-hidden="true">·</span>
-                        <button type="button" className="ls-photo-link" onClick={removePhoto}>Remove</button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className={`ls-photo-drop ls-photo-drop-lg ls-reveal is-in${photoBusy ? " is-busy" : ""}`}
-                      onClick={() => photoInputRef.current?.click()}
-                      disabled={photoBusy}
-                    >
-                      {photoBusy ? <span className="ls-photo-spin" aria-hidden="true" /> : <PhotoMark />}
-                      <span>{photoBusy ? "Adding their photo" : "Add their photo (optional)"}</span>
-                    </button>
-                    <p className="ls-seal-hint ls-photo-info ls-reveal is-in">Their photo becomes part of the reveal, something to hold on to.</p>
-                  </>
-                )}
-                <p className="ls-photo-privacy ls-reveal is-in">Yours only. We never sell it or share it.</p>
-                {photoErr && <p className="ls-photo-err">{photoErr}</p>}
-                <button type="button" className="ls-seal-cta ls-photo-proceed ls-reveal is-in" onClick={proceedToReading}>
-                  See their reading <ArrowRight size={18} />
-                </button>
-              </div>
             ) : (
               <form
                 className="ls-seal-card ls-stage-card"
@@ -3394,7 +3405,51 @@ function BirthSkyJourney() {
                   {fieldErrs.email && <p id="seal-email-err" className="ls-field-err" role="alert">{fieldErrs.email}</p>}
                   <p id="seal-email-hint" className="ls-seal-hint">No account needed. Only so their reading can find its way back to you if you step away.</p>
                 </div>
-                <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.30)}>
+                {/* Optional photo, captured up front WITH everything else. Never a
+                    gate: skipping it is the effortless default and the chart opens
+                    with or without it. Reuses the whole photo plumbing (state,
+                    handler, bucket) the old post-submit step used - only the
+                    trigger moved onto the form. */}
+                <div className="ls-seal-field ls-reveal" style={revealDelay(0.27)}>
+                  <label htmlFor="seal-photo">Their photo <span>optional</span></label>
+                  <input
+                    ref={photoInputRef}
+                    id="seal-photo"
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    className="ls-photo-input"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhoto(f); }}
+                  />
+                  {photo ? (
+                    <div className="ls-photo-preview">
+                      <span className="ls-photo-thumb">
+                        <span className="ls-photo-thumb-glow" aria-hidden="true" />
+                        <img src={photo} alt={name || "Their photo"} draggable={false} />
+                      </span>
+                      <div className="ls-photo-preview-side">
+                        <p className="ls-photo-ready">Added. It becomes part of the reveal.</p>
+                        <div className="ls-photo-actions">
+                          <button type="button" className="ls-photo-link" onClick={() => photoInputRef.current?.click()}>Change</button>
+                          <span aria-hidden="true">·</span>
+                          <button type="button" className="ls-photo-link" onClick={removePhoto}>Remove</button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`ls-photo-drop${photoBusy ? " is-busy" : ""}`}
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={photoBusy}
+                    >
+                      {photoBusy ? <span className="ls-photo-spin" aria-hidden="true" /> : <PhotoMark />}
+                      <span>{photoBusy ? "Adding their photo" : "Add a photo"}</span>
+                    </button>
+                  )}
+                  <p className="ls-seal-hint">Yours only. It becomes part of the reveal, something to hold on to.</p>
+                  {photoErr && <p className="ls-field-err" role="alert">{photoErr}</p>}
+                </div>
+                <button type="submit" className="ls-seal-cta ls-reveal" style={revealDelay(0.31)}>
                   Set the chart <ArrowRight size={18} />
                 </button>
                 <p className="ls-seal-free ls-reveal" style={revealDelay(0.34)}>Free. No card, nothing to cancel.</p>
@@ -7930,33 +7985,73 @@ function CosmicStyles() {
         animation: ls-twinkle 3.6s ease-in-out infinite;
       }
       @keyframes ls-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.7; } }
-      .ls-compute-instrument { position: absolute; top: 41%; left: 50%; width: 176px; height: 176px; transform: translate(-50%, -50%); }
-      .ls-compute-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(154,126,230,0.28); }
-      .ls-compute-ring i { position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: ${C.violetSoft}; box-shadow: 0 0 10px rgba(154,126,230,0.9); }
-      .ls-compute-ring-1 { inset: 0; animation: ls-spin 7s linear infinite; }
-      .ls-compute-ring-2 { inset: 28px; border-color: rgba(154,126,230,0.18); animation: ls-spin 11s linear infinite reverse; }
-      .ls-compute-ring-2 i { background: ${C.violetBright}; box-shadow: 0 0 10px rgba(185,165,240,0.9); }
-      .ls-compute-ring-3 { inset: 56px; border-style: dashed; border-color: rgba(237,233,247,0.12); }
-      .ls-compute-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(154,126,230,0.34), rgba(154,126,230,0) 30%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%); mask: radial-gradient(circle, transparent 30%, #000 31%); animation: ls-spin 4.5s linear infinite; }
-      .ls-compute-mote {
-        position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+      /* ── The compute instrument: a breathing aura, a zodiac wheel that
+         draws itself in, orbits whose planets settle onto their rings, a
+         scanning sweep, and a core that flares as the sky is set. ── */
+      .ls-compute-aura {
+        position: absolute; top: 41%; left: 50%; width: 300px; height: 300px; margin: -150px 0 0 -150px;
+        border-radius: 50%; pointer-events: none;
+        background: radial-gradient(circle, rgba(154,126,230,0.24) 0%, rgba(124,92,214,0.10) 42%, transparent 70%);
+        filter: blur(10px);
+        animation: ls-aura-breath 5.5s ease-in-out infinite alternate;
+      }
+      @keyframes ls-aura-breath { from { opacity: 0.55; transform: scale(0.92); } to { opacity: 1; transform: scale(1.08); } }
+      .ls-compute-instrument { position: absolute; top: 41%; left: 50%; width: 190px; height: 190px; transform: translate(-50%, -50%); }
+      .ls-compute-wheel { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+      .ls-cw-draw {
+        fill: none; stroke: rgba(185,165,240,0.42); stroke-width: 1;
+        stroke-dasharray: 540.4; stroke-dashoffset: 540.4;
+        transform: rotate(-90deg); transform-box: view-box; transform-origin: 100px 100px;
+        animation: ls-cw-draw 1.2s cubic-bezier(0.4,0,0.2,1) 0.1s forwards;
+      }
+      @keyframes ls-cw-draw { to { stroke-dashoffset: 0; } }
+      .ls-cw-inner { fill: none; stroke: rgba(154,126,230,0.16); stroke-width: 1; opacity: 0; animation: ls-cw-fade 0.7s ease 0.55s forwards; }
+      .ls-cw-tick { stroke: rgba(185,165,240,0.5); stroke-width: 1.2; stroke-linecap: round; opacity: 0; animation: ls-cw-fade 0.5s ease forwards; }
+      @keyframes ls-cw-fade { to { opacity: 1; } }
+      .ls-compute-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(154,126,230,0.28); opacity: 0; animation: ls-ring-in 0.9s cubic-bezier(0.22,0.7,0.2,1) forwards; }
+      .ls-cr-orbit { position: absolute; inset: 0; border-radius: 50%; animation: ls-spin var(--sp, 9s) linear infinite; }
+      .ls-cr-orbit i { position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: ${C.violetSoft}; box-shadow: 0 0 10px rgba(154,126,230,0.9); }
+      @keyframes ls-ring-in { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: scale(1); } }
+      .ls-compute-ring-1 { inset: 4px; --sp: 8s; animation-delay: 0.7s; }
+      .ls-compute-ring-2 { inset: 30px; --sp: 12s; border-color: rgba(154,126,230,0.18); animation-delay: 0.95s; }
+      .ls-compute-ring-2 .ls-cr-orbit { animation-direction: reverse; }
+      .ls-compute-ring-2 .ls-cr-orbit i { background: ${C.violetBright}; box-shadow: 0 0 10px rgba(185,165,240,0.9); }
+      .ls-compute-ring-3 { inset: 56px; --sp: 17s; border-style: dashed; border-color: rgba(237,233,247,0.12); animation-delay: 1.2s; }
+      .ls-compute-ring-3 .ls-cr-orbit i { width: 5px; height: 5px; margin-left: -2.5px; background: ${C.violetSoft}; box-shadow: 0 0 8px rgba(154,126,230,0.8); }
+      .ls-compute-sweep { position: absolute; inset: 0; border-radius: 50%; opacity: 0; background: conic-gradient(from 0deg, rgba(154,126,230,0.34), rgba(154,126,230,0) 30%); -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%); mask: radial-gradient(circle, transparent 30%, #000 31%); animation: ls-cw-fade 0.6s ease 0.5s forwards, ls-spin 4.5s linear infinite; }
+      .ls-compute-core {
+        position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px;
         border-radius: 50%;
-        background: radial-gradient(circle at 40% 35%, ${C.violetBright}, ${C.violetSoft} 60%, #55428f);
-        box-shadow: 0 0 30px rgba(154,126,230,0.85);
-        opacity: 0.55; transform: scale(0.7);
-        transition: opacity 400ms ease, transform 400ms ease;
+        background: radial-gradient(circle at 40% 35%, ${C.cream}, ${C.violetBright} 46%, ${C.violet} 78%);
+        box-shadow: 0 0 28px rgba(185,165,240,0.78);
         animation: ls-corepulse 3s ease-in-out infinite;
       }
-      .ls-compute-mote.is-lit { opacity: 1; transform: scale(1); }
-      .ls-compute-readout {
-        position: absolute; top: 60%; left: 0; right: 0; min-height: 1.2em; text-align: center;
-        color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 0.92rem;
-        letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+      .ls-compute-core.is-lit { animation: none; box-shadow: 0 0 40px rgba(185,165,240,0.85); }
+      .ls-compute-instrument.is-settle .ls-compute-core { animation: ls-core-flare 0.66s cubic-bezier(0.22,0.7,0.2,1) forwards; }
+      @keyframes ls-core-flare {
+        0% { transform: scale(1); box-shadow: 0 0 28px rgba(185,165,240,0.78); }
+        55% { transform: scale(1.75); box-shadow: 0 0 64px 14px rgba(185,165,240,0.92); }
+        100% { transform: scale(1.28); box-shadow: 0 0 46px 6px rgba(185,165,240,0.82); }
       }
+      .ls-compute-instrument.is-settle .ls-compute-sweep { animation: ls-spin 1.7s linear infinite; opacity: 1; }
+      .ls-compute-instrument.is-settle::after {
+        content: ""; position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px;
+        border-radius: 50%; border: 1px solid rgba(185,165,240,0.6); pointer-events: none;
+        animation: ls-settle-ring 0.66s ease-out forwards;
+      }
+      @keyframes ls-settle-ring { from { opacity: 0.8; transform: scale(1); } to { opacity: 0; transform: scale(11); } }
+      .ls-compute-copy { position: absolute; bottom: 15%; left: 0; right: 0; padding: 0 24px; text-align: center; }
       .ls-compute-line {
-        position: absolute; bottom: 13%; left: 0; right: 0; margin: 0; padding: 0 24px; text-align: center;
-        color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-size: clamp(1.15rem, 3.4vw, 1.5rem); line-height: 1.35;
+        margin: 0; color: ${C.cream}; font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(1.15rem, 3.4vw, 1.5rem); line-height: 1.35;
+        animation: ls-line-in 0.6s cubic-bezier(0.22,0.7,0.2,1) both;
       }
+      @keyframes ls-line-in { from { opacity: 0; transform: translateY(9px); filter: blur(4px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+      .ls-compute-chips { position: absolute; bottom: 7%; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; padding: 0 20px; min-height: 20px; }
+      .ls-cchip { display: inline-flex; align-items: center; gap: 6px; color: rgba(185,165,240,0.3); font-family: "Newsreader", Georgia, serif; font-size: 13.5px; letter-spacing: 0.14em; text-transform: uppercase; transition: color 550ms ease; }
+      .ls-cchip::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; transition: box-shadow 550ms ease; }
+      .ls-cchip.is-on { color: ${C.violetBright}; }
+      .ls-cchip.is-on::before { box-shadow: 0 0 8px rgba(185,165,240,0.9); }
       .ls-sound-cta {
         display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px;
         border: 1px solid rgba(154,126,230,0.55); background: rgba(124,92,214,0.18); color: ${C.violetBright};
@@ -8280,7 +8375,10 @@ function CosmicStyles() {
       .ls-info-note { margin: 0 auto; max-width: 60ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 0.78rem; line-height: 1.5; }
       .ls-skim { width: min(100%, 760px); margin: clamp(20px,4.5vw,40px) auto 0; padding-top: clamp(18px,3.5vw,30px); border-top: 1px solid rgba(154,126,230,0.18); }
       @media (prefers-reduced-motion: reduce) {
-        .ls-compute-dust, .ls-compute-mote, .ls-compute-ring, .ls-compute-sweep, .ls-sound-cta { animation: none !important; }
+        .ls-compute-dust, .ls-compute-aura, .ls-compute-core, .ls-cr-orbit, .ls-compute-sweep, .ls-compute-line, .ls-sound-cta { animation: none !important; }
+        .ls-compute-ring, .ls-cw-inner, .ls-cw-tick, .ls-compute-sweep { opacity: 1 !important; transform: none !important; animation: none !important; }
+        .ls-cw-draw { stroke-dashoffset: 0 !important; animation: none !important; }
+        .ls-compute-instrument.is-settle::after { animation: none !important; display: none; }
       }
 
       /* Seamless reveal -> pricing junction: no boxed shell, no private wash -
