@@ -1744,26 +1744,26 @@ const GP_CSS = `
   --white:#241b33;--body:#352a4c;--muted:#4c4160;--dim:#5d5178;
   --vio:#5b4696;--vio-soft:#5b4696;--vio-bright:#5b4696;--vio-pale:#4a3a80;
   --line:rgba(91,70,150,.22);--line-bright:rgba(91,70,150,.42);
-  --cream:#f7f1e6;--cream-2:#f3ecdf}
-.gp-cream-deep{--cream:#f4edde;--cream-2:#efe6d2}
+  --cream:#eee9f8;--cream-2:#e7e1f3}
+.gp-cream-deep{--cream:#e9e3f5;--cream-2:#e0d8ef}
 .gp-cream::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
   transform:translateX(-50%);z-index:-1;pointer-events:none;
   background:
     repeating-linear-gradient(0deg, rgba(36,27,51,.016) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, rgba(36,27,51,.012) 0 1px, transparent 1px 4px),
-    radial-gradient(1100px 520px at 50% 0%, rgba(255,252,242,.85), transparent 72%),
+    radial-gradient(1100px 520px at 50% 0%, rgba(250,248,255,.85), transparent 72%),
     linear-gradient(180deg,var(--cream),var(--cream-2));
   border-top:1px solid rgba(36,27,51,.5);border-bottom:1px solid rgba(36,27,51,.5);
-  box-shadow:inset 0 1px 0 rgba(255,253,245,.9),inset 0 -1px 0 rgba(230,220,199,.9),
+  box-shadow:inset 0 1px 0 rgba(250,248,255,.9),inset 0 -1px 0 rgba(205,196,228,.9),
     inset 0 26px 40px -30px rgba(36,27,51,.35),inset 0 -26px 40px -30px rgba(36,27,51,.3)}
 .gp-cream + .gp-cream::before{border-top:0;
-  box-shadow:inset 0 -1px 0 rgba(230,220,199,.9),inset 0 -26px 40px -30px rgba(36,27,51,.3)}
+  box-shadow:inset 0 -1px 0 rgba(205,196,228,.9),inset 0 -26px 40px -30px rgba(36,27,51,.3)}
 .gp-cream :focus-visible{outline-color:#5b4696}
 .gp-cream .gp-shead::after{background:linear-gradient(90deg,transparent,#5b4696,transparent)}
-.gp-cream .gp-panel{background:linear-gradient(180deg,#fffdf6,#fbf5e8);
+.gp-cream .gp-panel{background:linear-gradient(180deg,#fbf9ff,#f2eefb);
   border:1px solid rgba(91,70,150,.20);
   box-shadow:0 1px 2px rgba(36,27,51,.05),0 12px 28px -18px rgba(36,27,51,.22)}
-.gp-cream .gp-glass{background:linear-gradient(180deg,#fffdf6,#fbf5e8);
+.gp-cream .gp-glass{background:linear-gradient(180deg,#fbf9ff,#f2eefb);
   border:1px solid rgba(91,70,150,.20);
   box-shadow:0 1px 2px rgba(36,27,51,.05),0 14px 30px -18px rgba(36,27,51,.22)}
 @media (hover:hover){
