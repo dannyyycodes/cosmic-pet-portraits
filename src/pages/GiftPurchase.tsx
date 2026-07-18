@@ -28,6 +28,15 @@ import { REVIEWS } from '@/components/funnel-v2/DossierCheckout';
    · No em-dashes in visible copy (the localized-billing note is
      preserved byte-identical by mandate).
 
+   v11 alternating-bands pass (Danny, 2026-07-18): warm cream light
+   sections (how-it-works, reviews, FAQ) between the dark cosmic
+   ones. Opaque envelope-paper grounds with crisp letterpress seams;
+   aubergine ink + darkened violet accents on cream. ScenesBand
+   rebuilt as full-bleed envelope photo breaks. Dark zones tinted
+   along a temperature arc (early indigo, late plum) so the checkout
+   reads as deep night again. No gold/amber chrome anywhere; star
+   fills stay the one gold exception.
+
    The interactive purchase funnel (occasion picker → tier cards →
    3-step flow → purchase-gift-certificate) is preserved
    byte-compatible; only the presentation shell changes.
@@ -624,7 +633,7 @@ function TrustStrip() {
    Sample keepsake for Bella the cockapoo, locked chapters beneath. ── */
 function SampleReading() {
   return (
-    <section className="gp-wrap gp-band gp-tintband">
+    <section className="gp-wrap gp-band gp-night-early">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">See what they'll open.</h2>
       </div>
@@ -656,7 +665,7 @@ function HowItWorks() {
     { n: '03', t: 'They open the reveal', s: 'They add their pet’s name, birth date and photo. The reading unfolds from there.' },
   ];
   return (
-    <section className="gp-wrap gp-band">
+    <section className="gp-wrap gp-band gp-cream">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">How it works.</h2>
         <p className="gp-support">You need <strong>no pet details</strong>.</p>
@@ -677,7 +686,7 @@ function HowItWorks() {
 /* ── PROOF — gifter-voice reviews, verbatim from the sanctioned set. ── */
 function GifterProof() {
   return (
-    <section className="gp-wrap gp-band">
+    <section className="gp-wrap gp-band gp-cream gp-cream-deep">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">After they gave it.</h2>
       </div>
@@ -723,25 +732,25 @@ function MessageBeats() {
   );
 }
 
-/* ── SCENES — the three people you'd give this to, pets present.
+/* ── SCENES — full-bleed cinematic photo breaks. Each envelope scene
+   spans the whole viewport width (the envelope is the true product
+   object), one caption line per frame, staggered reveal on scroll.
    Recognition beat: the buyer sees exactly who they're buying for
    right before the funnel. Three labels, zero body copy. ── */
 function ScenesBand() {
   const scenes = [
-    { src: '/gift-scene-family.webp', label: 'For a parent.', alt: 'A daughter hugging her mum at the kitchen table, their golden retriever resting its chin on her knee' },
-    { src: '/gift-hero-v2.webp', label: 'For a partner.', alt: 'A woman opening a Little Souls gift beside her partner, their tabby cat curled on her lap' },
-    { src: '/gift-scene-friend.webp', label: 'For a friend.', alt: 'Two friends on a doorstep at dusk, one holding a wrapped gift, their border collie looking up at it' },
+    { src: '/gift-scene-family-env.webp', label: 'For a parent.', alt: 'A daughter hugging her laughing mum at the kitchen table, a sealed Little Souls envelope beside her mug, their golden retriever at her knee' },
+    { src: '/gift-scene-partner-env.webp', label: 'For a partner.', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat on her lap' },
+    { src: '/gift-scene-friend-env.webp', label: 'For a friend.', alt: 'Two friends on a doorstep at dusk, one pressing a wax-sealed Little Souls envelope to her chest, their border collie looking up' },
   ];
   return (
-    <section className="gp-wrap gp-scenes" aria-label="Who to gift it to">
-      <div className="gp-scenes-grid">
-        {scenes.map((s, i) => (
-          <figure className="gp-rev gp-scene" style={{ transitionDelay: `${i * 90}ms` }} key={s.label}>
-            <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={512} height={341} />
-            <figcaption>{s.label}</figcaption>
-          </figure>
-        ))}
-      </div>
+    <section className="gp-breaks" aria-label="Who to gift it to">
+      {scenes.map((s, i) => (
+        <figure className="gp-rev gp-break" style={{ ['--d' as string]: `${i * 90}ms` }} key={s.label}>
+          <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={1536} height={1024} />
+          <figcaption>{s.label}</figcaption>
+        </figure>
+      ))}
     </section>
   );
 }
@@ -755,7 +764,7 @@ function RigorBand() {
     { v: '< 0.01°', l: 'Geometric precision' },
   ];
   return (
-    <section className="gp-wrap gp-band gp-rigor gp-tintband">
+    <section className="gp-wrap gp-band gp-rigor gp-night-late">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">Real astronomy underneath.</h2>
       </div>
@@ -797,7 +806,7 @@ function FaqSection() {
     { q: 'What if it misses?', a: 'If the reading does not feel like them, we refund every cent.' },
   ];
   return (
-    <section className="gp-wrap gp-band gp-faq">
+    <section className="gp-wrap gp-band gp-faq gp-cream">
       <div className="gp-shead gp-rev">
         <h2 className="gp-h2">Before you ask.</h2>
       </div>
@@ -815,7 +824,7 @@ function FaqSection() {
 
 function ClosingCta({ fmt, prices, onCta }: { fmt: (c: number) => string; prices: { basic: number }; onCta: () => void }) {
   return (
-    <section className="gp-wrap gp-band gp-closing">
+    <section className="gp-wrap gp-band gp-closing gp-night-late">
       <h2 className="gp-h2 gp-rev">Give the reading written in their stars.</h2>
       <div className="gp-cta-row gp-closing-row gp-rev" style={{ ['--d' as string]: '100ms' }}>
         <button type="button" className="gp-cta" onClick={onCta}>Create their gift</button>
@@ -1111,21 +1120,19 @@ export default function GiftPurchase() {
 
         <hr className="gp-hr" />
         <SampleReading />
-        <hr className="gp-hr" />
+        {/* cream bands carry their own crisp seams; no violet hr at
+            a dark/cream boundary */}
         <HowItWorks />
-        <hr className="gp-hr" />
         <GifterProof />
 
         <MessageBeats />
         <ScenesBand />
 
-        <hr className="gp-hr" />
-
         {/* ── CREATE THEIR GIFT — the interactive purchase funnel.
              Occasion picker gates the tier cards, which drive
              handleTierSelect and the preserved 3-step flow. All
              logic/state/handlers unchanged; presentation is new. ── */}
-        <section className="gp-wrap gp-band gp-funnel gp-tintband" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
+        <section className="gp-wrap gp-band gp-funnel gp-night-late" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
           <div className="gp-shead gp-rev">
             <h2 className="gp-h2">Choose their reading.</h2>
             <p className="gp-support">
@@ -1595,7 +1602,6 @@ export default function GiftPurchase() {
 
         <hr className="gp-hr" />
         <RigorBand />
-        <hr className="gp-hr" />
         <FaqSection />
         <ClosingCta fmt={fmt} prices={prices} onCta={scrollToPicker} />
         <GiftFooter />
@@ -1718,11 +1724,56 @@ const GP_CSS = `
 .gp-hr{height:1px;border:0;max-width:1080px;margin:0 auto;
   background:linear-gradient(90deg,transparent,rgba(154,126,230,0.30) 35%,rgba(185,165,240,0.42) 50%,rgba(154,126,230,0.30) 65%,transparent)}
 
-/* alternating density: full-bleed violet wash behind chosen bands */
-.gp-tintband{position:relative}
-.gp-tintband::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
+/* ── temperature arc: dark zones tint along the scroll. Early dark
+   (hero + sample) leans indigo night; late dark (funnel, rigor,
+   closing) leans deeper plum, so the buy moment reads as a different
+   hour of the same night. ── */
+.gp-night-early,.gp-night-late{position:relative}
+.gp-night-early::before,.gp-night-late::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
+  transform:translateX(-50%);z-index:-1;pointer-events:none}
+.gp-night-early::before{background:linear-gradient(180deg,transparent,rgba(25,20,54,.40) 14%,rgba(20,16,34,.46) 86%,transparent)}
+.gp-night-late::before{background:
+  radial-gradient(720px 420px at 80% 8%, rgba(134,62,150,.10), transparent 70%),
+  linear-gradient(180deg,transparent,rgba(39,14,46,.44) 12%,rgba(30,11,36,.52) 88%,transparent)}
+
+/* ── cream bands: the envelope-paper light sections. Opaque grounds
+   (the fixed star sky must never show through), aubergine ink,
+   darkened violet accents, crisp letterpress seams top and bottom.
+   Texture is pure CSS gradient noise; no image files. ── */
+.gp-cream{position:relative;
+  --white:#241b33;--body:#352a4c;--muted:#4c4160;--dim:#5d5178;
+  --vio:#5b4696;--vio-soft:#5b4696;--vio-bright:#5b4696;--vio-pale:#4a3a80;
+  --line:rgba(91,70,150,.22);--line-bright:rgba(91,70,150,.42);
+  --cream:#f7f1e6;--cream-2:#f3ecdf}
+.gp-cream-deep{--cream:#f4edde;--cream-2:#efe6d2}
+.gp-cream::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
   transform:translateX(-50%);z-index:-1;pointer-events:none;
-  background:linear-gradient(180deg,transparent,rgba(124,92,214,.08) 16%,rgba(124,92,214,.08) 84%,transparent)}
+  background:
+    repeating-linear-gradient(0deg, rgba(36,27,51,.016) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(36,27,51,.012) 0 1px, transparent 1px 4px),
+    radial-gradient(1100px 520px at 50% 0%, rgba(255,252,242,.85), transparent 72%),
+    linear-gradient(180deg,var(--cream),var(--cream-2));
+  border-top:1px solid rgba(36,27,51,.5);border-bottom:1px solid rgba(36,27,51,.5);
+  box-shadow:inset 0 1px 0 rgba(255,253,245,.9),inset 0 -1px 0 rgba(230,220,199,.9),
+    inset 0 26px 40px -30px rgba(36,27,51,.35),inset 0 -26px 40px -30px rgba(36,27,51,.3)}
+.gp-cream + .gp-cream::before{border-top:0;
+  box-shadow:inset 0 -1px 0 rgba(230,220,199,.9),inset 0 -26px 40px -30px rgba(36,27,51,.3)}
+.gp-cream :focus-visible{outline-color:#5b4696}
+.gp-cream .gp-shead::after{background:linear-gradient(90deg,transparent,#5b4696,transparent)}
+.gp-cream .gp-panel{background:linear-gradient(180deg,#fffdf6,#fbf5e8);
+  border:1px solid rgba(91,70,150,.20);
+  box-shadow:0 1px 2px rgba(36,27,51,.05),0 12px 28px -18px rgba(36,27,51,.22)}
+.gp-cream .gp-glass{background:linear-gradient(180deg,#fffdf6,#fbf5e8);
+  border:1px solid rgba(91,70,150,.20);
+  box-shadow:0 1px 2px rgba(36,27,51,.05),0 14px 30px -18px rgba(36,27,51,.22)}
+@media (hover:hover){
+  .gp-cream .gp-step:hover{border-color:rgba(91,70,150,.40);
+    box-shadow:0 16px 32px -16px rgba(36,27,51,.30)}
+  .gp-cream .gp-proof-card:hover{border-color:rgba(91,70,150,.40);
+    box-shadow:0 1px 2px rgba(36,27,51,.06),0 18px 38px -16px rgba(36,27,51,.30)}
+}
+.gp-cream .gp-spotlight blockquote{color:#241b33}
+.gp-cream .gp-spotlight figcaption img,.gp-cream .gp-proof-card figcaption img{border-color:rgba(91,70,150,.32)}
 
 /* type */
 .gp-h1{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
@@ -1903,19 +1954,16 @@ const GP_CSS = `
 .gp-beat.is-in{filter:none}
 .gp-beat-last{font-style:italic;color:var(--vio-pale);text-shadow:0 0 28px rgba(167,139,250,.4)}
 
-/* scenes — three ways to give it */
-.gp-scenes{padding-top:0;padding-bottom:clamp(56px,9vw,110px)}
-.gp-scenes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);max-width:1120px;margin:0 auto}
-.gp-scene{margin:0;position:relative;border-radius:18px;overflow:hidden;
-  border:1px solid rgba(185,165,240,.14);background:rgba(124,92,214,.06);
-  box-shadow:0 18px 44px rgba(8,5,18,.5);
-  transition:transform .45s var(--ease-settle),box-shadow .45s var(--ease-settle)}
-@media (hover:hover){.gp-scene:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(124,92,214,.28)}}
-.gp-scene img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;display:block}
-.gp-scene figcaption{position:absolute;left:0;right:0;bottom:0;padding:34px 16px 12px;
-  font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:clamp(16px,1.5vw,19px);color:#fff;
-  background:linear-gradient(180deg,transparent,rgba(8,5,18,.78));text-shadow:0 1px 10px rgba(8,5,18,.8)}
-@media (max-width:760px){.gp-scenes-grid{grid-template-columns:1fr;max-width:440px}}
+/* scenes — full-bleed cinematic photo breaks, envelope frames */
+.gp-breaks{display:grid;gap:clamp(3px,.5vw,6px)}
+.gp-break{position:relative;margin:0;overflow:hidden}
+.gp-break img{display:block;width:100%;max-height:62vh;min-height:280px;object-fit:cover;object-position:50% 42%}
+.gp-break figcaption{position:absolute;left:0;right:0;bottom:0;
+  padding:clamp(70px,11vw,130px) clamp(22px,5vw,64px) clamp(18px,3.2vw,36px);
+  font-family:'Fraunces',Georgia,serif;font-style:italic;
+  font-size:clamp(1.45rem,3.4vw,2.3rem);line-height:1.1;color:#fff;
+  background:linear-gradient(180deg,transparent,rgba(11,7,18,.42) 45%,rgba(11,7,18,.78));
+  text-shadow:0 1px 14px rgba(8,5,18,.8)}
 
 /* rigor */
 .gp-rigor{text-align:center}
@@ -1963,7 +2011,7 @@ const GP_CSS = `
 /* sticky bar */
 .gp-sticky{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;justify-content:center;gap:16px;
   padding:12px 18px calc(12px + env(safe-area-inset-bottom));
-  background:rgba(13,10,20,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  background:rgba(13,10,20,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-top:1px solid var(--line);box-shadow:0 -10px 34px rgba(124,92,214,.18);
   transform:translateY(110%);transition:transform .35s var(--ease-settle)}
 .gp-sticky.is-shown{transform:translateY(0)}
