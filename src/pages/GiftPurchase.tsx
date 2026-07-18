@@ -559,9 +559,6 @@ function Hero({ fmt, prices, onCta, heroRef }: {
           <button type="button" className="gp-cta" onClick={onCta}>Create their gift</button>
           <p className="gp-price-note">from <span>{fmt(prices.basic)}</span></p>
         </div>
-        <p className="gp-give-note gp-rev" style={{ ['--d' as string]: '320ms' }}>
-          <GlyphPaw /> Every reading gives to animal charity
-        </p>
       </div>
       <div className="gp-hero-visual gp-rev" style={{ ['--d' as string]: '200ms' }}>
         <svg className="gp-hero-orbit" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
@@ -1790,15 +1787,11 @@ const GP_CSS = `
 }
 
 /* type */
-.gp-h1{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
-  font-size:clamp(2.05rem,5vw,3.4rem);line-height:1.06;letter-spacing:-.016em;text-wrap:balance}
-.gp-turn{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;
-  font-size:clamp(1.5rem,3.2vw,2.2rem);line-height:1.05;margin-top:14px;
-  background:linear-gradient(115deg,#e6dcff 10%,#b9a5f0 55%,#8b7bd8 95%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.gp-h1 em{font-style:italic;color:var(--vio-pale);
-  background:linear-gradient(115deg,#e6dcff 10%,#b9a5f0 55%,#8b7bd8 95%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gp-h1{font-family:'Newsreader',Georgia,serif;font-weight:500;color:var(--white);
+  font-size:clamp(2.2rem,5.2vw,3.6rem);line-height:1.12;letter-spacing:-.011em;text-wrap:balance}
+.gp-turn{font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:500;color:var(--vio-pale);
+  font-size:clamp(1.5rem,3.2vw,2.15rem);line-height:1.1;margin-top:14px}
+.gp-h1 em{font-style:italic;color:#e3d9ff}
 .gp-h2{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
   font-size:clamp(1.9rem,4.8vw,3rem);line-height:1.02;letter-spacing:-.018em;text-wrap:balance}
 .gp-eyebrow{font-weight:600;font-size:clamp(14px,1.2vw + 9px,15px);letter-spacing:.14em;
