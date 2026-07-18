@@ -3238,7 +3238,7 @@ function BirthSkyJourney() {
         // Species rides in so the drip can speak dog vs cat; the photo rides in
         // (when a returning visitor already has one) so the drip can greet them
         // with their own dog before they have opened the full reading.
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: photo || undefined, source, utm: getUtm() },
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: photo || undefined, source, register: getIntent() === "memorial" ? "memorial" : "discovery", utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
     try {
@@ -3289,7 +3289,7 @@ function BirthSkyJourney() {
       if (/.+@.+\..+/.test(em)) {
         supabase.functions
           .invoke("track-subscriber", {
-            body: { email: em, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: url, source: "free_reading_start", utm: getUtm() },
+            body: { email: em, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: url, source: "free_reading_start", register: getIntent() === "memorial" ? "memorial" : "discovery", utm: getUtm() },
           })
           .catch((e) => console.warn("[Little Souls] photo enrich failed", e));
       }
