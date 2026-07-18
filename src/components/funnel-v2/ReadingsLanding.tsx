@@ -637,9 +637,6 @@ function HeroSection() {
           <h1 className="ls-reveal mt-5 text-balance" style={{ ...heroTitleStyle, ...revealDelay(0.08) }}>
             Until one has loved an animal, a part of one&rsquo;s soul remains asleep.
           </h1>
-          <p className="ls-hero-attr ls-reveal" style={revealDelay(0.16)}>
-            Anatole France
-          </p>
           {/* The birthday field is several screens down, so the hero needs a
               plain "there is more below" affordance. Quiet violet cue sits under
               the sub; its chevron drifts on a slow loop, and reduced motion
@@ -9162,10 +9159,11 @@ const galleryCaptionStyle = {
 const heroTitleStyle = {
   color: C.cream,
   fontFamily: '"Fraunces", Georgia, serif',
-  fontSize: "clamp(2.7rem, 8vw, 6.35rem)",
+  // sized for the longer quote: elegant at both ends, wraps to a few lines
+  fontSize: "clamp(1.85rem, 4.6vw + 0.5rem, 3.75rem)",
   fontWeight: 500,
-  lineHeight: 0.92,
-  letterSpacing: "-0.018em",
+  lineHeight: 1.08,
+  letterSpacing: "-0.014em",
 } as const;
 
 const sectionTitleStyle = {
