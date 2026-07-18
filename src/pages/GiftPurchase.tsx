@@ -712,6 +712,11 @@ function GifterProof() {
           </figure>
         ))}
       </div>
+      <ul className="gp-proof-trust gp-rev" style={{ ['--d' as string]: '280ms' }}>
+        <li><GlyphLock /> Secure checkout with Stripe</li>
+        <li><GlyphSeal /> If the reading does not feel like them, we refund every cent</li>
+        <li><GlyphOrbit /> Built on their pet's real chart</li>
+      </ul>
     </section>
   );
 }
@@ -793,6 +798,20 @@ function RigorBand() {
       <p className="gp-rigor-line gp-rev" style={{ ['--d' as string]: '440ms' }}>
         Every placement is computed from their own chart.
       </p>
+      <ul className="gp-rigor-sources gp-rev" style={{ ['--d' as string]: '520ms' }}>
+        <li>
+          <span className="gp-src-name">VSOP87 planetary theory</span>
+          <span className="gp-src-org">Bretagnon &amp; Francou, Bureau des Longitudes, Paris</span>
+        </li>
+        <li>
+          <span className="gp-src-name">J2000.0 reference epoch</span>
+          <span className="gp-src-org">International Astronomical Union standard</span>
+        </li>
+        <li>
+          <span className="gp-src-name">True geocentric sky</span>
+          <span className="gp-src-org">The same math professional planetarium software runs</span>
+        </li>
+      </ul>
     </section>
   );
 }
@@ -1963,6 +1982,19 @@ const GP_CSS = `
   text-shadow:0 1px 14px rgba(8,5,18,.8)}
 
 /* rigor */
+.gp-rigor-sources{list-style:none;margin:34px auto 0;padding:22px 0 0;max-width:860px;
+  border-top:1px solid rgba(185,165,240,.18);
+  display:flex;justify-content:center;gap:clamp(18px,4vw,52px);flex-wrap:wrap}
+.gp-rigor-sources li{display:flex;flex-direction:column;gap:3px;max-width:250px}
+.gp-src-name{font-weight:600;font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--vio-pale)}
+.gp-src-org{font-size:13.5px;color:var(--dim);line-height:1.4}
+/* reviews trust row */
+.gp-proof-trust{list-style:none;margin:30px auto 0;padding:18px 0 0;max-width:920px;
+  border-top:1px solid rgba(185,165,240,.16);
+  display:flex;justify-content:center;gap:clamp(14px,3vw,38px);flex-wrap:wrap;
+  font-size:14px;color:var(--dim)}
+.gp-proof-trust li{display:inline-flex;align-items:center;gap:7px;text-align:left}
+.gp-proof-trust svg{width:15px;height:15px;flex:none;color:var(--vio-soft)}
 .gp-rigor{text-align:center}
 .gp-rigor-stage{position:relative;max-width:760px;margin:0 auto}
 .gp-rigor-stage::before{content:"";position:absolute;left:50%;top:50%;width:min(820px,108%);height:190%;
