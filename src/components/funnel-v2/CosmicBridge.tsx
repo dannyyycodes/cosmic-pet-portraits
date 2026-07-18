@@ -1,43 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { getIntent, INTENT_EVENT } from "@/lib/intent";
 
 gsap.registerPlugin(ScrollTrigger);
 
 /* =====================================================================
-   THE PROOF YOU ALREADY HOLD — the opening passage (littlesouls.app).
-   Danny-approved 2026-07-14: Direction 1 copy (recognition-first, Blair
-   Warren beat sequence) + Direction A visuals ("The Pen") + momentum
-   timeline (~2.6 viewports). Five beats between the intent toggle and
-   the "Set the chart" form, carried by ONE violet thread — a dead-
-   straight plumb line whose only bends carry meaning:
+   THE OPENING PASSAGE — littlesouls.app universal passage (2026-07-18).
+   Danny-approved verbatim copy, ONE voice for every visitor: there is no
+   discovery/memorial branch in the passage anymore (the here/memory
+   choice now lives on the "Set the chart" form). A calm staged reveal
+   that flows read aloud, beat by beat:
 
-     B1  the claim        — whisper → "born already themselves" →
-                            "The sky wrote it all down." No artifact:
-                            three real canvas stars glint instead
-     B2  recognition      — "You have seen the proof for years." + three
-                            lived fragments, each brightening one star
-     PIVOT                — personality / placements: the brightened
-                            stars gain hairline crosshairs + real degree
-                            labels (geometry arriving IS the break)
-     B3  the birth sky    — the natal wheel draws its own outer ring while
-                            the thread passes plumb on its left; the labels
-                            glide in as Venus/Sun/Moon; the real moon
-                            joins the wheel's Moon by a drawn hairline;
-                            ONE scripted meteor on the verdict line
-     B4  release          — two lines only, a traveling highlight dash
-                            pulls the eye to "Set the chart."
+     B1  the love         — "We love animals just as much as each other.
+                            If not more."
+     B2  the daily proof  — the small, daily things, each a short line
+                            that rises in on its own, into the turn:
+                            "so much of them stays a mystery."
+     B3  the question     — "what would they say if they could speak?"
+     B4  the answer       — "They can." the universe is always speaking;
+                            we just need to listen
+     B5  the birth sky    — a real natal wheel draws while the thread
+                            passes plumb on its left; the real moon
+                            arrives beside the sky line; ONE meteor
+     B6  release          — "Type their birthday, and hear the rest."
 
-   The thread is born under the chooser toggle (a violet spark witnesses
-   the choice), runs plumb down a left spine, ignites one station node
-   per beat (only the latest pulses), then finds the form card and traces
+   Carried by ONE violet thread: a dead-straight plumb line down a left
+   spine, born at the TOP of the passage, igniting one station node per
+   beat (only the latest pulses), then finding the form card and tracing
    its border shut — the button ignites only AFTER the border seals.
-   Whisper-to-huge type scale. Purple/white only.
-
-   The MEMORIAL register (ls_intent = memorial) speaks the same beats in
-   remembered tense with hushed motion: softer node glow, dimmer dust,
-   rarer meteors, slower reveals. Register change remounts the section.
+   Whisper-to-huge type scale. Purple/white only (gold never appears).
 
    STRICT-CSP SAFE: GSAP core bundled by Vite (script-src 'self'), inline
    SVG + stroke-dashoffset, sanctioned canvas starfield, self-hosted moon
@@ -449,6 +440,16 @@ const LCB_CSS = `
 .c2-b4{padding:5svh 0 5svh}
 .c2-b4 .c2-peak{margin-top:3.6svh}
 
+/* universal-passage line rhythm (2026-07-18): the rebuilt beats stack plain
+   reveal lines, so give consecutive lines an even breath between them. */
+.c2-b1 .c2-lxl + .c2-ll{margin-top:2.4svh}
+.c2-b2 .c2-frags + .c2-ll{margin-top:5svh}
+.c2-b2 .c2-ll + .c2-ll{margin-top:3svh}
+.c2-answer{padding:8svh 0 6svh}
+.c2-answer .c2-rv + .c2-rv{margin-top:3.2svh}
+.c2-b3 .c2-ll + .c2-ll{margin-top:3svh}
+.c2-b3 .c2-wheel + .c2-frag{margin-top:1.5svh}
+
 /* the pivot's astronomical annotations: hairline crosshairs + real degree
    labels on the three brightened stars (fixed layer, canvas-tracked) */
 .c2-annot{position:absolute;inset:0}
@@ -532,7 +533,7 @@ const LCB_CSS = `
    (S7) so the arrival never depends on network timing. */
 .c2-moonspine{
   position:absolute;z-index:-1;pointer-events:none;
-  top:calc(-1 * clamp(44px, 9svh, 96px));
+  top:clamp(130px, 21svh, 200px);
   right:calc(-1 * clamp(14px, 6vw, 84px));
   width:clamp(116px, 28vw, 208px);height:auto;border-radius:50%;
   -webkit-mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
@@ -542,22 +543,22 @@ const LCB_CSS = `
   transition:opacity 1.2s ease .5s, filter 1.6s ease .5s;
   will-change:transform;
 }
-.c2-b1.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
+.c2-b3.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
 .c2-moonglow{
   position:absolute;z-index:-2;pointer-events:none;border-radius:50%;
-  top:calc(-1 * clamp(60px, 11svh, 120px));
+  top:clamp(104px, 18svh, 174px);
   right:calc(-1 * clamp(30px, 8vw, 108px));
   width:clamp(150px, 36vw, 260px);aspect-ratio:1;
   background:radial-gradient(circle, rgba(167,139,250,.22) 0%, rgba(167,139,250,.08) 45%, transparent 70%);
   opacity:0;transition:opacity 1.6s ease .6s;mix-blend-mode:screen;
 }
-.c2-b1.is-inview .c2-moonglow{opacity:1}
-.lcb-memorial .c2-b1.is-inview .c2-moonglow{opacity:.7}
-/* phones: a smaller moon seated in the gap between the chooser's sub-line
-   and the whisper, grazing the right edge so it crowds neither */
+.c2-b3.is-inview .c2-moonglow{opacity:1}
+/* phones: the sky line wraps wide on a narrow column, so the moon seats in
+   the sky beat's top-right, above the sky-line text (clearing it), rather than
+   beside it where it would cross the wrapped lines. */
 @media (max-width:520px){
-  .c2-moonspine{width:clamp(92px, 23vw, 128px);top:calc(-1 * clamp(64px, 10svh, 84px));right:-30px}
-  .c2-moonglow{width:clamp(120px, 30vw, 170px);top:calc(-1 * clamp(80px, 12svh, 104px));right:-46px}
+  .c2-moonspine{width:clamp(92px, 23vw, 128px);top:calc(-1 * clamp(4px, 1svh, 12px));right:-30px}
+  .c2-moonglow{width:clamp(120px, 30vw, 170px);top:calc(-1 * clamp(20px, 3svh, 30px));right:-46px}
 }
 
 /* ---- reduced motion: the finished passage at rest ---- */
@@ -593,52 +594,8 @@ const LCB_CSS = `
 }
 `;
 
-/* ---- the passage copy: discovery + memorial registers ----
-   Direction 1 "The Proof You Already Hold", Danny-approved 2026-07-14,
-   verbatim. Memorial speaks the same beats in remembered tense: present
-   for the sky and the record, past for the pet's remembered behaviour. */
-const COPY = {
-  discovery: {
-    b1whisper: "Your pet did not learn to be this way.",
-    b2whisper: "The evidence has been small and daily.",
-    frags: [
-      "How they know your footsteps from everyone else's.",
-      "The spot they chose and never gave up.",
-      "The way they find you when you cry.",
-    ],
-    pivot1: "You call all of it personality.",
-  },
-  memorial: {
-    b1whisper: "They did not learn to be who they were.",
-    b2whisper: "The evidence was small and daily.",
-    frags: [
-      "How they knew your footsteps from everyone else's.",
-      "The spot that was theirs and no one else's.",
-      "The way they found you when you cried.",
-    ],
-    pivot1: "You called all of it personality.",
-  },
-};
-
 export function CosmicBridge() {
   const rootRef = useRef<HTMLElement>(null);
-
-  // The register: discovery (default) or memorial. The chooser toggle / URL
-  // intent drives it live via the ls-intent event; a register change remounts
-  // the whole section (key below) and rebuilds the thread from scratch.
-  const [register, setRegister] = useState<"discovery" | "memorial">(() =>
-    getIntent() === "memorial" ? "memorial" : "discovery");
-  useEffect(() => {
-    const onIntent = () => {
-      INTENT_FLIP_PENDING = true; // S6: the choice visibly starts the line
-      setRegister(getIntent() === "memorial" ? "memorial" : "discovery");
-      requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
-    };
-    window.addEventListener(INTENT_EVENT, onIntent);
-    return () => window.removeEventListener(INTENT_EVENT, onIntent);
-  }, []);
-  const memorial = register === "memorial";
-  const T = memorial ? COPY.memorial : COPY.discovery;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -646,7 +603,7 @@ export function CosmicBridge() {
 
     const q = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => scope.querySelector<T>(sel);
     const qa = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = root) => Array.from(scope.querySelectorAll<T>(sel));
-    const hush = register === "memorial";
+    const hush = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     /* ---------- canvas: magnitude-scaled starfield + star dust + a RARE
@@ -908,8 +865,7 @@ export function CosmicBridge() {
        viewport), and one TIGHT sync observer that fires the word-precise
        visual events only when their line is actually on screen ---------- */
     const rvNodes = qa(".c2-rv");
-    const b3El = q(".c2-b3");
-    const b1El = q(".c2-b1"); // the moon's home: it rises beside the opening claim
+    const b3El = q(".c2-b3"); // the birth-sky beat: wheel draws + moon rises here
     const xlEl = q("#c2-xl-once");
     const annotLayer = q(".c2-annot");
     const annotEls = annotLayer ? qa(".c2-annot-star", annotLayer) : [];
@@ -975,7 +931,6 @@ export function CosmicBridge() {
     if (reduced || !("IntersectionObserver" in window)) {
       rvNodes.forEach((el) => el.classList.add("is-in"));
       b3El?.classList.add("is-inview", "is-drawn");
-      b1El?.classList.add("is-inview");
     } else {
       io = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
@@ -998,28 +953,13 @@ export function CosmicBridge() {
           }
         });
       }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
+      // The birth-sky beat drives BOTH the wheel draw (armWheelGate) and the
+      // moon reveal (.c2-b3.is-inview .c2-moonspine), so one ioSec covers both.
       if (b3El) ioSec.observe(b3El);
-      // B1's own inview flag (moon reveal) - kept OFF ioSec so the wheel
-      // gate never arms from the passage's first beat
-      if (b1El) {
-        const ioB1 = new IntersectionObserver((entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting || e.boundingClientRect.top < 0) {
-              e.target.classList.add("is-inview");
-              ioB1.disconnect();
-            }
-          });
-        }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
-        ioB1.observe(b1El);
-      }
+      // The only word-precise sync left: the CTA line launches the traveling
+      // highlight into the form node. (The retired copy's star flare / degree
+      // crosshairs went with the beats they annotated.)
       const syncMap: [string, (passed: boolean) => void][] = [
-        ["#c2-pk-born", (passed) => { if (!passed) window.dispatchEvent(new CustomEvent("lcb-flare")); }],
-        ["#c2-frag-1", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 0, instant: passed } }))],
-        ["#c2-frag-2", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 1, instant: passed } }))],
-        ["#c2-frag-3", (passed) => window.dispatchEvent(new CustomEvent("lcb-star", { detail: { i: 2, instant: passed } }))],
-        ["#c2-st-pos", () => {
-          if (!glideStarted) { annotLayer?.classList.add("is-on"); annotOnT0 = performance.now(); }
-        }],
         ["#c2-st-set", () => startRunner()],
       ];
       const syncFns = new Map<Element, (passed: boolean) => void>();
@@ -1038,7 +978,7 @@ export function CosmicBridge() {
       });
     }
 
-    /* ---------- THE THREAD: born under the chooser toggle, swings onto
+    /* ---------- THE THREAD: born at the top of the passage, runs plumb down
        the spine, ignites every station node, then finds the form card and
        seals its border shut. The button ignites only when sealed. ---------- */
     const col = q(".c2-col");
@@ -1049,8 +989,9 @@ export function CosmicBridge() {
     const sparkEl = q<SVGCircleElement>(".c2-spark");
     const nodes = qa("[data-node]");
     // the origin station. Deliberately NOT [data-node]: every other station is
-    // placed from an element's offsetTop inside the column, but the birth is
-    // pinned to the toggle, which lives in a different section entirely.
+    // placed from an element's offsetTop, but the birth is pinned a short lead
+    // above the FIRST station so the thread has an intentional top-of-passage
+    // origin (the chooser it used to hang under has moved onto the form).
     const birthEl = q<HTMLElement>(".c2-birth");
     const moonImg = q<HTMLImageElement>(".c2-moonspine");
     const getCard = () => document.querySelector<HTMLElement>(".ls-seal-card");
@@ -1181,18 +1122,6 @@ export function CosmicBridge() {
         while (n && n !== col) { x += n.offsetLeft; n = n.offsetParent as HTMLElement | null; }
         return x;
       };
-      /* Absolute layout y, summed up the offsetParent chain. getBoundingClientRect
-         CANNOT be used to find the toggle: the chooser's fieldset carries
-         .ls-reveal, which holds a translate3d(0,30px,0) until it animates in, and
-         rects include transforms. Measuring mid-reveal put the birth station 30px
-         below the toggle and moved it between builds. offsetTop is pure layout, so
-         the origin lands on the toggle's resting centre no matter when we measure.
-         (placeNodes() dodges the same trap the same way.) */
-      const absTop = (el: HTMLElement | null) => {
-        let y = 0; let n: HTMLElement | null = el;
-        while (n) { y += n.offsetTop; n = n.offsetParent as HTMLElement | null; }
-        return y;
-      };
       nodes.forEach((nd) => {
         const el = nd as HTMLElement;
         const parentLeft = offLeftInCol(el) - el.offsetLeft;
@@ -1200,28 +1129,19 @@ export function CosmicBridge() {
       });
       const rel = (r: DOMRect) => ({ x: r.left - colLeft, y: r.top - colR.top, w: r.width, h: r.height });
 
-      /* THE BIRTH (rebuilt 2026-07-16). The thread is born ON the spine, dead
-         level with the toggle's centre, and runs plumb from there. The choice
-         is the thread's first station; everything below hangs off the same
-         rail, so the chooser and the passage are ONE column.
-
-         It used to be born in mid-air ~50px below the sub-line at x = toggle+28
-         and hook 68px left onto the spine over a 90px bezier. That curve had no
-         origin and no destination: it started at a point where nothing was, and
-         its scroll-drawn tip ended in mid-air. It read as a coat hook in the
-         margin. Anchoring the top to a real station kills the squiggle outright
-         and turns the band between the chooser and beat 1 from dead space into
-         the thread visibly carrying you out of the choice.
-
-         Because the birth now sits at the toggle's centre and the spine is a
-         full text-gutter to the left of every text edge, the stroke can never
-         touch the sub-line again (the 2026-07-15 collision the old birth was
-         lowered to dodge): it clears it structurally, not by nudging. */
-      const toggle = document.querySelector<HTMLElement>(".ls-tgl-track");
+      /* THE BIRTH (re-anchored 2026-07-18). The chooser toggle the thread used
+         to hang under has moved onto the form, so the thread is now born at the
+         TOP of the passage: on the spine, a short lead above the first station
+         node, running plumb down through every beat. Anchoring to a real node
+         (self-heals on resize) keeps an intentional origin and destination
+         instead of a stray squiggle in the margin. The spine sits a full
+         text-gutter left of every text edge, so the stroke never touches copy. */
+      const firstNode = nodes[0] as HTMLElement | undefined;
       let d: string;
       let startY: number;
-      if (toggle) {
-        startY = absTop(toggle) + toggle.offsetHeight / 2 - absTop(col as HTMLElement);
+      if (firstNode) {
+        const fr = rel(firstNode.getBoundingClientRect());
+        startY = Math.max(8, fr.y + fr.h / 2 - 44);
         d = `M ${sx} ${startY}`;
       } else {
         startY = -40;
@@ -1469,9 +1389,9 @@ export function CosmicBridge() {
         ctaLit = true;
         sealCard();
       }
-      // the moon drifts gently in its corner as the opening claim passes
-      if (b1El && moonImg) {
-        const mr = b1El.getBoundingClientRect();
+      // the moon drifts gently in its corner as the birth-sky beat passes
+      if (b3El && moonImg) {
+        const mr = b3El.getBoundingClientRect();
         let offm = ((window.innerHeight / 2) - (mr.top + mr.height / 2)) * 0.04;
         offm = Math.max(-14, Math.min(14, offm));
         moonImg.style.transform = `translate3d(0,${offm.toFixed(1)}px,0)`;
@@ -1600,13 +1520,13 @@ export function CosmicBridge() {
         tw.kill();
       });
     };
-  }, [register]);
+  }, []);
 
   return (
     <section
       ref={rootRef}
-      key={register}
-      className={memorial ? "lcb-root lcb-memorial" : "lcb-root"}
+      id="passage"
+      className="lcb-root"
       aria-label="Why a birth chart"
     >
       <style>{LCB_CSS}</style>
@@ -1628,13 +1548,55 @@ export function CosmicBridge() {
             <path className="c2-runner" d="" />
             <circle className="c2-spark" r="2.6" />
           </svg>
-          {/* the origin: pinned level with the chooser's toggle by buildThread */}
+          {/* the origin: pinned a short lead above the first station by buildThread */}
           <span className="c2-node c2-birth" />
         </div>
 
-        {/* ── Beat 1 · the claim (no artifact: the real sky answers) ── */}
+        {/* ── Beat 1 · the love ── */}
         <section className="c2-beat c2-b1">
-          <span className="c2-node" data-node data-for="c2-pk-sky" aria-hidden="true" />
+          <span className="c2-node" data-node data-for="c2-open" aria-hidden="true" />
+          <p className="c2-lxl c2-rv" id="c2-open">We love animals just as much as each other.</p>
+          <p className="c2-ll c2-rv"><em>If not more.</em></p>
+        </section>
+
+        {/* ── Beat 2 · the daily proof, into the turn ── */}
+        <section className="c2-beat c2-b2">
+          <span className="c2-node c2-node-sm" data-node data-for="c2-f1" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-f2" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-f3" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-f4" aria-hidden="true" />
+          <span className="c2-node c2-node-sm" data-node data-for="c2-f5" aria-hidden="true" />
+          <span className="c2-node" data-node data-for="c2-turn" aria-hidden="true" />
+          <div className="c2-frags">
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-f1">We talk to them.</p>
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-f2">We spoil them rotten.</p>
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-f3">We buy the good bed they ignore for the box it came in.</p>
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-f4">We keep a phone full of photos of them doing absolutely nothing.</p>
+            <p className="c2-frag c2-rv c2-rv-x" id="c2-f5">They ask for so little and get everything.</p>
+          </div>
+          <p className="c2-ll c2-rv" id="c2-turn">They are the best thing we have, and they have no idea.</p>
+          <p className="c2-ll c2-peak-v c2-rv"><em>And yet, so much of them stays a mystery.</em></p>
+        </section>
+
+        {/* ── Beat 3 · the question ── */}
+        <section className="c2-beat c2-pivot">
+          <span className="c2-node" data-node data-for="c2-q" aria-hidden="true" />
+          <p className="c2-lxl c2-rv" id="c2-q">Have you ever wondered what they would say if they could speak?</p>
+        </section>
+
+        {/* ── Beat 4 · the answer ── */}
+        <section className="c2-beat c2-answer">
+          <span className="c2-node" data-node data-for="c2-listen" aria-hidden="true" />
+          <p className="c2-ll c2-rv">They can.</p>
+          <p className="c2-ll c2-rv">Just not in the way we would expect.</p>
+          <p className="c2-lm c2-rv">The universe and nature are always communicating with us.</p>
+          <p className="c2-ll c2-rv" id="c2-listen"><em>We just need to listen.</em></p>
+        </section>
+
+        {/* ── Beat 5 · the birth sky: a real natal wheel, the real moon
+              arriving beside the sky line as a corner presence ── */}
+        <section className="c2-beat c2-b3">
+          <span className="c2-node" data-node data-for="c2-sky" aria-hidden="true" />
           <div className="c2-moonglow" aria-hidden="true" />
           <img
             className="c2-moonspine"
@@ -1645,37 +1607,8 @@ export function CosmicBridge() {
             decoding="async"
             loading="lazy"
           />
-          <p className="c2-whisper c2-rv">{T.b1whisper}</p>
-          <p className="c2-lxl c2-rv" id="c2-pk-born">They were born already themselves.</p>
-          <p className="c2-peak c2-rv" id="c2-pk-sky">The sky wrote it all down the day they arrived.</p>
-        </section>
-
-        {/* ── Beat 2 · recognition ── */}
-        <section className="c2-beat c2-b2">
-          <span className="c2-node c2-node-sm" data-node data-for="c2-frag-1" aria-hidden="true" />
-          <span className="c2-node c2-node-sm" data-node data-for="c2-frag-2" aria-hidden="true" />
-          <span className="c2-node c2-node-sm" data-node data-for="c2-frag-3" aria-hidden="true" />
-          <p className="c2-ll c2-rv">You have seen the proof for years.</p>
-          <p className="c2-whisper c2-rv">{T.b2whisper}</p>
-          <div className="c2-frags">
-            <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-1">{T.frags[0]}</p>
-            <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-2">{T.frags[1]}</p>
-            <p className="c2-frag c2-rv c2-rv-x" id="c2-frag-3">{T.frags[2]}</p>
-          </div>
-        </section>
-
-        {/* ── Beat 2/3 pivot ── */}
-        <section className="c2-beat c2-pivot">
-          <span className="c2-node" data-node data-for="c2-st-pos" aria-hidden="true" />
-          <p className="c2-ll c2-rv">{T.pivot1}</p>
-          <p className="c2-ll c2-rv" id="c2-st-pos"><em>An astrologer calls it placements.</em></p>
-        </section>
-
-        {/* ── Beat 3 · the birth sky: a real natal wheel, the real moon
-              arriving beside it as a corner presence ── */}
-        <section className="c2-beat c2-b3">
-          <span className="c2-node" data-node data-for="c2-st-sky" aria-hidden="true" />
-          <p className="c2-whisper c2-rv" id="c2-st-sky">The minute they were born, every planet held a position it will never hold again.</p>
+          <p className="c2-ll c2-rv">A birth chart is a way of listening to them.</p>
+          <p className="c2-ll c2-rv" id="c2-sky">The sky the moment they were born is one language they are still speaking.</p>
           <div className="c2-wheel c2-rv" aria-hidden="true">
             <svg viewBox="0 0 320 320">
               <g className="wfills">
@@ -1747,30 +1680,21 @@ export function CosmicBridge() {
               </g>
             </svg>
           </div>
-          <p className="c2-lxl c2-rv" id="c2-xl-once">One sky. Once. Theirs.</p>
+          <p className="c2-frag c2-rv" id="c2-xl-once">It tells you who they really are, why they do the things they do, the parts of them you have always felt but never had words for.</p>
         </section>
 
-        {/* ── Beat 4 · release: two lines, straight into the form ── */}
+        {/* ── Beat 6 · release: straight into the form ── */}
         <section className="c2-beat c2-b4">
           <span className="c2-node" data-node data-for="c2-st-set" aria-hidden="true" />
-          <p className="c2-peak c2-peak-v c2-rv" id="c2-st-set">Set the chart.</p>
+          <p className="c2-peak c2-peak-v c2-rv" id="c2-st-set">Type their birthday, and hear the rest.</p>
         </section>
       </div>
 
-      {/* framing overlays (above the beats) + the pivot's star annotations */}
+      {/* framing overlays (above the beats) */}
       <div className="lcb-front" aria-hidden="true">
         <div className="lcb-veil" />
         <div className="lcb-vignette" />
         <div className="lcb-grain" />
-        <div className="c2-annot">
-          {ANNOT_DEGS.map((deg, i) => (
-            <div key={i} className="c2-annot-star">
-              <span className="c2-annot-x" />
-              <span className="c2-annot-y" />
-              <span className="c2-annot-deg">{deg}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

@@ -450,8 +450,8 @@ export function ReadingsLanding() {
 
   // Measurement spine: how this visit's register was decided. "url_param"
   // when a memorial-targeted link carried ?r=memorial; otherwise "default"
-  // (organic arrival or a stored prior choice). User taps on the chooser fire
-  // their own register_set from IntentFork. Analytics only.
+  // (organic arrival or a stored prior choice). User taps on the form's
+  // here/memory field fire their own register_set. Analytics only.
   useEffect(() => {
     trackSpineOnce("register_set_load", "register_set", {
       value: getIntent() === "memorial" ? "memorial" : "discovery",
@@ -480,7 +480,6 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <ResumeStrip />
       <HeroSection />
-      <IntentFork />
       <CosmicBridge />
       <BirthSkyJourney />
       {revealed && (
@@ -649,7 +648,7 @@ function HeroSection() {
             type="button"
             className="ls-hero-cue ls-reveal"
             style={revealDelay(0.28)}
-            onClick={() => descendTo("#passage-fork")}
+            onClick={() => descendTo("#passage")}
             aria-label="Begin their reading"
           >
             <span className="ls-hero-cue-label">Begin</span>
@@ -661,137 +660,12 @@ function HeroSection() {
   );
 }
 
-/* ── The reading-path chooser ─────────────────────────────────────────
-   C v2 (Danny-approved): one compact TOGGLE, not a two-card fork. The
-   question stands huge; the answer is a single switch — "Here with you" /
-   "Held in memory" — wired straight into the ls_intent plumbing. Discovery
-   is the default (checked). The sub-line under the track answers the choice
-   in one quiet italic breath. The passage's violet thread is born under
-   this toggle. Either state can be flipped at any time; grief is never
-   fixed. Neither answer changes price or tier. */
-const TGL_SUBS = {
-  here: "They are probably in the room with you right now.",
-  memory: "The sky they were born under is still up there.",
-} as const;
-
-function IntentFork() {
-  const [intent, setIntentState] = useState<Intent | null>(() => getIntent());
-  const memorialOn = intent === "memorial";
-  const trackRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const subRef = useRef<HTMLParagraphElement>(null);
-  const [subText, setSubText] = useState<string>(() =>
-    getIntent() === "memorial" ? TGL_SUBS.memory : TGL_SUBS.here,
-  );
-
-  useEffect(() => {
-    const onIntent = () => setIntentState(getIntent());
-    window.addEventListener(INTENT_EVENT, onIntent);
-    return () => window.removeEventListener(INTENT_EVENT, onIntent);
-  }, []);
-
-  // The slider hugs the active label. Re-measured after every render (labels
-  // reflow when webfonts land) plus on resize.
-  const placeSlider = () => {
-    const track = trackRef.current, slider = sliderRef.current;
-    if (!track || !slider) return;
-    const id = memorialOn ? "ls-intent-memory" : "ls-intent-here";
-    const label = track.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
-    if (!label) return;
-    slider.style.width = `${label.offsetWidth}px`;
-    slider.style.transform = `translateX(${label.offsetLeft - 4}px)`;
-  };
-  useLayoutEffect(placeSlider);
-  useEffect(() => {
-    const onResize = () => placeSlider();
-    window.addEventListener("resize", onResize);
-    let alive = true;
-    if (typeof document !== "undefined" && document.fonts?.ready) {
-      document.fonts.ready.then(() => { if (alive) placeSlider(); }).catch(() => { /* ignore */ });
-    }
-    return () => { alive = false; window.removeEventListener("resize", onResize); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // The sub-line swaps with one soft dip, not a hard cut.
-  useEffect(() => {
-    const next = memorialOn ? TGL_SUBS.memory : TGL_SUBS.here;
-    const el = subRef.current;
-    if (subText === next) return;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setSubText(next);
-      return;
-    }
-    el.classList.add("is-swap");
-    const t = window.setTimeout(() => {
-      setSubText(next);
-      el.classList.remove("is-swap");
-    }, 220);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memorialOn]);
-
-  return (
-    <section id="passage-fork" className="ls-tgl-section ls-parallax-band" aria-labelledby="ls-tgl-q">
-      <div className="ls-tgl-col">
-        <svg className="ls-tgl-arc" viewBox="0 0 600 600" aria-hidden="true">
-          <circle className="haring" cx="300" cy="300" r="282" />
-          <circle className="haring2" cx="300" cy="300" r="226" />
-          <g>
-            <line className="hatick" x1="300" y1="12" x2="300" y2="26" />
-            <line className="hatick" x1="97" y1="97" x2="107" y2="107" />
-            <line className="hatick" x1="18" y1="300" x2="32" y2="300" />
-            <line className="hatick" x1="97" y1="503" x2="107" y2="493" />
-            <line className="hatick" x1="300" y1="588" x2="300" y2="574" />
-            <line className="hatick" x1="503" y1="503" x2="493" y2="493" />
-            <line className="hatick" x1="582" y1="300" x2="568" y2="300" />
-            <line className="hatick" x1="503" y1="97" x2="493" y2="107" />
-          </g>
-          <circle className="haplanet" cx="300" cy="18" r="3" />
-          <circle className="haplanet" cx="101" cy="499" r="2.4" />
-          <circle className="haplanet" cx="524" cy="132" r="2" />
-        </svg>
-        <p className="ls-tgl-micro ls-reveal">Before their reading begins</p>
-        <h2 id="ls-tgl-q" className="ls-tgl-q ls-reveal" style={revealDelay(0.08)}>
-          Who is this reading for?
-        </h2>
-        <fieldset className="ls-tgl ls-reveal" style={revealDelay(0.16)}>
-          <legend className="sr-only">Choose who the reading is for</legend>
-          <div className="ls-tgl-track" ref={trackRef}>
-            <div className="ls-tgl-slider" ref={sliderRef} aria-hidden="true" />
-            <input
-              type="radio"
-              name="ls-intent-path"
-              id="ls-intent-here"
-              value="here"
-              checked={!memorialOn}
-              onChange={() => {
-                setIntent("discovery");
-                trackSpine("register_set", { value: "discovery", via: "user_tap" });
-              }}
-            />
-            <label htmlFor="ls-intent-here">Here with you</label>
-            <input
-              type="radio"
-              name="ls-intent-path"
-              id="ls-intent-memory"
-              value="memory"
-              checked={memorialOn}
-              onChange={() => {
-                setIntent("memorial");
-                trackSpine("register_set", { value: "memorial", via: "user_tap" });
-              }}
-            />
-            <label htmlFor="ls-intent-memory">Held in memory</label>
-          </div>
-        </fieldset>
-        <div className="ls-reveal" style={revealDelay(0.24)}>
-          <p className="ls-tgl-sub" ref={subRef}>{subText}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
+/* The reading-path chooser used to sit here as its own top-of-page toggle,
+   but a cold visitor missed it. The here/memory choice now lives ON the
+   "Set the chart" form (the RegisterField in BirthSkyJourney), captured
+   explicitly beside name / date / species and wired to the SAME ls_intent
+   plumbing (setIntent), so the deck / sell / checkout register is unchanged
+   downstream — only WHERE the choice is made moved. */
 
 // The opening passage between the chooser and the "Set the chart" form is the
 // C v2 momentum experience — see ./CosmicBridge.tsx (THE MAP EXISTS: violet
@@ -3458,6 +3332,38 @@ function BirthSkyJourney() {
                     ))}
                   </div>
                   {fieldErrs.species && <p id="seal-species-err" className="ls-field-err" role="alert">{fieldErrs.species}</p>}
+                </div>
+                {/* The here/memory choice, captured explicitly ON the form (it
+                    used to be a top-of-page toggle a cold visitor missed). Wired
+                    to the SAME ls_intent plumbing via setIntent, so it flows to
+                    the deck / sell / checkout register exactly as before and is
+                    re-read from getIntent() on submit. Defaults to "Here with
+                    you" (discovery) — the lower-friction, always-answered choice;
+                    a ?r=memorial link preselects "Held in memory". */}
+                <div id="seal-register-group" className="ls-seal-field ls-reveal" style={revealDelay(0.21)}>
+                  <label id="seal-register-label">Is {name || "your pet"} here with you?</label>
+                  <div
+                    className="ls-seal-species ls-seal-register"
+                    role="group"
+                    aria-labelledby="seal-register-label"
+                  >
+                    <button
+                      type="button"
+                      className={`ls-species-btn${!memorial ? " is-sel" : ""}`}
+                      aria-pressed={!memorial}
+                      onClick={() => { setIntent("discovery"); trackSpine("register_set", { value: "discovery", via: "user_tap" }); }}
+                    >
+                      Here with you
+                    </button>
+                    <button
+                      type="button"
+                      className={`ls-species-btn${memorial ? " is-sel" : ""}`}
+                      aria-pressed={memorial}
+                      onClick={() => { setIntent("memorial"); trackSpine("register_set", { value: "memorial", via: "user_tap" }); }}
+                    >
+                      Held in memory
+                    </button>
+                  </div>
                 </div>
                 <div className="ls-seal-field ls-reveal" data-err={fieldErrs.email ? "1" : undefined} style={revealDelay(0.24)}>
                   <label htmlFor="seal-email">Your email</label>
@@ -7762,6 +7668,9 @@ function CosmicStyles() {
 
       /* ── One-tap species (free reading) — cosmic violet, no gold ──────── */
       .ls-seal-species { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+      /* The here/memory choice on the form reuses the species pills at two
+         columns, so a cold visitor reads it as the same kind of one-tap choice. */
+      .ls-seal-register { grid-template-columns: repeat(2, 1fr); }
       .ls-species-btn {
         min-height: 56px; display: flex; align-items: center; justify-content: center;
         border: 1px solid rgba(167,139,250,0.32); border-radius: 13px;
