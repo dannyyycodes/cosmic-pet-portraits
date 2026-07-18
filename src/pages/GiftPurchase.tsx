@@ -126,6 +126,16 @@ function GlyphStar({ className }: GlyphProps) {
   );
 }
 
+/** Bespoke double-quote mark — the review spotlight watermark. Filled,
+   drawn for this page (not from the stroke grid; a solid display glyph). */
+function GlyphQuote({ className }: GlyphProps) {
+  return (
+    <svg viewBox="0 0 40 32" className={className} fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M0 32V18.4C0 8.7 5.5 1.9 15.8 0l1.9 4.4C12.1 6.5 9.4 9.6 9.1 13.8h6.5V32H0zm22.5 0V18.4C22.5 8.7 28 1.9 38.3 0L40.2 4.4C34.6 6.5 31.9 9.6 31.6 13.8h6.5V32H22.5z" />
+    </svg>
+  );
+}
+
 /** A small constellation of souls — the multi-gift mark. */
 function GlyphSoulFew({ className }: GlyphProps) {
   return (
@@ -455,9 +465,13 @@ const getVolumeDiscount = (count: number): number => {
   return 0;
 };
 
-/* ── Gifter-voice reviews. Sanctioned set only — quotes verbatim from
-   the approved seventeen (REVIEWS in DossierCheckout + the landing
-   wall). Never write new ones, never new numbers. ── */
+/* ── The wall of love. Sanctioned set ONLY — every quote is verbatim
+   from the approved reviews (REVIEWS in DossierCheckout + the landing
+   ReviewsWall). Curated for the gift audience: gifter voices first, then
+   the strongest recognition and accuracy proofs, honest four-star voices
+   kept in so the wall reads real. The gift spotlight (Mo) is rendered
+   separately above, so it never repeats here. Never write new ones,
+   never invent a name, star count, or number. ── */
 type GifterReview = { img: string; alt: string; stars: number; quote: string; attr: string };
 const GIFTER_CARDS: GifterReview[] = [
   {
@@ -474,6 +488,46 @@ const GIFTER_CARDS: GifterReview[] = [
     img: '/reviews/review-11.webp', alt: 'Fig and Norm', stars: 5,
     quote: "We ordered Fig and Norm's readings together, assuming two dogs in the same Glasgow house would come out much the same. Fig's was all bright Mars, cupboard doors and sudden decisions, while Norm's had this older Beagle patience and a Moon that sounded exactly like him refusing the rain at the back step. Same sofa, same walks, totally different souls.",
     attr: 'Isla M. · Fig and Norm, sprocker spaniel and beagle',
+  },
+  {
+    img: '/reviews/review-1.webp', alt: 'Nell', stars: 5,
+    quote: "I thought it was money-for-grief nonsense, if I am honest. Then it mentioned Nell guarding the stairs whenever Saturn feelings show up, and that is exactly where she plants herself when anyone raises a voice, one white sock hanging over the top step. I read that bit twice before I showed my husband.",
+    attr: 'Hannah P. · Nell, whippet-lurcher',
+  },
+  {
+    img: '/reviews/review-8.webp', alt: 'Otis', stars: 5,
+    quote: "otis spent his first three months under our bed in Cardiff, only coming out after midnight for biscuits. The reading described a guarded Moon placement and a creature who watches the room from a border before choosing anyone. I had not written anything about him being formerly feral, so that line stayed with me.",
+    attr: 'Grace O. · Otis, rescue shorthair cat',
+  },
+  {
+    img: '/reviews/review-3.webp', alt: 'Alfie', stars: 5,
+    quote: "alfie has a habit of dropping one toy on your foot and then pretending he has nothing to do with it. The reading called out his Venus charm and the little performance before asking to play, which made me laugh in the queue at Tesco. Sent it straight to the family chat.",
+    attr: 'Tom W. · Alfie, cocker spaniel',
+  },
+  {
+    img: '/reviews/review-6.webp', alt: 'Tilly', stars: 5,
+    quote: "We came back for Tilly six months after doing our first reading for Pip. Pip's is framed in the hallway and I still notice new lines in it when I am putting my shoes on, especially the bit about his Moon softening with age. Tilly's felt different in exactly the way she is different: steadier, slower, still checking every room for us...",
+    attr: 'Sarah K. · Tilly, chocolate Labrador',
+  },
+  {
+    img: '/reviews/review-12.webp', alt: 'Bracken', stars: 5,
+    quote: "I was not sure a reading would make sense for a horse, especially Bracken, who has opinions about everything at the Devon yard. Then it mentioned a stubborn Saturn edge around thresholds and moving boxes, which is exactly his trailer-loading face on a wet Tuesday. The yard owner laughed because only the people here would know that.",
+    attr: 'Emily F. · Bracken, cob-type horse',
+  },
+  {
+    img: '/reviews/review-13.webp', alt: 'Willow', stars: 5,
+    quote: "weeks after Willow died, I ordered her reading during a rough patch when the house in Nottingham felt very quiet. It gave me a way to talk with my kids about her little routines, the radiator spot, the paw on the newspaper, the way she chose one person at a time. Nothing overblown. Just enough shape around the missing.",
+    attr: 'Daniel K. · Willow, senior cat',
+  },
+  {
+    img: '/reviews/review-9.webp', alt: 'Meg', stars: 4,
+    quote: "Meg is fourteen now, grey round the muzzle and slower on the lane behind our house near Sheffield. Her reading did not try to make her sound young again, it spoke about Saturn steadiness and the comfort of doing the same small jobs well. I was glad of that. Only niggle is that it took closer to a day to arrive, rather than the couple of hours I had expected.",
+    attr: 'Alan R. · Meg, border collie, fourteen',
+  },
+  {
+    img: '/reviews/review-14.webp', alt: 'Nugget', stars: 4,
+    quote: "I did roll my eyes at spending money on a guinea pig of all things, but Nugget's reading had his number. The bit about comfort-seeking Venus and always choosing the covered end of the run was bang on, right down to him ignoring the parsley until he has dragged it under the little red shelter. For less than we paid last month for bedding and hay, it was fair value. I would have liked a cheaper way to add our second guinea pig afterwards.",
+    attr: 'Colin B. · Nugget, guinea pig',
   },
 ];
 
@@ -679,32 +733,40 @@ function HowItWorks() {
 
 /* ── PROOF — gifter-voice reviews, verbatim from the sanctioned set. ── */
 function GifterProof() {
+  const spot = REVIEWS.gift;
   return (
-    <section className="gp-wrap gp-band gp-cream gp-cream-deep">
+    <section className="gp-wrap gp-band gp-cream gp-cream-deep gp-proof">
       <div className="gp-shead gp-rev">
+        <p className="gp-kicker">In their own words</p>
         <h2 className="gp-h2">After they gave it.</h2>
       </div>
+
+      {/* Featured spotlight — the gift review they read first. */}
       <figure className="gp-spotlight gp-rev" style={{ ['--d' as string]: '80ms' }}>
-        <StarsRow n={REVIEWS.gift.stars} />
-        <blockquote>{REVIEWS.gift.quote}</blockquote>
+        <span className="gp-spot-quote" aria-hidden="true"><GlyphQuote /></span>
+        <StarsRow n={spot.stars} size={20} />
+        <blockquote>{spot.quote}</blockquote>
         <figcaption>
-          <img src={REVIEWS.gift.img} alt={REVIEWS.gift.alt} width={44} height={44} loading="lazy" decoding="async" />
-          <span>{REVIEWS.gift.attr}</span>
+          <img src={spot.img} alt={spot.alt} width={52} height={52} loading="lazy" decoding="async" />
+          <span>{spot.attr}</span>
         </figcaption>
       </figure>
-      <div className="gp-proof-grid">
+
+      {/* The wall — every voice, masonry-packed. */}
+      <div className="gp-wall">
         {GIFTER_CARDS.map((r, i) => (
-          <figure className="gp-proof-card gp-glass gp-rev" key={r.attr} style={{ ['--d' as string]: `${i * 90}ms` }}>
-            <StarsRow n={r.stars} size={13} />
+          <figure className="gp-wall-card gp-rev" key={r.attr} style={{ ['--d' as string]: `${Math.min(i, 6) * 70}ms` }}>
+            <StarsRow n={r.stars} size={15} />
             <blockquote>{r.quote}</blockquote>
             <figcaption>
-              <img src={r.img} alt={r.alt} width={40} height={40} loading="lazy" decoding="async" />
+              <img src={r.img} alt={r.alt} width={44} height={44} loading="lazy" decoding="async" />
               <span>{r.attr}</span>
             </figcaption>
           </figure>
         ))}
       </div>
-      <ul className="gp-proof-trust gp-rev" style={{ ['--d' as string]: '280ms' }}>
+
+      <ul className="gp-proof-trust gp-rev" style={{ ['--d' as string]: '120ms' }}>
         <li><GlyphLock /> Secure checkout with Stripe</li>
         <li><GlyphSeal /> If the reading does not feel like them, we refund every cent</li>
         <li><GlyphOrbit /> Built on their pet's real chart</li>
@@ -1757,8 +1819,6 @@ const GP_CSS = `
 @media (hover:hover){
   .gp-cream .gp-step:hover{border-color:rgba(185,165,240,.42);
     box-shadow:0 18px 36px -16px rgba(124,92,214,.35)}
-  .gp-cream .gp-proof-card:hover{border-color:rgba(185,165,240,.42);
-    box-shadow:0 1px 2px rgba(8,5,18,.4),0 20px 40px -16px rgba(124,92,214,.35)}
 }
 
 /* type */
@@ -1920,25 +1980,54 @@ const GP_CSS = `
 
 /* proof */
 .gp-stars{display:inline-flex;gap:3px}
-.gp-spotlight{max-width:760px;margin:0 auto clamp(36px,5vw,52px);text-align:center}
-.gp-spotlight blockquote{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;
-  font-size:clamp(1.25rem,2.8vw,1.6rem);line-height:1.42;color:#f5f2ff;margin:18px 0 22px}
-.gp-spotlight figcaption{display:inline-flex;align-items:center;gap:12px;color:var(--muted);font-size:15.5px;
-  letter-spacing:.04em}
-.gp-spotlight figcaption img{width:44px;height:44px;border-radius:12px;object-fit:cover;
-  border:1px solid rgba(185,165,240,.35)}
-.gp-proof-grid{display:grid;gap:16px}
-@media (min-width:900px){.gp-proof-grid{grid-template-columns:repeat(3,1fr)}}
-.gp-proof-card{padding:22px;
-  transition:transform .25s var(--ease-settle),border-color .2s ease,box-shadow .25s ease}
+.gp-proof .gp-kicker{margin-bottom:13px}
+
+/* featured spotlight — the review they read first, framed on its own
+   lifted violet panel with a bespoke quote watermark. */
+.gp-spotlight{position:relative;max-width:840px;margin:0 auto clamp(30px,4.4vw,46px);
+  padding:clamp(30px,4.6vw,50px) clamp(24px,4.4vw,54px);text-align:center;border-radius:24px;
+  background:
+    radial-gradient(130% 92% at 50% -8%, rgba(167,139,250,.24), transparent 62%),
+    linear-gradient(180deg,#3a2a5c,#2a1d45);
+  border:1px solid rgba(197,178,255,.34);
+  box-shadow:0 1px 0 rgba(207,192,244,.16) inset,0 26px 62px -26px rgba(8,5,18,.92),
+    0 0 48px -10px rgba(139,102,246,.30)}
+.gp-spot-quote{position:absolute;top:16px;left:clamp(18px,4vw,40px);line-height:0;
+  color:rgba(197,178,255,.26);pointer-events:none}
+.gp-spot-quote svg{width:clamp(38px,5.6vw,58px);height:auto}
+.gp-spotlight .gp-stars{position:relative}
+.gp-spotlight blockquote{position:relative;font-family:'Fraunces',Georgia,serif;font-style:italic;
+  font-weight:400;font-size:clamp(1.38rem,2.9vw,1.9rem);line-height:1.42;color:#faf8ff;
+  margin:18px auto 24px;max-width:34ch;text-wrap:pretty}
+.gp-spotlight figcaption{display:inline-flex;align-items:center;gap:13px;color:var(--vio-pale);
+  font-size:17px;letter-spacing:.02em}
+.gp-spotlight figcaption img{width:52px;height:52px;border-radius:14px;object-fit:cover;
+  border:1px solid rgba(197,178,255,.45);box-shadow:0 6px 16px -8px rgba(8,5,18,.85)}
+
+/* the wall of love — masonry columns of rich violet glass, packed by
+   quote length. Big readable body, brighter names, glow-lift on hover. */
+.gp-wall{column-count:1;column-gap:18px}
+@media (min-width:600px){.gp-wall{column-count:2}}
+@media (min-width:1000px){.gp-wall{column-count:3}}
+.gp-wall-card{position:relative;break-inside:avoid;-webkit-column-break-inside:avoid;
+  margin:0 0 18px;padding:23px 22px 21px;border-radius:18px;
+  background:
+    radial-gradient(120% 78% at 50% -12%, rgba(167,139,250,.20), transparent 60%),
+    linear-gradient(180deg,#33244f,#261a3d);
+  border:1px solid rgba(167,139,250,.32);
+  box-shadow:0 1px 0 rgba(207,192,244,.12) inset,0 18px 42px -22px rgba(8,5,18,.9);
+  transition:transform .28s var(--ease-settle),border-color .25s ease,box-shadow .3s ease}
 @media (hover:hover){
-  .gp-proof-card:hover{transform:translateY(-4px);border-color:var(--line-bright);
-    box-shadow:0 2px 6px rgba(0,0,0,.4),0 18px 44px rgba(0,0,0,.4),0 0 30px -6px rgba(124,92,214,.35)}
+  .gp-wall-card:hover{transform:translateY(-4px);border-color:rgba(197,178,255,.55);
+    box-shadow:0 1px 0 rgba(207,192,244,.16) inset,0 24px 54px -18px rgba(8,5,18,.95),
+      0 0 34px -6px rgba(139,102,246,.48)}
 }
-.gp-proof-card blockquote{font-style:italic;font-size:17.5px;line-height:1.6;color:var(--body);margin:14px 0 16px}
-.gp-proof-card figcaption{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14.5px}
-.gp-proof-card figcaption img{width:40px;height:40px;border-radius:11px;object-fit:cover;
-  border:1px solid rgba(185,165,240,.3)}
+.gp-wall-card .gp-stars{margin-bottom:2px}
+.gp-wall-card blockquote{margin:13px 0 16px;font-size:18px;line-height:1.62;color:#efeaff}
+.gp-wall-card figcaption{display:flex;align-items:center;gap:11px;color:var(--vio-pale);
+  font-size:15px;line-height:1.4}
+.gp-wall-card figcaption img{width:44px;height:44px;border-radius:12px;object-fit:cover;
+  border:1px solid rgba(197,178,255,.4);flex:none}
 
 /* the argument — beat by beat */
 
