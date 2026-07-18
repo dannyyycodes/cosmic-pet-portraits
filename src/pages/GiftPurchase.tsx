@@ -559,11 +559,9 @@ function Hero({ fmt, prices, onCta, heroRef }: {
           <button type="button" className="gp-cta" onClick={onCta}>Create their gift</button>
           <p className="gp-price-note">from <span>{fmt(prices.basic)}</span></p>
         </div>
-        <ul className="gp-badges gp-rev" style={{ ['--d' as string]: '320ms' }}>
-          <li><GlyphMoonClock /> Ready in minutes</li>
-          <li><GlyphComet /> Nothing to ship</li>
-          <li><GlyphLock /> No price on their gift</li>
-        </ul>
+        <p className="gp-give-note gp-rev" style={{ ['--d' as string]: '320ms' }}>
+          <GlyphPaw /> Every reading gives to animal charity
+        </p>
       </div>
       <div className="gp-hero-visual gp-rev" style={{ ['--d' as string]: '200ms' }}>
         <svg className="gp-hero-orbit" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
@@ -619,14 +617,43 @@ function HeroRotator() {
   );
 }
 
+function TrustpilotMark() {
+  return (
+    <a
+      className="gp-tp"
+      href="https://uk.trustpilot.com/review/littlesouls.app"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Little Souls reviews on Trustpilot"
+    >
+      <svg viewBox="0 0 110 20" aria-hidden="true" focusable="false">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <g key={i} transform={`translate(${i * 21},0)`}>
+            <rect width="19" height="19" rx="2.4" fill="#00B67A" stroke="none" />
+            <path
+              d="M9.5 3.4l1.5 4.1 4.4.1-3.5 2.7 1.3 4.2-3.7-2.5-3.7 2.5 1.3-4.2-3.5-2.7 4.4-.1z"
+              fill="#fff" stroke="none"
+            />
+          </g>
+        ))}
+      </svg>
+      <span>Review us on Trustpilot</span>
+    </a>
+  );
+}
+
 function TrustStrip() {
   return (
     <section className="gp-wrap gp-trust">
-      <ul className="gp-trust-row gp-rev">
-        <li><GlyphOrbit /> Built on their pet's real chart</li>
-        <li><GlyphLock /> A private reveal, not an inbox</li>
-        <li><GlyphCalendar /> Valid for a full year</li>
-      </ul>
+      <div className="gp-give-row gp-rev">
+        <p className="gp-give-lead">Every reading gives back</p>
+        <ul className="gp-give-list">
+          <li><GlyphPaw /> IFAW</li>
+          <li><GlyphSprout /> World Land Trust</li>
+          <li><GlyphStar /> Eden Reforestation</li>
+        </ul>
+        <TrustpilotMark />
+      </div>
     </section>
   );
 }
@@ -1882,6 +1909,18 @@ const GP_CSS = `
 
 /* trust strip */
 .gp-trust{padding-bottom:clamp(40px,6vw,64px)}
+.gp-give-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px 26px}
+.gp-give-lead{font-weight:600;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--vio-bright)}
+.gp-give-list{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;list-style:none;padding:0;margin:0}
+.gp-give-list li{display:inline-flex;align-items:center;gap:8px;font-size:16px;color:var(--body)}
+.gp-give-list svg{width:16px;height:16px;color:var(--vio-soft);flex:none}
+.gp-tp{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:var(--body);
+  font-size:15px;padding:7px 14px;border-radius:24px;border:1px solid var(--line);
+  background:rgba(124,92,214,.08);transition:border-color .25s var(--ease-settle)}
+.gp-tp:hover{border-color:var(--line-bright)}
+.gp-tp svg{width:96px;height:17px;display:block}
+.gp-give-note{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--dim)}
+.gp-give-note svg{width:16px;height:16px;color:var(--vio-soft);flex:none}
 .gp-trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;list-style:none;padding:0}
 .gp-trust-row li{display:inline-flex;align-items:center;gap:9px;font-size:16.5px;color:var(--body);
   padding:10px 18px;border-radius:999px;border:1px solid var(--line);
