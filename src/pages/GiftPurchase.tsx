@@ -1787,11 +1787,11 @@ const GP_CSS = `
 }
 
 /* type */
-.gp-h1{font-family:'Newsreader',Georgia,serif;font-weight:500;color:var(--white);
-  font-size:clamp(2.2rem,5.2vw,3.6rem);line-height:1.12;letter-spacing:-.011em;text-wrap:balance}
-.gp-turn{font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:500;color:var(--vio-pale);
-  font-size:clamp(1.5rem,3.2vw,2.15rem);line-height:1.1;margin-top:14px}
-.gp-h1 em{font-style:italic;color:#e3d9ff}
+.gp-h1{font-family:'Asap',system-ui,sans-serif;font-weight:700;color:var(--white);
+  font-size:clamp(2rem,4.8vw,3.25rem);line-height:1.13;letter-spacing:-.017em;text-wrap:balance}
+.gp-h1 em{font-style:normal;color:inherit}
+.gp-turn{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;color:#d7c9ff;
+  font-size:clamp(1.6rem,3.5vw,2.35rem);line-height:1.08;margin-top:14px}
 .gp-h2{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
   font-size:clamp(1.9rem,4.8vw,3rem);line-height:1.02;letter-spacing:-.018em;text-wrap:balance}
 .gp-eyebrow{font-weight:600;font-size:clamp(14px,1.2vw + 9px,15px);letter-spacing:.14em;
