@@ -23,6 +23,13 @@ const trackSchema = z.object({
   tier: z.enum(["basic", "premium"]).nullish(),
   source: z.enum(["intake", "gift", "referral", "birth_chart_preview", "free_reading_start"]).nullish(),
   referralCode: z.string().max(50).nullish(),
+  // Which register the visitor is in — memorial vs discovery — so leads can be
+  // segmented into the right drip. OPTIONAL and nullish so older cached clients
+  // that don't send it still validate (never 400 a live lead over a new field).
+  register: z.enum(["memorial", "discovery"]).nullish(),
+  // First-party utm attribution the client already collects via getUtm(): a
+  // flat object of utm_* strings. Optional; an empty object is fine.
+  utm: z.record(z.string(), z.string()).nullish(),
 });
 
 serve(async (req) => {
@@ -74,6 +81,22 @@ serve(async (req) => {
       });
     }
 
+    // Register intent + first-party utm attribution. Additive: spread into every
+    // insert/update below so each lead lands in the right drip.
+    //   intent_register — "memorial" ALWAYS wins and is NEVER downgraded to
+    //   "discovery". If the row is already memorial we write nothing; older
+    //   cached clients send no `register`, so we leave the stored value untouched
+    //   (new rows then fall back to the column's 'discovery' default).
+    //   utm — only written when the client actually sent attribution, so an
+    //   empty object never clobbers a value already on the row.
+    const regFields: { intent_register?: string; utm?: Record<string, string> } = {};
+    if (existing?.intent_register !== "memorial" && input.register) {
+      regFields.intent_register = input.register;
+    }
+    if (input.utm && Object.keys(input.utm).length > 0) {
+      regFields.utm = input.utm;
+    }
+
     if (input.event === "birth_chart_lead") {
       // Free birth-chart preview lead. New emails enter the standard welcome
       // nurture via journey_stage "new_lead"; existing subscribers are only
@@ -88,6 +111,7 @@ serve(async (req) => {
             pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
             species: input.species || existing.species,
             source: existing.source || input.source || "birth_chart_preview",
+            ...regFields,
           })
           .eq("id", existing.id);
       } else {
@@ -99,6 +123,7 @@ serve(async (req) => {
           journey_stage: "new_lead",
           source: input.source || "birth_chart_preview",
           referral_code: input.referralCode,
+          ...regFields,
         });
       }
     }
@@ -113,6 +138,7 @@ serve(async (req) => {
             pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
             intake_started_at: existing.intake_started_at || now,
             journey_stage: existing.journey_stage === "new_lead" ? "intake_started" : existing.journey_stage,
+            ...regFields,
           })
           .eq("id", existing.id);
       } else {
@@ -125,6 +151,7 @@ serve(async (req) => {
           intake_started_at: now,
           source: input.source || "intake",
           referral_code: input.referralCode,
+          ...regFields,
         });
       }
     }
@@ -138,6 +165,7 @@ serve(async (req) => {
             pet_photo_url: input.petPhotoUrl || existing.pet_photo_url,
             pet_report_id: input.petReportId || existing.pet_report_id,
             journey_stage: "intake_started", // Still waiting for payment
+            ...regFields,
           })
           .eq("id", existing.id);
       } else {
@@ -150,6 +178,7 @@ serve(async (req) => {
           intake_started_at: now,
           source: input.source || "intake",
           referral_code: input.referralCode,
+          ...regFields,
         });
       }
     }
@@ -165,6 +194,7 @@ serve(async (req) => {
             journey_stage: "purchased",
             purchase_completed_at: now,
             tier_purchased: input.tier,
+            ...regFields,
           })
           .eq("id", existing.id);
       } else {
@@ -178,6 +208,7 @@ serve(async (req) => {
           tier_purchased: input.tier,
           source: input.source || "intake",
           referral_code: input.referralCode,
+          ...regFields,
         });
       }
     }
