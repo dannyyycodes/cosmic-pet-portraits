@@ -647,40 +647,15 @@ function TrustStrip() {
   );
 }
 
-/* ── SEE WHAT THEY'LL OPEN — the product, visible without interaction.
-   Sample keepsake for Bella the cockapoo, locked chapters beneath. ── */
-function SampleReading() {
-  return (
-    <section className="gp-wrap gp-band gp-night-early">
-      <div className="gp-shead gp-rev">
-        <h2 className="gp-h2">See what they'll open.</h2>
-      </div>
-      <div className="gp-sample gp-glass gp-rev" style={{ ['--d' as string]: '120ms' }}>
-        <span className="gp-sample-ring">
-          <img src="/breeds/cockapoo.jpg" alt="Bella, a cockapoo, looking up" width={84} height={84} loading="lazy" decoding="async" />
-        </span>
-        <p className="gp-sample-name">Bella</p>
-        <p className="gp-sample-sign">a Leo</p>
-        <p className="gp-sample-line">She came to be your witness.</p>
-        <div className="gp-locks" role="list" aria-label="What the full reading reveals">
-          {['Why she picked you', 'How she loves you', 'What she needs', 'When she’s scared', 'The thing no one sees'].map((t) => (
-            <div className="gp-lock-row" role="listitem" key={t}>
-              <span>{t}</span>
-              <GlyphLock />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── HOW IT WORKS — gift mechanics on the page, not at checkout. ── */
+/* ── HOW IT WORKS — gift mechanics on the page, not at checkout.
+   Each step wears a bespoke icon plaque (no icon libraries). The
+   delivery step frames the two real, backend-verified ways to give
+   it: emailed with your message, or a private link you present. ── */
 function HowItWorks() {
   const steps = [
-    { n: '01', t: 'Choose their reading', s: 'Pick their occasion, pick the depth, write your note.' },
-    { n: '02', t: 'Send it your way', s: 'A private link to text, tuck in a card, or hand over. Or we email the gift for you.' },
-    { n: '03', t: 'They open the reveal', s: 'They add their pet’s name, birth date and photo. The reading unfolds from there.' },
+    { Icon: GlyphStar, n: '01', t: 'Choose their reading', s: 'Pick the occasion and the depth, then write the message they will read the moment it opens.' },
+    { Icon: GlyphEnvelope, n: '02', t: 'Give it two ways', s: 'Have us email it to them with your message, at the exact moment you choose. Or take the private link yourself: text it, tuck it in a card, wrap it, or hand it over.' },
+    { Icon: GlyphGift, n: '03', t: 'They open the reveal', s: 'They add their pet’s name and birth date. The sky computes, and their reading unfolds like nothing they have opened before.' },
   ];
   return (
     <section className="gp-wrap gp-band gp-cream">
@@ -691,7 +666,8 @@ function HowItWorks() {
       <div className="gp-steps">
         {steps.map((st, i) => (
           <div className="gp-step gp-panel gp-rev" key={st.n} style={{ ['--d' as string]: `${i * 90}ms` }}>
-            <p className="gp-step-n">{st.n}</p>
+            <span className="gp-step-icon" aria-hidden="true"><st.Icon /></span>
+            <p className="gp-step-n">Step {st.n}</p>
             <h3>{st.t}</h3>
             <p className="gp-step-s">{st.s}</p>
           </div>
@@ -1140,7 +1116,6 @@ export default function GiftPurchase() {
         <TrustStrip />
 
         <hr className="gp-hr" />
-        <SampleReading />
         {/* cream bands carry their own crisp seams; no violet hr at
             a dark/cream boundary */}
         <HowItWorks />
@@ -1922,33 +1897,26 @@ const GP_CSS = `
 .gp-trust-row svg{width:18px;height:18px;color:var(--vio-bright);flex-shrink:0}
 
 /* sample reading */
-.gp-sample{max-width:520px;margin:0 auto;padding:clamp(30px,5vw,44px) clamp(22px,4vw,36px);text-align:center}
-.gp-sample-ring{display:inline-block;width:88px;height:88px;border-radius:50%;padding:2px;
-  background:linear-gradient(165deg,rgba(185,165,240,.8),rgba(124,92,214,.35));
-  box-shadow:0 0 28px rgba(124,92,214,.35)}
-.gp-sample-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
-.gp-sample-name{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:2rem;color:var(--white);margin-top:14px;line-height:1.05}
-.gp-sample-sign{font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:6px}
-.gp-sample-line{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:clamp(1.3rem,3vw,1.5rem);
-  line-height:1.4;color:#f5f2ff;margin:22px auto;max-width:20ch}
-.gp-locks{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:8px}
-.gp-lock-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:13px 4px;border-bottom:1px solid var(--line);font-size:17.5px;color:var(--body);text-align:left}
-.gp-lock-row svg{width:15px;height:15px;color:var(--dim);flex-shrink:0}
-
 /* steps */
 .gp-steps{display:grid;gap:16px}
 @media (min-width:760px){.gp-steps{grid-template-columns:repeat(3,1fr)}}
-.gp-step{padding:clamp(24px,3.4vw,32px);
+.gp-step{padding:clamp(26px,3.4vw,34px);
   transition:transform .25s var(--ease-settle),border-color .2s ease,box-shadow .25s ease}
 @media (hover:hover){
   .gp-step:hover{transform:translateY(-4px);border-color:var(--line-bright);
     box-shadow:0 14px 34px -12px rgba(124,92,214,.4)}
+  .gp-step:hover .gp-step-icon{transform:translateY(-2px);
+    box-shadow:0 12px 28px -10px rgba(124,92,214,.55)}
 }
+.gp-step-icon{display:inline-grid;place-items:center;width:52px;height:52px;border-radius:15px;
+  background:linear-gradient(165deg,rgba(154,126,230,.24),rgba(124,92,214,.10));
+  border:1px solid rgba(185,165,240,.30);box-shadow:0 8px 22px -12px rgba(124,92,214,.5);
+  transition:transform .25s var(--ease-settle),box-shadow .25s ease}
+.gp-step-icon svg{width:26px;height:26px;color:var(--vio-pale)}
 .gp-step-n{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;
-  font-size:1.1rem;color:var(--vio-bright);margin-bottom:12px}
+  font-size:1rem;color:var(--vio-bright);margin:16px 0 6px}
 .gp-step h3{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:1.35rem;line-height:1.15;color:var(--white)}
-.gp-step-s{margin-top:10px;font-size:17px;line-height:1.6;color:var(--muted)}
+.gp-step-s{margin-top:10px;font-size:16.5px;line-height:1.6;color:var(--muted)}
 
 /* proof */
 .gp-stars{display:inline-flex;gap:3px}
