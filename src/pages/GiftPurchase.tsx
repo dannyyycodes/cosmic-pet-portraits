@@ -741,6 +741,12 @@ function GifterProof() {
         <h2 className="gp-h2">After they gave it.</h2>
       </div>
 
+      {/* Rating banner — authority up front, no fabricated number. */}
+      <div className="gp-rate gp-rev" style={{ ['--d' as string]: '40ms' }}>
+        <StarsRow n={5} size={26} />
+        <p className="gp-rate-line">Real readings. Real people. Every word below is from someone who loves their pet.</p>
+      </div>
+
       {/* Featured spotlight — the gift review they read first. */}
       <figure className="gp-spotlight gp-rev" style={{ ['--d' as string]: '80ms' }}>
         <span className="gp-spot-quote" aria-hidden="true"><GlyphQuote /></span>
@@ -1984,14 +1990,21 @@ const GP_CSS = `
 
 /* featured spotlight — the review they read first, framed on its own
    lifted violet panel with a bespoke quote watermark. */
+.gp-rate{text-align:center;max-width:640px;margin:0 auto clamp(28px,4vw,42px)}
+.gp-rate .gp-stars{justify-content:center}
+.gp-rate-line{margin-top:12px;font-family:'Newsreader',Georgia,serif;font-style:italic;
+  font-size:clamp(1.05rem,2.4vw,1.32rem);line-height:1.45;color:#e7dffb}
 .gp-spotlight{position:relative;max-width:840px;margin:0 auto clamp(30px,4.4vw,46px);
-  padding:clamp(30px,4.6vw,50px) clamp(24px,4.4vw,54px);text-align:center;border-radius:24px;
+  padding:clamp(32px,4.6vw,52px) clamp(24px,4.4vw,54px);text-align:center;border-radius:24px;overflow:hidden;
   background:
-    radial-gradient(130% 92% at 50% -8%, rgba(167,139,250,.24), transparent 62%),
-    linear-gradient(180deg,#3a2a5c,#2a1d45);
-  border:1px solid rgba(197,178,255,.34);
-  box-shadow:0 1px 0 rgba(207,192,244,.16) inset,0 26px 62px -26px rgba(8,5,18,.92),
-    0 0 48px -10px rgba(139,102,246,.30)}
+    radial-gradient(130% 92% at 50% -8%, rgba(167,139,250,.30), transparent 62%),
+    linear-gradient(180deg,#42306a,#2b1d47);
+  border:1px solid rgba(197,178,255,.40);
+  box-shadow:0 1px 0 rgba(207,192,244,.20) inset,0 26px 62px -26px rgba(8,5,18,.92),
+    0 0 60px -10px rgba(139,102,246,.42)}
+.gp-spotlight::before,.gp-wall-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,#b9a5f0 30%,#e3d9ff 50%,#b9a5f0 70%,transparent);
+  opacity:.9}
 .gp-spot-quote{position:absolute;top:16px;left:clamp(18px,4vw,40px);line-height:0;
   color:rgba(197,178,255,.26);pointer-events:none}
 .gp-spot-quote svg{width:clamp(38px,5.6vw,58px);height:auto}
@@ -2009,13 +2022,13 @@ const GP_CSS = `
 .gp-wall{column-count:1;column-gap:18px}
 @media (min-width:600px){.gp-wall{column-count:2}}
 @media (min-width:1000px){.gp-wall{column-count:3}}
-.gp-wall-card{position:relative;break-inside:avoid;-webkit-column-break-inside:avoid;
-  margin:0 0 18px;padding:23px 22px 21px;border-radius:18px;
+.gp-wall-card{position:relative;overflow:hidden;break-inside:avoid;-webkit-column-break-inside:avoid;
+  margin:0 0 18px;padding:24px 22px 21px;border-radius:18px;
   background:
-    radial-gradient(120% 78% at 50% -12%, rgba(167,139,250,.20), transparent 60%),
-    linear-gradient(180deg,#33244f,#261a3d);
-  border:1px solid rgba(167,139,250,.32);
-  box-shadow:0 1px 0 rgba(207,192,244,.12) inset,0 18px 42px -22px rgba(8,5,18,.9);
+    radial-gradient(120% 78% at 50% -12%, rgba(167,139,250,.26), transparent 60%),
+    linear-gradient(180deg,#3a2957,#271b40);
+  border:1px solid rgba(167,139,250,.38);
+  box-shadow:0 1px 0 rgba(207,192,244,.14) inset,0 18px 42px -22px rgba(8,5,18,.9);
   transition:transform .28s var(--ease-settle),border-color .25s ease,box-shadow .3s ease}
 @media (hover:hover){
   .gp-wall-card:hover{transform:translateY(-4px);border-color:rgba(197,178,255,.55);
