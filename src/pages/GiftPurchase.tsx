@@ -546,12 +546,14 @@ function Hero({ fmt, prices, onCta, heroRef }: {
   return (
     <header className="gp-wrap gp-hero" ref={heroRef as React.RefObject<HTMLElement>}>
       <div className="gp-hero-copy">
-        <p className="gp-eyebrow gp-rev">A gift for someone who loves their dog or cat</p>
-        <h1 className="gp-h1 gp-rev" style={{ ['--d' as string]: '80ms' }}>
-          Finally, a gift as deep as their <em>devotion</em>.
+        <h1 className="gp-h1 gp-rev">
+          We all know how good it feels to get someone <em>a gift they love</em>.
         </h1>
-        <p className="gp-lead gp-rev" style={{ ['--d' as string]: '160ms' }}>
-          A soul reading built from their pet's <strong>real birth chart</strong>, opened as a private reveal they keep forever.
+        <p className="gp-turn gp-rev" style={{ ['--d' as string]: '120ms' }}>
+          This is one of those.
+        </p>
+        <p className="gp-lead gp-rev" style={{ ['--d' as string]: '200ms' }}>
+          A reading of the soul they love most, built from their pet's <strong>real birth chart</strong>.
         </p>
         <div className="gp-cta-row gp-rev" style={{ ['--d' as string]: '240ms' }}>
           <button type="button" className="gp-cta" onClick={onCta}>Create their gift</button>
@@ -1768,7 +1770,11 @@ const GP_CSS = `
 
 /* type */
 .gp-h1{font-family:'Fraunces',Georgia,serif;font-weight:500;color:var(--white);
-  font-size:clamp(2.5rem,7vw,4.6rem);line-height:.98;letter-spacing:-.018em;text-wrap:balance}
+  font-size:clamp(2.05rem,5vw,3.4rem);line-height:1.06;letter-spacing:-.016em;text-wrap:balance}
+.gp-turn{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;
+  font-size:clamp(1.5rem,3.2vw,2.2rem);line-height:1.05;margin-top:14px;
+  background:linear-gradient(115deg,#e6dcff 10%,#b9a5f0 55%,#8b7bd8 95%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .gp-h1 em{font-style:italic;color:var(--vio-pale);
   background:linear-gradient(115deg,#e6dcff 10%,#b9a5f0 55%,#8b7bd8 95%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
