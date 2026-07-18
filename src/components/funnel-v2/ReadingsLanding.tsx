@@ -8678,7 +8678,7 @@ function CosmicStyles() {
         .ls-tgl-arc .haring { stroke: rgba(167,139,250,0.16); fill: none; stroke-width: 1.1; }
         .ls-tgl-arc .haring2 { stroke: rgba(167,139,250,0.09); fill: none; stroke-width: 1; }
         .ls-tgl-arc .hatick { stroke: rgba(167,139,250,0.2); stroke-width: 1; }
-        .ls-tgl-arc .haplanet { fill: rgba(167,139,250,0.5); }
+        .ls-tgl-arc .haplanet { display: none; }
       }
       .ls-tgl-micro {
         margin: 0 0 2.2svh;
