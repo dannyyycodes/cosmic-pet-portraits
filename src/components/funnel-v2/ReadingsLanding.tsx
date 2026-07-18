@@ -4574,7 +4574,7 @@ function FullReadingOpens() {
         /* The section paints its own opaque cosmos so nothing from an adjacent band
            ever bleeds through the sealed sky. Grain + wash + per-planet halos carry
            the premium atmosphere; the planets themselves carry the life. */
-        .ls-rs { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(34px, 5svh, 76px) 20px clamp(38px, 5vw, 84px); --e-stage: cubic-bezier(0.22, 0.7, 0.2, 1); --e-settle: cubic-bezier(0.16, 1, 0.3, 1); --e-draw: cubic-bezier(0.4, 0, 0.2, 1); }
+        .ls-rs { position: relative; z-index: 1; overflow: hidden; background: ${C.cosmos}; padding: clamp(84px, 11svh, 128px) 20px clamp(38px, 5vw, 84px); scroll-margin-top: 80px; --e-stage: cubic-bezier(0.22, 0.7, 0.2, 1); --e-settle: cubic-bezier(0.16, 1, 0.3, 1); --e-draw: cubic-bezier(0.4, 0, 0.2, 1); }
         .ls-rs-grain {
           position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.05; mix-blend-mode: overlay;
           background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
@@ -4841,7 +4841,7 @@ function FullReadingOpens() {
         .ls-rs-rv[data-in] { opacity: 1; transform: translate3d(0,0,0); }
 
         @media (min-width: 768px) {
-          .ls-rs { padding: clamp(48px, 6svh, 104px) 24px clamp(48px, 6vw, 104px); }
+          .ls-rs { padding: clamp(96px, 13svh, 140px) 24px clamp(48px, 6vw, 104px); }
           .ls-rs-hook { margin: 0 auto; }
           .ls-rs-led-grp.is-lit .ls-rs-led-disc { width: 56px; height: 56px; }
           .ls-rs-led-grp.is-dark .ls-rs-led-disc { width: 44px; height: 44px; }
