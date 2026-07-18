@@ -626,18 +626,7 @@ function TrustpilotMark() {
       rel="noopener noreferrer"
       aria-label="Little Souls reviews on Trustpilot"
     >
-      <svg viewBox="0 0 110 20" aria-hidden="true" focusable="false">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <g key={i} transform={`translate(${i * 21},0)`}>
-            <rect width="19" height="19" rx="2.4" fill="#00B67A" stroke="none" />
-            <path
-              d="M9.5 3.4l1.5 4.1 4.4.1-3.5 2.7 1.3 4.2-3.7-2.5-3.7 2.5 1.3-4.2-3.5-2.7 4.4-.1z"
-              fill="#fff" stroke="none"
-            />
-          </g>
-        ))}
-      </svg>
-      <span>Review us on Trustpilot</span>
+      <img src="/badges/trustpilot.svg" alt="Review Little Souls on Trustpilot" height={22} loading="lazy" decoding="async" />
     </a>
   );
 }
@@ -648,9 +637,9 @@ function TrustStrip() {
       <div className="gp-give-row gp-rev">
         <p className="gp-give-lead">Every reading gives back</p>
         <ul className="gp-give-list">
-          <li><GlyphPaw /> IFAW</li>
-          <li><GlyphSprout /> World Land Trust</li>
-          <li><GlyphStar /> Eden Reforestation</li>
+          <li><img src="/badges/ifaw.png" alt="IFAW, the International Fund for Animal Welfare" height={26} loading="lazy" decoding="async" /></li>
+          <li><img src="/badges/wlt.png" alt="World Land Trust" height={22} loading="lazy" decoding="async" /></li>
+          <li><img src="/badges/eden.svg" alt="Eden Reforestation" height={30} loading="lazy" decoding="async" /></li>
         </ul>
         <TrustpilotMark />
       </div>
@@ -1911,14 +1900,20 @@ const GP_CSS = `
 .gp-trust{padding-bottom:clamp(40px,6vw,64px)}
 .gp-give-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px 26px}
 .gp-give-lead{font-weight:600;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--vio-bright)}
-.gp-give-list{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;list-style:none;padding:0;margin:0}
-.gp-give-list li{display:inline-flex;align-items:center;gap:8px;font-size:16px;color:var(--body)}
-.gp-give-list svg{width:16px;height:16px;color:var(--vio-soft);flex:none}
-.gp-tp{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:var(--body);
-  font-size:15px;padding:7px 14px;border-radius:24px;border:1px solid var(--line);
-  background:rgba(124,92,214,.08);transition:border-color .25s var(--ease-settle)}
-.gp-tp:hover{border-color:var(--line-bright)}
-.gp-tp svg{width:96px;height:17px;display:block}
+.gp-give-list{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;list-style:none;padding:0;margin:0}
+.gp-give-list li{display:inline-flex;align-items:center;justify-content:center;
+  background:#f7f5fc;border-radius:12px;padding:9px 18px;min-height:44px;
+  box-shadow:0 2px 10px rgba(8,5,18,.35)}
+.gp-give-list img{display:block;height:auto}
+.gp-give-list li:nth-child(1) img{height:24px}
+.gp-give-list li:nth-child(2) img{height:30px}
+.gp-give-list li:nth-child(3) img{height:30px}
+.gp-tp{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#241b33;
+  font-size:14.5px;font-weight:600;padding:9px 18px;min-height:44px;border-radius:12px;
+  background:#f7f5fc;box-shadow:0 2px 10px rgba(8,5,18,.35);
+  transition:transform .25s var(--ease-settle),box-shadow .25s var(--ease-settle)}
+.gp-tp:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(8,5,18,.45)}
+.gp-tp img{display:block;height:22px;width:auto}
 .gp-give-note{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--dim)}
 .gp-give-note svg{width:16px;height:16px;color:var(--vio-soft);flex:none}
 .gp-trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;list-style:none;padding:0}
