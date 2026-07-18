@@ -617,32 +617,35 @@ function HeroRotator() {
   );
 }
 
-function TrustpilotMark() {
-  return (
-    <a
-      className="gp-tp"
-      href="https://uk.trustpilot.com/review/littlesouls.app"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Little Souls reviews on Trustpilot"
-    >
-      <img src="/badges/trustpilot.svg" alt="Review Little Souls on Trustpilot" height={22} loading="lazy" decoding="async" />
-    </a>
-  );
-}
+const CHARITIES = [
+  { src: '/badges/ifaw.png', alt: 'IFAW, the International Fund for Animal Welfare', does: 'Rescues animals in crisis worldwide', h: 24, mono: true },
+  { src: '/badges/wlt-white.svg', alt: 'World Land Trust', does: 'Buys and protects threatened habitat', h: 46, mono: false },
+  { src: '/badges/eden-white.svg', alt: 'Eden, People and Planet', does: 'Plants forests, employs local people', h: 40, mono: false },
+];
 
 function TrustStrip() {
   return (
     <section className="gp-wrap gp-trust">
-      <div className="gp-give-row gp-rev">
-        <p className="gp-give-lead">Every reading gives back</p>
-        <ul className="gp-give-list">
-          <li><img src="/badges/ifaw.png" alt="IFAW, the International Fund for Animal Welfare" height={26} loading="lazy" decoding="async" /></li>
-          <li><img src="/badges/wlt.png" alt="World Land Trust" height={22} loading="lazy" decoding="async" /></li>
-          <li><img src="/badges/eden.svg" alt="Eden Reforestation" height={30} loading="lazy" decoding="async" /></li>
-        </ul>
-        <TrustpilotMark />
-      </div>
+      <p className="gp-give-lead gp-rev">Every reading gives back</p>
+      <ul className="gp-give-grid gp-rev" style={{ ['--d' as string]: '90ms' }}>
+        {CHARITIES.map((c, i) => (
+          <li key={c.src} style={{ ['--d' as string]: `${120 + i * 80}ms` }}>
+            <span className={`gp-give-logo ${c.mono ? 'is-mono' : ''}`}><img src={c.src} alt={c.alt} style={{ height: c.h }} loading="lazy" decoding="async" /></span>
+            <span className="gp-give-does">{c.does}</span>
+          </li>
+        ))}
+      </ul>
+      <a
+        className="gp-tp-strip gp-rev"
+        style={{ ['--d' as string]: '360ms' }}
+        href="https://uk.trustpilot.com/review/littlesouls.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Review Little Souls on Trustpilot"
+      >
+        <span className="gp-tp-lead">Review us on</span>
+        <img src="/badges/trustpilot-white.svg" alt="Trustpilot" height={20} loading="lazy" decoding="async" />
+      </a>
     </section>
   );
 }
@@ -1898,24 +1901,27 @@ const GP_CSS = `
 
 /* trust strip */
 .gp-trust{padding-bottom:clamp(40px,6vw,64px)}
-.gp-give-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px 26px}
-.gp-give-lead{font-weight:600;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--vio-bright)}
-.gp-give-list{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;list-style:none;padding:0;margin:0}
-.gp-give-list li{display:inline-flex;align-items:center;justify-content:center;
-  background:#f7f5fc;border-radius:12px;padding:9px 18px;min-height:44px;
-  box-shadow:0 2px 10px rgba(8,5,18,.35)}
-.gp-give-list img{display:block;height:auto}
-.gp-give-list li:nth-child(1) img{height:24px}
-.gp-give-list li:nth-child(2) img{height:30px}
-.gp-give-list li:nth-child(3) img{height:30px}
-.gp-tp{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#241b33;
-  font-size:14.5px;font-weight:600;padding:9px 18px;min-height:44px;border-radius:12px;
-  background:#f7f5fc;box-shadow:0 2px 10px rgba(8,5,18,.35);
-  transition:transform .25s var(--ease-settle),box-shadow .25s var(--ease-settle)}
-.gp-tp:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(8,5,18,.45)}
-.gp-tp img{display:block;height:22px;width:auto}
-.gp-give-note{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--dim)}
-.gp-give-note svg{width:16px;height:16px;color:var(--vio-soft);flex:none}
+.gp-give-lead{text-align:center;font-weight:600;font-size:13.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--vio-bright)}
+.gp-give-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 30px;
+  max-width:820px;margin:26px auto 0;list-style:none;padding:0}
+.gp-give-grid li{display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px}
+.gp-give-logo{display:flex;align-items:center;justify-content:center;height:48px}
+.gp-give-logo img{display:block;width:auto;max-width:160px;
+  opacity:.9;transition:opacity .25s var(--ease-settle)}
+.gp-give-logo.is-mono img{filter:brightness(0) invert(1)}
+.gp-give-grid li:hover .gp-give-logo img{opacity:1}
+.gp-give-does{font-size:13.5px;line-height:1.4;color:var(--dim);max-width:190px}
+.gp-tp-strip{display:flex;align-items:center;justify-content:center;gap:9px;
+  width:fit-content;margin:34px auto 0;padding:11px 20px;border-radius:26px;text-decoration:none;
+  border:1px solid var(--line);background:rgba(124,92,214,.07);
+  transition:border-color .25s var(--ease-settle),background .25s var(--ease-settle)}
+.gp-tp-strip:hover{border-color:var(--line-bright);background:rgba(124,92,214,.12)}
+.gp-tp-lead{font-size:14px;color:var(--dim)}
+.gp-tp-strip img{display:block;height:20px;width:auto}
+@media (max-width:560px){
+  .gp-give-grid{grid-template-columns:1fr;gap:22px;max-width:280px}
+}
 .gp-trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;list-style:none;padding:0}
 .gp-trust-row li{display:inline-flex;align-items:center;gap:9px;font-size:16.5px;color:var(--body);
   padding:10px 18px;border-radius:999px;border:1px solid var(--line);
