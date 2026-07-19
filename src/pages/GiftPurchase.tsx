@@ -5,7 +5,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 import { REVIEWS } from '@/components/funnel-v2/DossierCheckout';
-import { PaymentMethodsRow } from '@/components/funnel-v2/PaymentMethodsRow';
+/* Dark-surface payment marks. Same canonical simple-icons brand paths as
+   the shared PaymentMethodsRow (the truth of what the Stripe session
+   offers), rendered as quiet light marks for the night background — no
+   white chips. Keep in sync with PaymentMethodsRow if methods change. */
+function GiftPayMarks() {
+  return (
+    <div className="gp-paymarks" aria-label="Payment methods">
+      <svg role="img" aria-label="Stripe" viewBox="0 0 24 24"><path fill="currentColor" d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></svg>
+      <svg role="img" aria-label="Apple Pay" viewBox="0 0 24 24" style={{ width: 44 }}><path fill="currentColor" d="M2.15 4.318a42.16 42.16 0 0 0-.454.003c-.15.005-.303.013-.452.04a1.44 1.44 0 0 0-1.06.772c-.07.138-.114.278-.14.43-.028.148-.037.3-.04.45A10.2 10.2 0 0 0 0 6.222v11.557c0 .07.002.138.003.207.004.15.013.303.04.452.027.15.072.291.142.429a1.436 1.436 0 0 0 .63.63c.138.07.278.115.43.142.148.027.3.036.45.04l.208.003h20.194l.207-.003c.15-.004.303-.013.452-.04.15-.027.291-.071.428-.141a1.432 1.432 0 0 0 .631-.631c.07-.138.115-.278.141-.43.027-.148.036-.3.04-.45.002-.07.003-.138.003-.208l.001-.246V6.221c0-.07-.002-.138-.004-.207a2.995 2.995 0 0 0-.04-.452 1.446 1.446 0 0 0-1.2-1.201 3.022 3.022 0 0 0-.452-.04 10.448 10.448 0 0 0-.453-.003zm0 .512h19.942c.066 0 .131.002.197.003.115.004.25.01.375.032.109.02.2.05.287.094a.927.927 0 0 1 .407.407.997.997 0 0 1 .094.288c.022.123.028.258.031.374.002.065.003.13.003.197v11.552c0 .065 0 .13-.003.196-.003.115-.009.25-.032.375a.927.927 0 0 1-.5.693 1.002 1.002 0 0 1-.286.094 2.598 2.598 0 0 1-.373.032l-.2.003H1.906c-.066 0-.133-.002-.196-.003a2.61 2.61 0 0 1-.375-.032c-.109-.02-.2-.05-.288-.094a.918.918 0 0 1-.406-.407 1.006 1.006 0 0 1-.094-.288 2.531 2.531 0 0 1-.032-.373 9.588 9.588 0 0 1-.002-.197V6.224c0-.065 0-.131.002-.197.004-.114.01-.248.032-.375.02-.108.05-.199.094-.287a.925.925 0 0 1 .407-.406 1.03 1.03 0 0 1 .287-.094c.125-.022.26-.029.375-.032.065-.002.131-.002.196-.003zm4.71 3.7c-.3.016-.668.199-.88.456-.191.22-.36.58-.316.918.338.03.675-.169.888-.418.205-.258.345-.603.308-.955zm2.207.42v5.493h.852v-1.877h1.18c1.078 0 1.835-.739 1.835-1.812 0-1.07-.742-1.805-1.808-1.805zm.852.719h.982c.739 0 1.161.396 1.161 1.089 0 .692-.422 1.092-1.164 1.092h-.979zm-3.154.3c-.45.01-.83.28-1.05.28-.235 0-.593-.264-.981-.257a1.446 1.446 0 0 0-1.23.747c-.527.908-.139 2.255.374 2.995.249.366.549.769.944.754.373-.014.52-.242.973-.242.454 0 .586.242.98.235.41-.007.667-.366.915-.733.286-.417.403-.82.41-.841-.007-.008-.79-.308-.797-1.209-.008-.754.615-1.113.644-1.135-.352-.52-.9-.578-1.09-.593a1.123 1.123 0 0 0-.092-.002zm8.204.397c-.99 0-1.606.533-1.652 1.256h.777c.072-.358.369-.586.845-.586.502 0 .803.266.803.711v.309l-1.097.064c-.951.054-1.488.484-1.488 1.184 0 .72.548 1.207 1.332 1.207.526 0 1.032-.281 1.264-.727h.019v.659h.788v-2.76c0-.803-.62-1.317-1.591-1.317zm1.94.072l1.446 4.009c0 .003-.073.24-.073.247-.125.41-.33.571-.711.571-.069 0-.206 0-.267-.015v.666c.06.011.267.019.335.019.83 0 1.226-.312 1.568-1.283l1.5-4.214h-.868l-1.012 3.259h-.015l-1.013-3.26zm-1.167 2.189v.316c0 .521-.45.917-1.024.917-.442 0-.731-.228-.731-.579 0-.342.278-.56.769-.593z"/></svg>
+      <svg role="img" aria-label="Visa" viewBox="0 0 24 24" style={{ width: 34 }}><path fill="currentColor" d="M9.112 8.262L5.97 15.758H3.92L2.374 9.775c-.094-.368-.175-.503-.461-.658C1.447 8.864.677 8.627 0 8.479l.046-.217h3.3a.904.904 0 01.894.764l.817 4.338 2.018-5.102zm8.033 5.049c.008-1.979-2.736-2.088-2.717-2.972.006-.269.262-.555.822-.628a3.66 3.66 0 011.913.336l.34-1.59a5.207 5.207 0 00-1.814-.333c-1.917 0-3.266 1.02-3.278 2.479-.012 1.079.963 1.68 1.698 2.04.756.367 1.01.603 1.006.931-.005.504-.602.725-1.16.734-.975.015-1.54-.263-1.992-.473l-.351 1.642c.453.208 1.289.39 2.156.398 2.037 0 3.37-1.006 3.377-2.564m5.061 2.447H24l-1.565-7.496h-1.656a.883.883 0 00-.826.55l-2.909 6.946h2.036l.405-1.12h2.488zm-2.163-2.656l1.02-2.815.588 2.815zm-8.16-4.84l-1.603 7.496H8.34l1.605-7.496z"/></svg>
+      <svg role="img" aria-label="Mastercard" viewBox="0 0 32 20" style={{ width: 30 }}><circle cx="12" cy="10" r="7" fill="currentColor" opacity=".55"/><circle cx="20" cy="10" r="7" fill="currentColor" opacity=".8"/></svg>
+      <svg role="img" aria-label="American Express" viewBox="0 0 48 32" style={{ width: 34 }}><g stroke="currentColor" strokeWidth="2.6" fill="none"><path d="M5.5 22 9.5 10l4 12M6.9 17.6h5.2"/><path d="M17 22V10l4 7 4-7v12"/><path d="M34 10h-6v12h6M28 16h5"/><path d="m37.5 10 7 12m0-12-7 12"/></g></svg>
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    GIFT PAGE v10 — cosmic purple + white, matched to the live readings
@@ -1087,8 +1101,8 @@ export default function GiftPurchase() {
 
   const handleTierSelect = (tier: TierKey) => {
     setSelectedTier(tier);
-    setStep(1);
-    setGiftType(null);
+    setStep(2);
+    setGiftType('single');
     // Small delay then scroll to flow section
     setTimeout(() => {
       document.getElementById('gift-flow')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1177,7 +1191,7 @@ export default function GiftPurchase() {
     }
   };
 
-  const stepCount = 3;
+  const stepCount = 2;
   const stickyVisible = !heroInView && !funnelInView;
 
   return (
@@ -1294,7 +1308,7 @@ export default function GiftPurchase() {
                     <li><GlyphSeal /> Full refund if it does not feel like them</li>
                   </ul>
                   <div className="gp-tier-pay">
-                    <PaymentMethodsRow />
+                    <GiftPayMarks />
                   </div>
 
                 </motion.div>
@@ -1322,7 +1336,7 @@ export default function GiftPurchase() {
                       </div>
                       <div className="gp-flow-head-r">
                         <span className="gp-flow-price">{fmt(TIER_CENTS[selectedTier].cents)}</span>
-                        <button onClick={() => { setSelectedTier(null); setStep(1); }} className="gp-change">
+                        <button onClick={() => { setSelectedTier(null); setStep(2); }} className="gp-change">
                           Change
                         </button>
                       </div>
@@ -1331,13 +1345,13 @@ export default function GiftPurchase() {
                     {/* Step indicator — slim violet progress */}
                     <div className="gp-stepper" aria-hidden="true">
                       {[...Array(stepCount)].map((_, idx) => {
-                        const s = idx + 1;
+                        const s = idx + 2;
                         return (
                           <div key={s} className="gp-stepper-seg">
                             <div className={`gp-stepper-dot ${step >= s ? 'is-on' : ''}`}>
-                              {step > s ? <GlyphCheck /> : s}
+                              {step > s ? <GlyphCheck /> : idx + 1}
                             </div>
-                            {s < stepCount && <div className={`gp-stepper-bar ${step > s ? 'is-on' : ''}`} />}
+                            {idx + 1 < stepCount && <div className={`gp-stepper-bar ${step > s ? 'is-on' : ''}`} />}
                           </div>
                         );
                       })}
@@ -1346,66 +1360,29 @@ export default function GiftPurchase() {
                     <AnimatePresence mode="wait">
 
                       {/* ── STEP 1: Who? ── */}
-                      {step === 1 && (
-                        <motion.div key="ds1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                          className="gp-step-col">
-
-                          <div className="gp-step-intro">
-                            <p className="gp-flow-q">One gift or a few?</p>
-                            <p className="gp-flow-hint">Each person gets their own reading, and their own reveal.</p>
-                          </div>
-
-                          <div className="gp-two-col">
-                            {[
-                              { key: 'single' as const, Glyph: GlyphStar, title: 'One Soul', sub: 'For one cherished pet parent' },
-                              { key: 'multiple' as const, Glyph: GlyphSoulFew, title: 'A Few Souls', sub: 'Several people, one order' },
-                            ].map(opt => (
-                              <button key={opt.key}
-                                onClick={() => {
-                                  setGiftType(opt.key);
-                                  // Group gifts are link-delivery only: the gift
-                                  // email goes to one recipient, so several people
-                                  // need their own links to pass on.
-                                  if (opt.key === 'multiple') setDeliveryMethod('link');
-                                }}
-                                className={`gp-choice ${giftType === opt.key ? 'is-on' : ''}`}>
-                                {opt.key === 'multiple' && (
-                                  <span className="gp-save-chip">SAVE UP TO 30%</span>
-                                )}
-                                <span className={`gp-choice-picked ${giftType === opt.key ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
-                                <span className="gp-choice-plaque" aria-hidden="true"><opt.Glyph className="gp-choice-icon" /></span>
-                                <p className="gp-choice-t">{opt.title}</p>
-                                <p className="gp-choice-s">{opt.sub}</p>
-                              </button>
-                            ))}
-                          </div>
-
-                          {giftType && (
-                            <motion.button
-                              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                              onClick={() => setStep(2)}
-                              className="gp-cta gp-cta-full"
-                            >
-                              Continue <GlyphChevron />
-                            </motion.button>
-                          )}
-
-                          <TrustRow items={['Secure checkout', 'Ready in minutes', 'Valid a full year']} glyphs={[GlyphSeal, GlyphMoonClock, GlyphGift]} />
-                        </motion.div>
-                      )}
-
-                      {/* ── STEP 2: Delivery + recipient details ── */}
+                      {/* ── Delivery + recipient details ── */}
                       {step === 2 && (
                         <motion.div key="ds2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                           className="gp-step-col">
 
                           <div className="gp-step-head">
-                            <button onClick={() => setStep(1)} className="gp-ghost">
-                              <GlyphArrow /> Back
-                            </button>
+                            <div style={{ width: 48 }} />
                             <p>{giftType === 'single' ? 'Their Details' : 'Add Recipients'}</p>
                             <div style={{ width: 48 }} />
                           </div>
+
+                          <button
+                            type="button"
+                            className="gp-few-toggle"
+                            onClick={() => {
+                              if (giftType === 'single') { setGiftType('multiple'); setDeliveryMethod('link'); }
+                              else setGiftType('single');
+                            }}
+                          >
+                            {giftType === 'single'
+                              ? 'Buying for a few people? Save up to 30%'
+                              : 'Just one gift? Switch back'}
+                          </button>
 
                           {/* Delivery method. Group gifts are link-only: the
                               gift email reaches one recipient, so promising
@@ -1631,7 +1608,7 @@ export default function GiftPurchase() {
                               <span>Ready in minutes</span>
                               <span>Valid a full year</span>
                             </div>
-                            <PaymentMethodsRow />
+                            <GiftPayMarks />
                           </div>
                         </motion.div>
                       )}
@@ -2108,9 +2085,8 @@ const GP_CSS = `
 /* occasion picker: quiet segmented chips on one shared rail. The tier
    cards are the stars of the section. 44px touch targets kept. */
 .gp-occ-strip{max-width:760px;margin:0 auto clamp(26px,4vw,36px)}
-.gp-occ-row{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;
-  width:fit-content;margin:0 auto;padding:5px;border-radius:16px;
-  border:1px solid rgba(154,126,230,.18);background:rgba(21,16,32,.55)}
+.gp-occ-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  width:fit-content;margin:0 auto}
 .gp-occ-tickbox{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 15px;
   border-radius:12px;cursor:pointer;border:1px solid transparent;
   background:transparent;color:var(--dim);font-size:14px;font-weight:500;
@@ -2223,6 +2199,13 @@ const GP_CSS = `
 .gp-worry-row li{display:inline-flex;align-items:center;gap:7px}
 .gp-worry-row svg{width:14px;height:14px;flex-shrink:0;color:var(--vio-soft)}
 .gp-tier-pay{display:flex;justify-content:center;margin-top:16px;opacity:.75}
+.gp-paymarks{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;
+  color:#b9aed6;opacity:.75}
+.gp-paymarks svg{height:17px;width:26px;display:block}
+.gp-few-toggle{display:block;margin:-6px auto 4px;background:none;border:none;cursor:pointer;
+  color:var(--vio-bright);font-size:14px;text-decoration:underline;text-underline-offset:3px;
+  padding:6px 10px;min-height:36px}
+.gp-few-toggle:hover{color:var(--vio-pale)}
 
 /* the one voice beside the decision: a compact strip below the chips */
 
