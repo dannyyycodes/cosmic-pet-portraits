@@ -450,7 +450,7 @@ const OCCASION_TIER_KICKER: Record<GiftOccasion, string> = {
 // page palette is violet + white only; no gold chrome anywhere).
 const OCCASION_ACCENT: Record<GiftOccasion, { ring: string; badge: string }> = {
   new:      { ring: 'rgba(154,126,230,0.30)', badge: '#9a7ee6' }, // violet soft (fresh beginning)
-  discover: { ring: 'rgba(154,126,230,0.32)', badge: '#8b7bd8' }, // violet (mystery/reveal)
+  discover: { ring: 'rgba(154,126,230,0.32)', badge: '#9a7ee6' }, // violet (mystery/reveal)
   memorial: { ring: 'rgba(200,196,216,0.30)', badge: '#b8b2cc' }, // moon silver (honouring)
   birthday: { ring: 'rgba(185,165,240,0.32)', badge: '#b9a5f0' }, // violet bright (celebration)
 };
@@ -939,7 +939,7 @@ function TierCard({
       }}
     >
       {tier.badge && (
-        <span className="gp-tier-badge" style={{ background: occAccent?.badge ?? '#8b7bd8' }}>
+        <span className="gp-tier-badge" style={{ background: occAccent?.badge ?? '#9a7ee6' }}>
           {tier.badge}
         </span>
       )}
@@ -1707,7 +1707,7 @@ function TrustRow({ items, glyphs }: { items: string[]; glyphs: GlyphComponent[]
 
 /* ═══ Design system — cosmic purple + white (funnel-v2 tokens).
    Surfaces: sky #0d0a14 · glass violet gradient over #15101c · panel
-   #181226→#140f1e. Violet family #b9a5f0/#9a7ee6/#7c5cd6. Star gold
+   #15101c→#110d18. Violet family #b9a5f0/#9a7ee6/#7c5cd6. Star gold
    ONLY on review-star fills. Fraunces display / Newsreader body.
    Motion: --ease-settle entrances via IntersectionObserver, one
    constellation ceremony, parallax sky planes via CSS scroll-driven
@@ -1735,7 +1735,7 @@ const GP_CSS = `
 }
 .gp *{box-sizing:border-box;margin:0}
 .gp-main{position:relative;z-index:1}
-.gp :focus-visible{outline:2px solid #a78bfa;outline-offset:2px;border-radius:4px}
+.gp :focus-visible{outline:2px solid #9a7ee6;outline-offset:2px;border-radius:4px}
 .gp strong{font-weight:600;color:var(--white)}
 .gp button{font:inherit;color:inherit}
 .gp input,.gp textarea{font:inherit}
@@ -1747,7 +1747,7 @@ const GP_CSS = `
 .gp-sky-base{position:absolute;inset:0;background:
   radial-gradient(900px 620px at 82% 0%, rgba(124,92,214,.14), transparent 70%),
   radial-gradient(760px 560px at 6% 8%, rgba(93,71,160,.16), transparent 72%),
-  linear-gradient(180deg,#16112c 0%,#110d1f 24%,#0d0a14 50%,#0d0a14 100%)}
+  linear-gradient(180deg,#15101c 0%,#100c18 24%,#0d0a14 50%,#0d0a14 100%)}
 .gp-sky-aurora{position:absolute;inset:-24% -12%;pointer-events:none;
   filter:blur(46px);mix-blend-mode:screen;
   background:
@@ -1795,18 +1795,18 @@ const GP_CSS = `
 .gp-night-early,.gp-night-late{position:relative}
 .gp-night-early::before,.gp-night-late::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
   transform:translateX(-50%);z-index:-1;pointer-events:none}
-.gp-night-early::before{background:linear-gradient(180deg,transparent,rgba(25,20,54,.40) 14%,rgba(20,16,34,.46) 86%,transparent)}
+.gp-night-early::before{background:linear-gradient(180deg,transparent,rgba(21,16,32,.40) 14%,rgba(15,11,22,.46) 86%,transparent)}
 .gp-night-late::before{background:
-  radial-gradient(720px 420px at 80% 8%, rgba(134,62,150,.10), transparent 70%),
-  linear-gradient(180deg,transparent,rgba(39,14,46,.44) 12%,rgba(30,11,36,.52) 88%,transparent)}
+  radial-gradient(720px 420px at 80% 8%, rgba(124,92,214,.10), transparent 70%),
+  linear-gradient(180deg,transparent,rgba(21,16,30,.44) 12%,rgba(15,11,22,.52) 88%,transparent)}
 
 /* ── cream bands: the envelope-paper light sections. Opaque grounds
    (the fixed star sky must never show through), aubergine ink,
    darkened violet accents, crisp letterpress seams top and bottom.
    Texture is pure CSS gradient noise; no image files. ── */
 .gp-cream{position:relative;
-  --cream:#1e1734;--cream-2:#251c3f}
-.gp-cream-deep{--cream:#2a1c44;--cream-2:#31214d}
+  --cream:#15101c;--cream-2:#1a1420}
+.gp-cream-deep{--cream:#1a1420;--cream-2:#201722}
 .gp-cream::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:100vw;
   transform:translateX(-50%);z-index:-1;pointer-events:none;
   background:
@@ -1817,10 +1817,10 @@ const GP_CSS = `
     inset 0 30px 46px -30px rgba(167,139,250,.10),inset 0 -30px 46px -30px rgba(8,5,18,.55)}
 .gp-cream + .gp-cream::before{border-top:0;
   box-shadow:inset 0 -1px 0 rgba(8,5,18,.7),inset 0 -30px 46px -30px rgba(8,5,18,.55)}
-.gp-cream .gp-panel{background:linear-gradient(180deg,#2b2150,#241b43);
+.gp-cream .gp-panel{background:linear-gradient(180deg,#1c1629,#17111f);
   border:1px solid rgba(185,165,240,.20);
   box-shadow:0 1px 2px rgba(8,5,18,.4),0 16px 34px -18px rgba(8,5,18,.7)}
-.gp-cream .gp-glass{background:linear-gradient(180deg,#2b2150,#241b43);
+.gp-cream .gp-glass{background:linear-gradient(180deg,#1c1629,#17111f);
   border:1px solid rgba(185,165,240,.20);
   box-shadow:0 1px 2px rgba(8,5,18,.4),0 18px 36px -18px rgba(8,5,18,.7)}
 @media (hover:hover){
@@ -1844,7 +1844,7 @@ const GP_CSS = `
 .gp-support{color:var(--muted);font-size:clamp(18px,1vw + 14px,19px);margin-top:12px}
 .gp-shead{text-align:center;max-width:720px;margin:0 auto clamp(34px,5vw,52px)}
 .gp-shead::after{content:"";display:block;width:56px;height:2px;margin:18px auto 0;border-radius:2px;
-  background:linear-gradient(90deg,transparent,#a78bfa,transparent)}
+  background:linear-gradient(90deg,transparent,#9a7ee6,transparent)}
 
 /* reveal */
 .gp-rev{opacity:0;transform:translateY(16px);
@@ -1861,7 +1861,7 @@ const GP_CSS = `
   background:linear-gradient(180deg,rgba(124,92,214,.13),rgba(124,92,214,.05)),#15101c;
   border:1px solid rgba(154,126,230,.28);
   box-shadow:0 2px 6px rgba(0,0,0,.4),0 14px 34px rgba(0,0,0,.35)}
-.gp-panel{border-radius:18px;background:linear-gradient(180deg,#181226,#140f1e);
+.gp-panel{border-radius:18px;background:linear-gradient(180deg,#15101c,#110d18);
   border:1px solid rgba(154,126,230,.20)}
 .gp-pad{padding:20px}
 .gp-pad-sm{padding:16px}
@@ -1870,7 +1870,7 @@ const GP_CSS = `
 .gp-cta{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:10px;
   border:0;cursor:pointer;border-radius:12px;min-height:56px;padding:0 30px;
   font-family:'Newsreader',Georgia,serif;font-weight:600;font-size:clamp(18px,1vw + 14px,19px);letter-spacing:.02em;color:#fff;
-  background:linear-gradient(180deg,#a78bfa 0%,#9a7ee6 18%,#8266d9 40%,#7452c8 56%,#6243b0 80%,#47307f 100%);
+  background:linear-gradient(180deg,#9a7ee6 0%,#9a7ee6 18%,#7c5cd6 40%,#5d47a0 56%,#6243b0 80%,#47307f 100%);
   box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 -1px 0 rgba(0,0,0,.28) inset,0 6px 18px -6px rgba(124,92,214,.45);
   transition:transform .18s var(--ease-stage),box-shadow .18s var(--ease-stage)}
 .gp-cta svg{width:19px;height:19px}
@@ -1999,7 +1999,7 @@ const GP_CSS = `
   padding:clamp(32px,4.6vw,52px) clamp(24px,4.4vw,54px);text-align:center;border-radius:24px;overflow:hidden;
   background:
     radial-gradient(130% 92% at 50% -8%, rgba(167,139,250,.30), transparent 62%),
-    linear-gradient(180deg,#42306a,#2b1d47);
+    linear-gradient(180deg,#221a35,#181221);
   border:1px solid rgba(197,178,255,.40);
   box-shadow:0 1px 0 rgba(207,192,244,.20) inset,0 26px 62px -26px rgba(8,5,18,.92),
     0 0 60px -10px rgba(139,102,246,.42)}
@@ -2027,7 +2027,7 @@ const GP_CSS = `
   margin:0 0 18px;padding:24px 22px 21px;border-radius:18px;
   background:
     radial-gradient(120% 78% at 50% -12%, rgba(167,139,250,.26), transparent 60%),
-    linear-gradient(180deg,#3a2957,#271b40);
+    linear-gradient(180deg,#1d1730,#17111f);
   border:1px solid rgba(167,139,250,.38);
   box-shadow:0 1px 0 rgba(207,192,244,.14) inset,0 18px 42px -22px rgba(8,5,18,.9);
   transition:transform .28s var(--ease-settle),border-color .25s ease,box-shadow .3s ease}
@@ -2163,10 +2163,10 @@ const GP_CSS = `
   line-height:1.22;color:var(--body);text-wrap:balance;transition:color .2s ease}
 .gp-occ-tick{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;color:#fff;
-  background:linear-gradient(180deg,#a78bfa,#7452c8);
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);
   opacity:0;transform:scale(.5);transition:opacity .18s ease,transform .18s var(--ease-settle)}
 .gp-occ-tick svg{width:13px;height:13px}
-.gp-occ-cardbtn.is-active{border-color:#a78bfa;
+.gp-occ-cardbtn.is-active{border-color:#9a7ee6;
   background:radial-gradient(130% 100% at 50% 0%,rgba(124,92,214,.30),rgba(124,92,214,.08) 62%),#171126;
   box-shadow:0 0 0 4px rgba(154,126,230,.20),0 14px 36px -12px rgba(124,92,214,.55)}
 .gp-occ-cardbtn.is-active::before{opacity:1}
@@ -2190,7 +2190,7 @@ const GP_CSS = `
   .gp-tier:hover{border-color:var(--line-bright)}
   .gp-tier:hover::after{opacity:1}
 }
-.gp-tier.is-selected{border-color:#a78bfa;
+.gp-tier.is-selected{border-color:#9a7ee6;
   background:linear-gradient(180deg,rgba(124,92,214,.20),rgba(124,92,214,.08)),#15101c}
 .gp-tier.is-selected::after{opacity:1}
 .gp-tier-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);color:#0d0a14;
@@ -2222,7 +2222,7 @@ const GP_CSS = `
 .gp-stepper-seg{display:flex;align-items:center;gap:8px}
 .gp-stepper-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:14px;font-weight:700;background:rgba(154,126,230,.16);color:var(--dim);transition:all .3s}
-.gp-stepper-dot.is-on{background:linear-gradient(180deg,#a78bfa,#7452c8);color:#fff;
+.gp-stepper-dot.is-on{background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
   box-shadow:0 0 14px rgba(167,139,250,.45)}
 .gp-stepper-dot svg{width:14px;height:14px}
 .gp-stepper-bar{width:28px;height:2px;background:rgba(154,126,230,.16);border-radius:2px;transition:background .3s}
@@ -2237,7 +2237,7 @@ const GP_CSS = `
     box-shadow:0 10px 26px -10px rgba(124,92,214,.4)}
 }
 .gp-choice:active{transform:scale(.98);transition-duration:.06s}
-.gp-choice.is-on{border-color:#a78bfa;background:rgba(124,92,214,.14);
+.gp-choice.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.14);
   box-shadow:0 0 0 3px rgba(154,126,230,.16)}
 .gp-choice-left{text-align:left;padding:16px 14px}
 .gp-choice-icon{width:30px;height:30px;margin:0 auto 10px;color:var(--dim);display:block}
@@ -2247,9 +2247,9 @@ const GP_CSS = `
 .gp-choice-t{font-weight:700;font-size:16.5px;color:var(--white)}
 .gp-choice-s{font-size:14.5px;color:var(--dim);margin-top:3px;line-height:1.35}
 .gp-save-chip{position:absolute;top:-9px;right:12px;font-size:11px;font-weight:700;
-  background:linear-gradient(180deg,#a78bfa,#8266d9);color:#fff;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
+  background:linear-gradient(180deg,#9a7ee6,#7c5cd6);color:#fff;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
 .gp-flex-chip{position:absolute;top:-9px;left:12px;font-size:11.5px;font-weight:700;
-  background:linear-gradient(180deg,#a78bfa,#8266d9);color:#fff;padding:2px 9px;border-radius:20px}
+  background:linear-gradient(180deg,#9a7ee6,#7c5cd6);color:#fff;padding:2px 9px;border-radius:20px}
 .gp-trust-mini{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--dim)}
 .gp-trust-mini span{display:inline-flex;align-items:center;gap:5px}
 .gp-trust-mini svg{width:14px;height:14px}
@@ -2265,7 +2265,7 @@ const GP_CSS = `
   border:1px solid rgba(139,123,216,.38);background:rgba(11,8,18,.55);
   font-size:17px;color:var(--body);outline:none;transition:border-color .2s}
 .gp-field::placeholder{color:var(--dim)}
-.gp-field:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.16)}
+.gp-field:focus{border-color:#9a7ee6;box-shadow:0 0 0 3px rgba(167,139,250,.16)}
 .gp-field-sm{padding:10px 14px;min-height:44px;font-size:16px}
 .gp-field-col{display:flex;flex-direction:column;gap:10px}
 .gp-field-label{font-size:16.5px;font-weight:600;color:var(--white);display:block;margin-bottom:10px}
@@ -2277,7 +2277,7 @@ const GP_CSS = `
 .gp-occ-mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .gp-occ-mini{padding:9px 10px;border-radius:10px;text-align:left;cursor:pointer;
   border:1px solid var(--line);background:rgba(124,92,214,.05)}
-.gp-occ-mini.is-on{border:1.5px solid #a78bfa;background:rgba(124,92,214,.16)}
+.gp-occ-mini.is-on{border:1.5px solid #9a7ee6;background:rgba(124,92,214,.16)}
 .gp-occ-mini.is-on-mem{border:1.5px solid #b8b2cc;background:rgba(200,196,216,.14)}
 .gp-occ-mini-t{display:flex;align-items:center;gap:7px;font-size:15.5px;font-weight:600;color:var(--white)}
 .gp-occ-mini-t svg{width:16px;height:16px;flex-shrink:0;color:var(--vio-soft)}
@@ -2287,14 +2287,14 @@ const GP_CSS = `
 .gp-occ-chip{padding:6px 12px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
   border:1px solid var(--line);background:rgba(124,92,214,.05);font-size:14.5px;font-weight:600;color:var(--body)}
 .gp-occ-chip svg{width:15px;height:15px;flex-shrink:0;color:var(--vio-soft)}
-.gp-occ-chip.is-on{border:1.5px solid #a78bfa;background:rgba(124,92,214,.16);color:var(--white)}
+.gp-occ-chip.is-on{border:1.5px solid #9a7ee6;background:rgba(124,92,214,.16);color:var(--white)}
 .gp-occ-chip.is-on-mem{border:1.5px solid #b8b2cc;background:rgba(200,196,216,.14);color:var(--white)}
 .gp-occ-chip.is-on-mem svg{color:#b8b2cc}
 
 /* multi recipients */
 .gp-recip-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .gp-recip-id{display:flex;align-items:center;gap:8px}
-.gp-recip-n{width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#a78bfa,#7452c8);
+.gp-recip-n{width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#9a7ee6,#5d47a0);
   color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
 .gp-recip-name{font-weight:600;font-size:15.5px;color:var(--white)}
 .gp-recip-fields{display:grid;grid-template-columns:1fr;gap:8px}
@@ -2332,7 +2332,7 @@ const GP_CSS = `
 /* promo */
 .gp-promo-row{display:flex;gap:8px}
 .gp-apply{padding:0 20px;border-radius:10px;min-height:48px;border:none;cursor:pointer;
-  background:linear-gradient(180deg,#a78bfa,#7452c8);color:#fff;font-weight:600;font-size:15px;white-space:nowrap}
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;font-weight:600;font-size:15px;white-space:nowrap}
 .gp-apply:disabled{opacity:.5;cursor:default}
 @media (hover:hover){.gp-apply:not(:disabled):hover{filter:brightness(1.1)}}
 .gp-apply:not(:disabled):active{transform:scale(.97)}
