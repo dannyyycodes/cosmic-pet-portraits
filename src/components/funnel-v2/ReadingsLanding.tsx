@@ -628,7 +628,7 @@ function ResumeStrip() {
 
 function HeroSection() {
   return (
-    <section className="ls-hero-section ls-parallax-band relative isolate min-h-[820px] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
+    <section className="ls-hero-section ls-parallax-band relative isolate min-h-[100svh] px-5 pb-24 pt-28 sm:pt-34 lg:flex lg:min-h-[920px] lg:items-center">
       <HeroBackdropVideo />
       <div className="ls-hero-veil absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_72%_10%,rgba(154,126,230,0.08),transparent_34%),radial-gradient(ellipse_at_12%_18%,rgba(94,70,122,0.16),transparent_30%),linear-gradient(100deg,rgba(8,6,11,0.76)_0%,rgba(8,6,11,0.44)_34%,rgba(8,6,11,0.08)_68%,rgba(8,6,11,0.10)_100%)]" />
 
@@ -9014,11 +9014,11 @@ function CosmicStyles() {
            16:9 video covers full width so the shooting-star sweep still reads
            side to side; only top/bottom crop. Copy overlaid low with a gradient. */
         .ls-hero-section {
-          min-height: 82svh;
+          min-height: 100svh;
           display: flex;
           align-items: flex-end;
           padding-top: 92px;
-          padding-bottom: 44px;
+          padding-bottom: 52px;
           background: #0a0810;
         }
         .ls-hero-backdrop {
