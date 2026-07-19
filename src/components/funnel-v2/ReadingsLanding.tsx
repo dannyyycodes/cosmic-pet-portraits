@@ -2132,7 +2132,10 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
         {elEngine && (
           <p className={lc("teach", "ls-dk-l1 ls-dk-el-teach")}><NarratedWords blockId="teach" text={card.teach} nar={nar} /></p>
         )}
-        <p className="ls-dk-el-dom">{domLabel}</p>
+        {/* Engine decks: the columns show the FIVE met planets while the
+            composed sentence weighs all ten, so the header scopes the visual
+            instead of making a second, possibly clashing lean claim. */}
+        <p className="ls-dk-el-dom">{elEngine ? "The five you have met, by element" : domLabel}</p>
         <div className="ls-dk-houses">
           {order.map((el) => {
             const planets = card.byElement[el];
