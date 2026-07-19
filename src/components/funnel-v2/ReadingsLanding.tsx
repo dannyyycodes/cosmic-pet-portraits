@@ -1848,7 +1848,7 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
 
   const innerRef = useRef<HTMLDivElement>(null);
   const momentRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const translateRef = useRef(0);
+  const userTookRef = useRef(false); // once the reader scrolls, the auto-follow stands down
   const doneRef = useRef(reduce);
 
   // Which moments exist, in reveal order (the discovery only when there is a fact).
@@ -1863,55 +1863,40 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
     return 4; // sealed
   };
 
-  const panToMoment = useCallback((moment: number) => {
+  // The card is its own native scroll frame. The reveal follows each new moment
+  // by SCROLLING it (never a transform), so at any point the reader can grab the
+  // card and read every beat, up or down, with real momentum. Once they take
+  // hold (userTook), the auto-follow steps back and leaves the scroll to them.
+  const scrollToMoment = useCallback((moment: number, behavior: ScrollBehavior, force = false) => {
+    if (userTookRef.current && !force) return;
     const inner = innerRef.current;
     const el = momentRefs.current[moment];
-    const cardEl = inner ? (inner.closest(".ls-dk-card") as HTMLElement | null) : null;
-    if (!inner || !el || !cardEl) return;
-    const cardRect = cardEl.getBoundingClientRect();
-    const desired = cardRect.top + cardRect.height * 0.42;
-    const elRect = el.getBoundingClientRect();
-    const elCenter = elRect.top + elRect.height / 2;
-    const next = translateRef.current + (desired - elCenter);
-    translateRef.current = next;
-    inner.style.transform = `translateY(${next.toFixed(1)}px)`;
+    if (!inner || !el) return;
+    if (inner.scrollHeight <= inner.clientHeight + 2) return; // fits: nothing to follow
+    const ir = inner.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    const center = er.top - ir.top + inner.scrollTop + er.height / 2;
+    const top = Math.max(0, center - inner.clientHeight * 0.42);
+    inner.scrollTo({ top, behavior });
   }, []);
 
-  // The settle: once the last moment has landed, the camera used to stay pinned
-  // with the seal at 42%, stranding a ~330px void beneath it (the reading looked
-  // broken the instant it finished). Instead, ease the whole column to rest. If
-  // the stack fits the card (desktop / tall viewports) it sits centred with no
-  // pan; if it is taller than the card it bottom-loads so the seal seats at the
-  // base and the earlier, already-read moments ride up off the top. No void.
-  const settleColumn = useCallback(() => {
+  // The settle: once the last moment has landed, bring the closing law + seal
+  // fully to rest at the base (earlier, already-read moments ride up off the
+  // top). If the whole stack fits the card it stays centred by layout, so there
+  // is never a void beneath it.
+  const settleColumn = useCallback((behavior: ScrollBehavior) => {
+    if (userTookRef.current) return;
     const inner = innerRef.current;
-    const cardEl = inner ? (inner.closest(".ls-dk-card") as HTMLElement | null) : null;
-    if (!inner || !cardEl) return;
+    if (!inner) return;
+    if (inner.scrollHeight <= inner.clientHeight + 2) return; // fits: centred by layout
     const kids = Array.from(inner.children) as HTMLElement[];
-    if (!kids.length) return;
-    const cardRect = cardEl.getBoundingClientRect();
-    // The inner box is clamped by max-height:100% while the moment children
-    // overflow it, so its own rect understates the real content height. Measure
-    // the true span from the first child's top to the last child's bottom.
-    const firstTop = kids[0].getBoundingClientRect().top;
-    const lastBottom = kids[kids.length - 1].getBoundingClientRect().bottom;
-    const contentH = lastBottom - firstTop;
-    const naturalTop = firstTop - translateRef.current; // content top with no transform
-    // The card's own padding-top is what clears the fixed site header; the old
-    // flat 20px let a settled teach line slide up underneath it on phones.
-    const cardPadTop = parseFloat(window.getComputedStyle(cardEl).paddingTop) || 0;
-    const padTop = Math.max(20, cardPadTop);
-    const padBottom = 116; // clears the fixed footer + progress band under the card
-    const availTop = cardRect.top + padTop;
-    const availBottom = cardRect.bottom - padBottom;
-    const avail = availBottom - availTop;
-    // Fits (desktop / tall viewport): sit centred, no residual pan. Taller than
-    // the card: bottom-load so the closing law + seal rest fully in view and the
-    // earlier, already-read moments ride up off the top. Either way, no void.
-    const targetTop = contentH <= avail ? availTop + (avail - contentH) / 2 : availBottom - contentH;
-    const next = targetTop - naturalTop;
-    translateRef.current = next;
-    inner.style.transform = `translateY(${next.toFixed(1)}px)`;
+    const lastEl = kids[kids.length - 1];
+    if (!lastEl) return;
+    const ir = inner.getBoundingClientRect();
+    const lr = lastEl.getBoundingClientRect();
+    const lastBottom = lr.bottom - ir.top + inner.scrollTop;
+    const top = Math.max(0, lastBottom - inner.clientHeight + 6);
+    inner.scrollTo({ top, behavior });
   }, []);
 
   // Auto-play the moments; once the last has landed (or the voice takes over),
@@ -1922,8 +1907,8 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
       doneRef.current = doneRef.current || reduce || nar.isActive;
       return;
     }
-    translateRef.current = 0;
-    if (innerRef.current) innerRef.current.style.transform = "translateY(0px)";
+    userTookRef.current = false;
+    if (innerRef.current) innerRef.current.scrollTop = 0;
     setShown(0);
     const times = [140, 1500, 3050, 4550];
     const timers = order.map((_, i) =>
@@ -1935,24 +1920,39 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
     return () => timers.forEach((t) => clearTimeout(t));
   }, [card, reduce, order, total, nar.isActive]);
 
-  // After each auto reveal, pan the camera to the newest moment. On the final
-  // moment, settle the whole column to rest instead of leaving it pinned high
-  // on the seal (kills the dead void underneath).
+  // The reader taking hold of the scroll stands the auto-follow down. Only a
+  // real input gesture counts (wheel / touch); the reveal's own smooth scroll
+  // fires no such event, so it never trips this.
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner) return;
+    const mark = () => { userTookRef.current = true; };
+    inner.addEventListener("wheel", mark, { passive: true });
+    inner.addEventListener("touchmove", mark, { passive: true });
+    return () => {
+      inner.removeEventListener("wheel", mark);
+      inner.removeEventListener("touchmove", mark);
+    };
+  }, []);
+
+  // After each auto reveal, follow the newest moment; on the last, settle the
+  // whole column to rest so the seal seats fully in view (kills the dead void).
   useLayoutEffect(() => {
     if (reduce || nar.isActive || shown < 1) return;
     const isFinal = shown >= total;
     const moment = order[shown - 1];
-    const id = requestAnimationFrame(() => { if (isFinal) settleColumn(); else panToMoment(moment); });
+    const id = requestAnimationFrame(() => { if (isFinal) settleColumn("smooth"); else scrollToMoment(moment, "smooth"); });
     return () => cancelAnimationFrame(id);
-  }, [shown, total, reduce, order, panToMoment, settleColumn, nar.isActive]);
+  }, [shown, total, reduce, order, scrollToMoment, settleColumn, nar.isActive]);
 
-  // Voice playing: hold everything open and follow the line being read.
+  // Voice playing: it re-takes the scroll and follows the line being read.
   useLayoutEffect(() => {
     if (reduce || !nar.isActive) return;
+    userTookRef.current = false;
     const moment = blockMoment(nar.activeBlockId);
-    const id = requestAnimationFrame(() => panToMoment(moment));
+    const id = requestAnimationFrame(() => scrollToMoment(moment, "smooth", true));
     return () => cancelAnimationFrame(id);
-  }, [nar.isActive, nar.activeBlockId, reduce, panToMoment]);
+  }, [nar.isActive, nar.activeBlockId, reduce, scrollToMoment]);
 
   const setRef = (n: number) => (el: HTMLDivElement | null) => { momentRefs.current[n] = el; };
   const on = (moment: number) => (shown >= order.indexOf(moment) + 1 ? " is-shown" : "");
@@ -2276,7 +2276,7 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
 }
 
 const DECK_CSS = `
-  .ls-dk { position: relative; z-index: 2; margin: 0 -20px; height: 100vh; height: 100svh; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; overflow: hidden; }
+  .ls-dk { position: relative; z-index: 2; margin: 0 -20px; height: 100vh; height: 100svh; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: pointer; overflow: hidden; }
   .ls-dk-stage { position: absolute; inset: 0; }
   /* Bottom padding reserves the single control-row band, so the reading never
      reaches down into the [back · hear · Next] cluster (what made the hear
@@ -2298,6 +2298,24 @@ const DECK_CSS = `
   .ls-dk-frame-ring { position: absolute; inset: -7%; border-radius: 50%; border: 1px solid rgba(154,126,230,0.32); pointer-events: none; animation: lsDkFrameSpin 34s linear infinite; }
   @keyframes lsDkFrameSpin { to { transform: rotate(360deg); } }
   .ls-dk-keepname { margin: 0; max-width: 20ch; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.9rem); line-height: 1.08; letter-spacing: -0.016em; text-shadow: 0 0 32px rgba(154,126,230,0.42); animation-delay: 0.42s; }
+
+  /* The corner portrait window: their pet's face, kept gently present on every
+     card. Same violet frame vocabulary as the keepsake, shrunk to a quiet
+     token. Decorative and non-interactive so it never blocks a tap or scroll. */
+  .ls-dk-pip { position: absolute; top: max(52px, calc(env(safe-area-inset-top) + 12px)); right: max(14px, calc(env(safe-area-inset-right) + 8px)); z-index: 6; width: clamp(46px, 12.5vw, 58px); aspect-ratio: 1; pointer-events: none; animation: lsDkPipIn 0.7s cubic-bezier(0.22,0.7,0.2,1) 0.32s both; }
+  .ls-dk-pip-glow { position: absolute; inset: -28%; border-radius: 50%; background: radial-gradient(circle, rgba(154,126,230,0.42) 0%, rgba(154,126,230,0.15) 48%, transparent 72%); filter: blur(9px); animation: lsDkFrameBreath 6.5s ease-in-out infinite alternate; }
+  .ls-dk-pip-mask { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; border: 1.5px solid rgba(185,165,240,0.6); box-shadow: 0 0 0 4px rgba(124,92,214,0.14), 0 8px 22px rgba(4,2,12,0.5); }
+  .ls-dk-pip-mask img { width: 100%; height: 100%; object-fit: cover; }
+  .ls-dk-pip-ring { position: absolute; inset: -13%; border-radius: 50%; border: 1px solid rgba(154,126,230,0.34); animation: lsDkFrameSpin 34s linear infinite; }
+  @keyframes lsDkPipIn { from { opacity: 0; transform: scale(0.68); } to { opacity: 1; transform: scale(1); } }
+  @media (min-width: 1024px) { .ls-dk-pip { top: 66px; right: 26px; width: 62px; } }
+  /* Narrow phones read near full width, so a scrolling body line can pass under
+     the corner portrait. Reserve a top band there: the card's scroll frame now
+     starts below the portrait, so text can never slip beneath it. Wide screens
+     keep the reading column centred, clear of the corner, so no band is needed. */
+  @media (max-width: 820px) {
+    .ls-dk.has-pip .ls-dk-card { padding-top: clamp(100px, 14svh, 112px); }
+  }
 
   /* THE PLANET PLATE (spec-0): fact stratum = engraved wheel with the disc
      seated at its true degree; reading stratum = beats + tell as two staged
@@ -2358,8 +2376,11 @@ const DECK_CSS = `
      clipped however long the copy runs. Reduced motion / the static column show
      all four at rest with no camera (handled in the reduced blocks below). */
   .ls-dk-staged { gap: clamp(14px, 2.3svh, 20px); }
-  .ls-dk-inner.ls-dk-staged { transition: transform 0.72s cubic-bezier(0.22,0.7,0.2,1); will-change: transform; }
-  .ls-dk-card:has(.ls-dk-staged) { align-items: flex-start; }
+  /* The staged planet is a native scroll frame: the reveal follows each moment
+     by scrolling, and the reader can grab it and read every beat freely. The
+     top padding is headroom so the plate's orbiting planet never clips against
+     the scroll edge; a short stack stays centred by the card's own flex. */
+  .ls-dk-inner.ls-dk-staged { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; max-height: 100%; padding-top: clamp(30px, 6svh, 48px); padding-bottom: 10px; }
   .ls-dk-staged > .ls-dk-m { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 9px; width: 100%; opacity: 0; transform: translateY(14px); filter: blur(5px); animation: none !important; transition: opacity 0.6s cubic-bezier(0.22,0.7,0.2,1), transform 0.6s cubic-bezier(0.22,0.7,0.2,1), filter 0.6s cubic-bezier(0.22,0.7,0.2,1); }
   .ls-dk-staged > .ls-dk-m.is-shown { opacity: 1; transform: none; filter: blur(0); }
   .ls-dk-m1 { gap: 6px; }
@@ -2408,6 +2429,7 @@ const DECK_CSS = `
      lets it scroll inside its own frame instead. No overflow = no change. */
   .ls-dk-inner.ls-dk-sig, .ls-dk-inner.ls-dk-el { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; max-height: 100%; padding: 4px 4px 8px; }
   .ls-dk.is-static .ls-dk-sig, .ls-dk.is-static .ls-dk-el { overflow: visible; max-height: none; }
+  .ls-dk.is-static .ls-dk-staged, .ls-dk.is-static .ls-dk-inner.ls-dk-sy { overflow: visible; max-height: none; padding-top: 0; padding-bottom: 0; }
   .ls-dk-sig-eyebrow { animation-delay: 0.1s; }
   /* The signature card carries four beats + the seal bar: its teach line runs
      a step smaller so the whole card seats above the control band on phones. */
@@ -2462,6 +2484,9 @@ const DECK_CSS = `
   /* The synthesis: the conjunction mark (two bodies overlapping, one stem),
      then wants and needs as call and response, then the close. */
   .ls-dk-sy { gap: clamp(10px, 1.8svh, 16px); }
+  /* Synthesis scrolls too when its call-and-response runs long on a small phone
+     (the signature twin already carries its own scroll frame). */
+  .ls-dk-inner.ls-dk-sy:not(.ls-dk-sig) { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; max-height: 100%; padding: 8px 4px; }
   .ls-dk-conj { display: inline-flex; filter: drop-shadow(0 0 12px rgba(154,126,230,0.4)); }
   .ls-dk-conj-a { animation: lsDkConjA 0.6s cubic-bezier(0.22,0.7,0.2,1) 0.1s both; }
   .ls-dk-conj-b { animation: lsDkConjB 0.6s cubic-bezier(0.22,0.7,0.2,1) 0.1s both; }
@@ -2603,6 +2628,7 @@ const DECK_CSS = `
     .ls-dk-conj-a, .ls-dk-conj-b, .ls-dk-conj-stem { animation: none !important; }
     .ls-dk-nav-next, .ls-dk-nav-next.is-nudge { animation: none !important; opacity: 1 !important; }
     .ls-dk-frame, .ls-dk-frame-glow, .ls-dk-frame-mask img, .ls-dk-frame-ring { animation: none !important; opacity: 1 !important; }
+    .ls-dk-pip, .ls-dk-pip-glow, .ls-dk-pip-ring { animation: none !important; opacity: 1 !important; }
     .ls-dk-footer { animation: none !important; opacity: 1 !important; }
     .ls-dk-staged { transform: none !important; transition: none !important; }
     .ls-dk-staged > .ls-dk-m { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
@@ -2756,12 +2782,17 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, gender, birthDate, i
     return () => window.clearTimeout(id);
   }, [active, reduced, last]);
 
-  // Tap advances (left edge goes back); a vertical swipe turns the card too.
+  // Advancing is deliberate: a tap (the left fifth goes back) or a clear
+  // horizontal swipe. Vertical is NEVER an advance — it belongs to the card's
+  // own native scroll, so a tall card reads top to bottom without ever turning.
+  // A vertical drag that scrolls fires pointercancel (the browser claims the
+  // gesture), so a mid-scroll lift can never land as a tap.
   const gesture = useRef<{ x: number; y: number; t: number } | null>(null);
   const onPointerDown = (e: React.PointerEvent) => {
     setNudge(false);
     gesture.current = { x: e.clientX, y: e.clientY, t: Date.now() };
   };
+  const endGesture = () => { gesture.current = null; };
   const onPointerUp = (e: React.PointerEvent) => {
     const g = gesture.current;
     gesture.current = null;
@@ -2770,24 +2801,25 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, gender, birthDate, i
     if (target.closest("button, a, input")) return;
     const dx = e.clientX - g.x;
     const dy = e.clientY - g.y;
-    if (target.closest(".ls-dk-tease")) return; // the terminal card scrolls; only its CTA and the edges act
-    // The signature + element cards scroll inside their frame when their copy
-    // outruns a small phone; while they do, a vertical drag is a scroll, not a
-    // card turn. Taps still advance.
-    const scrollCard = target.closest(".ls-dk-sig, .ls-dk-el") as HTMLElement | null;
-    if (scrollCard && scrollCard.scrollHeight > scrollCard.clientHeight + 4 && Math.abs(dy) >= 48 && Math.abs(dy) > Math.abs(dx)) return;
-    if (Math.abs(dy) >= 48 && Math.abs(dy) > Math.abs(dx)) {
-      step(dy < 0 ? 1 : -1);
+    const dt = Date.now() - g.t;
+    // A still, quick press is a tap: advance (the left fifth goes back).
+    if (Math.hypot(dx, dy) < 14 && dt < 700) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      step(e.clientX - rect.left < rect.width * 0.22 ? -1 : 1);
       return;
     }
-    if (Math.hypot(dx, dy) < 14 && Date.now() - g.t < 700) {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      step(e.clientX - rect.left < rect.width * 0.2 ? -1 : 1);
+    // A decisively sideways swipe advances (left = next, right = back). The
+    // strong horizontal bias keeps it from ever firing on a reading-scroll.
+    if (Math.abs(dx) >= 56 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 800) {
+      step(dx < 0 ? 1 : -1);
     }
+    // Anything vertical: ignored here. The card scrolled; it did not turn.
   };
 
-  // One wheel gesture = one card (450ms debounce). At the edges the wheel is
-  // handed back to the page so the reader can leave the deck naturally.
+  // Desktop wheel: a tall card scrolls first, and only once it is against the
+  // edge in that direction does one more notch turn the card (450ms debounce).
+  // At the deck's own ends the wheel is handed back to the page so the reader
+  // can leave naturally.
   useEffect(() => {
     if (reduced) return;
     const el = rootRef.current;
@@ -2796,6 +2828,16 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, gender, birthDate, i
     const onWheel = (e: WheelEvent) => {
       const dir = e.deltaY > 0 ? 1 : -1;
       const a = activeRef.current;
+      // Let the card read itself first: if its scroll frame can still move in
+      // this direction, leave the wheel to it (native, momentum) and don't turn.
+      const scroller = (e.target as HTMLElement | null)?.closest(
+        ".ls-dk-staged, .ls-dk-sig, .ls-dk-el, .ls-dk-tease, .ls-dk-sy",
+      ) as HTMLElement | null;
+      if (scroller) {
+        const canDown = scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 1;
+        const canUp = scroller.scrollTop > 1;
+        if ((dir > 0 && canDown) || (dir < 0 && canUp)) return;
+      }
       if ((dir > 0 && a >= last) || (dir < 0 && a <= 0)) return;
       e.preventDefault();
       const now = Date.now();
@@ -2844,7 +2886,7 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, gender, birthDate, i
 
   return (
     <div
-      className="ls-dk"
+      className={`ls-dk${photoUrl ? " has-pip" : ""}`}
       id="free-deck"
       ref={rootRef}
       data-lenis-prevent
@@ -2853,12 +2895,24 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, gender, birthDate, i
       aria-label={`Their free reading, card ${active + 1} of ${cards.length}`}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
+      onPointerCancel={endGesture}
     >
       {active < last && (
         <div className="ls-dk-progress" aria-hidden="true">
           {cards.map((_, i) => (
             <span key={i} className={i < active ? "is-done" : i === active ? "is-now" : ""} />
           ))}
+        </div>
+      )}
+      {/* Their face, gently present: a small framed portrait in the corner on
+          every card. Only when a photo was added, and never on the keepsake
+          card (its own full portrait is already the whole frame). Decorative,
+          so it never intercepts a tap or a scroll. */}
+      {photoUrl && cards[active]?.kind !== "keepsake" && (
+        <div className="ls-dk-pip" aria-hidden="true">
+          <span className="ls-dk-pip-glow" />
+          <span className="ls-dk-pip-mask"><img src={photoUrl} alt="" draggable={false} /></span>
+          <span className="ls-dk-pip-ring" />
         </div>
       )}
       <div className="ls-dk-stage">
