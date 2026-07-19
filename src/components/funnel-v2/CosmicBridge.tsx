@@ -443,6 +443,19 @@ const LCB_CSS = `
 /* universal-passage line rhythm (2026-07-18): the rebuilt beats stack plain
    reveal lines, so give consecutive lines an even breath between them. */
 .c2-b1 .c2-lxl + .c2-ll{margin-top:2.4svh}
+/* a drawn violet heart to the right of "If not more.", moon-sized, glowing.
+   Positioned in the open right of the b1 column, level with the love line. */
+.c2-love-heart{
+  position:absolute; pointer-events:none; z-index:0; height:auto;
+  width:clamp(104px, 24vw, 178px);
+  right:clamp(6px, 6vw, 78px);
+  top:clamp(104px, 20svh, 172px);
+  filter:drop-shadow(0 8px 26px rgba(124,92,214,0.42));
+}
+@media (min-width:900px){ .c2-love-heart{ top:clamp(96px, 15svh, 156px); } }
+@media (max-width:520px){
+  .c2-love-heart{ width:clamp(84px, 26vw, 118px); right:-4px; top:clamp(92px, 17svh, 138px); }
+}
 .c2-b2 .c2-frags + .c2-ll{margin-top:5svh}
 .c2-b2 .c2-ll + .c2-ll{margin-top:3svh}
 .c2-answer{padding:8svh 0 6svh}
@@ -1557,6 +1570,23 @@ export function CosmicBridge() {
           <span className="c2-node" data-node data-for="c2-open" aria-hidden="true" />
           <p className="c2-lxl c2-rv" id="c2-open">We love animals just as much as each other.</p>
           <p className="c2-ll c2-rv"><em>If not more.</em></p>
+          <svg className="c2-love-heart c2-rv" viewBox="0 0 120 110" aria-hidden="true">
+            <defs>
+              <radialGradient id="c2lh-fill" cx="40%" cy="32%" r="78%">
+                <stop offset="0%" stopColor="#e0d3ff" />
+                <stop offset="40%" stopColor="#b9a5f0" />
+                <stop offset="100%" stopColor="#7c5cd6" />
+              </radialGradient>
+              <radialGradient id="c2lh-glow" cx="50%" cy="46%" r="55%">
+                <stop offset="0%" stopColor="rgba(167,139,250,0.5)" />
+                <stop offset="58%" stopColor="rgba(167,139,250,0.13)" />
+                <stop offset="100%" stopColor="rgba(167,139,250,0)" />
+              </radialGradient>
+            </defs>
+            <ellipse cx="60" cy="58" rx="60" ry="52" fill="url(#c2lh-glow)" />
+            <path d="M60 31 C 55 19 44 13 33 15 C 20 17 12 29 14 43 C 16 65 42 83 60 99 C 78 83 104 65 106 43 C 108 29 100 17 87 15 C 76 13 65 19 60 31 Z" fill="url(#c2lh-fill)" />
+            <path d="M42 31 C 35 32 30 38 29 47" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="3.2" strokeLinecap="round" />
+          </svg>
         </section>
 
         {/* ── Beat 2 · the daily proof, into the turn ── */}
