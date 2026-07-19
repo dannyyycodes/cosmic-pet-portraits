@@ -37,6 +37,15 @@ import { REVIEWS } from '@/components/funnel-v2/DossierCheckout';
    reads as deep night again. No gold/amber chrome anywhere; star
    fills stay the one gold exception.
 
+   v12 gift-funnel pass (Danny-approved 5-point plan, 2026-07-19):
+   ScenesBand photo breaks deleted; replaced by a one-line emotional
+   bridge (eyebrow + Fraunces italic) on the open cosmos. Occasion
+   picker shrunk to a tiny tick-box chip row under the section
+   header (hero rotator untouched). Tier bullets rewritten as
+   love/gifting payoffs; price moved into each card's select CTA;
+   worry-killer row + one verbatim decision-point review (Ben H. ·
+   Loki, sanctioned set) under the tier cards.
+
    The interactive purchase funnel (occasion picker → tier cards →
    3-step flow → purchase-gift-certificate) is preserved
    byte-compatible; only the presentation shell changes.
@@ -324,9 +333,9 @@ const TIERS = {
     tagline: 'The reading they\'ll keep coming back to.',
     badge: null as string | null,
     features: [
-      'A 30-section reading written for their pet',
-      'Their pet\'s photo, woven into the reveal',
-      'Theirs forever, on any device',
+      'Written for the one soul they love most, from their pet\'s real birth chart',
+      'Their pet\'s photo, waiting inside the reveal',
+      'Theirs to keep forever, on any device',
     ],
   },
   portrait: {
@@ -336,8 +345,8 @@ const TIERS = {
     popular: true,
     features: [
       'Everything in Soul Reading, plus:',
-      'Their chart against their pet\'s: why the universe paired them',
-      'The soul-reasons they found each other',
+      'Their chart beside their pet\'s: why these two souls found each other',
+      'The bond they feel every day, finally written down',
     ],
   },
 } as const;
@@ -362,9 +371,9 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       tagline: 'For the new soul they just brought home.',
       badge: null,
       features: [
-        'Who this pet actually is, before they even know themselves',
-        'Why this pet landed in their life now',
-        'Theirs forever, on any device',
+        'An introduction to the soul they just fell in love with',
+        'Their pet\'s photo, woven into the reveal',
+        'Theirs to keep for every year ahead',
       ],
     },
     portrait: {
@@ -373,8 +382,8 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       badge: 'MOST GIFTED',
       features: [
         'Everything in the Welcome Reading, plus:',
-        'Their chart × their pet\'s: why the stars paired them now',
-        'The first-chapter bond, written in full',
+        'Their chart beside their new pet\'s: why they found each other now',
+        'The first chapter of the bond, theirs to keep',
       ],
     },
   },
@@ -384,9 +393,9 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       tagline: 'The pet they\'ve loved for years, finally written down.',
       badge: null,
       features: [
-        'The quirks they\'ve always sensed, finally named',
+        'The quirks they\'ve always sensed in them, finally named',
         'Their pet\'s photo, woven into the reveal',
-        'Theirs forever, on any device',
+        'Theirs to keep forever, on any device',
       ],
     },
     portrait: {
@@ -395,8 +404,8 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       badge: 'MOST GIFTED',
       features: [
         'Everything in the Discover Reading, plus:',
-        'Their chart × their pet\'s: the cosmic reason this bond exists',
-        'The answer to the question they\'ve always wondered',
+        'Their chart beside their pet\'s: why these two found each other',
+        'The love they feel every day, written down at last',
       ],
     },
   },
@@ -407,8 +416,8 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       badge: 'A TRIBUTE',
       features: [
         'Honours the pet they lost. Not the loss.',
-        'Their chart × their pet\'s: the bond that didn\'t end',
-        'Theirs forever, a keepsake for the hard days',
+        'Their chart beside their pet\'s: the bond that didn\'t end',
+        'Theirs to keep, for the hard days and the good ones',
       ],
     },
   },
@@ -418,9 +427,9 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       tagline: 'For the pet whose birthday matters more than their own.',
       badge: null,
       features: [
-        'A reading written for who their pet actually is',
-        'The year ahead, written by the stars',
-        'Theirs forever, on any device',
+        'Made for the pet whose birthday they never miss',
+        'Their pet\'s photo, woven into the reveal',
+        'Theirs to keep long after the candles',
       ],
     },
     portrait: {
@@ -429,8 +438,8 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
       badge: 'MOST GIFTED',
       features: [
         'Everything in the Birthday Reading, plus:',
-        'Their chart × their pet\'s: how their souls celebrate together',
-        'The cosmic reason this bond began',
+        'Their chart beside their pet\'s: why these two celebrate together',
+        'The bond behind every birthday, written down',
       ],
     },
   },
@@ -500,11 +509,6 @@ const GIFTER_CARDS: GifterReview[] = [
     attr: 'Grace O. · Otis, rescue shorthair cat',
   },
   {
-    img: '/reviews/review-3.webp', alt: 'Alfie', stars: 5,
-    quote: "alfie has a habit of dropping one toy on your foot and then pretending he has nothing to do with it. The reading called out his Venus charm and the little performance before asking to play, which made me laugh in the queue at Tesco. Sent it straight to the family chat.",
-    attr: 'Tom W. · Alfie, cocker spaniel',
-  },
-  {
     img: '/reviews/review-6.webp', alt: 'Tilly', stars: 5,
     quote: "We came back for Tilly six months after doing our first reading for Pip. Pip's is framed in the hallway and I still notice new lines in it when I am putting my shoes on, especially the bit about his Moon softening with age. Tilly's felt different in exactly the way she is different: steadier, slower, still checking every room for us...",
     attr: 'Sarah K. · Tilly, chocolate Labrador',
@@ -530,6 +534,17 @@ const GIFTER_CARDS: GifterReview[] = [
     attr: 'Colin B. · Nugget, guinea pig',
   },
 ];
+
+/* ── The one voice at the decision point, beside the tier cards.
+   Verbatim from the sanctioned set (Ben H. also appears on the wall
+   below). Chosen because it answers the gifter's exact fear: the
+   dismissive person in the house was won over. NOT the Mo spotlight,
+   which opens the reviews section. Never edit the words. ── */
+const DECISION_REVIEW: GifterReview = {
+  img: '/reviews/review-3.webp', alt: 'Alfie', stars: 5,
+  quote: "alfie has a habit of dropping one toy on your foot and then pretending he has nothing to do with it. The reading called out his Venus charm and the little performance before asking to play, which made me laugh in the queue at Tesco. Sent it straight to the family chat.",
+  attr: 'Tom W. · Alfie, cocker spaniel',
+};
 
 /* ── Review stars — the ONE gold exception: star fills only. ── */
 const STAR_PATH = 'M12 2l2.9 6.26 6.9.6-5.2 4.5 1.55 6.74L12 16.9 5.85 20.1l1.55-6.74-5.2-4.5 6.9-.6L12 2z';
@@ -781,27 +796,17 @@ function GifterProof() {
   );
 }
 
-/* ── THE ARGUMENT — four beats, one at a time, paced by their own
-   scroll. Never a paragraph wall. ── */
-/* ── SCENES — full-bleed cinematic photo breaks. Each envelope scene
-   spans the whole viewport width (the envelope is the true product
-   object), one caption line per frame, staggered reveal on scroll.
-   Recognition beat: the buyer sees exactly who they're buying for
-   right before the funnel. Three labels, zero body copy. ── */
-function ScenesBand() {
-  const scenes = [
-    { src: '/gift-scene-family-env.webp', label: 'For a parent.', alt: 'A daughter kissing her laughing mum at the kitchen table, a wax-sealed Little Souls envelope beside her mug, their golden retriever resting at her side' },
-    { src: '/gift-scene-partner-env.webp', label: 'For a partner.', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat curled against her' },
-    { src: '/gift-scene-friend-env.webp', label: 'For a friend.', alt: 'Two friends on a doorstep at dusk, one holding a wax-sealed Little Souls envelope, their border collie looking up' },
-  ];
+/* ── BRIDGE — one quiet line on the open cosmos, right before the
+   choice. The gift framed on the love axis: they already have the
+   feeling, this gives it words. Eyebrow + one Fraunces italic line,
+   scroll-revealed. Nothing else. ── */
+function GiftBridge() {
   return (
-    <section className="gp-breaks" aria-label="Who to gift it to">
-      {scenes.map((s, i) => (
-        <figure className="gp-rev gp-break" style={{ ['--d' as string]: `${i * 90}ms` }} key={s.label}>
-          <img src={s.src} alt={s.alt} loading="lazy" decoding="async" width={1536} height={1024} />
-          <figcaption>{s.label}</figcaption>
-        </figure>
-      ))}
+    <section className="gp-wrap gp-band gp-bridge">
+      <p className="gp-eyebrow gp-rev">The real gift</p>
+      <p className="gp-bridge-line gp-rev" style={{ ['--d' as string]: '120ms' }}>
+        They already know how much they love them. This gives them the words.
+      </p>
     </section>
   );
 }
@@ -970,11 +975,13 @@ function TierCard({
         })}
       </div>
 
-      {selected && (
-        <div className="gp-tier-selected">
-          <p>Selected. Continue below</p>
-        </div>
-      )}
+      {/* Select CTA — the price lives at the point of action. The whole
+          card is the button; this is its visual affordance. */}
+      <span className={`gp-tier-cta ${selected ? 'is-picked' : ''}`}>
+        {selected
+          ? <><GlyphCheck /> Selected. Continue below</>
+          : <>Give the {tier.label.replace(/^The /, '')} &middot; {fmt(cents)}</>}
+      </span>
     </motion.button>
   );
 }
@@ -1188,7 +1195,7 @@ export default function GiftPurchase() {
             a dark/cream boundary */}
         <HowItWorks />
 
-        <ScenesBand />
+        <GiftBridge />
 
         {/* ── CREATE THEIR GIFT — the interactive purchase funnel.
              Occasion picker gates the tier cards, which drive
@@ -1202,52 +1209,42 @@ export default function GiftPurchase() {
             </p>
           </div>
 
+          {/* ── OCCASION — a tiny tick-box row directly under the
+               header. The tier cards are the stars of this section;
+               this stays quiet and small. Wiring unchanged: radiogroup,
+               occasion literals, handleOccasionSelect. ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 }}
+            className="gp-occ-strip"
+          >
+            <div role="radiogroup" aria-label="Gift occasion" className="gp-occ-row">
+              {([
+                { value: 'new',      label: 'New pet' },
+                { value: 'discover', label: 'Had them for years' },
+                { value: 'memorial', label: 'Their pet has passed' },
+                { value: 'birthday', label: "Pet's birthday" },
+              ] as Array<{ value: GiftOccasion; label: string }>).map(({ value, label }) => {
+                const active = selectedOccasion === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => handleOccasionSelect(value)}
+                    className={`gp-occ-tickbox ${active ? 'is-on' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
+                  >
+                    <span className="gp-occ-sq" aria-hidden="true">{active && <GlyphCheck />}</span>
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+
           <div className="gp-funnel-col">
-
-            {/* ── OCCASION PICKER ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.06 }}
-              style={{ marginBottom: 40 }}
-            >
-              <div className="gp-occ-card">
-                <p className="gp-kicker">Start here</p>
-                <p className="gp-occ-q">Who's it for?</p>
-
-                <div
-                  role="radiogroup"
-                  aria-label="Gift occasion"
-                  className="gp-occ-grid"
-                >
-                  {([
-                    { value: 'new',      art: '/gift-occ-new.webp',      label: 'They just got a new pet' },
-                    { value: 'discover', art: '/gift-occ-years.webp',    label: "They've had their pet for years" },
-                    { value: 'memorial', art: '/gift-occ-memorial.webp', label: 'Their pet has passed' },
-                    { value: 'birthday', art: '/gift-occ-birthday.webp', label: "It's their pet's birthday" },
-                  ] as Array<{ value: GiftOccasion; art: string; label: string }>).map(({ value, art, label }, i) => {
-                    const active = selectedOccasion === value;
-                    return (
-                      <div key={value} className="gp-occ-cell gp-rev" style={{ ['--d' as string]: `${i * 70}ms` }}>
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={active}
-                          onClick={() => handleOccasionSelect(value)}
-                          className={`gp-occ-cardbtn ${active ? 'is-active' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
-                        >
-                          <span className="gp-occ-scene" aria-hidden="true">
-                            <img src={art} alt="" width={512} height={512} loading="lazy" decoding="async" />
-                          </span>
-                          <span className="gp-occ-name">{label}</span>
-                          <span className="gp-occ-tick" aria-hidden="true"><GlyphCheck /></span>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
 
             {/* ── TIER CARDS — gated on occasion pick. Memorial is
                 portrait-only; other occasions render both tiers. ── */}
@@ -1287,6 +1284,24 @@ export default function GiftPurchase() {
                       ));
                     })()}
                   </div>
+
+                  {/* Worry-killer row + one voice at the decision. No
+                      gp-rev here: this block re-mounts on occasion
+                      change and the reveal observer only runs once. */}
+                  <ul className="gp-worry-row">
+                    <li><GlyphMoonClock /> Ready in minutes</li>
+                    <li><GlyphComet /> Nothing to ship</li>
+                    <li><GlyphSeal /> Full refund if it does not feel like them</li>
+                  </ul>
+
+                  <figure className="gp-decide-review">
+                    <StarsRow n={DECISION_REVIEW.stars} size={14} />
+                    <blockquote>{DECISION_REVIEW.quote}</blockquote>
+                    <figcaption>
+                      <img src={DECISION_REVIEW.img} alt={DECISION_REVIEW.alt} width={40} height={40} loading="lazy" decoding="async" />
+                      <span>{DECISION_REVIEW.attr}</span>
+                    </figcaption>
+                  </figure>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1303,7 +1318,7 @@ export default function GiftPurchase() {
                   >
                     {/* Selected tier reminder */}
                     <div className="gp-flow-reminder">
-                      <span>{TIERS[selectedTier].label}</span>
+                      <span>{(selectedOccasion && OCCASION_TIERS[selectedOccasion]?.[selectedTier]?.label) ?? TIERS[selectedTier].label}</span>
                       <span>{fmt(TIER_CENTS[selectedTier].cents)}</span>
                       <button onClick={() => { setSelectedTier(null); setStep(1); }} className="gp-change">
                         change
@@ -1570,7 +1585,7 @@ export default function GiftPurchase() {
                                 <div className="gp-summary-item">
                                   <GlyphPaw />
                                   <div>
-                                    <p className="gp-summary-tier">{TIERS[selectedTier!].label}</p>
+                                    <p className="gp-summary-tier">{(selectedOccasion && OCCASION_TIERS[selectedOccasion]?.[selectedTier!]?.label) ?? TIERS[selectedTier!].label}</p>
                                     {r.name && <p className="gp-summary-for">for {r.name}</p>}
                                   </div>
                                 </div>
@@ -2043,18 +2058,11 @@ const GP_CSS = `
 .gp-wall-card figcaption img{width:44px;height:44px;border-radius:12px;object-fit:cover;
   border:1px solid rgba(197,178,255,.4);flex:none}
 
-/* the argument — beat by beat */
-
-/* scenes — full-bleed cinematic photo breaks, envelope frames */
-.gp-breaks{display:grid;gap:clamp(3px,.5vw,6px)}
-.gp-break{position:relative;margin:0;overflow:hidden}
-.gp-break img{display:block;width:100%;max-height:62vh;min-height:280px;object-fit:cover;object-position:50% 42%}
-.gp-break figcaption{position:absolute;left:0;right:0;bottom:0;
-  padding:clamp(70px,11vw,130px) clamp(22px,5vw,64px) clamp(18px,3.2vw,36px);
-  font-family:'Fraunces',Georgia,serif;font-style:italic;
-  font-size:clamp(1.45rem,3.4vw,2.3rem);line-height:1.1;color:#fff;
-  background:linear-gradient(180deg,transparent,rgba(11,7,18,.42) 45%,rgba(11,7,18,.78));
-  text-shadow:0 1px 14px rgba(8,5,18,.8)}
+/* bridge — one quiet line on the open cosmos before the funnel */
+.gp-bridge{text-align:center;padding-top:clamp(76px,11vw,128px);padding-bottom:clamp(76px,11vw,128px)}
+.gp-bridge-line{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;
+  font-size:clamp(1.5rem,3.6vw,2.35rem);line-height:1.3;color:var(--white);
+  max-width:22em;margin:16px auto 0;text-wrap:balance}
 
 /* rigor */
 .gp-rigor-sources{list-style:none;margin:34px auto 0;padding:22px 0 0;max-width:860px;
@@ -2126,57 +2134,31 @@ const GP_CSS = `
 
 /* ── funnel ── */
 .gp-funnel-col{max-width:560px;margin:0 auto}
-.gp-occ-card{padding:6px 0 4px;text-align:center}
-.gp-occ-q{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:clamp(1.5rem,3.4vw,1.8rem);
-  color:var(--white);text-align:center;margin:10px 0 26px}
-
-/* occasion cards — four scene cards, 2×2, depth + glow */
-.gp-occ-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:520px;margin:0 auto}
-.gp-occ-cell{display:flex}
-.gp-occ-cardbtn{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:12px;
-  padding:clamp(18px,3.4vw,26px) 12px clamp(16px,3vw,22px);border-radius:20px;cursor:pointer;text-align:center;
-  border:1.5px solid var(--line);
-  background:radial-gradient(130% 100% at 50% 0%,rgba(124,92,214,.17),rgba(124,92,214,.03) 62%),#15101c;
-  box-shadow:0 2px 10px rgba(0,0,0,.35);
-  transition:transform .18s var(--ease-stage),border-color .2s ease,box-shadow .25s ease;
+/* occasion picker — tiny tick-box row. Quiet by design: the tier
+   cards are the stars of the section. 44px touch targets kept. */
+.gp-occ-strip{max-width:760px;margin:0 auto clamp(28px,4.6vw,40px)}
+.gp-occ-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.gp-occ-tickbox{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;
+  border-radius:12px;cursor:pointer;border:1px solid var(--line);
+  background:rgba(124,92,214,.05);color:var(--muted);font-size:14.5px;font-weight:600;
+  transition:border-color .2s ease,background-color .2s ease,color .2s ease;
   -webkit-tap-highlight-color:transparent}
-.gp-occ-cardbtn::before{content:"";position:absolute;left:50%;top:-18%;width:120%;height:70%;
-  transform:translateX(-50%);border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(154,126,230,.30),transparent 72%);
-  opacity:0;transition:opacity .25s ease}
 @media (hover:hover){
-  .gp-occ-cardbtn:hover{transform:translateY(-3px);border-color:var(--line-bright);
-    box-shadow:0 12px 32px -10px rgba(124,92,214,.45)}
-  .gp-occ-cardbtn:hover::before{opacity:1}
-  .gp-occ-cardbtn:hover .gp-occ-scene{color:var(--vio-bright)}
+  .gp-occ-tickbox:hover{border-color:var(--line-bright);color:var(--body)}
 }
-.gp-occ-cardbtn:active{transform:scale(.97);transition-duration:.06s}
-.gp-occ-scene img{display:block;width:100%;height:auto;border-radius:14px;
-  filter:saturate(.92) brightness(.94);transition:filter .35s var(--ease-settle),transform .35s var(--ease-settle)}
-.gp-occ-cardbtn:hover .gp-occ-scene img{filter:saturate(1.05) brightness(1.06);transform:scale(1.03)}
-.gp-occ-cardbtn.is-active .gp-occ-scene img{filter:saturate(1.1) brightness(1.12)}
-.gp-occ-scene{display:block;width:min(132px,62%);color:var(--vio-soft);
-  filter:drop-shadow(0 0 12px rgba(124,92,214,.28));
-  transition:color .22s ease}
-.gp-occ-scene svg{display:block;width:100%;height:auto}
-.gp-occ-name{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:clamp(1.02rem,2.8vw,1.18rem);
-  line-height:1.22;color:var(--body);text-wrap:balance;transition:color .2s ease}
-.gp-occ-tick{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;color:#fff;
-  background:linear-gradient(180deg,#9a7ee6,#5d47a0);
-  opacity:0;transform:scale(.5);transition:opacity .18s ease,transform .18s var(--ease-settle)}
-.gp-occ-tick svg{width:13px;height:13px}
-.gp-occ-cardbtn.is-active{border-color:#9a7ee6;
-  background:radial-gradient(130% 100% at 50% 0%,rgba(124,92,214,.30),rgba(124,92,214,.08) 62%),#171126;
-  box-shadow:0 0 0 4px rgba(154,126,230,.20),0 14px 36px -12px rgba(124,92,214,.55)}
-.gp-occ-cardbtn.is-active::before{opacity:1}
-.gp-occ-cardbtn.is-active .gp-occ-scene{color:var(--vio-pale)}
-.gp-occ-cardbtn.is-active .gp-occ-name{color:var(--white)}
-.gp-occ-cardbtn.is-active .gp-occ-tick{opacity:1;transform:scale(1)}
-.gp-occ-cardbtn.is-mem.is-active{border-color:#b8b2cc;
-  box-shadow:0 0 0 4px rgba(200,196,216,.16),0 14px 36px -12px rgba(148,140,180,.5)}
-.gp-occ-cardbtn.is-mem.is-active .gp-occ-scene{color:#d8d4e8}
-.gp-occ-cardbtn.is-mem.is-active .gp-occ-tick{background:linear-gradient(180deg,#c9c4dd,#948caa)}
+.gp-occ-tickbox:active{transform:scale(.97);transition-duration:.06s}
+.gp-occ-sq{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
+  border-radius:5px;border:1.5px solid rgba(154,126,230,.5);flex-shrink:0;
+  transition:background-color .15s ease,border-color .15s ease}
+.gp-occ-sq svg{width:11px;height:11px;color:#fff}
+.gp-occ-tickbox.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.14);color:var(--white)}
+.gp-occ-tickbox.is-on .gp-occ-sq{background:linear-gradient(180deg,#9a7ee6,#5d47a0);border-color:#9a7ee6}
+.gp-occ-tickbox.is-mem.is-on{border-color:#b8b2cc;background:rgba(200,196,216,.12)}
+.gp-occ-tickbox.is-mem.is-on .gp-occ-sq{background:linear-gradient(180deg,#c9c4dd,#948caa);border-color:#b8b2cc}
+@media (max-width:560px){
+  .gp-occ-row{display:grid;grid-template-columns:1fr 1fr}
+  .gp-occ-tickbox{justify-content:flex-start;padding:8px 12px}
+}
 
 /* tier cards */
 .gp-tier{width:100%;text-align:left;padding:24px 22px;border-radius:20px;cursor:pointer;position:relative;
@@ -2209,8 +2191,33 @@ const GP_CSS = `
 .gp-tier-feat svg{width:14px;height:14px;color:var(--vio-soft);flex-shrink:0;margin-top:4px}
 .gp-tier-feat span{flex:1}
 .gp-tier-div{font-style:italic;font-weight:600;font-size:16px;color:var(--vio-bright)}
-.gp-tier-selected{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);text-align:center}
-.gp-tier-selected p{font-size:15px;font-weight:700;color:var(--vio-bright)}
+.gp-tier-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;
+  min-height:48px;padding:0 18px;border-radius:11px;
+  font-weight:600;font-size:16.5px;letter-spacing:.02em;color:#fff;
+  background:linear-gradient(180deg,#9a7ee6 0%,#7c5cd6 45%,#5d47a0 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 6px 16px -8px rgba(124,92,214,.5);
+  transition:filter .2s ease,box-shadow .2s ease}
+@media (hover:hover){
+  .gp-tier:hover .gp-tier-cta{filter:brightness(1.07);
+    box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 10px 24px -8px rgba(124,92,214,.65)}
+}
+.gp-tier-cta svg{width:15px;height:15px}
+.gp-tier-cta.is-picked{background:rgba(124,92,214,.16);color:var(--vio-bright);box-shadow:none}
+
+/* worry-killers under the tier cards */
+.gp-worry-row{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:10px 18px;
+  margin:18px 0 0;padding:0;font-size:14px;color:var(--dim)}
+.gp-worry-row li{display:inline-flex;align-items:center;gap:6px}
+.gp-worry-row svg{width:14px;height:14px;flex-shrink:0;color:var(--vio-soft)}
+
+/* the one voice beside the decision */
+.gp-decide-review{margin:22px 0 0;padding:20px 20px 17px;border-radius:16px;text-align:left;
+  background:linear-gradient(180deg,#1c1629,#17111f);border:1px solid rgba(167,139,250,.32);
+  box-shadow:0 1px 0 rgba(207,192,244,.12) inset,0 16px 36px -20px rgba(8,5,18,.9)}
+.gp-decide-review blockquote{margin:10px 0 13px;font-size:16px;line-height:1.6;color:#efeaff}
+.gp-decide-review figcaption{display:flex;align-items:center;gap:10px;color:var(--vio-pale);font-size:14px}
+.gp-decide-review figcaption img{width:40px;height:40px;border-radius:11px;object-fit:cover;
+  border:1px solid rgba(197,178,255,.4);flex:none}
 
 /* flow */
 .gp-flow{margin-top:36px;padding-top:32px;border-top:2px solid var(--line)}
