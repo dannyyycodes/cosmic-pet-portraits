@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -62,9 +61,23 @@ function GiftPayMarks() {
    worry-killer row + one verbatim decision-point review (Ben H. ·
    Loki, sanctioned set) under the tier cards.
 
-   The interactive purchase funnel (occasion picker → tier cards →
-   3-step flow → purchase-gift-certificate) is preserved
-   byte-compatible; only the presentation shell changes.
+   v13 GROUND-UP OFFER REBUILD (Danny, 2026-07-19): the twin tier
+   cards, chip rows and 2-step wizard are DELETED, JSX and CSS
+   (the gp-tier, gp-flow, gp-count and gp-occ families are gone).
+   The offer is
+   rebuilt on the StoryWorth pattern under a new go-* namespace:
+   one warm plum vessel; a photo-led plan band (the occasion art
+   leads, "Starting at" price, filled check coins for what every
+   gift includes); the Bond presented INSIDE the band as a one-tap
+   MOST GIFTED unlock instead of a competing twin card; then one
+   calm stepless form (count with honest 15/20/25/30 savings,
+   photographic occasion tiles, delivery cards, names, the note,
+   promo, honest totals, one pill pay CTA with the price in it).
+   The checkout contract is byte-identical: purchase-gift-certificate
+   payload, coupon queries and error strings, volume discount math,
+   10-recipient cap with crypto.randomUUID, TIER_CENTS via
+   useLocalizedPrice, #tiers + #gift-count anchors, sticky bar
+   target, success redirect + error toast.
    ═══════════════════════════════════════════════════════════════════ */
 
 type DeliveryMethod = 'email' | 'link';
@@ -105,15 +118,6 @@ function GlyphArrow({ className }: GlyphProps) {
     <svg {...glyphBase} className={className}>
       <path d="M19.5 12H4.8" />
       <path d="M11 5.6 4.6 12l6.4 6.4" />
-    </svg>
-  );
-}
-
-/** Fine right chevron — continue affordances. */
-function GlyphChevron({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <path d="M9.3 5.4 15.9 12l-6.6 6.6" />
     </svg>
   );
 }
@@ -161,16 +165,6 @@ function GlyphQuote({ className }: GlyphProps) {
   );
 }
 
-/** A small constellation of souls — the multi-gift mark. */
-function GlyphSoulFew({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <path d="M9.6 8.6c.4 2.6 1.6 4.2 5.9 6.3-4.3 2.1-5.5 3.7-5.9 6.3-.4-2.6-1.6-4.2-5.9-6.3 4.3-2.1 5.5-3.7 5.9-6.3z" />
-      <path d="M17.8 3.2c.22 1.5.9 2.4 3.2 3.5-2.3 1.1-2.98 2-3.2 3.5-.22-1.5-.9-2.4-3.2-3.5 2.3-1.1 2.98-2 3.2-3.5z" />
-    </svg>
-  );
-}
-
 /** Moon-dial clock — "ready in minutes". */
 function GlyphMoonClock({ className }: GlyphProps) {
   return (
@@ -209,17 +203,6 @@ function GlyphOrbit({ className }: GlyphProps) {
       <circle cx="12" cy="12" r="4.1" />
       <ellipse cx="12" cy="12" rx="9.6" ry="3.6" transform="rotate(-18 12 12)" />
       <circle cx="20" cy="8.1" r="1.05" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-/** Calendar with a soul star — valid a full year. */
-function GlyphCalendar({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <rect x="3.8" y="5.6" width="16.4" height="14.2" rx="2.4" />
-      <path d="M3.8 10.2h16.4M8.3 3.4v3.4M15.7 3.4v3.4" />
-      <path d="M12 12.1l.75 1.85 1.85.75-1.85.75L12 17.3l-.75-1.85-1.85-.75 1.85-.75z" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -266,72 +249,6 @@ function GlyphSeal({ className }: GlyphProps) {
   );
 }
 
-/** Paw — four toes and a pad, drawn in the house stroke. */
-function GlyphPaw({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <circle cx="7.1" cy="10.1" r="1.5" />
-      <circle cx="10.3" cy="7.5" r="1.55" />
-      <circle cx="13.7" cy="7.5" r="1.55" />
-      <circle cx="16.9" cy="10.1" r="1.5" />
-      <path d="M12 11.7c2.8 0 5 2.1 5 4.2 0 1.6-1.4 2.7-2.9 2.3-.9-.2-1.4-.55-2.1-.55s-1.2.35-2.1.55c-1.5.4-2.9-.7-2.9-2.3 0-2.1 2.2-4.2 5-4.2z" />
-    </svg>
-  );
-}
-
-/** New growth — the just-arrived soul. */
-function GlyphSprout({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <path d="M12 20.4v-7.2" />
-      <path d="M12 13.2c0-3.5-2.7-6.3-6.2-6.3 0 3.5 2.7 6.3 6.2 6.3z" />
-      <path d="M12 13.2c0-3.5 2.7-6.3 6.2-6.3 0 3.5-2.7 6.3-6.2 6.3z" />
-    </svg>
-  );
-}
-
-/** A candle held lit — memorial. */
-function GlyphCandle({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <path d="M12 3.4c1.5 1.9 2.3 3.2 2.3 4.4a2.3 2.3 0 1 1-4.6 0c0-1.2.8-2.5 2.3-4.4z" />
-      <path d="M12 10.1v1.7" />
-      <rect x="9.2" y="12.6" width="5.6" height="7.6" rx="1.1" />
-    </svg>
-  );
-}
-
-/** One candle on the cake — birthday. */
-function GlyphCake({ className }: GlyphProps) {
-  return (
-    <svg {...glyphBase} className={className}>
-      <rect x="4.6" y="12.6" width="14.8" height="6.9" rx="1.5" />
-      <path d="M4.6 15.9c1.2 1.15 2.35 1.15 3.55 0s2.35-1.15 3.55 0 2.35 1.15 3.55 0 2.35-1.15 3.55 0" />
-      <path d="M12 9.2v3.4" />
-      <path d="M12 4.3c.8 1.05 1.2 1.75 1.2 2.4a1.2 1.2 0 1 1-2.4 0c0-.65.4-1.35 1.2-2.4z" />
-    </svg>
-  );
-}
-
-/* ═══ OCCASION SCENES ═══════════════════════════════════════════════
-   Four larger scene drawings for the occasion cards — same house
-   geometry (round caps, currentColor, star fills only), drawn on a
-   120×88 scene grid so each occasion gets real art, not a list row. ═══ */
-
-const sceneBase: React.SVGProps<SVGSVGElement> = {
-  viewBox: '0 0 120 88',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 2,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-  'aria-hidden': true,
-  focusable: 'false',
-};
-
-type GlyphComponent = (props: GlyphProps) => JSX.Element;
-
-type GiftOccasionOption = { value: GiftOccasion; Glyph: GlyphComponent; label: string; hint: string };
 
 
 // Prices come from useLocalizedPrice() at render time — this const only
@@ -464,14 +381,14 @@ const OCCASION_CHIPS: Array<{ value: GiftOccasion; label: string }> = [
   { value: 'birthday', label: "Pet's birthday" },
 ];
 
-// Subtle visual accent per occasion — a soft coloured ring that frames
-// the tier cards per occasion. Memorial resolves to moon silver (the
-// page palette is violet + white only; no gold chrome anywhere).
-const OCCASION_ACCENT: Record<GiftOccasion, { ring: string; badge: string }> = {
-  new:      { ring: 'rgba(154,126,230,0.30)', badge: '#9a7ee6' }, // violet soft (fresh beginning)
-  discover: { ring: 'rgba(154,126,230,0.32)', badge: '#9a7ee6' }, // violet (mystery/reveal)
-  memorial: { ring: 'rgba(200,196,216,0.30)', badge: '#b8b2cc' }, // moon silver (honouring)
-  birthday: { ring: 'rgba(185,165,240,0.32)', badge: '#b9a5f0' }, // violet bright (celebration)
+// Occasion art — the four twilight photographs (square, violet-window
+// warmth, shot for this page). They lead the plan band and back the
+// occasion tiles, so the choice is photographic, never a chip row.
+const OCC_ART: Record<GiftOccasion, { src: string; alt: string }> = {
+  discover: { src: '/gift-occ-years.webp', alt: 'A grey-muzzled collie resting its head on the arm of a leather chair at dusk' },
+  new:      { src: '/gift-occ-new.webp', alt: 'A tabby kitten asleep in the folds of a cream blanket' },
+  memorial: { src: '/gift-occ-memorial.webp', alt: 'A worn leather collar and its brass tag beside a lit candle on a windowsill' },
+  birthday: { src: '/gift-occ-birthday.webp', alt: 'A golden spaniel in a party hat behind a cake with one lit candle' },
 };
 
 type TierKey = keyof typeof TIERS;
@@ -916,89 +833,16 @@ function GiftFooter() {
   );
 }
 
-/* ── TIER CARD — violet glass, occasion accent ring, clean price. ── */
-function TierCard({
-  tierKey, selected, onClick, fmt, cents, wasCents, override, accent: occAccent,
-}: {
-  tierKey: TierKey; selected: boolean; onClick: () => void;
-  fmt: (cents: number) => string;
-  cents: number;
-  wasCents?: number;
-  override?: TierContent;
-  accent?: { ring: string; badge: string };
-}) {
-  const base = TIERS[tierKey];
-  const tier = override ?? base;
-
-  // Presentation only: split the localized price string so the currency
-  // mark sets smaller than the figure. The rendered characters are
-  // byte-identical to fmt(cents); handles symbol-before and symbol-after
-  // locales.
-  const renderPrice = (str: string) => {
-    const m = str.match(/^([^\d]*)([\d.,\s ]*\d)([^\d]*)$/);
-    if (!m) return str;
-    return (
-      <>
-        {m[1] && <span className="gp-tier-cur">{m[1]}</span>}
-        {m[2]}
-        {m[3] && <span className="gp-tier-cur">{m[3]}</span>}
-      </>
-    );
-  };
-
+/* ── GO CHECK — the offer's filled checkmark coin. Violet metal disc,
+   white check, the "every gift includes" rhythm. House stroke. ── */
+function GoCheck() {
   return (
-    <motion.button
-      onClick={onClick}
-      className={`gp-tier ${tierKey === 'portrait' ? 'is-feat' : ''} ${selected ? 'is-selected' : ''}`}
-      style={{ ['--acc-ring' as string]: occAccent?.ring ?? 'rgba(154,126,230,0.30)' }}
-    >
-      {tier.badge && (
-        <span className="gp-tier-badge" style={{ background: occAccent?.badge ?? '#9a7ee6' }}>
-          {tier.badge}
-        </span>
-      )}
-
-      {/* selected indicator, top right. Purely visual; aria state lives
-          on the card via is-selected */}
-      <span className={`gp-tier-picked ${selected ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
-
-      <div className="gp-tier-names">
-        <p className="gp-tier-label">{tier.label}</p>
-        <p className="gp-tier-tag">{tier.tagline}</p>
-      </div>
-
-      {/* price row: quiet anchor, confident figure, one-time suffix */}
-      <div className="gp-tier-price-row">
-        {typeof wasCents === 'number' && wasCents > cents && (
-          <span className="gp-tier-was">{fmt(wasCents)}</span>
-        )}
-        <span className="gp-tier-price">{renderPrice(fmt(cents))}</span>
-        <span className="gp-tier-once">one-time</span>
-      </div>
-
-      {/* Select CTA — the price lives at the point of action. The whole
-          card is the button; this is its visual affordance. Sits above
-          the checklist so price and action read as one unit. */}
-      <span className={`gp-tier-cta ${selected ? 'is-picked' : ''}`}>
-        {selected
-          ? <><GlyphCheck /> Selected. Continue below</>
-          : <>Give the {tier.label.replace(/^The /, '')} &middot; {fmt(cents)}</>}
-      </span>
-
-      <span className="gp-tier-hair" aria-hidden="true" />
-
-      <div className="gp-tier-features">
-        {tier.features.map((f, idx) => {
-          const isDivider = f.endsWith(':');
-          return (
-            <p key={idx} className={isDivider ? 'gp-tier-div' : 'gp-tier-feat'}>
-              {!isDivider && <GlyphCheck />}
-              <span>{f}</span>
-            </p>
-          );
-        })}
-      </div>
-    </motion.button>
+    <span className="go-check" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6}
+        strokeLinecap="round" strokeLinejoin="round" focusable="false">
+        <path d="M5.4 12.8l4.1 4.3 9.1-10.2" />
+      </svg>
+    </span>
   );
 }
 
@@ -1010,13 +854,16 @@ export default function GiftPurchase() {
     essential: { cents: prices.basic, wasCents: prices.wasBasic },
     portrait:  { cents: prices.premium, wasCents: prices.wasPremium },
   };
-  const [selectedTier, setSelectedTier] = useState<TierKey | null>(null);
+  // One plan, StoryWorth-style: the reading is the gift, the Bond is the
+  // unlock. Starts on essential so every price on the page is live from
+  // the first paint; the upgrade toggle flips it to portrait. Memorial
+  // occasions force portrait (the memorial product is one offering).
+  const [selectedTier, setSelectedTier] = useState<TierKey>('essential');
   // Single-gift occasion — written together with singleRecipient.occasion
   // by the single-mode occasion chips. The copy the section actually
   // renders comes from derivedOccasion below, which unifies single and
   // group orders.
   const [selectedOccasion, setSelectedOccasion] = useState<GiftOccasion | null>('discover');
-  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
   // Owned by the "How many are you gifting?" selector. Defaults to a
   // single gift so the occasion row, tier cards and prices are all
@@ -1119,15 +966,6 @@ export default function GiftPurchase() {
     }
   }, [searchParams]);
 
-  const handleTierSelect = (tier: TierKey) => {
-    setSelectedTier(tier);
-    setStep(2);
-    // Small delay then scroll to flow section
-    setTimeout(() => {
-      document.getElementById('gift-flow')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  };
-
   // Hero / closing CTAs drop the visitor onto the first real choice:
   // the count selector (which leads into occasion + tier cards).
   const scrollToPicker = useCallback(() => {
@@ -1149,18 +987,39 @@ export default function GiftPurchase() {
     return recipients.every(r => (r.occasion ?? 'discover') === first) ? first : 'discover';
   }, [giftType, singleRecipient, recipients]);
 
-  // Memorial has no essential tier — drop an impossible tier selection
-  // whenever the derived occasion lands on memorial.
+  // Memorial has no essential tier — the memorial reading IS the Bond
+  // product at the portrait price. Force portrait whenever the derived
+  // occasion lands on memorial (the upgrade toggle is hidden there),
+  // remember what the buyer had chosen, and put it back the moment the
+  // occasion moves off memorial. A two-tap occasion correction must
+  // never leave behind a tier the buyer did not pick.
+  const preMemorialTier = useRef<TierKey | null>(null);
   useEffect(() => {
     if (derivedOccasion === 'memorial') {
-      setSelectedTier(prev => (prev !== null && prev !== 'portrait') ? null : prev);
+      setSelectedTier(prev => {
+        if (preMemorialTier.current === null) preMemorialTier.current = prev;
+        return 'portrait';
+      });
+    } else if (preMemorialTier.current !== null) {
+      setSelectedTier(preMemorialTier.current);
+      preMemorialTier.current = null;
     }
   }, [derivedOccasion]);
 
+  // Per-recipient tier. A memorial row is ALWAYS the memorial product
+  // at the portrait price (memorial has no essential tier), whatever
+  // the page-level unlock says; every other row follows the unlock.
+  // Keeps mixed group orders honest — one memorial gift in a list of
+  // three never slips through billed at the essential price. Reads
+  // only selectedTier + the recipient rows, both already deps of the
+  // pricing memo below.
+  const tierForRecipient = (r: GiftRecipient): TierKey =>
+    (r.occasion ?? 'discover') === 'memorial' ? 'portrait' : selectedTier;
+
   const pricing = useMemo(() => {
     if (!selectedTier) return { baseTotal: 0, discountAmount: 0, promoAmount: 0, finalTotal: 0 };
-    const tierCents = TIER_CENTS[selectedTier].cents;
-    const baseTotal = activeRecipients.reduce((sum) => sum + tierCents, 0);
+    const baseTotal = activeRecipients.reduce(
+      (sum, r) => sum + TIER_CENTS[tierForRecipient(r)].cents, 0);
     const discountAmount = Math.round(baseTotal * discount);
     const afterVolume = baseTotal - discountAmount;
     const promoAmount = appliedCoupon ? Math.round(afterVolume * (appliedCoupon.discount_value / 100)) : 0;
@@ -1189,11 +1048,15 @@ export default function GiftPurchase() {
     setRecipients(rs => rs.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
-  const canProceedStep2 = () => {
-    if (deliveryMethod === 'link') return true;
-    if (giftType === 'single') return singleRecipient.email.includes('@');
-    return recipients.every(r => r.email.includes('@'));
-  };
+  // Pay gate — the same validation the old wizard ran before its
+  // checkout step, now guarding the single pay button: link delivery
+  // needs nothing; email delivery needs a real address per recipient.
+  const emailsOk = deliveryMethod === 'link'
+    ? true
+    : (giftType === 'single'
+        ? singleRecipient.email.includes('@')
+        : recipients.every(r => r.email.includes('@')));
+  const canPay = purchaserEmail.includes('@') && emailsOk;
 
   const handlePurchase = async () => {
     if (!purchaserEmail.includes('@')) { toast.error('Please enter your email address'); return; }
@@ -1206,7 +1069,7 @@ export default function GiftPurchase() {
         recipientName: giftType === 'single' ? (singleRecipient.name || '') : '',
         giftMessage: giftMessage || '',
         giftPets: activeRecipients.map(r => ({
-          id: r.id, tier: selectedTier,
+          id: r.id, tier: tierForRecipient(r),
           recipientName: r.name || '',
           recipientEmail: deliveryMethod === 'email' ? r.email : null,
           horoscopeAddon: 'none',
@@ -1228,8 +1091,23 @@ export default function GiftPurchase() {
     }
   };
 
-  const stepCount = 2;
   const stickyVisible = !heroInView && !funnelInView;
+
+  // ── The plan, derived. The band always presents the ACTIVE product:
+  // the occasion's reading, or its Bond when the unlock is on. ──
+  const occTiers = OCCASION_TIERS[derivedOccasion];
+  const isMemorial = derivedOccasion === 'memorial';
+  const activeTierKey: TierKey = isMemorial ? 'portrait' : selectedTier;
+  const plan = occTiers?.[activeTierKey] ?? TIERS[activeTierKey];
+  const basePlan = isMemorial ? plan : (occTiers?.essential ?? TIERS.essential);
+  const bond = occTiers?.portrait ?? TIERS.portrait;
+  const bondOn = activeTierKey === 'portrait';
+  const bondDelta = TIER_CENTS.portrait.cents - TIER_CENTS.essential.cents;
+  const bondBullets = bond.features.filter(f => !f.endsWith(':'));
+  const planCents = TIER_CENTS[activeTierKey].cents;
+  const planWas = TIER_CENTS[activeTierKey].wasCents;
+  const occLabel = OCCASION_CHIPS.find(c => c.value === derivedOccasion)?.label ?? '';
+  const voice = GIFTER_CARDS[0];
 
   return (
     <div className="gp">
@@ -1248,459 +1126,323 @@ export default function GiftPurchase() {
         <HowItWorks />
 
 
-        {/* ── CREATE THEIR GIFT — the interactive purchase funnel.
-             Order: how many → occasion per gift → tier cards → the
-             preserved 2-step wizard. The count selector owns giftType
-             and the recipients array; the section copy follows
-             derivedOccasion. ── */}
-        <section className="gp-wrap gp-band gp-funnel gp-night-late" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
-          <div className="gp-shead gp-rev">
-            <h2 className="gp-h2">Choose their reading.</h2>
-          </div>
+        {/* ═══ THE OFFER — StoryWorth-pattern single-plan presentation.
+             One photo-led plan band (the reading is the gift, the Bond
+             is an in-band unlock), then one calm stepless form: count,
+             occasion, delivery, names, note, pay. #tiers anchors the
+             section; #gift-count anchors the first control. The
+             checkout contract (payload, coupon queries, caps, volume
+             discounts) is byte-identical to the wizard it replaces. ═══ */}
+        <section className="gp-wrap go-offer" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
+          <div className="go-vessel">
 
-          {/* ── HOW MANY — the funnel's first question. This group is
-               the page's scroll target: hero / closing / sticky CTAs
-               land here (selector [role="radiogroup"]
-               [aria-label="Gift occasion"] — keep it unique). ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.06 }}
-            className="gp-count-strip"
-          >
-            <p className="gp-ask">How many are you gifting?</p>
-            <div id="gift-count" role="radiogroup" aria-label="How many gifts" className="gp-count-row">
-              {[1, 2, 3, 4, 5].map((n) => {
-                const active = giftType === 'single'
-                  ? n === 1
-                  : (n === 5 ? recipients.length >= 5 : recipients.length === n);
-                const pct = Math.round(getVolumeDiscount(n) * 100);
-                return (
-                  <button
-                    key={n}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    aria-label={n === 5 ? '5 or more gifts' : `${n} ${n === 1 ? 'gift' : 'gifts'}`}
-                    onClick={() => handleCountSelect(n)}
-                    className={`gp-count-chip ${active ? 'is-on' : ''}`}
-                  >
-                    <span className="gp-count-n">{n === 5 ? '5+' : n}</span>
-                    {pct > 0 && <span className="gp-count-save">{pct}% off</span>}
-                  </button>
-                );
-              })}
+            <div className="go-head gp-rev">
+              <p className="go-kicker">Create their gift</p>
+              <h2 className="go-h2">Make it theirs.</h2>
+              <p className="go-sub">Starting at {fmt(prices.basic)}. Ready in minutes, nothing to ship.</p>
             </div>
-          </motion.div>
 
-          {/* ── OCCASION PER GIFT — one chip row for a single gift, one
-               labelled row per gift for group orders. Writes the
-               occasion that ships on each recipient row. ── */}
-          <motion.div
-            key={`occ-${giftType}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="gp-occ-strip"
-          >
-            {giftType === 'single' ? (
-              <>
-                <p className="gp-ask">What's the occasion?</p>
-                <div role="radiogroup" aria-label="Occasion" className="gp-occ-row">
-                  {OCCASION_CHIPS.map(({ value, label }) => {
-                    const active = selectedOccasion === value;
+            {/* ── THE PLAN — one hero band, photo led. The art follows
+                 the occasion; the body always presents the ACTIVE
+                 product (reading, or its Bond when the unlock is on). ── */}
+            <div className="go-plan gp-rev">
+              <div className="go-plan-art">
+                {(Object.keys(OCC_ART) as GiftOccasion[]).map(k => (
+                  <img key={k} src={OCC_ART[k].src} alt={k === derivedOccasion ? OCC_ART[k].alt : ''}
+                    aria-hidden={k !== derivedOccasion}
+                    className={k === derivedOccasion ? 'is-front' : ''}
+                    width={512} height={512} loading="lazy" decoding="async" />
+                ))}
+                <span className="go-plan-occ">{occLabel}</span>
+              </div>
+              <div className="go-plan-body">
+                <p className="go-plan-name">{plan.label}</p>
+                <p className="go-plan-tag">{plan.tagline}</p>
+                <p className="go-plan-price">
+                  {planWas > planCents && <s>{fmt(planWas)}</s>}
+                  <strong>{fmt(planCents)}</strong>
+                  <span>one time, per gift</span>
+                </p>
+                <p className="go-inc-lead">Every gift includes</p>
+                <ul className="go-inc">
+                  {basePlan.features.filter(f => !f.endsWith(':')).map(f => (
+                    <li key={f}><GoCheck />{f}</li>
+                  ))}
+                  <li><GoCheck />A full year to open it, whenever the moment is right</li>
+                </ul>
+                {!isMemorial && (
+                  <button type="button" role="switch" aria-checked={bondOn}
+                    className={`go-unlock ${bondOn ? 'is-on' : ''}`}
+                    onClick={() => setSelectedTier(bondOn ? 'essential' : 'portrait')}>
+                    <span className="go-unlock-badge">{bond.badge ?? 'MOST GIFTED'}</span>
+                    <span className="go-unlock-box" aria-hidden="true">{bondOn && <GlyphCheck />}</span>
+                    <span className="go-unlock-main">
+                      <span className="go-unlock-t">{bond.label} <em>+{fmt(bondDelta)}</em></span>
+                      {bondBullets.map(b => (
+                        <span className="go-unlock-s" key={b}>{b}</span>
+                      ))}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* ── The four promises, stated flat. ── */}
+            <ul className="go-assure gp-rev">
+              <li><GlyphSeal />Full refund if it does not feel like them</li>
+              <li><GlyphLock />Secure checkout with Stripe</li>
+              <li><GlyphMoonClock />Ready in minutes</li>
+              <li><GlyphComet />Nothing to ship</li>
+            </ul>
+
+            {/* ── One voice at the decision. Verbatim, sanctioned set. ── */}
+            <figure className="go-voice gp-rev">
+              <img src={voice.img} alt={voice.alt} width={56} height={56} loading="lazy" decoding="async" />
+              <div>
+                <StarsRow n={voice.stars} size={14} />
+                <blockquote>{voice.quote}</blockquote>
+                <figcaption>{voice.attr}</figcaption>
+              </div>
+            </figure>
+
+            <span className="go-seam" aria-hidden="true" />
+
+            {/* ── THE FORM — stepless, calm, top to bottom. No wizard,
+                 no progress chrome; blocks expand and collapse with the
+                 answers above them. ── */}
+            <div className="go-form">
+
+              <div className="go-block gp-rev">
+                <p className="go-q">How many are you gifting?</p>
+                <div id="gift-count" role="radiogroup" aria-label="How many gifts" className="go-count">
+                  {[1, 2, 3, 4, 5].map((n) => {
+                    const active = giftType === 'single'
+                      ? n === 1
+                      : (n === 5 ? recipients.length >= 5 : recipients.length === n);
+                    const pct = Math.round(getVolumeDiscount(n) * 100);
                     return (
-                      <button
-                        key={value}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        onClick={() => handleSingleOccasion(value)}
-                        className={`gp-occ-tickbox ${active ? 'is-on' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
-                      >
-                        <span className="gp-occ-sq" aria-hidden="true">{active && <GlyphCheck />}</span>
-                        <span>{label}</span>
+                      <button key={n} type="button" role="radio" aria-checked={active}
+                        aria-label={n === 5 ? '5 or more gifts' : `${n} ${n === 1 ? 'gift' : 'gifts'}`}
+                        onClick={() => handleCountSelect(n)}
+                        className={`go-count-btn ${active ? 'is-on' : ''}`}>
+                        <span className="go-count-n">{n === 5 ? '5+' : n}</span>
+                        {pct > 0 && <span className="go-count-save">{pct}% off</span>}
                       </button>
                     );
                   })}
                 </div>
-              </>
-            ) : (
-              <>
-                <p className="gp-ask">What's the occasion for each?</p>
-                <div className="gp-occ-multi">
-                  {recipients.map((r, idx) => (
-                    <div key={r.id} className="gp-occ-gift">
-                      <span className="gp-occ-gift-label">Gift {idx + 1}</span>
-                      <div role="radiogroup" aria-label={`Gift occasion ${idx + 1}`} className="gp-occ-row">
-                        {OCCASION_CHIPS.map(({ value, label }) => {
-                          const active = (r.occasion ?? 'discover') === value;
-                          return (
-                            <button
-                              key={value}
-                              type="button"
-                              role="radio"
-                              aria-checked={active}
-                              onClick={() => updateRecipient(r.id, 'occasion', value)}
-                              className={`gp-occ-tickbox ${active ? 'is-on' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
-                            >
-                              <span className="gp-occ-sq" aria-hidden="true">{active && <GlyphCheck />}</span>
-                              <span>{label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </motion.div>
+              </div>
 
-          <div className="gp-tier-zone">
-
-            {/* ── TIER CARDS — always live (derived occasion defaults
-                to discover). An all-memorial order is portrait-only;
-                everything else renders both tiers. ── */}
-            <AnimatePresence>
-              <motion.div
-                key={`tiers-${derivedOccasion}`}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className={`gp-tier-row ${derivedOccasion === 'memorial' ? 'is-single' : ''}`}>
-                  {(() => {
-                    const occTiers = OCCASION_TIERS[derivedOccasion];
-                    const accent = OCCASION_ACCENT[derivedOccasion];
-                    const visibleKeys: TierKey[] = derivedOccasion === 'memorial'
-                      ? ['portrait']
-                      : ['essential', 'portrait'];
-
-                    return visibleKeys.map((key) => (
-                      <TierCard
-                        key={key}
-                        tierKey={key}
-                        selected={selectedTier === key}
-                        onClick={() => handleTierSelect(key)}
-                        fmt={fmt}
-                        cents={TIER_CENTS[key].cents}
-                        wasCents={TIER_CENTS[key].wasCents}
-                        override={occTiers?.[key]}
-                        accent={accent}
-                      />
-                    ));
-                  })()}
-                </div>
-
-                {/* Worry-killer row + one voice at the decision. No
-                    gp-rev here: this block re-mounts on occasion
-                    change and the reveal observer only runs once. */}
-                <ul className="gp-worry-row">
-                  <li><GlyphMoonClock /> Ready in minutes</li>
-                  <li><GlyphComet /> Nothing to ship</li>
-                  <li><GlyphSeal /> Full refund if it does not feel like them</li>
-                </ul>
-                <div className="gp-tier-pay">
-                  <GiftPayMarks />
-                </div>
-
-              </motion.div>
-            </AnimatePresence>
-          </div>{/* /.gp-tier-zone */}
-
-          <div className="gp-funnel-col">
-            {/* ── FLOW (appears after tier selection) ── */}
-            <div id="gift-flow">
-              <AnimatePresence>
-                {selectedTier && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                    className="gp-flow"
-                  >
-                    {/* Panel header — the chosen gift, stated with confidence */}
-                    <div className="gp-flow-head">
-                      <div className="gp-flow-head-l">
-                        <p className="gp-flow-eyebrow">Their gift</p>
-                        <p className="gp-flow-tier">{OCCASION_TIERS[derivedOccasion]?.[selectedTier]?.label ?? TIERS[selectedTier].label}</p>
-                      </div>
-                      <div className="gp-flow-head-r">
-                        <span className="gp-flow-price">{fmt(TIER_CENTS[selectedTier].cents)}</span>
-                        <button onClick={() => { setSelectedTier(null); setStep(2); }} className="gp-change">
-                          Change
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Step indicator — slim violet progress */}
-                    <div className="gp-stepper" aria-hidden="true">
-                      {[...Array(stepCount)].map((_, idx) => {
-                        const s = idx + 2;
+              <div className="go-block gp-rev">
+                {giftType === 'single' ? (
+                  <>
+                    <p className="go-q">What's the occasion?</p>
+                    <div role="radiogroup" aria-label="Occasion" className="go-occt-grid">
+                      {OCCASION_CHIPS.map(({ value, label }) => {
+                        const active = selectedOccasion === value;
                         return (
-                          <div key={s} className="gp-stepper-seg">
-                            <div className={`gp-stepper-dot ${step >= s ? 'is-on' : ''}`}>
-                              {step > s ? <GlyphCheck /> : idx + 1}
-                            </div>
-                            {idx + 1 < stepCount && <div className={`gp-stepper-bar ${step > s ? 'is-on' : ''}`} />}
-                          </div>
+                          <button key={value} type="button" role="radio" aria-checked={active}
+                            onClick={() => handleSingleOccasion(value)}
+                            className={`go-occt ${active ? 'is-on' : ''}`}>
+                            <span className="go-occt-img" aria-hidden="true">
+                              <img src={OCC_ART[value].src} alt="" width={512} height={512} loading="lazy" decoding="async" />
+                            </span>
+                            <span className="go-occt-label">{label}</span>
+                            <span className={`go-occt-check ${active ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
+                          </button>
                         );
                       })}
                     </div>
-
-                    <AnimatePresence mode="wait">
-
-                      {/* ── STEP 1: Who? ── */}
-                      {/* ── Delivery + recipient details ── */}
-                      {step === 2 && (
-                        <motion.div key="ds2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                          className="gp-step-col">
-
-                          <div className="gp-step-head">
-                            <div style={{ width: 48 }} />
-                            <p>{giftType === 'single' ? 'Their Details' : 'Add Recipients'}</p>
-                            <div style={{ width: 48 }} />
+                  </>
+                ) : (
+                  <>
+                    <p className="go-q">Set up each gift.</p>
+                    <p className="go-q-sub">A name and an occasion for every person on your list.</p>
+                    <div className="go-recips">
+                      {recipients.map((r, idx) => (
+                        <div key={r.id} className="go-recip">
+                          <div className="go-recip-top">
+                            <span className="go-recip-n" aria-hidden="true">{idx + 1}</span>
+                            <input type="text" className="go-field go-field-bare"
+                              value={r.name}
+                              onChange={e => updateRecipient(r.id, 'name', e.target.value)}
+                              placeholder="Their name (optional)"
+                              aria-label={`Recipient ${idx + 1} name`} />
+                            {recipients.length > 1 && (
+                              <button type="button" className="go-recip-x"
+                                onClick={() => setRecipients(rs => rs.filter(x => x.id !== r.id))}
+                                aria-label={`Remove gift ${idx + 1}`}>
+                                <GlyphCross />
+                              </button>
+                            )}
                           </div>
-
-                          {/* Delivery method. Group gifts are link-only: the
-                              gift email reaches one recipient, so promising
-                              per-person emails on a group order would be
-                              false. Each person gets their own link instead. */}
-                          <div className="gp-panel gp-pad">
-                            <p className="gp-field-label">How should we deliver it?</p>
-                            <div className="gp-two-col" style={giftType === 'multiple' ? { gridTemplateColumns: '1fr' } : undefined}>
-                              {(giftType === 'multiple'
-                                ? [
-                                    { key: 'link' as const, Glyph: GlyphThread, title: 'Magic links', sub: 'One link per person. Share each by text, card, or in person', badge: 'How group gifts arrive' },
-                                  ]
-                                : [
-                                    { key: 'link' as const, Glyph: GlyphThread, title: 'Magic link', sub: 'Share via text, card, or in person', badge: 'Most flexible' },
-                                    { key: 'email' as const, Glyph: GlyphEnvelope, title: 'Email directly', sub: 'We send a beautiful gift email', badge: null },
-                                  ]
-                              ).map(opt => (
-                                <button key={opt.key} onClick={() => setDeliveryMethod(opt.key)}
-                                  className={`gp-choice gp-choice-left ${deliveryMethod === opt.key ? 'is-on' : ''}`}>
-                                  {opt.badge && (
-                                    <span className="gp-flex-chip">{opt.badge}</span>
-                                  )}
-                                  <span className={`gp-choice-picked ${deliveryMethod === opt.key ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
-                                  <span className="gp-choice-plaque gp-choice-plaque-sm" aria-hidden="true"><opt.Glyph className="gp-choice-icon gp-choice-icon-sm" /></span>
-                                  <p className="gp-choice-t">{opt.title}</p>
-                                  <p className="gp-choice-s">{opt.sub}</p>
+                          <div role="radiogroup" aria-label={`Gift occasion ${idx + 1}`} className="go-pills">
+                            {OCCASION_CHIPS.map(({ value, label }) => {
+                              const active = (r.occasion ?? 'discover') === value;
+                              return (
+                                <button key={value} type="button" role="radio" aria-checked={active}
+                                  onClick={() => updateRecipient(r.id, 'occasion', value)}
+                                  className={`go-pill ${active ? 'is-on' : ''}`}>
+                                  {label}
                                 </button>
-                              ))}
-                            </div>
+                              );
+                            })}
                           </div>
-
-                          {/* Single recipient */}
-                          {giftType === 'single' && (
-                            <div className="gp-panel gp-pad">
-                              <p className="gp-field-label">Who's the lucky pet parent?</p>
-                              <div className="gp-field-col">
-                                <input type="text" className="gp-field" value={singleRecipient.name} onChange={e => updateSingleRecipient('name', e.target.value)} placeholder="Their name (optional)" />
-                                {deliveryMethod === 'email' && (
-                                  <input type="email" className="gp-field" value={singleRecipient.email} onChange={e => updateSingleRecipient('email', e.target.value)} placeholder="Their email address" />
-                                )}
-                              </div>
-                            </div>
+                        </div>
+                      ))}
+                      {recipients.length < 10 && (
+                        <button type="button" className="go-add"
+                          onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: derivedOccasion }])}>
+                          <GlyphPlus /> Add another person
+                          {discount < 0.30 && (
+                            <span className="go-add-save">+{Math.round((getVolumeDiscount(recipients.length + 1) - discount) * 100)}% off</span>
                           )}
-
-                          {/* Multiple recipients */}
-                          {giftType === 'multiple' && (
-                            <div className="gp-field-col">
-                              {recipients.map((r, idx) => (
-                                <div key={r.id} className="gp-panel gp-pad-sm">
-                                  <div className="gp-recip-head">
-                                    <div className="gp-recip-id">
-                                      <span className="gp-recip-n">{idx + 1}</span>
-                                      <span className="gp-recip-name">{r.name || `Recipient ${idx + 1}`}</span>
-                                    </div>
-                                    {recipients.length > 1 && (
-                                      <button onClick={() => setRecipients(rs => rs.filter(x => x.id !== r.id))} className="gp-ghost" aria-label={`Remove recipient ${idx + 1}`}>
-                                        <GlyphCross />
-                                      </button>
-                                    )}
-                                  </div>
-                                  <div className={`gp-recip-fields ${deliveryMethod === 'email' ? 'has-email' : ''}`}>
-                                    <input type="text" className="gp-field gp-field-sm" value={r.name} onChange={e => updateRecipient(r.id, 'name', e.target.value)} placeholder="Name" />
-                                    {deliveryMethod === 'email' && (
-                                      <input type="email" className="gp-field gp-field-sm" value={r.email} onChange={e => updateRecipient(r.id, 'email', e.target.value)} placeholder="Email" />
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                              {recipients.length < 10 && (
-                                <button
-                                  onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: derivedOccasion }])}
-                                  className="gp-add-row"
-                                >
-                                  <GlyphPlus /> Add another person
-                                  {discount < 0.30 && (
-                                    <span className="gp-add-bonus">
-                                      +{Math.round((getVolumeDiscount(recipients.length + 1) - discount) * 100)}% off
-                                    </span>
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                          )}
-
-                          <button onClick={() => setStep(3)} disabled={!canProceedStep2()} className="gp-cta gp-cta-full">
-                            Continue to Checkout <GlyphChevron />
-                          </button>
-                        </motion.div>
+                        </button>
                       )}
-
-                      {/* ── STEP 3: Checkout ── */}
-                      {step === 3 && (
-                        <motion.div key="ds3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                          className="gp-step-col">
-
-                          <div className="gp-step-head">
-                            <button onClick={() => setStep(2)} className="gp-ghost">
-                              <GlyphArrow /> Back
-                            </button>
-                            <p>Almost Done</p>
-                            <div style={{ width: 48 }} />
-                          </div>
-
-                          {/* Gift message first — emotional anchor */}
-                          <div className="gp-message">
-                            <label className="gp-field-label" htmlFor="gp-message">
-                              Write them a message
-                            </label>
-                            <p className="gp-field-sub gp-message-sub">They'll see this the moment they open their gift.</p>
-                            <textarea
-                              id="gp-message"
-                              className="gp-field gp-message-field"
-                              value={giftMessage}
-                              onChange={e => setGiftMessage(e.target.value)}
-                              placeholder={`From the moment I saw you with your pet, I knew you two were meant to be...`}
-                              rows={4}
-                              maxLength={500}
-                              style={{ resize: 'none' }}
-                            />
-                            <p className="gp-message-count" aria-hidden="true">{giftMessage.length}/500</p>
-                          </div>
-
-                          {/* Purchaser email */}
-                          <div>
-                            <label className="gp-field-label" htmlFor="gp-email">
-                              Your email
-                              <span className="gp-field-note"> (for your receipt and gift link)</span>
-                            </label>
-                            <input id="gp-email" type="email" className="gp-field" value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} placeholder="your@email.com" />
-                          </div>
-
-                          {/* Order summary — receipt block */}
-                          <div className="gp-panel gp-pad gp-receipt">
-                            <div className="gp-summary-head">
-                              <GlyphGift />
-                              <p>Order Summary</p>
-                            </div>
-                            {activeRecipients.map((r, idx) => (
-                              <div key={r.id} className={`gp-summary-row ${idx < activeRecipients.length - 1 ? 'has-hair' : ''}`}>
-                                <div className="gp-summary-item">
-                                  <GlyphPaw />
-                                  <div>
-                                    <p className="gp-summary-tier">{OCCASION_TIERS[derivedOccasion]?.[selectedTier!]?.label ?? TIERS[selectedTier!].label}</p>
-                                    {r.name && <p className="gp-summary-for">for {r.name}</p>}
-                                  </div>
-                                </div>
-                                <span className="gp-summary-price">{fmt(TIER_CENTS[selectedTier!].cents)}</span>
-                              </div>
-                            ))}
-                            <div className="gp-summary-totals">
-                              {discount > 0 && (
-                                <div className="gp-summary-disc">
-                                  <span><GlyphStar />{Math.round(discount * 100)}% volume discount</span>
-                                  <span>&minus;{fmt(pricing.discountAmount)}</span>
-                                </div>
-                              )}
-                              {pricing.promoAmount > 0 && appliedCoupon && (
-                                <div className="gp-summary-disc">
-                                  <span><GlyphStar />{appliedCoupon.code} ({appliedCoupon.discount_value}% off)</span>
-                                  <span>&minus;{fmt(pricing.promoAmount)}</span>
-                                </div>
-                              )}
-                              <div className="gp-summary-total">
-                                <span>Total</span>
-                                <span className="gp-summary-total-v">{fmt(pricing.finalTotal)}</span>
-                              </div>
-                              {isLocalized && (
-                                <p className="gp-summary-note">
-                                  Shown in {currencyCode} — billed in USD at checkout.
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Promo code */}
-                          {appliedCoupon ? (
-                            <div className="gp-promo-chip">
-                              <span>{appliedCoupon.code} applied &middot; {appliedCoupon.discount_value}% off</span>
-                              <button onClick={() => setAppliedCoupon(null)} aria-label="Remove promo code">&times;</button>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="gp-promo-row">
-                                <input
-                                  className="gp-field"
-                                  value={promoCode}
-                                  onChange={e => setPromoCode(e.target.value.toUpperCase())}
-                                  placeholder="PROMO CODE"
-                                  onKeyDown={e => e.key === 'Enter' && applyPromo()}
-                                  style={{ flex: 1, textTransform: 'uppercase' }}
-                                />
-                                <button
-                                  onClick={applyPromo}
-                                  disabled={!promoCode.trim() || isValidatingPromo}
-                                  className="gp-apply"
-                                >
-                                  {isValidatingPromo ? '...' : 'Apply'}
-                                </button>
-                              </div>
-                              {promoError && <p className="gp-promo-err">{promoError}</p>}
-                            </div>
-                          )}
-
-                          {/* Pay button */}
-                          <button
-                            onClick={handlePurchase}
-                            disabled={isLoading || !purchaserEmail.includes('@')}
-                            className="gp-cta gp-cta-full gp-cta-pay"
-                          >
-                            {isLoading
-                              ? <><SpinnerInline />Opening secure checkout...</>
-                              : <><GlyphGift />Send This Gift &middot; {fmt(pricing.finalTotal)}</>
-                            }
-                          </button>
-
-                          {/* Risk reversal at the money moment — DossierCheckout treatment */}
-                          <p className="gp-pay-guarantee">If the reading does not feel like them, we refund every cent.</p>
-
-                          {/* Quiet trust footer + the real payment marks */}
-                          <div className="gp-pay-quiet">
-                            <div className="gp-pay-trust-line">
-                              <span>Secure checkout</span>
-                              <span>Ready in minutes</span>
-                              <span>Valid a full year</span>
-                            </div>
-                            <GiftPayMarks />
-                          </div>
-                        </motion.div>
-                      )}
-
-                    </AnimatePresence>
-                  </motion.div>
+                    </div>
+                  </>
                 )}
-              </AnimatePresence>
-            </div>
+              </div>
 
-          </div>{/* /.gp-funnel-col */}
+              {/* Delivery. Group gifts are link-only: one gift email
+                  cannot reach five people, so each person gets their
+                  own private link instead (matches the backend). */}
+              <div className="go-block gp-rev">
+                <p className="go-q">How should it arrive?</p>
+                {giftType === 'single' ? (
+                  <div className="go-del" role="radiogroup" aria-label="Delivery">
+                    {[
+                      { key: 'link' as const, Glyph: GlyphThread, t: "I'll give it myself", s: 'A private link to text, wrap, or tuck inside a card' },
+                      { key: 'email' as const, Glyph: GlyphEnvelope, t: 'Email it for them', s: 'We send a beautiful gift email with your note' },
+                    ].map(opt => {
+                      const on = deliveryMethod === opt.key;
+                      return (
+                        <button key={opt.key} type="button" role="radio" aria-checked={on}
+                          onClick={() => setDeliveryMethod(opt.key)}
+                          className={`go-del-card ${on ? 'is-on' : ''}`}>
+                          <span className="go-del-icon" aria-hidden="true"><opt.Glyph /></span>
+                          <span className="go-del-main">
+                            <span className="go-del-t">{opt.t}</span>
+                            <span className="go-del-s">{opt.s}</span>
+                          </span>
+                          <span className={`go-del-radio ${on ? 'is-on' : ''}`} aria-hidden="true" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="go-del-note">
+                    <span className="go-del-icon" aria-hidden="true"><GlyphThread /></span>
+                    <p>Group gifts arrive as private links. One for each person, yours to share however you like.</p>
+                  </div>
+                )}
+              </div>
+
+              {giftType === 'single' && (
+                <div className="go-block">
+                  <p className="go-q">Who is it for?</p>
+                  <div className="go-fields">
+                    <input type="text" className="go-field" value={singleRecipient.name}
+                      onChange={e => updateSingleRecipient('name', e.target.value)}
+                      placeholder="Their name (optional)" aria-label="Their name" />
+                    {deliveryMethod === 'email' && (
+                      <input type="email" className="go-field" value={singleRecipient.email}
+                        onChange={e => updateSingleRecipient('email', e.target.value)}
+                        placeholder="Their email address" aria-label="Their email address" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="go-block gp-rev">
+                <label className="go-q" htmlFor="go-note">Add a note they'll keep.</label>
+                <p className="go-q-sub">They see your words the moment it opens.</p>
+                <textarea id="go-note" className="go-field go-note" value={giftMessage}
+                  onChange={e => setGiftMessage(e.target.value)}
+                  placeholder="From the moment I saw you with your pet, I knew you two were meant to be..."
+                  rows={4} maxLength={500} />
+                <p className="go-note-count" aria-hidden="true">{giftMessage.length}/500</p>
+              </div>
+
+              <div className="go-block gp-rev">
+                <label className="go-q" htmlFor="go-email">Your email</label>
+                <p className="go-q-sub">For your receipt and the gift link.</p>
+                <input id="go-email" type="email" className="go-field" value={purchaserEmail}
+                  onChange={e => setPurchaserEmail(e.target.value)} placeholder="your@email.com" />
+              </div>
+
+              {/* ── The pay moment: promo, honest totals, one pill,
+                   the refund line verbatim, the real payment marks. ── */}
+              <div className="go-pay-zone gp-rev">
+                {appliedCoupon ? (
+                  <div className="go-promo-chip">
+                    <span>{appliedCoupon.code} applied &middot; {appliedCoupon.discount_value}% off</span>
+                    <button type="button" onClick={() => setAppliedCoupon(null)} aria-label="Remove promo code"><GlyphCross /></button>
+                  </div>
+                ) : (
+                  <div className="go-promo">
+                    <input className="go-field" value={promoCode}
+                      onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                      placeholder="Promo code" aria-label="Promo code"
+                      onKeyDown={e => e.key === 'Enter' && applyPromo()} />
+                    <button type="button" className="go-apply" onClick={applyPromo}
+                      disabled={!promoCode.trim() || isValidatingPromo}>
+                      {isValidatingPromo ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {promoError && <p className="go-promo-err">{promoError}</p>}
+
+                <div className="go-total">
+                  {activeRecipients.map((r) => {
+                    // Each row is billed and named for ITS gift: memorial
+                    // rows always the Memorial Reading at the portrait
+                    // price, the rest follow the unlock.
+                    const rTier = tierForRecipient(r);
+                    const rPlan = OCCASION_TIERS[r.occasion ?? 'discover']?.[rTier] ?? TIERS[rTier];
+                    return (
+                      <div key={r.id} className="go-total-row">
+                        <span>{rPlan.label}{r.name ? ` for ${r.name}` : ''}</span>
+                        <span>{fmt(TIER_CENTS[rTier].cents)}</span>
+                      </div>
+                    );
+                  })}
+                  {discount > 0 && (
+                    <div className="go-total-row is-save">
+                      <span>{Math.round(discount * 100)}% off for {giftCount} gifts</span>
+                      <span>&minus;{fmt(pricing.discountAmount)}</span>
+                    </div>
+                  )}
+                  {pricing.promoAmount > 0 && appliedCoupon && (
+                    <div className="go-total-row is-save">
+                      <span>{appliedCoupon.code} &middot; {appliedCoupon.discount_value}% off</span>
+                      <span>&minus;{fmt(pricing.promoAmount)}</span>
+                    </div>
+                  )}
+                  <div className="go-total-final">
+                    <span>Total</span>
+                    <span>{fmt(pricing.finalTotal)}</span>
+                  </div>
+                  {isLocalized && (
+                    <p className="go-total-note">Shown in {currencyCode} — billed in USD at checkout.</p>
+                  )}
+                </div>
+
+                <button type="button" className="go-pay" onClick={handlePurchase}
+                  disabled={isLoading || !canPay}>
+                  {isLoading
+                    ? <><SpinnerInline />Opening secure checkout...</>
+                    : <><GlyphGift />Send their gift &middot; {fmt(pricing.finalTotal)}</>}
+                </button>
+                <p className="go-refund">Full refund if it does not feel like them</p>
+                <div className="go-pay-marks">
+                  <GiftPayMarks />
+                  <p className="go-secure"><GlyphLock />Secure checkout with Stripe</p>
+                </div>
+              </div>
+
+            </div>{/* /.go-form */}
+          </div>{/* /.go-vessel */}
         </section>
 
         <GifterProof />
@@ -1720,7 +1462,7 @@ export default function GiftPurchase() {
         </button>
       </div>
 
-      <style>{GP_CSS}</style>
+      <style>{GP_CSS + GO_CSS}</style>
     </div>
   );
 }
@@ -1731,20 +1473,6 @@ function SpinnerInline() {
   );
 }
 
-function TrustRow({ items, glyphs }: { items: string[]; glyphs: GlyphComponent[] }) {
-  return (
-    <div className="gp-trust-mini">
-      {items.map((t, i) => {
-        const Glyph = glyphs[i];
-        return (
-          <span key={i}>
-            <Glyph />{t}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ═══ Design system — cosmic purple + white (funnel-v2 tokens).
    Surfaces: sky #0d0a14 · glass violet gradient over #15101c · panel
@@ -2157,170 +1885,6 @@ const GP_CSS = `
 .gp-cta-sticky{min-height:48px;padding:0 26px;font-size:17px}
 @media (prefers-reduced-motion: reduce){.gp-sticky{transition:none}}
 
-/* ── funnel ── */
-.gp-funnel .gp-shead{margin-bottom:clamp(30px,4.4vw,44px)}
-.gp-funnel .gp-h2{font-size:clamp(1.85rem,4vw,2.6rem);line-height:1.12}
-.gp-tier-zone{max-width:920px;margin:0 auto}
-.gp-funnel-col{max-width:560px;margin:0 auto}
-
-/* the two funnel questions: count first, then occasion per gift */
-.gp-ask{text-align:center;font-family:'Fraunces',Georgia,serif;font-weight:500;
-  font-size:clamp(1.15rem,2.6vw,1.3rem);color:var(--white);margin-bottom:14px}
-.gp-count-strip{max-width:560px;margin:0 auto clamp(26px,4vw,36px)}
-.gp-count-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;
-  max-width:430px;margin:0 auto}
-.gp-count-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  min-height:62px;padding:9px 4px;border-radius:14px;cursor:pointer;
-  border:1px solid rgba(154,126,230,.28);
-  background:linear-gradient(180deg,rgba(124,92,214,.08),rgba(124,92,214,.02)),#141020;
-  transition:transform .18s var(--ease-stage),border-color .18s ease,background-color .18s ease,box-shadow .18s ease;
-  -webkit-tap-highlight-color:transparent}
-@media (hover:hover){
-  .gp-count-chip:hover{transform:translateY(-1px);border-color:var(--line-bright)}
-}
-.gp-count-chip:active{transform:scale(.96);transition-duration:.06s}
-.gp-count-n{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.35rem;line-height:1;
-  color:var(--body);font-variant-numeric:tabular-nums;transition:color .18s ease}
-.gp-count-save{font-size:10.5px;font-weight:600;letter-spacing:.03em;line-height:1;
-  color:var(--vio-bright);white-space:nowrap}
-.gp-count-chip.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.16);
-  box-shadow:0 0 0 1px #9a7ee6,0 10px 24px -12px rgba(124,92,214,.55)}
-.gp-count-chip.is-on .gp-count-n{color:var(--white)}
-@media (prefers-reduced-motion: reduce){
-  .gp-count-chip,.gp-count-chip:hover,.gp-count-chip:active{transform:none}
-}
-
-/* occasion picker: quiet segmented chips on one shared rail. The tier
-   cards are the stars of the section. 44px touch targets kept. */
-.gp-occ-strip{max-width:760px;margin:0 auto clamp(26px,4vw,36px)}
-.gp-occ-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
-  width:fit-content;margin:0 auto}
-.gp-occ-tickbox{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 15px;
-  border-radius:12px;cursor:pointer;border:1px solid transparent;
-  background:transparent;color:var(--dim);font-size:14px;font-weight:500;
-  transition:border-color .18s ease,background-color .18s ease,color .18s ease;
-  -webkit-tap-highlight-color:transparent}
-@media (hover:hover){
-  .gp-occ-tickbox:hover{color:var(--body);background:rgba(124,92,214,.08)}
-}
-.gp-occ-tickbox:active{transform:scale(.97);transition-duration:.06s}
-.gp-occ-sq{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
-  border-radius:5px;border:1.5px solid rgba(154,126,230,.45);flex-shrink:0;
-  transition:background-color .15s ease,border-color .15s ease}
-.gp-occ-sq svg{width:10px;height:10px;color:#fff}
-.gp-occ-tickbox.is-on{border-color:rgba(154,126,230,.55);background:rgba(124,92,214,.15);color:var(--white)}
-.gp-occ-tickbox.is-on .gp-occ-sq{background:linear-gradient(180deg,#9a7ee6,#5d47a0);border-color:#9a7ee6}
-.gp-occ-tickbox.is-mem.is-on{border-color:rgba(200,196,216,.5);background:rgba(200,196,216,.10)}
-.gp-occ-tickbox.is-mem.is-on .gp-occ-sq{background:linear-gradient(180deg,#c9c4dd,#948caa);border-color:#b8b2cc}
-@media (max-width:560px){
-  .gp-occ-row{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:5px}
-  .gp-occ-tickbox{justify-content:flex-start;padding:8px 12px;text-align:left}
-}
-
-/* group orders: one labelled occasion row per gift. Label sits ABOVE its
-   row so the chip row gets the full 760px rail — all four chips render on
-   one line per gift at desktop, matching the single-mode strip. */
-.gp-occ-multi{display:flex;flex-direction:column;gap:16px;max-width:760px;margin:0 auto}
-.gp-occ-gift{display:flex;flex-direction:column;align-items:center;gap:7px}
-.gp-occ-gift-label{font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--vio-bright);flex-shrink:0}
-.gp-occ-gift .gp-occ-row{margin:0}
-@media (max-width:560px){
-  .gp-occ-multi{gap:18px}
-  .gp-occ-gift{align-items:stretch}
-  .gp-occ-gift-label{text-align:left}
-}
-
-/* ── tier cards: two-up pricing row, featured Bond physically taller ── */
-.gp-tier-row{display:grid;grid-template-columns:1fr;gap:20px;align-items:start;padding-top:16px}
-@media (min-width:720px){
-  .gp-tier-row{grid-template-columns:1fr 1fr;gap:24px}
-  .gp-tier-row .gp-tier.is-feat{margin-top:-14px}
-}
-@media (max-width:719.98px){
-  .gp-tier-row .gp-tier.is-feat{order:-1}
-}
-.gp-tier-row.is-single{grid-template-columns:1fr;justify-items:center}
-.gp-tier-row.is-single .gp-tier{max-width:520px;margin-top:0}
-.gp-tier{width:100%;text-align:left;padding:30px 28px 26px;border-radius:18px;cursor:pointer;position:relative;
-  border:1px solid rgba(154,126,230,.26);
-  background:linear-gradient(180deg,rgba(124,92,214,.09),rgba(124,92,214,.03)),#15101c;
-  box-shadow:0 2px 10px rgba(0,0,0,.3);
-  transition:transform .18s var(--ease-stage),border-color .18s ease,box-shadow .18s ease}
-@media (prefers-reduced-motion: no-preference){
-  .gp-tier{animation:gpTierIn .5s var(--ease-settle) backwards}
-  .gp-tier-row .gp-tier:nth-child(2){animation-delay:90ms}
-}
-@keyframes gpTierIn{from{opacity:0;transform:translateY(16px)}}
-.gp-tier.is-feat{border:1.5px solid rgba(185,165,240,.5);
-  background:radial-gradient(120% 82% at 50% -12%,rgba(167,139,250,.17),transparent 62%),
-    linear-gradient(180deg,#1c1530,#151020);
-  box-shadow:0 16px 48px rgba(8,5,18,.55),0 0 44px -12px rgba(124,92,214,.35)}
-@media (hover:hover){
-  .gp-tier:hover{transform:translateY(-3px);border-color:var(--line-bright);
-    box-shadow:0 12px 30px rgba(8,5,18,.45)}
-  .gp-tier.is-feat:hover{transform:none;border-color:rgba(197,178,255,.62);
-    box-shadow:0 22px 58px rgba(8,5,18,.65),0 0 56px -10px rgba(124,92,214,.5)}
-  .gp-tier.is-selected:hover{transform:none}
-}
-.gp-tier.is-selected{border-color:#9a7ee6;
-  box-shadow:0 0 0 1px #9a7ee6,0 0 0 5px var(--acc-ring),0 16px 44px rgba(8,5,18,.5)}
-.gp-tier-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);color:#0d0a14;
-  font-size:11px;font-weight:700;padding:6px 16px;border-radius:999px;letter-spacing:.08em;white-space:nowrap;
-  box-shadow:0 8px 18px -8px rgba(124,92,214,.6)}
-.gp-tier-picked{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
-  box-shadow:0 4px 12px -4px rgba(124,92,214,.6);
-  opacity:0;transform:scale(.6);transition:opacity .18s var(--ease-stage),transform .18s var(--ease-stage)}
-.gp-tier-picked svg{width:13px;height:13px}
-.gp-tier-picked.is-on{opacity:1;transform:scale(1)}
-.gp-tier-names{padding-right:30px}
-.gp-tier-label{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.3rem;color:var(--white);
-  margin-bottom:5px;line-height:1.15}
-.gp-tier-tag{font-style:italic;font-size:15.5px;color:var(--dim);line-height:1.45}
-.gp-tier-price-row{display:flex;align-items:baseline;gap:9px;margin:18px 0 20px;flex-wrap:wrap}
-.gp-tier-was{font-size:16px;color:var(--dim);opacity:.75;text-decoration:line-through}
-.gp-tier-price{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(2.35rem,5.6vw,2.875rem);
-  line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums;
-  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.gp-tier-cur{font-size:.58em;font-weight:600}
-.gp-tier-once{font-size:14px;color:var(--dim)}
-.gp-tier-hair{display:block;height:1px;margin:22px 0;
-  background:linear-gradient(90deg,transparent,rgba(154,126,230,.32),transparent)}
-.gp-tier-features{display:flex;flex-direction:column;gap:13px}
-.gp-tier-feat{display:grid;grid-template-columns:24px 1fr;align-items:start;
-  font-size:16px;line-height:1.5;color:var(--body)}
-.gp-tier-feat svg{width:16px;height:16px;color:var(--vio-soft);margin-top:4px}
-.gp-tier-div{font-style:italic;font-weight:600;font-size:15.5px;color:var(--vio-bright)}
-.gp-tier-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
-  min-height:50px;padding:0 18px;border-radius:12px;
-  font-weight:600;font-size:16px;letter-spacing:.02em;color:#fff;
-  background:linear-gradient(180deg,#9a7ee6 0%,#7c5cd6 45%,#5d47a0 100%);
-  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 8px 18px -8px rgba(124,92,214,.55);
-  transition:filter .18s ease,box-shadow .18s ease,background-color .18s ease,border-color .18s ease,color .18s ease}
-.gp-tier:not(.is-feat) .gp-tier-cta{background:rgba(124,92,214,.07);
-  border:1px solid rgba(154,126,230,.5);color:var(--vio-pale);box-shadow:none}
-@media (hover:hover){
-  .gp-tier.is-feat:hover .gp-tier-cta{filter:brightness(1.07);
-    box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 12px 26px -8px rgba(124,92,214,.7)}
-  .gp-tier:not(.is-feat):hover .gp-tier-cta{background:rgba(124,92,214,.14);
-    border-color:rgba(185,165,240,.7);color:#fff}
-}
-.gp-tier-cta svg{width:15px;height:15px}
-.gp-tier .gp-tier-cta.is-picked{background:rgba(124,92,214,.16);border:1px solid transparent;
-  color:var(--vio-bright);box-shadow:none;filter:none}
-@media (max-width:560px){
-  .gp-tier{padding:26px 20px 24px}
-}
-
-/* worry-killers: one quiet chip row under both cards */
-.gp-worry-row{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:10px 24px;
-  margin:20px 0 0;padding:0;font-size:13.5px;font-weight:500;color:rgba(236,236,242,.7)}
-.gp-worry-row li{display:inline-flex;align-items:center;gap:7px}
-.gp-worry-row svg{width:14px;height:14px;flex-shrink:0;color:var(--vio-soft)}
-.gp-tier-pay{display:flex;justify-content:center;margin-top:16px;opacity:.75}
 .gp-paymarks{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
 .gp-paymarks svg{display:block}
 .gp-paychip{display:inline-flex;align-items:center;justify-content:center;
@@ -2328,217 +1892,297 @@ const GP_CSS = `
   background:linear-gradient(180deg,#221a35,#181221);
   border:1px solid rgba(154,126,230,.28);
   box-shadow:0 2px 10px rgba(8,5,18,.5),inset 0 1px 0 rgba(207,192,244,.08)}
-/* the one voice beside the decision: a compact strip below the chips */
-
-/* ── flow: the checkout panel. Opens as a considered, elevated piece
-   of cosmos glass (spotlight surface language), never a bare divider.
-   Entrance handled by framer (450ms ease-out, y 24 → 0). ── */
-.gp-flow{position:relative;overflow:hidden;margin-top:clamp(36px,6vw,52px);border-radius:24px;
-  padding:clamp(24px,4.6vw,38px) clamp(18px,3.8vw,34px) clamp(28px,4.6vw,40px);
-  background:
-    radial-gradient(130% 90% at 50% -10%, rgba(167,139,250,.22), transparent 62%),
-    linear-gradient(180deg,#1c1629,#151020);
-  border:1px solid rgba(167,139,250,.38);
-  box-shadow:0 1px 0 rgba(207,192,244,.16) inset,0 30px 70px -30px rgba(8,5,18,.95),
-    0 0 54px -14px rgba(124,92,214,.36)}
-.gp-flow::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,transparent,#b9a5f0 30%,#e3d9ff 50%,#b9a5f0 70%,transparent);opacity:.9}
-
-/* header row: the chosen tier + price, stated with confidence */
-.gp-flow-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
-  padding-bottom:18px;margin-bottom:22px;
-  border-bottom:1px solid rgba(154,126,230,.24)}
-.gp-flow-eyebrow{font-weight:600;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--vio-bright)}
-.gp-flow-tier{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(1.25rem,3.2vw,1.5rem);
-  line-height:1.15;color:var(--white);margin-top:4px}
-.gp-flow-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
-.gp-flow-price{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(1.25rem,3.2vw,1.5rem);line-height:1.15;
-  font-variant-numeric:tabular-nums;
-  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.gp-change{font-size:14px;color:var(--dim);background:none;border:none;cursor:pointer;
-  display:inline-flex;align-items:center;min-height:44px;padding:0 2px;margin:-10px 0;
-  text-decoration:underline;text-underline-offset:3px;font-family:'Newsreader',Georgia,serif;
-  transition:color .18s ease}
-.gp-change:hover{color:var(--body)}
-
-/* slim violet progress */
-.gp-stepper{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:26px}
-.gp-stepper-seg{display:flex;align-items:center;gap:10px}
-.gp-stepper-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;
-  background:rgba(124,92,214,.10);border:1px solid rgba(154,126,230,.30);color:var(--dim);
-  transition:background-color .3s ease,border-color .3s ease,color .3s ease,box-shadow .3s ease}
-.gp-stepper-dot.is-on{background:linear-gradient(180deg,#9a7ee6,#5d47a0);border-color:transparent;color:#fff;
-  box-shadow:0 0 14px rgba(167,139,250,.45)}
-.gp-stepper-dot svg{width:13px;height:13px}
-.gp-stepper-bar{width:44px;height:2px;background:rgba(154,126,230,.18);border-radius:2px;transition:background .3s}
-.gp-stepper-bar.is-on{background:var(--vio-soft)}
-.gp-step-col{display:flex;flex-direction:column;gap:20px}
-.gp-step-intro{text-align:center}
-.gp-flow-q{text-align:center;font-family:'Fraunces',Georgia,serif;font-weight:500;
-  font-size:clamp(1.35rem,3.4vw,1.55rem);color:var(--white)}
-.gp-flow-hint{margin-top:7px;font-size:15.5px;font-style:italic;color:var(--dim)}
-
-/* panel-on-panel: surfaces inside the flow sit one step deeper */
-.gp-flow .gp-panel{background:linear-gradient(180deg,#120d1d,#100c18);border:1px solid rgba(154,126,230,.24)}
-.gp-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.gp-choice{position:relative;padding:24px 16px 20px;border-radius:16px;cursor:pointer;text-align:center;
-  border:1px solid rgba(154,126,230,.30);
-  background:linear-gradient(180deg,rgba(124,92,214,.10),rgba(124,92,214,.03)),#141020;
-  transition:transform .2s var(--ease-stage),border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
-@media (hover:hover){
-  .gp-choice:hover{transform:translateY(-2px);border-color:var(--line-bright);
-    box-shadow:0 10px 26px -10px rgba(124,92,214,.4)}
-}
-.gp-choice:active{transform:scale(.98);transition-duration:.06s}
-.gp-choice.is-on{border-color:#9a7ee6;
-  background:linear-gradient(180deg,rgba(124,92,214,.18),rgba(124,92,214,.08)),#141020;
-  box-shadow:0 0 0 3px rgba(154,126,230,.16),0 12px 30px -12px rgba(124,92,214,.5)}
-.gp-choice-picked{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
-  box-shadow:0 4px 12px -4px rgba(124,92,214,.6);
-  opacity:0;transform:scale(.6);transition:opacity .18s var(--ease-stage),transform .18s var(--ease-stage)}
-.gp-choice-picked svg{width:11px;height:11px}
-.gp-choice-picked.is-on{opacity:1;transform:scale(1)}
-.gp-choice-plaque{display:inline-grid;place-items:center;width:46px;height:46px;margin:0 auto 12px;border-radius:14px;
-  background:linear-gradient(165deg,rgba(154,126,230,.24),rgba(124,92,214,.10));
-  border:1px solid rgba(185,165,240,.30);box-shadow:0 8px 22px -12px rgba(124,92,214,.5);
-  transition:border-color .2s ease,box-shadow .2s ease}
-.gp-choice.is-on .gp-choice-plaque{border-color:rgba(197,178,255,.55);
-  box-shadow:0 10px 26px -10px rgba(124,92,214,.65)}
-.gp-choice-left{text-align:left;padding:18px 16px 16px}
-.gp-choice-left .gp-choice-plaque{margin:0 0 10px}
-.gp-choice-plaque-sm{width:38px;height:38px;border-radius:11px}
-.gp-choice-icon{width:24px;height:24px;color:var(--vio-pale);display:block}
-.gp-choice-icon-sm{width:19px;height:19px}
-.gp-choice.is-on .gp-choice-icon{color:#fff}
-.gp-choice-t{font-weight:700;font-size:16.5px;color:var(--white)}
-.gp-choice-s{font-size:14.5px;color:var(--dim);margin-top:3px;line-height:1.4}
-.gp-save-chip{position:absolute;top:-9px;right:12px;font-size:11px;font-weight:700;
-  background:linear-gradient(180deg,#9a7ee6,#7c5cd6);color:#fff;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
-.gp-flex-chip{position:absolute;top:-9px;left:12px;font-size:11.5px;font-weight:700;
-  background:linear-gradient(180deg,#9a7ee6,#7c5cd6);color:#fff;padding:2px 9px;border-radius:20px}
-.gp-trust-mini{display:flex;justify-content:center;gap:8px 18px;flex-wrap:wrap;
-  font-size:14.5px;color:var(--dim);opacity:.85}
-.gp-trust-mini span{display:inline-flex;align-items:center;gap:6px}
-.gp-trust-mini svg{width:14px;height:14px;color:var(--vio-soft)}
-.gp-step-head{display:flex;align-items:center;justify-content:space-between}
-.gp-step-head p{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.15rem;color:var(--white)}
-.gp-ghost{background:none;border:none;color:var(--dim);cursor:pointer;display:inline-flex;
-  align-items:center;gap:5px;font-size:15px;padding:4px}
-.gp-ghost:hover{color:var(--body)}
-.gp-ghost svg{width:15px;height:15px}
-
-/* fields */
-.gp-field{width:100%;padding:13px 16px;border-radius:10px;min-height:48px;
-  border:1px solid rgba(139,123,216,.38);background:rgba(11,8,18,.55);
-  font-size:17px;color:var(--body);outline:none;
-  transition:border-color .2s ease,box-shadow .2s ease}
-.gp-field::placeholder{color:var(--dim)}
-.gp-field:focus{border-color:#9a7ee6;box-shadow:0 0 0 3px rgba(167,139,250,.22)}
-
-/* the gift message — the emotional moment of step 3 */
-.gp-message{padding:20px 18px 14px;border-radius:16px;
-  background:radial-gradient(120% 80% at 50% -10%, rgba(167,139,250,.14), transparent 60%),
-    linear-gradient(180deg,#161022,#120d1d);
-  border:1px solid rgba(167,139,250,.30)}
-.gp-message .gp-field-label{margin-bottom:4px}
-.gp-message-sub{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;
-  color:var(--vio-pale);font-size:15.5px;margin-bottom:12px}
-.gp-message-field{min-height:112px;line-height:1.55}
-.gp-message-count{text-align:right;font-size:12.5px;color:var(--dim);margin-top:6px;
-  font-variant-numeric:tabular-nums}
-.gp-field-sm{padding:10px 14px;min-height:44px;font-size:16px}
-.gp-field-col{display:flex;flex-direction:column;gap:10px}
-.gp-field-label{font-size:16.5px;font-weight:600;color:var(--white);display:block;margin-bottom:10px}
-.gp-field-note{font-weight:400;color:var(--dim)}
-.gp-field-sub{font-weight:600;color:var(--body);font-size:15px;margin-bottom:8px}
-.gp-help{font-size:14px;color:var(--dim);margin-top:8px}
-
-/* per-recipient occasion pickers */
-
-/* multi recipients */
-.gp-recip-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.gp-recip-id{display:flex;align-items:center;gap:8px}
-.gp-recip-n{width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#9a7ee6,#5d47a0);
-  color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
-.gp-recip-name{font-weight:600;font-size:15.5px;color:var(--white)}
-.gp-recip-fields{display:grid;grid-template-columns:1fr;gap:8px}
-.gp-recip-fields.has-email{grid-template-columns:1fr 1fr}
-.gp-add-row{padding:14px;border-radius:14px;border:2px dashed rgba(154,126,230,.4);
-  background:rgba(124,92,214,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  color:var(--vio-bright);font-weight:600;font-size:15.5px;
-  transition:border-color .2s ease,background-color .2s ease}
-@media (hover:hover){
-  .gp-add-row:hover{border-color:rgba(185,165,240,.7);background:rgba(124,92,214,.15)}
-}
-.gp-add-row svg{width:18px;height:18px}
-.gp-add-bonus{font-size:13px;color:var(--vio-pale);margin-left:4px}
-
-/* summary */
-.gp-summary-head{display:flex;align-items:center;gap:8px;padding-bottom:12px;
-  border-bottom:1px solid var(--line);margin-bottom:12px}
-.gp-summary-head svg{width:17px;height:17px;color:var(--vio-bright)}
-.gp-summary-head p{font-weight:700;color:var(--white);font-size:15.5px}
-.gp-summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0}
-.gp-summary-row.has-hair{border-bottom:1px solid var(--line)}
-.gp-summary-item{display:flex;align-items:center;gap:8px}
-.gp-summary-item svg{width:15px;height:15px;color:var(--vio-soft);flex-shrink:0}
-.gp-summary-tier{font-weight:600;font-size:15.5px;color:var(--white)}
-.gp-summary-for{font-size:13.5px;color:var(--vio-bright)}
-.gp-summary-price{font-size:15.5px;color:var(--muted)}
-.gp-summary-totals{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.gp-summary-disc{display:flex;justify-content:space-between;margin-bottom:6px;font-size:15px;color:var(--vio-pale)}
-.gp-summary-disc span{display:flex;align-items:center;gap:4px}
-.gp-summary-disc svg{width:12px;height:12px}
-.gp-summary-total{display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700;color:var(--white)}
-.gp-summary-total-v{font-family:'Fraunces',Georgia,serif}
-.gp-summary-note{font-size:13px;color:var(--dim);margin-top:6px;text-align:right}
-
-/* receipt treatment — dashed rules, tabular figures, lifted total */
-.gp-receipt{padding:22px 20px}
-.gp-receipt .gp-summary-head{border-bottom:1px dashed rgba(154,126,230,.34)}
-.gp-receipt .gp-summary-price{font-variant-numeric:tabular-nums}
-.gp-receipt .gp-summary-totals{border-top:1px dashed rgba(154,126,230,.34)}
-.gp-receipt .gp-summary-total{align-items:baseline}
-.gp-receipt .gp-summary-total-v{font-size:1.45rem;font-variant-numeric:tabular-nums;
-  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-
-/* promo */
-.gp-promo-row{display:flex;gap:8px}
-.gp-apply{padding:0 20px;border-radius:10px;min-height:48px;border:none;cursor:pointer;
-  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;font-weight:600;font-size:15px;white-space:nowrap}
-.gp-apply:disabled{opacity:.5;cursor:default}
-@media (hover:hover){.gp-apply:not(:disabled):hover{filter:brightness(1.1)}}
-.gp-apply:not(:disabled):active{transform:scale(.97)}
-.gp-promo-err{color:var(--body);font-size:14px;margin-top:6px;padding-left:10px;border-left:2px solid var(--vio-soft)}
-.gp-promo-chip{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
-  border-radius:10px;background:rgba(124,92,214,.12);border:1px solid rgba(185,165,240,.35)}
-.gp-promo-chip span{font-size:15px;color:var(--vio-pale);font-weight:600}
-.gp-promo-chip button{background:none;border:none;color:var(--vio-pale);cursor:pointer;font-size:1.1rem;line-height:1}
-
-/* ── the pay moment: guarantee + quiet trust footer + real payment
-   marks, mirroring the approved DossierCheckout treatment ── */
-.gp-cta-pay{min-height:62px}
-.gp-pay-guarantee{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:17.5px;line-height:1.5;
-  color:var(--white);text-align:center;margin:2px 6px 0}
-.gp-pay-quiet{display:flex;flex-direction:column;gap:14px;opacity:.8;margin-top:2px}
-.gp-pay-trust-line{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
-  font-size:15px;color:var(--dim);text-align:center}
-.gp-pay-trust-line span{white-space:nowrap}
-.gp-pay-trust-line span + span::before{content:"\\00B7";margin-right:8px;color:rgba(139,123,216,.5)}
-
 @media (max-width:520px){
-  .gp-two-col{grid-template-columns:1fr}
-  .gp-recip-fields.has-email{grid-template-columns:1fr}
   .gp-sticky-price{display:none}
   .gp-cta-sticky{width:100%;max-width:420px}
-  .gp-flow{border-radius:18px}
-  .gp-stepper-bar{width:26px}
-  .gp-flow-head{align-items:flex-start}
-  .gp-cta-pay{font-size:17px}
+}
+`;
+
+/* ═══ GO — the offer. StoryWorth pattern on the cosmos palette: one
+   warm plum vessel, a photo-led plan band, filled check coins, the
+   Bond as an in-band unlock, then a stepless form of soft panels and
+   huge touch targets. Namespace go-*; shares only the page's reveal
+   system (.gp-rev), the star defs and the payment marks. ═══ */
+const GO_CSS = `
+.go-offer{padding-top:clamp(56px,8vw,96px);padding-bottom:clamp(64px,9vw,108px)}
+.go-vessel{position:relative;border-radius:clamp(22px,3.4vw,36px);
+  background:linear-gradient(180deg,#201722 0%,#191320 55%,#15101c 100%);
+  border:1px solid rgba(154,126,230,.24);
+  box-shadow:0 2px 8px rgba(0,0,0,.45),0 48px 110px -48px rgba(8,5,18,.95),0 0 90px -36px rgba(124,92,214,.4);
+  padding:clamp(22px,4.8vw,60px)}
+.go-vessel::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 60% at 50% -10%, rgba(167,139,250,.10), transparent 60%)}
+
+/* header: big, warm, LEFT-aligned. The marketing shell above is all
+   centered; the offer speaks across the counter instead. */
+.go-head{max-width:640px}
+.go-kicker{font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:12.5px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--vio-bright)}
+.go-h2{font-family:'Asap',system-ui,sans-serif;font-weight:700;color:var(--white);
+  font-size:clamp(2.1rem,5.4vw,3rem);line-height:1.04;letter-spacing:-.02em;margin-top:10px}
+.go-sub{margin-top:12px;font-size:clamp(17px,1vw + 13px,19px);color:var(--muted)}
+
+/* ── the plan band ── */
+.go-plan{position:relative;display:grid;gap:clamp(18px,3vw,40px);margin-top:clamp(26px,4.4vw,44px)}
+@media (min-width:880px){.go-plan{grid-template-columns:.86fr 1.14fr;align-items:stretch}}
+.go-plan-art{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:5/4;
+  border:1px solid rgba(154,126,230,.26);
+  box-shadow:0 2px 6px rgba(0,0,0,.4),0 22px 48px -20px rgba(8,5,18,.85)}
+@media (min-width:880px){.go-plan-art{aspect-ratio:auto;min-height:100%}}
+.go-plan-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .6s ease}
+.go-plan-art img.is-front{opacity:1}
+.go-plan-occ{position:absolute;left:14px;bottom:14px;padding:8px 14px;border-radius:999px;
+  font-family:'Asap',system-ui,sans-serif;font-weight:600;font-size:13px;letter-spacing:.04em;color:#fff;
+  background:rgba(13,10,20,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(185,165,240,.35)}
+.go-plan-body{display:flex;flex-direction:column}
+.go-plan-name{font-family:'Fraunces',Georgia,serif;font-weight:600;color:var(--white);
+  font-size:clamp(1.6rem,3.6vw,2.15rem);line-height:1.08;letter-spacing:-.01em}
+.go-plan-tag{margin-top:8px;font-style:italic;font-size:clamp(16.5px,1vw + 13px,18.5px);color:var(--muted);line-height:1.5}
+.go-plan-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:16px}
+.go-plan-price s{font-size:17px;color:var(--dim)}
+.go-plan-price strong{font-family:'Fraunces',Georgia,serif;font-weight:600;color:var(--white);
+  font-size:clamp(2.1rem,4.6vw,2.6rem);line-height:1;font-variant-numeric:tabular-nums}
+.go-plan-price span{font-size:14.5px;color:var(--dim)}
+.go-inc-lead{margin-top:20px;font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:12.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--vio-bright)}
+.go-inc{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.go-inc li{display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start;
+  font-size:clamp(16px,1vw + 12.5px,17.5px);line-height:1.5;color:var(--body)}
+.go-check{display:inline-grid;place-items:center;width:24px;height:24px;margin-top:1px;border-radius:50%;
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
+  box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 4px 10px -4px rgba(124,92,214,.6)}
+.go-check svg{width:12px;height:12px}
+
+/* the Bond unlock: one tap, inside the same plan band */
+.go-unlock{position:relative;display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:start;
+  text-align:left;width:100%;margin-top:26px;padding:22px 18px 18px;border-radius:18px;cursor:pointer;
+  border:1.5px dashed rgba(154,126,230,.5);background:rgba(124,92,214,.06);color:inherit;
+  transition:border-color .18s ease,background-color .18s ease,box-shadow .18s ease,transform .15s var(--ease-stage);
+  -webkit-tap-highlight-color:transparent}
+@media (hover:hover){.go-unlock:hover{border-color:rgba(185,165,240,.75);background:rgba(124,92,214,.11)}}
+.go-unlock:active{transform:scale(.99);transition-duration:.06s}
+.go-unlock.is-on{border-style:solid;border-color:#9a7ee6;background:rgba(124,92,214,.15);
+  box-shadow:0 0 0 3px rgba(154,126,230,.18),0 14px 32px -16px rgba(124,92,214,.55)}
+.go-unlock-badge{position:absolute;top:-11px;left:16px;padding:5px 12px;border-radius:999px;
+  font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;color:#fff;
+  background:linear-gradient(180deg,#9a7ee6,#7c5cd6);
+  box-shadow:0 6px 14px -6px rgba(124,92,214,.7)}
+.go-unlock-box{display:grid;place-items:center;width:26px;height:26px;margin-top:2px;border-radius:8px;
+  border:2px solid rgba(154,126,230,.55);background:rgba(13,10,20,.5);color:#fff;
+  transition:background-color .15s ease,border-color .15s ease}
+.go-unlock-box svg{width:14px;height:14px}
+.go-unlock.is-on .go-unlock-box{background:linear-gradient(180deg,#9a7ee6,#5d47a0);border-color:transparent}
+.go-unlock-main{display:flex;flex-direction:column;gap:7px}
+.go-unlock-t{font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:17.5px;color:var(--white);line-height:1.25}
+.go-unlock-t em{font-style:normal;color:var(--vio-bright);margin-left:4px}
+.go-unlock-s{font-size:15.5px;line-height:1.5;color:var(--muted)}
+
+/* the four promises */
+.go-assure{list-style:none;margin:clamp(24px,4vw,36px) 0 0;padding:clamp(16px,2.6vw,20px) 0 0;
+  border-top:1px solid rgba(154,126,230,.18);
+  display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+@media (min-width:880px){.go-assure{grid-template-columns:repeat(4,auto);justify-content:space-between}}
+.go-assure li{display:flex;align-items:center;gap:9px;font-size:14.5px;color:var(--muted);line-height:1.35}
+.go-assure svg{width:17px;height:17px;flex-shrink:0;color:var(--vio-soft)}
+
+/* one voice at the decision */
+.go-voice{display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:start;
+  margin:clamp(22px,3.6vw,32px) 0 0;padding:clamp(18px,3vw,24px);border-radius:18px;
+  background:rgba(13,10,20,.38);border:1px solid rgba(154,126,230,.2)}
+.go-voice > img{width:56px;height:56px;border-radius:14px;object-fit:cover;
+  border:1px solid rgba(197,178,255,.4)}
+.go-voice blockquote{margin:8px 0 10px;font-size:16px;line-height:1.6;color:#efeaff}
+.go-voice figcaption{font-size:14px;color:var(--vio-pale)}
+@media (max-width:560px){.go-voice{grid-template-columns:44px 1fr;gap:12px}
+  .go-voice > img{width:44px;height:44px;border-radius:11px}}
+
+.go-seam{display:block;height:1px;margin:clamp(32px,5.4vw,52px) 0;
+  background:linear-gradient(90deg,transparent,rgba(154,126,230,.38),transparent)}
+
+/* ── the form ── */
+.go-form{max-width:660px;margin:0 auto}
+.go-block{margin-bottom:clamp(28px,4.6vw,40px)}
+.go-q{display:block;font-family:'Asap',system-ui,sans-serif;font-weight:700;color:var(--white);
+  font-size:clamp(1.2rem,2.8vw,1.4rem);line-height:1.2;letter-spacing:-.01em;margin-bottom:12px}
+.go-q-sub{margin:-6px 0 14px;font-size:15.5px;font-style:italic;color:var(--dim)}
+label.go-q{cursor:pointer}
+
+/* count */
+.go-count{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.go-count-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:68px;padding:8px 2px;border-radius:16px;cursor:pointer;
+  border:1.5px solid rgba(154,126,230,.3);background:rgba(13,10,20,.4);
+  transition:border-color .15s ease,background-color .15s ease,transform .15s var(--ease-stage),box-shadow .15s ease;
+  -webkit-tap-highlight-color:transparent}
+@media (hover:hover){.go-count-btn:hover{border-color:var(--line-bright);transform:translateY(-1px)}}
+.go-count-btn:active{transform:scale(.96);transition-duration:.06s}
+.go-count-n{font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:1.35rem;line-height:1;
+  color:var(--body);font-variant-numeric:tabular-nums}
+.go-count-save{font-family:'Asap',system-ui,sans-serif;font-weight:600;font-size:10.5px;
+  letter-spacing:.02em;line-height:1;color:var(--vio-bright);white-space:nowrap}
+.go-count-btn.is-on{border-color:#9a7ee6;
+  background:linear-gradient(180deg,rgba(124,92,214,.3),rgba(124,92,214,.14));
+  box-shadow:0 0 0 3px rgba(154,126,230,.16)}
+.go-count-btn.is-on .go-count-n{color:#fff}
+
+/* occasion tiles: photographic */
+.go-occt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (min-width:720px){.go-occt-grid{grid-template-columns:repeat(4,1fr)}}
+.go-occt{position:relative;display:block;padding:0;border-radius:16px;overflow:hidden;cursor:pointer;
+  text-align:left;border:2px solid rgba(154,126,230,.22);background:#15101c;
+  transition:border-color .15s ease,box-shadow .15s ease,transform .15s var(--ease-stage);
+  -webkit-tap-highlight-color:transparent}
+@media (hover:hover){.go-occt:hover{border-color:var(--line-bright);transform:translateY(-2px)}}
+.go-occt:active{transform:scale(.98);transition-duration:.06s}
+.go-occt-img{display:block;aspect-ratio:4/3;overflow:hidden}
+.go-occt-img img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s var(--ease-settle)}
+@media (hover:hover){.go-occt:hover .go-occt-img img{transform:scale(1.04)}}
+.go-occt-label{display:block;padding:10px 12px 11px;
+  font-family:'Asap',system-ui,sans-serif;font-weight:600;font-size:14.5px;line-height:1.25;color:var(--body)}
+.go-occt.is-on{border-color:#9a7ee6;box-shadow:0 0 0 3px rgba(154,126,230,.2),0 12px 28px -14px rgba(124,92,214,.6)}
+.go-occt.is-on .go-occt-label{color:#fff}
+.go-occt-check{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:26px;height:26px;
+  border-radius:50%;background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
+  box-shadow:0 4px 12px -4px rgba(8,5,18,.8);
+  opacity:0;transform:scale(.6);transition:opacity .15s var(--ease-stage),transform .15s var(--ease-stage)}
+.go-occt-check svg{width:13px;height:13px}
+.go-occt-check.is-on{opacity:1;transform:scale(1)}
+
+/* group gift rows */
+.go-recips{display:flex;flex-direction:column;gap:12px}
+.go-recip{padding:14px;border-radius:16px;background:rgba(13,10,20,.38);
+  border:1px solid rgba(154,126,230,.22)}
+.go-recip-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.go-recip-n{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
+  font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:13px}
+.go-recip-x{display:grid;place-items:center;width:40px;height:40px;flex-shrink:0;border-radius:12px;
+  background:none;border:none;color:var(--dim);cursor:pointer;
+  transition:color .15s ease,background-color .15s ease}
+.go-recip-x svg{width:15px;height:15px}
+@media (hover:hover){.go-recip-x:hover{color:var(--body);background:rgba(124,92,214,.12)}}
+.go-pills{display:flex;flex-wrap:wrap;gap:7px}
+.go-pill{min-height:44px;padding:9px 15px;border-radius:999px;cursor:pointer;
+  border:1.5px solid rgba(154,126,230,.3);background:rgba(13,10,20,.3);
+  font-family:'Asap',system-ui,sans-serif;font-weight:500;font-size:14px;color:var(--muted);
+  transition:border-color .15s ease,background-color .15s ease,color .15s ease;
+  -webkit-tap-highlight-color:transparent}
+@media (hover:hover){.go-pill:hover{border-color:var(--line-bright);color:var(--body)}}
+.go-pill:active{transform:scale(.97)}
+.go-pill.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.18);color:#fff}
+.go-add{display:flex;align-items:center;justify-content:center;gap:9px;min-height:56px;padding:14px;
+  border-radius:16px;border:1.5px dashed rgba(154,126,230,.45);background:rgba(124,92,214,.07);cursor:pointer;
+  font-family:'Asap',system-ui,sans-serif;font-weight:600;font-size:15.5px;color:var(--vio-bright);
+  transition:border-color .15s ease,background-color .15s ease}
+@media (hover:hover){.go-add:hover{border-color:rgba(185,165,240,.7);background:rgba(124,92,214,.13)}}
+.go-add svg{width:18px;height:18px}
+.go-add-save{font-size:13px;color:var(--vio-pale)}
+
+/* delivery */
+.go-del{display:grid;gap:10px}
+.go-del-card{display:grid;grid-template-columns:44px 1fr 26px;gap:14px;align-items:center;text-align:left;
+  padding:16px;border-radius:18px;cursor:pointer;
+  border:1.5px solid rgba(154,126,230,.28);background:rgba(13,10,20,.35);
+  transition:border-color .15s ease,background-color .15s ease,box-shadow .15s ease;
+  -webkit-tap-highlight-color:transparent}
+@media (hover:hover){.go-del-card:hover{border-color:var(--line-bright)}}
+.go-del-card:active{transform:scale(.99)}
+.go-del-card.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.12);
+  box-shadow:0 0 0 3px rgba(154,126,230,.16)}
+.go-del-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;flex-shrink:0;
+  background:linear-gradient(165deg,rgba(154,126,230,.24),rgba(124,92,214,.1));
+  border:1px solid rgba(185,165,240,.3)}
+.go-del-icon svg{width:22px;height:22px;color:var(--vio-pale)}
+.go-del-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+.go-del-t{font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:16.5px;color:var(--white)}
+.go-del-s{font-size:15px;line-height:1.45;color:var(--dim)}
+.go-del-radio{width:24px;height:24px;border-radius:50%;border:2px solid rgba(154,126,230,.5);
+  display:grid;place-items:center;transition:border-color .15s ease}
+.go-del-radio::after{content:"";width:12px;height:12px;border-radius:50%;
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);opacity:0;transform:scale(.5);
+  transition:opacity .15s var(--ease-stage),transform .15s var(--ease-stage)}
+.go-del-radio.is-on{border-color:#9a7ee6}
+.go-del-radio.is-on::after{opacity:1;transform:scale(1)}
+.go-del-note{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center;
+  padding:16px;border-radius:18px;border:1px solid rgba(154,126,230,.24);background:rgba(124,92,214,.07)}
+.go-del-note p{font-size:15.5px;line-height:1.5;color:var(--body)}
+
+/* fields */
+.go-fields{display:flex;flex-direction:column;gap:10px}
+.go-field{width:100%;min-height:54px;padding:14px 16px;border-radius:14px;
+  border:1.5px solid rgba(139,123,216,.35);background:rgba(13,10,20,.5);
+  font-size:17px;color:var(--body);outline:none;
+  transition:border-color .15s ease,box-shadow .15s ease}
+.go-field::placeholder{color:var(--dim)}
+.go-field:focus{border-color:#9a7ee6;box-shadow:0 0 0 3px rgba(167,139,250,.2)}
+.go-field-bare{min-height:48px;background:rgba(13,10,20,.35)}
+.go-note{min-height:120px;line-height:1.55;resize:none}
+.go-note-count{margin-top:6px;text-align:right;font-size:12.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+
+/* the pay moment */
+.go-pay-zone{margin-top:clamp(30px,5vw,42px);padding-top:clamp(24px,4vw,32px);
+  border-top:1px solid rgba(154,126,230,.2)}
+.go-promo{display:flex;gap:8px}
+.go-promo .go-field{flex:1;text-transform:uppercase}
+.go-promo .go-field::placeholder{text-transform:none}
+.go-apply{padding:0 22px;min-height:54px;border-radius:14px;border:1.5px solid rgba(154,126,230,.45);
+  background:rgba(124,92,214,.1);color:var(--vio-pale);cursor:pointer;
+  font-family:'Asap',system-ui,sans-serif;font-weight:600;font-size:15px;white-space:nowrap;
+  transition:border-color .15s ease,background-color .15s ease,color .15s ease}
+.go-apply:disabled{opacity:.45;cursor:default}
+@media (hover:hover){.go-apply:not(:disabled):hover{border-color:rgba(185,165,240,.7);color:#fff;background:rgba(124,92,214,.16)}}
+.go-apply:not(:disabled):active{transform:scale(.97)}
+.go-promo-err{margin-top:8px;font-size:14px;color:var(--body);padding-left:10px;border-left:2px solid var(--vio-soft)}
+.go-promo-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  min-height:54px;padding:10px 10px 10px 16px;border-radius:14px;
+  background:rgba(124,92,214,.12);border:1px solid rgba(185,165,240,.35)}
+.go-promo-chip span{font-family:'Asap',system-ui,sans-serif;font-weight:600;font-size:15px;color:var(--vio-pale)}
+.go-promo-chip button{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;
+  background:none;border:none;color:var(--vio-pale);cursor:pointer}
+.go-promo-chip button svg{width:14px;height:14px}
+@media (hover:hover){.go-promo-chip button:hover{background:rgba(124,92,214,.16);color:#fff}}
+
+.go-total{margin-top:14px;padding:clamp(18px,3vw,24px);border-radius:18px;
+  background:rgba(13,10,20,.45);border:1px solid rgba(154,126,230,.24)}
+.go-total-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  padding:5px 0;font-size:16px;color:var(--body)}
+.go-total-row span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.go-total-row.is-save{color:var(--vio-pale);font-size:15px}
+.go-total-final{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  margin-top:10px;padding-top:12px;border-top:1px dashed rgba(154,126,230,.35)}
+.go-total-final span:first-child{font-family:'Asap',system-ui,sans-serif;font-weight:700;
+  font-size:1.15rem;color:var(--white)}
+.go-total-final span:last-child{font-family:'Fraunces',Georgia,serif;font-weight:600;
+  font-size:1.6rem;color:var(--white);font-variant-numeric:tabular-nums}
+.go-total-note{margin-top:8px;text-align:right;font-size:13px;color:var(--dim)}
+
+.go-pay{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  min-height:62px;margin-top:16px;padding:0 26px;border-radius:999px;border:0;cursor:pointer;
+  font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:18px;letter-spacing:.01em;color:#fff;
+  background:linear-gradient(180deg,#9a7ee6 0%,#7c5cd6 45%,#5d47a0 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 12px 30px -12px rgba(124,92,214,.65);
+  transition:transform .15s var(--ease-stage),box-shadow .15s ease,filter .15s ease}
+.go-pay svg{width:19px;height:19px}
+@media (hover:hover){.go-pay:not(:disabled):hover{filter:brightness(1.06);transform:translateY(-1px);
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 16px 40px -12px rgba(124,92,214,.8)}}
+.go-pay:not(:disabled):active{transform:scale(.98);transition-duration:.06s}
+.go-pay:disabled{cursor:default;color:var(--dim);background:rgba(124,92,214,.16);box-shadow:none}
+.go-refund{margin-top:14px;text-align:center;font-family:'Fraunces',Georgia,serif;font-style:italic;
+  font-size:17px;line-height:1.5;color:var(--white)}
+.go-pay-marks{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:16px;opacity:.8}
+.go-secure{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--dim)}
+.go-secure svg{width:14px;height:14px;color:var(--vio-soft)}
+
+@media (max-width:560px){
+  .go-vessel{border-radius:20px}
+  .go-count-btn{min-height:60px;border-radius:13px}
+  .go-count-save{font-size:9.5px}
+  .go-del-card{grid-template-columns:38px 1fr 24px;gap:11px;padding:14px}
+  .go-del-icon{width:38px;height:38px;border-radius:11px}
+  .go-del-icon svg{width:19px;height:19px}
+  .go-plan-occ{left:10px;bottom:10px;padding:6px 11px;font-size:12px}
+  .go-unlock{padding:20px 14px 16px;gap:11px}
 }
 `;
