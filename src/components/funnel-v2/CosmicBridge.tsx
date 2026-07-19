@@ -551,7 +551,7 @@ const LCB_CSS = `
    (S7) so the arrival never depends on network timing. */
 .c2-moonspine{
   position:absolute;z-index:-1;pointer-events:none;
-  top:clamp(130px, 21svh, 200px);
+  top:clamp(-14px, 2svh, 30px);
   right:calc(-1 * clamp(14px, 6vw, 84px));
   width:clamp(116px, 28vw, 208px);height:auto;border-radius:50%;
   -webkit-mask-image:radial-gradient(circle, #000 93%, rgba(0,0,0,0) 100%);
@@ -561,22 +561,22 @@ const LCB_CSS = `
   transition:opacity 1.2s ease .5s, filter 1.6s ease .5s;
   will-change:transform;
 }
-.c2-b3.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
+.c2-answer.is-inview .c2-moonspine{opacity:.95;filter:blur(0)}
 .c2-moonglow{
   position:absolute;z-index:-2;pointer-events:none;border-radius:50%;
-  top:clamp(104px, 18svh, 174px);
+  top:clamp(-40px, -1svh, 8px);
   right:calc(-1 * clamp(30px, 8vw, 108px));
   width:clamp(150px, 36vw, 260px);aspect-ratio:1;
   background:radial-gradient(circle, rgba(167,139,250,.22) 0%, rgba(167,139,250,.08) 45%, transparent 70%);
   opacity:0;transition:opacity 1.6s ease .6s;mix-blend-mode:screen;
 }
-.c2-b3.is-inview .c2-moonglow{opacity:1}
+.c2-answer.is-inview .c2-moonglow{opacity:1}
 /* phones: the sky line wraps wide on a narrow column, so the moon seats in
    the sky beat's top-right, above the sky-line text (clearing it), rather than
    beside it where it would cross the wrapped lines. */
 @media (max-width:520px){
-  .c2-moonspine{width:clamp(92px, 23vw, 128px);top:calc(-1 * clamp(4px, 1svh, 12px));right:-30px}
-  .c2-moonglow{width:clamp(120px, 30vw, 170px);top:calc(-1 * clamp(20px, 3svh, 30px));right:-46px}
+  .c2-moonspine{width:clamp(92px, 23vw, 128px);top:clamp(28px, 7svh, 64px);right:-30px}
+  .c2-moonglow{width:clamp(120px, 30vw, 170px);top:clamp(6px, 4svh, 40px);right:-46px}
 }
 
 /* ---- reduced motion: the finished passage at rest ---- */
@@ -946,9 +946,11 @@ export function CosmicBridge() {
     let io: IntersectionObserver | null = null;
     let ioSec: IntersectionObserver | null = null;
     let ioSync: IntersectionObserver | null = null;
+    const answerEl = q(".c2-answer"); // the moon now rises here, beside "They can."
     if (reduced || !("IntersectionObserver" in window)) {
       rvNodes.forEach((el) => el.classList.add("is-in"));
       b3El?.classList.add("is-inview", "is-drawn");
+      answerEl?.classList.add("is-inview");
     } else {
       io = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
@@ -971,9 +973,21 @@ export function CosmicBridge() {
           }
         });
       }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
-      // The birth-sky beat drives BOTH the wheel draw (armWheelGate) and the
-      // moon reveal (.c2-b3.is-inview .c2-moonspine), so one ioSec covers both.
+      // The birth-sky beat drives the wheel draw (armWheelGate).
       if (b3El) ioSec.observe(b3El);
+      // The answer beat reveals the moon (.c2-answer.is-inview .c2-moonspine)
+      // on its own observer so it does not arm the wheel gate early.
+      if (answerEl) {
+        const ioMoon = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting || e.boundingClientRect.top < 0) {
+              e.target.classList.add("is-inview");
+              ioMoon.disconnect();
+            }
+          });
+        }, { threshold: 0.08, rootMargin: "600px 0px 42% 0px" });
+        ioMoon.observe(answerEl);
+      }
       // The only word-precise sync left: the CTA line launches the traveling
       // highlight into the form node. (The retired copy's star flare / degree
       // crosshairs went with the beats they annotated.)
@@ -1407,9 +1421,9 @@ export function CosmicBridge() {
         ctaLit = true;
         sealCard();
       }
-      // the moon drifts gently in its corner as the birth-sky beat passes
-      if (b3El && moonImg) {
-        const mr = b3El.getBoundingClientRect();
+      // the moon drifts gently in its corner as the "They can." beat passes
+      if (answerEl && moonImg) {
+        const mr = answerEl.getBoundingClientRect();
         let offm = ((window.innerHeight / 2) - (mr.top + mr.height / 2)) * 0.04;
         offm = Math.max(-14, Math.min(14, offm));
         moonImg.style.transform = `translate3d(0,${offm.toFixed(1)}px,0)`;
@@ -1613,16 +1627,6 @@ export function CosmicBridge() {
         {/* ── Beat 4 · the answer ── */}
         <section className="c2-beat c2-answer">
           <span className="c2-node" data-node data-for="c2-listen" aria-hidden="true" />
-          <p className="c2-ll c2-rv">They can.</p>
-          <p className="c2-ll c2-rv">Just not in the way we would expect.</p>
-          <p className="c2-lm c2-rv">The universe and nature are always communicating with us.</p>
-          <p className="c2-ll c2-rv" id="c2-listen"><em>We just need to listen.</em></p>
-        </section>
-
-        {/* ── Beat 5 · the birth sky: a real natal wheel, the real moon
-              arriving beside the sky line as a corner presence ── */}
-        <section className="c2-beat c2-b3">
-          <span className="c2-node" data-node data-for="c2-sky" aria-hidden="true" />
           <div className="c2-moonglow" aria-hidden="true" />
           <img
             className="c2-moonspine"
@@ -1633,6 +1637,16 @@ export function CosmicBridge() {
             decoding="async"
             loading="lazy"
           />
+          <p className="c2-ll c2-rv">They can.</p>
+          <p className="c2-ll c2-rv">Just not in the way we would expect.</p>
+          <p className="c2-lm c2-rv">The universe and nature are always communicating with us.</p>
+          <p className="c2-ll c2-rv" id="c2-listen"><em>We just need to listen.</em></p>
+        </section>
+
+        {/* ── Beat 5 · the birth sky: a real natal wheel (the moon now rises
+              earlier, beside "They can.") ── */}
+        <section className="c2-beat c2-b3">
+          <span className="c2-node" data-node data-for="c2-sky" aria-hidden="true" />
           <p className="c2-ll c2-rv">A birth chart is a way of listening to them.</p>
           <p className="c2-ll c2-rv" id="c2-sky">The sky the moment they were born is one language they are still speaking.</p>
           <div className="c2-wheel c2-rv" aria-hidden="true">
