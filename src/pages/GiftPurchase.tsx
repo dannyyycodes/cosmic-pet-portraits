@@ -318,12 +318,6 @@ type GlyphComponent = (props: GlyphProps) => JSX.Element;
 
 type GiftOccasionOption = { value: GiftOccasion; Glyph: GlyphComponent; label: string; hint: string };
 
-const GIFT_OCCASION_OPTIONS: GiftOccasionOption[] = [
-  { value: 'discover', Glyph: GlyphPaw, label: 'Discover', hint: 'For a pet they already have' },
-  { value: 'new', Glyph: GlyphSprout, label: 'New Pet', hint: 'They just got a new pet' },
-  { value: 'memorial', Glyph: GlyphCandle, label: 'Memorial', hint: 'They lost a beloved pet' },
-  { value: 'birthday', Glyph: GlyphCake, label: 'Birthday', hint: 'Celebrating their pet' },
-];
 
 // Prices come from useLocalizedPrice() at render time — this const only
 // holds static copy. Price mapping: essential → prices.basic/wasBasic,
@@ -510,6 +504,11 @@ const GIFTER_CARDS: GifterReview[] = [
     attr: 'Grace O. · Otis, rescue shorthair cat',
   },
   {
+    img: '/reviews/review-3.webp', alt: 'Alfie', stars: 5,
+    quote: "alfie has a habit of dropping one toy on your foot and then pretending he has nothing to do with it. The reading called out his Venus charm and the little performance before asking to play, which made me laugh in the queue at Tesco. Sent it straight to the family chat.",
+    attr: 'Tom W. · Alfie, cocker spaniel',
+  },
+  {
     img: '/reviews/review-6.webp', alt: 'Tilly', stars: 5,
     quote: "We came back for Tilly six months after doing our first reading for Pip. Pip's is framed in the hallway and I still notice new lines in it when I am putting my shoes on, especially the bit about his Moon softening with age. Tilly's felt different in exactly the way she is different: steadier, slower, still checking every room for us...",
     attr: 'Sarah K. · Tilly, chocolate Labrador',
@@ -541,19 +540,6 @@ const GIFTER_CARDS: GifterReview[] = [
    below). Chosen because it answers the gifter's exact fear: the
    dismissive person in the house was won over. NOT the Mo spotlight,
    which opens the reviews section. Never edit the words. ── */
-/* Decision-point proof, keyed by occasion so a grieving gifter never
-   reads a playful quote under the memorial card. Both verbatim from
-   the sanctioned REVIEWS set; Jasper appears nowhere else on the page. */
-const DECISION_REVIEW_DEFAULT: GifterReview = {
-  img: '/reviews/review-3.webp', alt: 'Alfie', stars: 5,
-  quote: "alfie has a habit of dropping one toy on your foot and then pretending he has nothing to do with it. The reading called out his Venus charm and the little performance before asking to play, which made me laugh in the queue at Tesco. Sent it straight to the family chat.",
-  attr: 'Tom W. · Alfie, cocker spaniel',
-};
-const DECISION_REVIEW_MEMORIAL: GifterReview = {
-  img: '/reviews/review-2.webp', alt: 'Jasper', stars: 5,
-  quote: "I opened Jasper's reading at 11pm, four days after we lost him, sitting on the kitchen floor because the house felt wrong. When it spoke about his Moon needing the highest warm place, I had to put the phone down and breathe through my sleeve. His blanket was still on the window seat.",
-  attr: 'Priya S. · Jasper, ginger cat',
-};
 
 /* ── Review stars — the ONE gold exception: star fills only. ── */
 const STAR_PATH = 'M12 2l2.9 6.26 6.9.6-5.2 4.5 1.55 6.74L12 16.9 5.85 20.1l1.55-6.74-5.2-4.5 6.9-.6L12 2z';
@@ -809,17 +795,6 @@ function GifterProof() {
    choice. The gift framed on the love axis: they already have the
    feeling, this gives it words. Eyebrow + one Fraunces italic line,
    scroll-revealed. Nothing else. ── */
-function GiftBridge() {
-  return (
-    <section className="gp-wrap gp-band gp-bridge">
-      <p className="gp-eyebrow gp-rev">The real gift</p>
-      <p className="gp-bridge-line gp-rev" style={{ ['--d' as string]: '120ms' }}>
-        They already know how much they love them. This gives them the words.
-      </p>
-    </section>
-  );
-}
-
 /* ── SUBSTANCE — the honest proof language: real astronomy. ── */
 function RigorBand() {
   const items = [
@@ -1221,7 +1196,6 @@ export default function GiftPurchase() {
             a dark/cream boundary */}
         <HowItWorks />
 
-        <GiftBridge />
 
         {/* ── CREATE THEIR GIFT — the interactive purchase funnel.
              Occasion picker gates the tier cards, which drive
@@ -1320,19 +1294,6 @@ export default function GiftPurchase() {
                     <li><GlyphSeal /> Full refund if it does not feel like them</li>
                   </ul>
 
-                  {(() => {
-                    const dr = selectedOccasion === 'memorial' ? DECISION_REVIEW_MEMORIAL : DECISION_REVIEW_DEFAULT;
-                    return (
-                      <figure className="gp-decide-review">
-                        <StarsRow n={dr.stars} size={14} />
-                        <blockquote>{dr.quote}</blockquote>
-                        <figcaption>
-                          <img src={dr.img} alt={dr.alt} width={40} height={40} loading="lazy" decoding="async" />
-                          <span>{dr.attr}</span>
-                        </figcaption>
-                      </figure>
-                    );
-                  })()}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1482,32 +1443,6 @@ export default function GiftPurchase() {
                                 {deliveryMethod === 'email' && (
                                   <input type="email" className="gp-field" value={singleRecipient.email} onChange={e => updateSingleRecipient('email', e.target.value)} placeholder="Their email address" />
                                 )}
-                                <div>
-                                  <p className="gp-field-sub">What's this reading for?</p>
-                                  <div className="gp-occ-mini-grid">
-                                    {GIFT_OCCASION_OPTIONS.map((opt) => {
-                                      const selected = (singleRecipient.occasion ?? 'discover') === opt.value;
-                                      const isMem = opt.value === 'memorial';
-                                      return (
-                                        <button
-                                          key={opt.value}
-                                          type="button"
-                                          onClick={() => setSingleRecipient(r => ({ ...r, occasion: opt.value }))}
-                                          className={`gp-occ-mini ${selected ? (isMem ? 'is-on-mem' : 'is-on') : ''}`}
-                                        >
-                                          <span className="gp-occ-mini-t">
-                                            <opt.Glyph />
-                                            {opt.label}
-                                          </span>
-                                          <span className="gp-occ-mini-h">{opt.hint}</span>
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                  <p className="gp-help">
-                                    Not sure? Leave it on Discover.
-                                  </p>
-                                </div>
                               </div>
                             </div>
                           )}
@@ -1533,26 +1468,6 @@ export default function GiftPurchase() {
                                     {deliveryMethod === 'email' && (
                                       <input type="email" className="gp-field gp-field-sm" value={r.email} onChange={e => updateRecipient(r.id, 'email', e.target.value)} placeholder="Email" />
                                     )}
-                                  </div>
-                                  <div style={{ marginTop: 10 }}>
-                                    <p className="gp-field-sub">What's their reading for?</p>
-                                    <div className="gp-occ-chip-row">
-                                      {GIFT_OCCASION_OPTIONS.map((opt) => {
-                                        const selected = (r.occasion ?? 'discover') === opt.value;
-                                        const isMem = opt.value === 'memorial';
-                                        return (
-                                          <button
-                                            key={opt.value}
-                                            type="button"
-                                            onClick={() => setRecipients(rs => rs.map(x => x.id === r.id ? { ...x, occasion: opt.value } : x))}
-                                            className={`gp-occ-chip ${selected ? (isMem ? 'is-on-mem' : 'is-on') : ''}`}
-                                          >
-                                            <opt.Glyph />
-                                            <span>{opt.label}</span>
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -2306,13 +2221,6 @@ const GP_CSS = `
 .gp-worry-row svg{width:14px;height:14px;flex-shrink:0;color:var(--vio-soft)}
 
 /* the one voice beside the decision: a compact strip below the chips */
-.gp-decide-review{margin:56px auto 0;max-width:640px;padding:24px 26px 20px;border-radius:16px;text-align:left;
-  background:linear-gradient(180deg,#1c1629,#17111f);border:1px solid rgba(167,139,250,.3);
-  box-shadow:0 1px 0 rgba(207,192,244,.11) inset,0 18px 40px -22px rgba(8,5,18,.9)}
-.gp-decide-review blockquote{margin:10px 0 13px;font-size:16px;line-height:1.6;color:#efeaff}
-.gp-decide-review figcaption{display:flex;align-items:center;gap:10px;color:var(--vio-pale);font-size:14px}
-.gp-decide-review figcaption img{width:40px;height:40px;border-radius:11px;object-fit:cover;
-  border:1px solid rgba(197,178,255,.4);flex:none}
 
 /* ── flow: the checkout panel. Opens as a considered, elevated piece
    of cosmos glass (spotlight surface language), never a bare divider.
@@ -2442,22 +2350,6 @@ const GP_CSS = `
 .gp-help{font-size:14px;color:var(--dim);margin-top:8px}
 
 /* per-recipient occasion pickers */
-.gp-occ-mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.gp-occ-mini{padding:9px 10px;border-radius:10px;text-align:left;cursor:pointer;
-  border:1px solid var(--line);background:rgba(124,92,214,.05)}
-.gp-occ-mini.is-on{border:1.5px solid #9a7ee6;background:rgba(124,92,214,.16)}
-.gp-occ-mini.is-on-mem{border:1.5px solid #b8b2cc;background:rgba(200,196,216,.14)}
-.gp-occ-mini-t{display:flex;align-items:center;gap:7px;font-size:15.5px;font-weight:600;color:var(--white)}
-.gp-occ-mini-t svg{width:16px;height:16px;flex-shrink:0;color:var(--vio-soft)}
-.gp-occ-mini.is-on-mem .gp-occ-mini-t svg{color:#b8b2cc}
-.gp-occ-mini-h{display:block;font-size:13px;color:var(--dim);margin-top:2px}
-.gp-occ-chip-row{display:flex;flex-wrap:wrap;gap:6px}
-.gp-occ-chip{padding:6px 12px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
-  border:1px solid var(--line);background:rgba(124,92,214,.05);font-size:14.5px;font-weight:600;color:var(--body)}
-.gp-occ-chip svg{width:15px;height:15px;flex-shrink:0;color:var(--vio-soft)}
-.gp-occ-chip.is-on{border:1.5px solid #9a7ee6;background:rgba(124,92,214,.16);color:var(--white)}
-.gp-occ-chip.is-on-mem{border:1.5px solid #b8b2cc;background:rgba(200,196,216,.14);color:var(--white)}
-.gp-occ-chip.is-on-mem svg{color:#b8b2cc}
 
 /* multi recipients */
 .gp-recip-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
