@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from "react";
-import { ArrowRight, Aperture, BookOpen, ChevronDown, MessageCircle, Moon, Volume2 } from "lucide-react";
+import { ArrowRight, Aperture, BookOpen, ChevronDown, MessageCircle, Mic, Moon, Volume2 } from "lucide-react";
 import { animate, AnimatePresence, motion, useMotionTemplate, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Lenis from "lenis";
 import imageCompression from "browser-image-compression";
@@ -486,12 +486,12 @@ export function ReadingsLanding() {
         <>
           <FullReadingOpens />
           <ValueMoments />
-          <ReviewsWall />
           <CheckoutSection
             checkoutRef={checkoutRef}
             selectedPrice={selectedPrice}
             onSelectedPriceChange={setSelectedPrice}
           />
+          <ReviewsWall />
           <StickyBeginBar />
         </>
       )}
@@ -4775,24 +4775,19 @@ function FullReadingOpens() {
                 <div className="ls-rs-grid">
                   {REST_SKY.map((b, i) => door(b, i))}
                 </div>
+                {/* the rising, folded in as the quiet ninth — one honest line,
+                    not its own text block. It needs the exact birth minute,
+                    which a date-only chart cannot fix, so it lives here with
+                    the still-sealed rather than among the read. */}
+                <p className="ls-rs-rising ls-rs-seal-rising">
+                  {!memorial && <RestLock />}
+                  {memorial
+                    ? "And the rising, the first face they showed, set by the exact minute they arrived."
+                    : "And the rising, the first face they show, set by the exact minute they arrived."}
+                </p>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* BEAT 3 — the rising as a horizon hinge: a half-risen disc on a
-            drawn hairline, the approved sentence beneath it. */}
-        <div className="ls-rs-horizon ls-rs-rv">
-          <div className="ls-rs-hz-label">The Rising</div>
-          <div className="ls-rs-hz-line" aria-hidden="true">
-            <span className="ls-rs-hz-glow" />
-            <span className="ls-rs-hz-disc" />
-          </div>
-          <p className="ls-rs-rising">
-            {memorial
-              ? "And the rising, the first face they showed. It turns on the exact minute they arrived."
-              : "And the rising, the first face they show. It turns on the exact minute they arrived."}
-          </p>
         </div>
 
         {/* BEAT 4 — the close: the thirteen assembled into one chart ring
@@ -5053,18 +5048,13 @@ function FullReadingOpens() {
         .ls-rs-door .ls-rs-hook { font-size: 15.5px; }
         @media (min-width: 900px) { .ls-rs-door .ls-rs-hook { font-size: 16px; max-width: 24ch; } }
 
-        /* BEAT 3 - the rising as a horizon hinge */
-        .ls-rs-horizon { margin: clamp(48px, 7vw, 72px) auto 0; text-align: center; }
-        .ls-rs-hz-label { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 20px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
-        .ls-rs-hz-label::before, .ls-rs-hz-label::after { content: ""; width: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.5)); }
-        .ls-rs-hz-line { position: relative; width: min(520px, 82vw); height: 1px; margin: 0 auto; background: linear-gradient(90deg, transparent, rgba(185,165,240,0.55), transparent); transform: scaleX(0.4); transition: transform 0.8s var(--e-settle); }
-        .ls-rs-horizon[data-in] .ls-rs-hz-line { transform: scaleX(1); }
-        .ls-rs-hz-glow { position: absolute; left: 50%; top: 1px; width: 120px; height: 24px; margin-left: -60px; border-radius: 50%; background: rgba(154,126,230,0.35); filter: blur(24px); pointer-events: none; opacity: 0; transition: opacity 0.7s var(--e-settle) 0.15s; }
-        .ls-rs-hz-disc { position: absolute; left: 50%; bottom: 0; width: 64px; height: 32px; margin-left: -32px; overflow: hidden; opacity: 0; transform: translateY(8px); transition: transform 0.7s var(--e-settle) 0.15s, opacity 0.7s var(--e-settle) 0.15s; }
-        .ls-rs-hz-disc::before { content: ""; position: absolute; left: 0; bottom: -32px; width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 50% 100%, ${C.goldSoft} 0%, ${C.violet} 55%, transparent 78%); }
-        .ls-rs-horizon[data-in] .ls-rs-hz-disc { opacity: 1; transform: none; }
-        .ls-rs-horizon[data-in] .ls-rs-hz-glow { opacity: 1; }
-        .ls-rs-rising { margin: 18px auto 0; max-width: 46ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.55; }
+        /* the rising, folded into the sealed panel as a quiet ninth line —
+           the drawn horizon block was retired (2026-07-19: badly placed, too
+           text-heavy); the honest exact-minute point now lives here, with the
+           still-sealed, in one line instead of its own beat. */
+        .ls-rs-rising { margin: 0 auto; max-width: 46ch; text-align: center; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1rem, 2.5vw, 1.14rem); line-height: 1.55; }
+        .ls-rs-seal-rising { display: flex; align-items: center; justify-content: center; gap: 10px; margin: clamp(30px, 5vw, 46px) auto 0; padding-top: clamp(22px, 3.4vw, 30px); max-width: 42ch; border-top: 1px solid rgba(185,165,240,0.15); opacity: 0.92; }
+        .ls-rs-seal-rising svg { flex: 0 0 auto; width: 13px; height: 14px; color: ${C.violetBright}; opacity: 0.75; }
 
         /* BEAT 4 - the close: the one real door, straight to the CTA */
         .ls-rs-close { text-align: center; max-width: 560px; margin: clamp(46px, 7vw, 84px) auto 0; }
@@ -5202,7 +5192,7 @@ const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; t
     key: "soulspeak",
     label: "SoulSpeak",
     name: "Sit and talk with their soul.",
-    line: "Ask them anything, in their own voice. The questions you never got to, answered at last.",
+    line: "Ask them anything and hear it answered in their own voice. The things you always wondered, from their side at last.",
     target: "voice",
   },
   {
@@ -5231,6 +5221,15 @@ const VM_ICON: Record<string, typeof BookOpen> = {
   horoscope: Moon,
 };
 
+/* Peek affordance per holding — each entry opens a small visual preview
+ * (a page glimpse, the framed portrait, the SoulSpeak chat, a week ahead). */
+const VM_PEEK: Record<string, string> = {
+  placements: "Look inside a chapter",
+  keepsake: "See the keepsake",
+  soulspeak: "Open the conversation",
+  horoscope: "See a week ahead",
+};
+
 function ValueMoments() {
   const [memorialIntent, setMemorialIntent] = useState<boolean>(() => getIntent() === "memorial");
   // The one personal asset the funnel has collected: their pet's name and photo,
@@ -5252,6 +5251,9 @@ function ValueMoments() {
   const [coreErr, setCoreErr] = useState(false);
   const [inView, setInView] = useState(false);
   const [live, setLive] = useState(false);
+  // Which holding has its preview open. SoulSpeak leads open so its chat
+  // teaser is seen without a tap; the other three peek on demand.
+  const [openKey, setOpenKey] = useState<string | null>("soulspeak");
   const rootRef = useRef<HTMLElement>(null);
   const objRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
@@ -5321,6 +5323,84 @@ function ValueMoments() {
   const petName = capName(pet?.name);
   const objLabel = `The full reading, kept as one keepsake with ${petName ? `${petName}'s` : "their"} photo at the centre`;
 
+  // SoulSpeak teaser copy, register-aware. A tender owner question and the
+  // little soul answering in first person — clearly a preview, not a live
+  // channel. Voice is hinted, never a fresh claim (the holding already
+  // promises "their own voice").
+  const soulOwnerAsk = memorialIntent ? "Are you still with me?" : "Do you know you are safe with me?";
+  const soulPetReply = memorialIntent
+    ? "I never left the warm end of the sofa. Say my name and listen, I always answer."
+    : "Every time you say my name, I know. Your voice is the warm part of my whole day.";
+  const WEEK: { d: string; m?: boolean }[] = [
+    { d: "Mon" }, { d: "Tue", m: true }, { d: "Wed" }, { d: "Thu" },
+    { d: "Fri" }, { d: "Sat" }, { d: "Sun", m: true },
+  ];
+  const renderPreview = (key: string): ReactNode => {
+    switch (key) {
+      case "placements":
+        return (
+          <div className="ls-vm-prev vm-prev-page" aria-hidden="true">
+            <span className="vm-page-chap">Chapter I</span>
+            <span className="vm-page-h">The way they love</span>
+            <span className="vm-page-l" />
+            <span className="vm-page-l" />
+            <span className="vm-page-l is-short" />
+            <span className="vm-page-fade">
+              <span className="vm-page-l" />
+              <span className="vm-page-l is-short" />
+            </span>
+            <span className="vm-page-foot">Thirteen chapters, opened in full</span>
+          </div>
+        );
+      case "keepsake":
+        return (
+          <div className="ls-vm-prev vm-prev-keep" aria-hidden="true">
+            <span className="vm-keep-frame">
+              <img src={coreSrc} alt="" loading="lazy" decoding="async" />
+            </span>
+            <span className="vm-keep-plate">{petName || "Their name"}</span>
+          </div>
+        );
+      case "soulspeak":
+        return (
+          <div className="ls-vm-prev vm-prev-chat">
+            <div className="vm-chat-head">
+              <span className="vm-chat-av"><img src={coreSrc} alt="" loading="lazy" decoding="async" /></span>
+              <span className="vm-chat-id">
+                <span className="vm-chat-name">{petName || "Their soul"}</span>
+                <span className="vm-chat-status"><i className="vm-chat-dot" aria-hidden="true" />Soul channel open</span>
+              </span>
+              <span className="vm-chat-badge">SoulSpeak</span>
+            </div>
+            <div className="vm-chat-body">
+              <div className="vm-msg vm-msg-user"><span className="vm-bub">{soulOwnerAsk}</span></div>
+              <div className="vm-msg vm-msg-pet">
+                <span className="vm-msg-av"><img src={coreSrc} alt="" loading="lazy" decoding="async" /></span>
+                <span className="vm-bub">{soulPetReply}</span>
+              </div>
+            </div>
+            <div className="vm-chat-foot">
+              <span className="vm-chat-input"><Mic size={15} strokeWidth={1.6} aria-hidden="true" />Ask them anything</span>
+              <span className="vm-chat-voice"><Volume2 size={15} strokeWidth={1.7} aria-hidden="true" />Hear it in their voice</span>
+            </div>
+          </div>
+        );
+      case "horoscope":
+        return (
+          <div className="ls-vm-prev vm-prev-week" aria-hidden="true">
+            <div className="vm-week-row">
+              {WEEK.map((w, i) => (
+                <span key={i} className={`vm-week-day${w.m ? " is-mark" : ""}`}>{w.d}</span>
+              ))}
+            </div>
+            <p className="vm-week-line">This week: a restless Tuesday, a clingy Sunday.</p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <section
       id="the-more"
@@ -5345,33 +5425,10 @@ function ValueMoments() {
             <div className={`ls-vm-object ${live ? "is-live" : ""}`} ref={objRef} role="img" aria-label={objLabel}>
               <div className="ls-vm-halo" aria-hidden="true" />
               <div className="ls-vm-wheel">
+                {/* the orbiting thirteen were retired (2026-07-19: Danny — no
+                    moving planets). Their face is the keepsake now: one framed
+                    portrait, double-ringed and calm, held on a still orbit. */}
                 <span className="ls-vm-orbit" aria-hidden="true" />
-                <div className="ls-vm-ring" aria-hidden="true">
-                  {THIRTEEN_ORDER.map((k, i) => {
-                    const lit = i < 5;
-                    const img = lit ? DECK_PHOTO[k as DeckPlanet] : REST_SKY.find((b) => b.key === k)?.img;
-                    return (
-                      <span
-                        key={k}
-                        className={`ls-vm-mini ${lit ? "is-free" : "is-full"}${img ? "" : " is-glyph"}`}
-                        style={{ ["--a" as string]: `${((i * 360) / 13).toFixed(4)}deg` } as CSSProperties}
-                      >
-                        <span className="ls-vm-mini-face">
-                          {img ? (
-                            <img
-                              src={img}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              onError={(e) => e.currentTarget.parentElement?.classList.add("is-imgerr")}
-                            />
-                          ) : null}
-                          <span className="ls-vm-mini-glyph"><AstroGlyph name={k} /></span>
-                        </span>
-                      </span>
-                    );
-                  })}
-                </div>
                 <div className={`ls-vm-core ${coreErr && !VM_SAMPLE[species] ? "is-bare" : ""}`} aria-hidden="true">
                   <img
                     key={coreSrc}
@@ -5395,8 +5452,9 @@ function ValueMoments() {
           <ol className="ls-vm-index" aria-label="What the full reading holds">
             {VALUE_MOMENTS.map(({ key, label, name: entryName, line, terms }, i) => {
               const Icon = VM_ICON[key];
+              const open = openKey === key;
               return (
-                <li key={key} className="ls-vm-entry ls-reveal" data-k={key} style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}>
+                <li key={key} className={`ls-vm-entry ls-reveal${open ? " is-open" : ""}`} data-k={key} style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}>
                   <span className="ls-vm-seal" aria-hidden="true">
                     {Icon ? <Icon size={22} strokeWidth={1.5} /> : null}
                   </span>
@@ -5408,13 +5466,26 @@ function ValueMoments() {
                     <h3 className="ls-vm-name">{entryName}</h3>
                     <p className="ls-vm-line">{line}</p>
                     {terms && <p className="ls-vm-terms">{terms}</p>}
+                    <button
+                      type="button"
+                      className="ls-vm-peek"
+                      aria-expanded={open}
+                      aria-controls={`vm-prev-${key}`}
+                      onClick={() => setOpenKey((k) => (k === key ? null : key))}
+                    >
+                      <span>{open ? "Close preview" : VM_PEEK[key]}</span>
+                      <ChevronDown className="ls-vm-peek-chev" size={17} strokeWidth={1.7} aria-hidden="true" />
+                    </button>
+                    <div id={`vm-prev-${key}`} className={`ls-vm-prevwrap${open ? " is-open" : ""}`} role="region" aria-label={`${label} preview`}>
+                      <div className="ls-vm-prevwrap-in">{renderPreview(key)}</div>
+                    </div>
                   </div>
                 </li>
               );
             })}
           </ol>
         </div>
-        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.75)}>The people below opened one. They say it best.</p>
+        <p className="ls-vm-pull ls-reveal" style={revealDelay(0.75)}>This is everything their reading holds. Open it below.</p>
       </div>
       <style>{`
         /* top padding + scroll-margin clear the fixed 64px site nav so the title
@@ -5457,40 +5528,19 @@ function ValueMoments() {
         }
         .ls-vm-object.is-live .ls-vm-halo { animation: lsVmBreathe 5.8s ease-in-out infinite; }
         @keyframes lsVmBreathe { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 0.86; transform: scale(1.06); } }
-        .ls-vm-wheel { position: relative; z-index: 1; width: var(--vm-size); height: var(--vm-size); }
-        /* one calm orbit hairline the thirteen sit on, plus a faint inner ring
-           for depth around the photo — the busy engraving was retired */
+        .ls-vm-wheel { position: relative; z-index: 1; width: var(--vm-size); height: var(--vm-size); display: grid; place-items: center; }
+        /* two calm orbit hairlines the portrait rests inside — the thirteen
+           orbiting minis were retired (2026-07-19, Danny: no moving planets),
+           so their face is the whole visual now: one keepsake, held still. */
         .ls-vm-orbit { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; border: 1px solid rgba(185,165,240,0.16); }
-        .ls-vm-orbit::before { content: ""; position: absolute; inset: 15%; border-radius: 50%; border: 1px solid rgba(185,165,240,0.08); }
+        .ls-vm-orbit::before { content: ""; position: absolute; inset: 9%; border-radius: 50%; border: 1px solid rgba(185,165,240,0.09); }
 
-        /* the thirteen-mini ring - imperceptible orbit drift, faces stay upright */
-        .ls-vm-ring { position: absolute; inset: 0; }
-        .ls-vm-object.is-live .ls-vm-ring { animation: lsVmOrbit 240s linear infinite; }
-        .ls-vm-object.is-live .ls-vm-mini-face { animation: lsVmOrbit 240s linear infinite reverse; }
-        @keyframes lsVmOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .ls-vm-mini {
-          position: absolute; left: 50%; top: 50%; width: var(--vm-mini); height: var(--vm-mini);
-          margin: calc(var(--vm-mini) / -2) 0 0 calc(var(--vm-mini) / -2);
-          transform: rotate(var(--a)) translateY(calc(-1 * var(--vm-r))) rotate(calc(-1 * var(--a)));
-        }
-        .ls-vm-mini-face {
-          position: relative; display: block; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
-          background: #050310; box-shadow: 0 0 0 1px rgba(226,220,240,0.12), 0 6px 18px rgba(4,2,12,0.55);
-          transition: filter 0.35s var(--e-stage);
-        }
-        .ls-vm-mini-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .ls-vm-mini.is-full .ls-vm-mini-face img { filter: brightness(0.9); }
-        .ls-vm-mini-glyph { display: none; position: absolute; inset: 0; place-items: center; background: radial-gradient(circle at 38% 32%, #120c24 0%, #090618 62%, #050310 100%); }
-        .ls-vm-mini-glyph svg { width: 60%; height: 60%; color: rgba(185,165,240,0.5); }
-        .ls-vm-mini.is-glyph .ls-vm-mini-glyph, .ls-vm-mini-face.is-imgerr .ls-vm-mini-glyph { display: grid; }
-        .ls-vm-mini-face.is-imgerr img { display: none; }
-
-        /* the core - their photo, double-ringed */
+        /* the core - their photo, now the keepsake portrait, double-ringed */
         .ls-vm-core {
-          position: absolute; left: 50%; top: 50%; width: 48%; height: 48%; z-index: 2;
-          transform: translate(-50%, -50%); border-radius: 50%; overflow: hidden;
+          position: relative; left: auto; top: auto; width: 74%; height: 74%; z-index: 2;
+          transform: none; border-radius: 50%; overflow: hidden;
           background: radial-gradient(circle at 50% 36%, rgba(154,126,230,0.16), rgba(154,126,230,0.04) 70%);
-          box-shadow: 0 0 0 1px rgba(185,165,240,0.45), 0 0 0 9px rgba(13,10,20,0.9), 0 0 0 10px rgba(185,165,240,0.18), 0 24px 70px rgba(4,2,12,0.7);
+          box-shadow: 0 0 0 1px rgba(185,165,240,0.5), 0 0 0 10px rgba(13,10,20,0.92), 0 0 0 11px rgba(185,165,240,0.2), 0 24px 70px rgba(4,2,12,0.72);
           transition: box-shadow 0.35s var(--e-stage);
         }
         .ls-vm-core img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.92) contrast(1.03); }
@@ -5528,6 +5578,72 @@ function ValueMoments() {
         .ls-vm-line { margin: 0; max-width: 46ch; color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.55; }
         .ls-vm-terms { display: inline-block; margin: 13px 0 0; padding: 9px 15px; border-radius: 12px; border: 1px solid rgba(154,126,230,0.24); background: rgba(124,92,214,0.09); color: rgba(214,210,228,0.82); font-family: "Newsreader", Georgia, serif; font-size: 15.5px; line-height: 1.45; }
 
+        /* ── each holding opens a small preview: a page glimpse, the framed
+           keepsake, the SoulSpeak chat, a week ahead. The peek control, then a
+           grid-rows panel that opens without measuring. ── */
+        .ls-vm-peek {
+          display: inline-flex; align-items: center; gap: 8px; margin: 15px 0 0; padding: 8px 14px 8px 17px;
+          border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+          border: 1px solid rgba(154,126,230,0.32); background: rgba(124,92,214,0.10);
+          color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 14px; font-weight: 600;
+          letter-spacing: 0.02em; transition: border-color 0.3s var(--e-stage), background 0.3s var(--e-stage), color 0.3s var(--e-stage);
+        }
+        .ls-vm-peek:hover { border-color: rgba(185,165,240,0.55); background: rgba(124,92,214,0.16); color: ${C.cream}; }
+        .ls-vm-peek:focus-visible { outline: 2px solid ${C.violetBright}; outline-offset: 3px; }
+        .ls-vm-peek-chev { transition: transform 0.35s var(--e-stage); }
+        .ls-vm-entry.is-open .ls-vm-peek-chev { transform: rotate(180deg); }
+        .ls-vm-prevwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.5s var(--e-settle); }
+        .ls-vm-entry.is-open .ls-vm-prevwrap { grid-template-rows: 1fr; }
+        .ls-vm-prevwrap-in { overflow: hidden; min-height: 0; }
+        .ls-vm-prev { margin-top: 16px; }
+
+        /* I — a page glimpse: heading, then lines that trail into the seal */
+        .vm-prev-page { position: relative; max-width: 320px; padding: 20px 22px 18px; border-radius: 14px; border: 1px solid rgba(185,165,240,0.2); background: linear-gradient(180deg, rgba(30,24,44,0.92), rgba(18,13,28,0.92)); box-shadow: 0 18px 44px -22px rgba(6,4,12,0.85); overflow: hidden; }
+        .vm-page-chap { display: block; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
+        .vm-page-h { display: block; margin: 8px 0 14px; color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 1.25rem; letter-spacing: -0.01em; }
+        .vm-page-l { display: block; height: 8px; border-radius: 4px; margin: 0 0 10px; background: linear-gradient(90deg, rgba(207,192,244,0.34), rgba(207,192,244,0.12)); }
+        .vm-page-l.is-short { width: 62%; }
+        .vm-page-fade { display: block; -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
+        .vm-page-foot { display: block; margin-top: 6px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 13.5px; opacity: 0.85; }
+
+        /* II — the framed keepsake portrait, inscribed with their name */
+        .vm-prev-keep { display: flex; align-items: center; gap: 16px; }
+        .vm-keep-frame { flex: 0 0 auto; width: 92px; height: 92px; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px rgba(185,165,240,0.5), 0 0 0 6px rgba(13,10,20,0.92), 0 0 0 7px rgba(185,165,240,0.2), 0 18px 40px -18px rgba(6,4,12,0.85); }
+        .vm-keep-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .vm-keep-plate { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(185,165,240,0.28); background: rgba(124,92,214,0.1); color: ${C.violetSoft}; font-family: "Newsreader", Georgia, serif; font-size: 13px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+
+        /* III — the SoulSpeak conversation, opened as a teaser */
+        .vm-prev-chat { max-width: 360px; border-radius: 18px; overflow: hidden; border: 1px solid rgba(185,165,240,0.24); background: linear-gradient(180deg, rgba(28,22,42,0.96), rgba(18,13,28,0.96)); box-shadow: 0 24px 60px -26px rgba(6,4,12,0.9); }
+        .vm-chat-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-bottom: 1px solid rgba(185,165,240,0.16); background: rgba(124,92,214,0.12); }
+        .vm-chat-av { flex: 0 0 auto; position: relative; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px #b9a5f0, 0 0 0 4px rgba(124,92,214,0.35); }
+        .vm-chat-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .vm-chat-id { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .vm-chat-name { color: ${C.cream}; font-family: "Newsreader", Georgia, serif; font-weight: 600; font-size: 15px; }
+        .vm-chat-status { display: flex; align-items: center; gap: 6px; color: ${C.violetBright}; font-size: 11.5px; letter-spacing: 0.04em; }
+        .vm-chat-dot { width: 7px; height: 7px; border-radius: 50%; background: #cfc0f4; box-shadow: 0 0 7px rgba(207,192,244,0.9); }
+        .vm-chat-badge { flex: 0 0 auto; padding: 4px 10px; border-radius: 999px; background: linear-gradient(180deg, #a78bfa, #7c5cd6); color: #fff; font-family: "Newsreader", Georgia, serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+        .vm-chat-body { display: flex; flex-direction: column; gap: 10px; padding: 16px 14px; }
+        .vm-msg { display: flex; align-items: flex-end; gap: 7px; max-width: 86%; }
+        .vm-msg-user { align-self: flex-end; }
+        .vm-msg-pet { align-self: flex-start; }
+        .vm-msg-av { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px rgba(185,165,240,0.5); }
+        .vm-msg-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .vm-bub { padding: 9px 13px; border-radius: 15px; font-family: "Newsreader", Georgia, serif; font-size: 14.5px; line-height: 1.4; }
+        .vm-msg-user .vm-bub { border-bottom-right-radius: 5px; background: linear-gradient(180deg, #8f6de0, #6a4cc4); color: #fff; }
+        .vm-msg-pet .vm-bub { border-bottom-left-radius: 5px; background: rgba(236,232,248,0.96); color: #241a38; border: 1px solid rgba(185,165,240,0.3); }
+        .vm-chat-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border-top: 1px solid rgba(185,165,240,0.16); }
+        .vm-chat-input { display: inline-flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; padding: 7px 13px; border-radius: 999px; border: 1px solid rgba(185,165,240,0.24); background: rgba(10,7,18,0.5); color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 13px; }
+        .vm-chat-input svg { flex: 0 0 auto; color: ${C.violetBright}; }
+        .vm-chat-voice { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 12.5px; }
+        .vm-chat-voice svg { flex: 0 0 auto; }
+
+        /* IV — a week ahead: seven days, two stirred */
+        .vm-prev-week { max-width: 340px; padding: 16px 18px; border-radius: 14px; border: 1px solid rgba(185,165,240,0.2); background: linear-gradient(180deg, rgba(30,24,44,0.9), rgba(18,13,28,0.9)); }
+        .vm-week-row { display: flex; gap: 6px; }
+        .vm-week-day { flex: 1 1 0; display: grid; place-items: center; height: 34px; border-radius: 9px; border: 1px solid rgba(185,165,240,0.16); color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; }
+        .vm-week-day.is-mark { border-color: rgba(185,165,240,0.6); background: rgba(124,92,214,0.28); color: #fff; box-shadow: 0 0 0 1px rgba(185,165,240,0.3), 0 6px 16px -8px rgba(124,92,214,0.6); }
+        .vm-week-line { margin: 13px 0 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15px; line-height: 1.45; }
+
         /* the bridge to the voices below, hairline-flanked */
         .ls-vm-pull { margin: clamp(30px, 5vw, 48px) auto 0; text-align: center; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 18px; line-height: 1.5; }
         .ls-vm-pull::before, .ls-vm-pull::after { content: ""; display: inline-block; width: 56px; height: 1px; vertical-align: middle; }
@@ -5553,20 +5669,20 @@ function ValueMoments() {
           .ls-vm-entry:hover .ls-vm-seal { color: ${C.cream}; border-color: rgba(185,165,240,0.55); box-shadow: inset 0 1px 0 rgba(226,220,240,0.12), 0 0 0 4px rgba(124,92,214,0.12), 0 12px 28px -14px rgba(6,4,12,0.85); }
         }
         @media (hover: hover) and (min-width: 900px) {
-          .ls-vm-plate:has(li[data-k="placements"]:hover) .ls-vm-mini-face { filter: brightness(1.14); }
-          .ls-vm-plate:has(li[data-k="keepsake"]:hover) .ls-vm-core { box-shadow: 0 0 0 1px rgba(185,165,240,0.7), 0 0 0 9px rgba(13,10,20,0.9), 0 0 0 10px rgba(185,165,240,0.34), 0 24px 70px rgba(4,2,12,0.7); }
+          .ls-vm-plate:has(li[data-k="keepsake"]:hover) .ls-vm-core { box-shadow: 0 0 0 1px rgba(185,165,240,0.7), 0 0 0 10px rgba(13,10,20,0.9), 0 0 0 11px rgba(185,165,240,0.34), 0 24px 70px rgba(4,2,12,0.7); }
         }
 
         /* reduced motion: the rest state IS the finished composition - wheel
            assembled, index set. Nothing depends on the observer firing. */
         @media (prefers-reduced-motion: reduce) {
-          .ls-vm-ring, .ls-vm-mini-face, .ls-vm-halo { animation: none !important; }
-          .ls-vm-halo { opacity: 0.58 !important; transform: none !important; }
+          .ls-vm-halo { animation: none !important; opacity: 0.58 !important; transform: none !important; }
           .ls-vm-object { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
           .ls-vm .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+          .ls-vm-prevwrap { transition: none !important; }
+          .ls-vm-peek-chev { transition: none !important; }
         }
         /* .is-static mirror (same finished-composition rest state, class-driven) */
-        .ls-vm.is-static .ls-vm-ring, .ls-vm.is-static .ls-vm-mini-face, .ls-vm.is-static .ls-vm-halo { animation: none !important; }
+        .ls-vm.is-static .ls-vm-halo { animation: none !important; }
         .ls-vm.is-static .ls-vm-halo { opacity: 0.58 !important; transform: none !important; }
         .ls-vm.is-static .ls-vm-object { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
         .ls-vm.is-static .ls-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
@@ -5824,7 +5940,15 @@ function ReviewsWall() {
           ))}
         </div>
 
-        <p className="ls-reviews-pull ls-reveal">Their chart has been waiting since the day they were born. Open it below.</p>
+        <div className="ls-reviews-close ls-reveal">
+          <p className="ls-reviews-pull">Their chart has been waiting since the day they were born.</p>
+          {!memorialIntent && (
+            <button type="button" className="ls-reviews-cta" onClick={() => descendTo("#begin")}>
+              Begin their reading
+              <ArrowRight size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
       <style>{`
         .ls-reviews { position: relative; padding: clamp(52px, 8svh, 92px) 20px clamp(34px, 5svh, 64px); }
@@ -6028,13 +6152,23 @@ function ReviewsWall() {
           .ls-rev-grid > li:last-child:nth-child(3n + 1) { grid-column: 2; }
         }
 
-        .ls-reviews-pull { margin: clamp(36px, 5vw, 56px) auto 0; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
+        /* the clean close — reviews are the last band now (2026-07-19 reorder:
+           sell → value → pricing → reviews), so the wall ends by pointing back
+           up to the offer, no orphan section after it. */
+        .ls-reviews-close { margin: clamp(36px, 5vw, 56px) auto 0; text-align: center; display: flex; flex-direction: column; align-items: center; gap: clamp(18px, 3vw, 26px); }
+        .ls-reviews-pull { margin: 0 auto; text-align: center; max-width: 38ch; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: clamp(1.02rem, 2.7vw, 1.2rem); line-height: 1.5; }
+        .ls-reviews-cta { display: inline-flex; align-items: center; gap: 11px; padding: clamp(15px, 2.4vw, 18px) clamp(30px, 4.6vw, 42px); border-radius: 999px; border: 0; cursor: pointer; background: linear-gradient(180deg, #a78bfa 0%, #8266d9 45%, #6a4cc4 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 18px; font-weight: 700; letter-spacing: 0.01em; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 14px 40px -8px rgba(124,92,214,0.55); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .ls-reviews-cta:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 18px 48px -8px rgba(124,92,214,0.65); }
+        .ls-reviews-cta:focus-visible { outline: 2px solid ${C.goldSoft}; outline-offset: 3px; }
+        .ls-reviews-cta svg { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .ls-reviews-cta:hover svg { transform: translateX(3px); }
 
         /* ── REDUCED MOTION: the grid is already at rest; only the glint and
              micro-transitions step aside. ── */
         @media (prefers-reduced-motion: reduce) {
           .ls-spot-sweep { animation: none !important; opacity: 0 !important; }
           .ls-rev-body, .ls-rev-fig, .ls-rev-fig::before, .ls-strip-dot { transition: none; }
+          .ls-reviews-cta, .ls-reviews-cta svg { transition: none !important; }
         }
         /* .is-static mirror (same rest-state law, togglable in code) */
         .ls-reviews.is-static .ls-spot-sweep { animation: none !important; opacity: 0 !important; }

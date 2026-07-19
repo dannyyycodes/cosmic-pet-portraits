@@ -158,6 +158,16 @@ const CHARITY_LABELS: Record<DossierCharity, string> = {
   "eden-reforestation": "Eden Reforestation",
 };
 
+/* Giving row — the exact gift-page treatment (src/pages/GiftPurchase.tsx):
+ * white-on-night trust marks + what each charity does. Assets live first-party
+ * in /public/badges. Kept selectable here so the 10% still routes to the
+ * buyer's chosen cause (the dossier's existing charity wiring). */
+const DSR_CHARITIES: { id: DossierCharity; src: string; alt: string; does: string; h: number; mono: boolean }[] = [
+  { id: "ifaw", src: "/badges/ifaw.png", alt: "IFAW, the International Fund for Animal Welfare", does: "Rescues animals in crisis worldwide", h: 22, mono: true },
+  { id: "world-land-trust", src: "/badges/wlt-white.svg", alt: "World Land Trust", does: "Buys and protects threatened habitat", h: 42, mono: false },
+  { id: "eden-reforestation", src: "/badges/eden-white.svg", alt: "Eden, People and Planet", does: "Plants forests, employs local people", h: 38, mono: false },
+];
+
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 function longBornLabel(date: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
@@ -736,13 +746,10 @@ export function DossierCheckout(props: DossierCheckoutProps) {
 
       </section>
 
-      {/* ── ACT 2, THE COMPANY — one voice only. The full six-voice wall
-          already ran 1,000px earlier (ReviewsWall); joy, gift and the
-          returner live there, not at the register. ── */}
-      <div className="dsr-act-hr" aria-hidden="true" />
-      <Review kind="grief" variant="room" />
-
-      {/* ── Soul Bond bump — second orbit, not a rival card ── */}
+      {/* ── Soul Bond bump — second orbit, not a rival card. The stray grief
+          room review was removed (2026-07-19, Danny): the register carries ONE
+          inline review only, the blemished practical voice beside the price;
+          the full wall now runs AFTER the pricing (page reorder). ── */}
       <div className="dsr-act-hr" aria-hidden="true" />
       <label className="dsr-bond" htmlFor="dsr-bond-check">
         <input
@@ -866,6 +873,37 @@ export function DossierCheckout(props: DossierCheckoutProps) {
 
         <p className="dsr-guarantee">If the reading does not feel like them, we refund every cent.</p>
 
+        {/* ── giving — the gift-page charity treatment, white-on-night marks in
+            the trust position under the CTA. Selectable so 10% routes to the
+            buyer's chosen cause. ── */}
+        <section className="dsr-give" aria-label="Where your reading gives back">
+          <p className="dsr-give-lead">Every reading gives back</p>
+          <ul className="dsr-give-grid" role="radiogroup" aria-label="Choose where ten percent of your reading goes">
+            {DSR_CHARITIES.map((c) => {
+              const on = selectedCharity === c.id;
+              return (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    className={`dsr-give-opt${on ? " is-sel" : ""}`}
+                    onClick={() => onCharityChange(c.id)}
+                  >
+                    <span className={`dsr-give-logo${c.mono ? " is-mono" : ""}`}>
+                      <img src={c.src} alt={c.alt} style={{ height: c.h }} loading="lazy" decoding="async" />
+                    </span>
+                    <span className="dsr-give-does">{c.does}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="dsr-give-note">
+            10% of {petName ? `${petName}'s` : "your"} reading goes to <b>{CHARITY_LABELS[selectedCharity]}</b>.
+          </p>
+        </section>
+
         {/* quiet footer — 70% presence, everything administrative */}
         <div className="dsr-quiet">
 
@@ -934,27 +972,6 @@ export function DossierCheckout(props: DossierCheckoutProps) {
             on the discovery path, whose horoscope-bundled sessions narrow to
             card + Link, so Klarna never shows here. */}
         <PaymentMethodsRow />
-
-        <details className="dsr-details dsr-charity">
-          <summary>
-            <span>10% of your reading goes to <span className="cname">{CHARITY_LABELS[selectedCharity]}</span></span>
-            <Chevron />
-          </summary>
-          <div className="dsr-charity-opts" role="radiogroup" aria-label="Choose a charity">
-            {(Object.keys(CHARITY_LABELS) as DossierCharity[]).map((id) => (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={selectedCharity === id}
-                aria-pressed={selectedCharity === id}
-                onClick={() => onCharityChange(id)}
-              >
-                {CHARITY_LABELS[id]}
-              </button>
-            ))}
-          </div>
-        </details>
 
         </div>
         </div>
@@ -1443,6 +1460,37 @@ function DossierStyles(): ReactNode {
       .dsr-guarantee{font-family:var(--dsr-display);font-style:italic;
         font-variation-settings:'opsz' 20;font-size:17.5px;line-height:1.5;
         color:var(--dsr-cream);text-align:center;margin:20px 6px 24px}
+
+      /* ---------- giving row (gift-page treatment: white-on-night marks) ---------- */
+      .dsr-give{margin:6px 0 22px}
+      .dsr-give-lead{text-align:center;margin:0;color:var(--dsr-violet-300);
+        font-family:var(--dsr-body);font-weight:600;font-size:13px;
+        letter-spacing:.16em;text-transform:uppercase}
+      .dsr-give-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 10px;
+        max-width:460px;margin:18px auto 0;list-style:none;padding:0}
+      .dsr-give-grid>li{min-width:0}
+      .dsr-give-opt{display:flex;flex-direction:column;align-items:center;text-align:center;
+        gap:11px;width:100%;min-width:0;padding:14px 8px 12px;border-radius:14px;cursor:pointer;
+        background:transparent;border:1px solid transparent;
+        transition:border-color .25s var(--dsr-ease),background .25s var(--dsr-ease)}
+      .dsr-give-opt:hover{border-color:rgba(139,123,216,.28);background:rgba(139,123,216,.06)}
+      .dsr-give-opt.is-sel{border-color:rgba(139,123,216,.5);background:rgba(139,123,216,.10)}
+      .dsr-give-opt:focus-visible{outline:2px solid var(--dsr-violet-400);outline-offset:2px}
+      .dsr-give-logo{display:flex;align-items:center;justify-content:center;height:46px}
+      .dsr-give-logo img{display:block;width:auto;max-width:100%;opacity:.82;
+        transition:opacity .25s var(--dsr-ease)}
+      .dsr-give-logo.is-mono img{filter:brightness(0) invert(1)}
+      .dsr-give-opt:hover .dsr-give-logo img,.dsr-give-opt.is-sel .dsr-give-logo img{opacity:1}
+      .dsr-give-does{font-size:12.5px;line-height:1.4;color:var(--dsr-cream-dim);max-width:130px}
+      .dsr-give-note{text-align:center;margin:16px 0 0;color:var(--dsr-cream-dim);
+        font-family:var(--dsr-body);font-size:14px}
+      .dsr-give-note b{color:var(--dsr-violet-200);font-weight:600}
+      @media (max-width:440px){
+        .dsr-give-grid{gap:8px 6px}
+        .dsr-give-opt{padding:12px 3px 10px;gap:9px}
+        .dsr-give-logo{height:38px}
+        .dsr-give-does{font-size:11px;max-width:100%}
+      }
 
       /* ---------- promo code (demoted) ---------- */
       .dsr-code{text-align:center;margin-bottom:22px}
