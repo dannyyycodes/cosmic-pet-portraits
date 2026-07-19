@@ -110,15 +110,17 @@ item plus the guarantee line near the CTA). Never a third repeat, never
 zero. The sentence itself is load-bearing trust copy; wording changes are
 Danny's call only.
 
-## 13. Blemished 4-star review beside the price
+## 13. Blemished 4-star reviews stay visible (AMENDED 2026-07-19)
 
-The imperfect reviews (the 4-star Martin C. pattern, Alan R. "took closer to
-a day", Colin B.) stay visible among the first readable cards, beside the
-price. Spiegel: purchase likelihood peaks at 4.0 to 4.7 average and FALLS
+Danny's explicit call 2026-07-19: NO review sits on the price card itself.
+Reviews live ONLY in the wall after pricing. Within that wall, the original
+rule still holds: the imperfect reviews (the 4-star Martin C. pattern, Alan
+R. "took closer to a day", Colin B.) stay visible among the first readable
+cards. Spiegel: purchase likelihood peaks at 4.0 to 4.7 average and FALLS
 toward 5.0; the blemishing effect is doing the converting.
-Do not: "improve" a 4-star review to 5, bury the blemished ones, or display
-an aggregate rating/review count without real order data (DMCC banned-
-practice exposure).
+Do not: "improve" a 4-star review to 5, bury the blemished ones, put any
+review back onto the price card, or display an aggregate rating/review
+count without real order data (DMCC banned-practice exposure).
 
 ## 14. Zero fake urgency, anywhere
 

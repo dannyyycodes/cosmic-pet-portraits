@@ -804,9 +804,9 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           )}
         </div>
 
-        {/* the practical one, glued to the number it names - matched to the
-            visitor's own species so a dog owner never meets a cat here */}
-        <Review kind={(() => { try { return sessionStorage.getItem("ls_chart_species") === "dog" ? "practicalDog" : "practical"; } catch { return "practical"; } })()} variant="mini" />
+        {/* No review on the price card - Danny's call 2026-07-19: reviews live
+            ONLY in the wall after pricing. (Overrides the earlier blemished-
+            review-beside-price pattern in docs/protected-patterns.md.) */}
 
         {/* the open value stack — always visible at the price, never folded */}
         <ul className="dsr-stack" aria-label="What opens with their reading">
