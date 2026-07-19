@@ -632,12 +632,12 @@ function Hero({ fmt, prices, onCta, heroRef }: {
    scenes (the real object: a sealed reveal) lead; box scenes follow.
    Reduced-motion or missing IntersectionObserver just shows frame 1. ── */
 const HERO_FRAMES = [
-  { src: '/gift-scene-partner-env.webp', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat on her lap' },
-  { src: '/gift-scene-family-env.webp', alt: 'A daughter hugging her laughing mum at the kitchen table, a sealed Little Souls envelope beside her mug, their golden retriever at her knee' },
-  { src: '/gift-scene-friend-env.webp', alt: 'Two friends on a doorstep at dusk, one pressing a wax-sealed Little Souls envelope to her chest, their border collie looking up' },
-  { src: '/gift-hero-v2.webp', alt: 'A woman opening a Little Souls gift box beside her partner, their tabby cat curled on her lap' },
-  { src: '/gift-scene-family.webp', alt: 'A daughter hugging her mum at the kitchen table, a gift open beside her mug, their golden retriever at her knee' },
-  { src: '/gift-scene-friend.webp', alt: 'Two friends on a doorstep at dusk, one holding a wrapped gift, their border collie looking up at it' },
+  { src: '/gift-scene-partner-env.webp', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat curled against her' },
+  { src: '/gift-scene-family-env.webp', alt: 'A daughter kissing her laughing mum at the kitchen table, a wax-sealed Little Souls envelope beside her mug, their golden retriever resting at her side' },
+  { src: '/gift-scene-friend-env.webp', alt: 'Two friends on a doorstep at dusk, one holding a wax-sealed Little Souls envelope, their border collie looking up' },
+  { src: '/gift-hero-v2.webp', alt: 'Two men on a porch opening a violet Little Souls gift box, their little terrier between them' },
+  { src: '/gift-scene-family.webp', alt: 'A father and his daughter opening a Little Souls gift box together, their shaggy dog across their laps' },
+  { src: '/gift-scene-friend.webp', alt: 'Two friends opening a violet Little Souls gift box together, their fluffy cat beside them' },
 ];
 
 function HeroRotator() {
@@ -790,9 +790,9 @@ function GifterProof() {
    right before the funnel. Three labels, zero body copy. ── */
 function ScenesBand() {
   const scenes = [
-    { src: '/gift-scene-family-env.webp', label: 'For a parent.', alt: 'A daughter hugging her laughing mum at the kitchen table, a sealed Little Souls envelope beside her mug, their golden retriever at her knee' },
-    { src: '/gift-scene-partner-env.webp', label: 'For a partner.', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat on her lap' },
-    { src: '/gift-scene-friend-env.webp', label: 'For a friend.', alt: 'Two friends on a doorstep at dusk, one pressing a wax-sealed Little Souls envelope to her chest, their border collie looking up' },
+    { src: '/gift-scene-family-env.webp', label: 'For a parent.', alt: 'A daughter kissing her laughing mum at the kitchen table, a wax-sealed Little Souls envelope beside her mug, their golden retriever resting at her side' },
+    { src: '/gift-scene-partner-env.webp', label: 'For a partner.', alt: 'A woman breaking the violet wax seal of a Little Souls envelope beside her partner, their tabby cat curled against her' },
+    { src: '/gift-scene-friend-env.webp', label: 'For a friend.', alt: 'Two friends on a doorstep at dusk, one holding a wax-sealed Little Souls envelope, their border collie looking up' },
   ];
   return (
     <section className="gp-breaks" aria-label="Who to gift it to">
