@@ -1,11 +1,21 @@
 /* deckCompose.ts
    The bridge between the real astrology engine (astroEngine.ts) and the
-   quality-gated copy pools (deckPools/). Given the raw chart payload it
-   picks, for each free planet card, the single most striking computed fact
-   (tightest aspect first, then strongest dignity, then own face), renders
-   the matching pool beat with the real numbers injected, attaches the
-   verbatim teaching sentence, and keys a seal to a genuinely sealed body.
-   It also selects the chart-signature storyline for the revelation card.
+   quality-gated copy pools (deckPools/). Every card it composes carries the
+   approved FOUR-BEAT anatomy (Danny, 2026-07-16 draft):
+
+     1. TEACH       one canonical, trusted line per planet: what this planet
+                    is. Identical for every chart, both voices.
+     2. THEIR SKY   the real chart fact with the real numbers injected:
+                    the degree line, or the aspect line with partner + orb,
+                    faceted from the engine (tightest aspect first, then
+                    strongest dignity, then own face, then the plain degree).
+     3. THE LOVE    the recognition beat: what this placement means in how
+                    they love the owner. Keyed planet x sign (LOVE_POOL core)
+                    and, when the sky told an aspect or dignity, carried on
+                    by that fact's gated behaviour beat.
+     4. THE LOCKED  the depth tease, a different device per planet
+        DOOR        (PLANET_SEALS), keyed where linked to a genuinely sealed
+                    body this planet really aspects.
 
    Everything here is deterministic: the same pet name + date always
    composes the same deck, and two different pets diverge through both the
@@ -28,40 +38,74 @@ import {
   type Aspect,
   type AspectType,
   type BodyName,
+  type BodyPosition,
   type ChartBodies,
+  type DignityStatus,
+  type ElementName,
   type PlanetName,
 } from "./astroEngine";
 import {
   ASPECT_POOL,
-  SEALS,
+  LOVE_POOL,
+  PLANET_SEALS,
   SIGNATURES,
-  TEACHING,
   aspectKey,
   dignityKey,
+  loveKey,
 } from "./deckPools";
-import type { Beat, Family, SealedBody, SignatureKind, SignatureTemplate, TeachingKey } from "./deckPools/types";
-import { DECK_PLANETS, fill, type DeckPlanet, type Subject } from "./freeDeck";
+import type { Beat, Family, SealedBody, SignatureKind, SignatureTemplate } from "./deckPools/types";
+import { DECK_PLANETS, fill, type DeckPlanet, type Subject, type Voiced } from "./freeDeck";
 
 export type ComposedPlanetCard = {
-  fact: string;      /* the computed fact, numbers injected (pool "meaning") */
-  teaching: string;  /* the verbatim teaching sentence for the mechanism */
-  behaviour: string; /* the species-true behaviour + tonight-test beat */
-  law: string;       /* the quotable law line */
-  seal: string;      /* the sealed-depth footer, keyed to sealBody */
+  teach: string;   /* beat 1: the canonical planet line */
+  sky: string;     /* beat 2: the real chart fact, numbers injected */
+  love: string;    /* beat 3: the recognition beat, love-first */
+  seal: string;    /* beat 4: the locked-door device */
   sealBody: SealedBody;
+};
+
+export type ComposedElementCard = {
+  teach: string;
+  sky: string;
+  love: string;
+  seal: string;
 };
 
 export type ComposedSignatureCard = {
   kind: SignatureKind;
-  fact: string;
-  meaning: string;
-  behaviour: string;
-  law: string;
+  teach: string;
+  fact: string;      /* beat 2: their sky */
+  meaning: string;   /* beat 3a */
+  behaviour: string; /* beat 3b */
+  law: string;       /* beat 3 close, the quotable line */
+  seal: string;      /* beat 4: all thirteen read as one */
 };
 
 export type ComposedDeck = {
   planets: Partial<Record<DeckPlanet, ComposedPlanetCard>>;
+  element: ComposedElementCard | null;
   signature: ComposedSignatureCard | null;
+};
+
+/* ── Beat 1: the canonical teach lines (approved draft, verbatim) ───────── */
+
+export const CANON_TEACH: Record<DeckPlanet, string> = {
+  sun: "The Sun is the centre of a chart. Who someone is before anything ever shaped them.",
+  moon: "The Moon is the private half of a chart. What a soul needs when nobody is watching.",
+  venus: "Venus is the heart's own planet. How a soul gives love back, in its own dialect.",
+  mercury: "Mercury is the messenger. How a soul says things without a single word.",
+  mars: "Mars is the engine. Where a soul's energy goes when it finally lets go.",
+};
+
+export const ELEMENT_TEACH =
+  "Every chart leans on some elements and starves others. The lean is the temperament.";
+
+export const SIGNATURE_TEACH =
+  "Every chart has one loudest line. The signature. The sentence the whole sky was writing.";
+
+const SIGNATURE_SEAL: Voiced = {
+  d: "The full reading opens all thirteen placements and reads them as one, this thread followed to its end, written for {name} alone.",
+  m: "The full reading opens all thirteen placements and reads them as one, this thread followed to its end, written for {name} alone.",
 };
 
 /* ── Deterministic pool picking ─────────────────────────────────────────── */
@@ -81,13 +125,13 @@ function pickFrom<T>(arr: readonly T[], seed: string): T {
   return arr[hashSeed(seed) % arr.length];
 }
 
-/* The law line is the card's quotable close: it must read as plain speech.
-   Among a key's beats, prefer ones whose law carries no raw number
-   placeholder ("86 degrees out of Venus's reach" is machine talk); numbers
-   belong in the fact block. Falls back to the full pool when every law in
-   the key uses one. */
-function pickBeat<T extends { law: { d: string; m: string } }>(arr: readonly T[], seed: string): T {
-  const plain = arr.filter((b) => !/\{(SEP|DEG|PDEG|ORB)\}/.test(b.law.d + " " + b.law.m));
+/* The love beat opens on the sign truth and carries on with the fact's
+   behaviour beat. The sky beat has already told the numbers, so among a
+   key's beats prefer ones whose behaviour carries no raw number
+   placeholder (a repeated "{SEP} degrees" reads machine-made). Falls back
+   to the full pool when every behaviour in the key uses one. */
+function pickBeat<T extends { behaviour: { d: string; m: string } }>(arr: readonly T[], seed: string): T {
+  const plain = arr.filter((b) => !/\{(SEP|DEG|PDEG|ORB)\}/.test(b.behaviour.d + " " + b.behaviour.m));
   return pickFrom(plain.length ? plain : arr, seed);
 }
 
@@ -141,16 +185,24 @@ function joinLabels(bodies: readonly BodyName[]): string {
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
+/* Planet names as they read in a sentence: the Sun, the Moon, Venus. */
+const PLANET_WORD: Record<DeckPlanet, string> = {
+  sun: "Sun", moon: "Moon", venus: "Venus", mercury: "Mercury", mars: "Mars",
+};
+function planetWithThe(p: DeckPlanet): string {
+  return p === "sun" || p === "moon" ? `the ${PLANET_WORD[p]}` : PLANET_WORD[p];
+}
+
 /* ── Placeholder injection ──────────────────────────────────────────────── */
 
 type NumberBag = Partial<Record<
-  "DEG" | "SIGN" | "PDEG" | "PSIGN" | "PARTNER" | "ORB" | "SEP" | "BODIES" | "COUNT" | "SPAN" | "ELEMENT" | "MODE",
+  "DEG" | "SIGN" | "PDEG" | "PSIGN" | "PARTNER" | "ORB" | "SEP" | "BODIES" | "COUNT" | "SPAN" | "ELEMENT" | "MODE" | "SEALED",
   string
 >>;
 
 function inject(text: string, bag: NumberBag): string {
   return text.replace(
-    /\{(DEG|SIGN|PDEG|PSIGN|PARTNER|ORB|SEP|BODIES|COUNT|SPAN|ELEMENT|MODE)\}/g,
+    /\{(DEG|SIGN|PDEG|PSIGN|PARTNER|ORB|SEP|BODIES|COUNT|SPAN|ELEMENT|MODE|SEALED)\}/g,
     (whole, key: keyof NumberBag) => bag[key] ?? whole,
   );
 }
@@ -280,6 +332,169 @@ function isSealed(b: BodyName): b is SealedBody {
   return SEALED_SET.has(b);
 }
 
+/* ── Beat 2 templates: THEIR SKY (real numbers, draft phrasing) ─────────── */
+
+function skyForAspect(planet: DeckPlanet, pos: BodyPosition, partner: BodyName, asp: Aspect, seed: string): string {
+  const P = PLANET_WORD[planet];
+  const deg = Math.round(pos.degree);
+  const partnerLabel = BODY_LABEL[partner]; /* after {poss}: "their North Node" reads right */
+  const dist = orbDistance(asp.orb);
+  switch (asp.type) {
+    case "conjunction":
+      return dist
+        ? `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, ${dist} from {poss} ${partnerLabel}. In a chart that close, two planets speak as one instrument.`
+        : `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, on the very same degree as {poss} ${partnerLabel}. Planets do not sit closer than this. The two speak as one instrument.`;
+    case "opposition": {
+      const variants = dist
+        ? [
+            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, staring straight across the whole sky at {poss} ${partnerLabel}, ${dist} from an exact opposition.`,
+            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, directly across the sky from {poss} ${partnerLabel}. The two face each other, ${dist} off an exact opposition.`,
+          ]
+        : [
+            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, staring straight across the whole sky at {poss} ${partnerLabel}. The line between them is exact to the degree.`,
+          ];
+      return pickFrom(variants, `${seed}|sky|opp`);
+    }
+    case "square":
+      return `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, meeting {poss} ${partnerLabel} at a right angle, ${orbPhrase(asp.orb)}. Astrologers call it a square: two pulls grinding at one corner, and neither gives way.`;
+    case "trine":
+      return `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, in an easy flowing line to {poss} ${partnerLabel}, ${orbPhrase(asp.orb)}. A trine: one part of them feeding another without effort.`;
+    case "sextile":
+      return `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, at a helping angle to {poss} ${partnerLabel}, ${orbPhrase(asp.orb)}. A sextile: a door held open between two planets, and this chart uses it.`;
+  }
+}
+
+const DIGNITY_SKY_TAIL: Record<Exclude<DignityStatus, "peregrine"> | "face", string> = {
+  domicile: "That is its own sign. The planet is at home there, running at full strength.",
+  exaltation: "That is the sign the old astrologers say honours it most. They call it exaltation: a guest the house was built for.",
+  detriment: "That is the sign directly opposite its home ground. Far from its own tools, it improvises.",
+  fall: "That is the sign the old astrologers call its fall. The strength is all still there. It just bends into an unexpected shape.",
+  face: "", /* face writes its own line below */
+};
+
+function skyForDignity(planet: DeckPlanet, pos: BodyPosition, status: string): string {
+  const theP = planetWithThe(planet);
+  const deg = Math.round(pos.degree);
+  const lead = `The day {name} arrived, ${theP} stood at ${deg} degrees of ${pos.sign}.`;
+  if (status === "face") {
+    return `${lead} That exact stretch of ${pos.sign} is the ${PLANET_WORD[planet]}'s own face, a small old dignity earned by the degree itself rather than the sign.`;
+  }
+  const tail = DIGNITY_SKY_TAIL[status as keyof typeof DIGNITY_SKY_TAIL];
+  return tail ? `${lead} ${tail}` : lead;
+}
+
+function skyPlain(planet: DeckPlanet, pos: BodyPosition, seed: string): string {
+  const deg = Math.round(pos.degree);
+  const variants = [
+    `The day {name} arrived, ${planetWithThe(planet)} stood at ${deg} degrees of ${pos.sign}.`,
+    `{Poss} ${PLANET_WORD[planet]} holds ${deg} degrees of ${pos.sign}. It has held that exact spot since the day they were born, and it never moves.`,
+  ];
+  return pickFrom(variants, `${seed}|sky|plain|${planet}`);
+}
+
+/* ── The element card pieces (beat 2 and 3 composed from real counts) ───── */
+
+const ELEMENT_TRAIT: Record<ElementName, string> = {
+  Fire: "drive", Earth: "steadiness", Air: "curiosity", Water: "feeling",
+};
+
+const ELEMENT_FEEL: Record<ElementName, Voiced> = {
+  Fire: { d: "Fire throws itself at you.", m: "Fire threw itself at you." },
+  Earth: { d: "Earth stays beside you.", m: "Earth stayed beside you." },
+  Air: { d: "Air wants to know you.", m: "Air wanted to know you." },
+  Water: { d: "Water feels you.", m: "Water felt you." },
+};
+
+const ELEMENT_LOW: Record<ElementName, Voiced> = {
+  Fire: {
+    d: "Low fire means the love does not blaze and burn out. It holds. No fireworks, just a flame that has never once gone out.",
+    m: "Low fire meant the love never blazed and burned out. It held. No fireworks, just a flame that never once went out.",
+  },
+  Earth: {
+    d: "Low earth means routine is not what holds them. You are. Move the whole house tomorrow and they are fine by Thursday, as long as the people come too. {Poss} home has always been a who, not a where.",
+    m: "Low earth meant routine was never what held them. You were. {Poss} home was never a where. It was a who, and it was you.",
+  },
+  Air: {
+    d: "Low air means there is no figuring you out and no need to. They skip the thinking and go straight to the knowing. You are not a puzzle to them. You are the answer.",
+    m: "Low air meant there was no figuring you out and no need to. They skipped the thinking and went straight to the knowing. You were never a puzzle to them. You were the answer.",
+  },
+  Water: {
+    d: "Low water means the love is not weather. It is ground. They do not ride your moods, they stand steady underneath them, the same on your worst day as your best.",
+    m: "Low water meant the love was never weather. It was ground. They did not ride your moods, they stood steady underneath them, the same on your worst day as your best.",
+  },
+};
+
+/* Short on purpose: the seal bar's own tag already says "In the full reading". */
+const ELEMENT_SEAL: Record<ElementName, Voiced> = {
+  Fire: {
+    d: "What lights the fire this chart keeps low, the one spark worth striking, stays sealed.",
+    m: "What lit the fire this chart keeps low, and when you saw it flare, stays sealed.",
+  },
+  Earth: {
+    d: "What fills in the earth this chart runs low on, the one steadying thing to never take away, stays sealed.",
+    m: "What filled in the earth this chart runs low on, and how much of it was you, stays sealed.",
+  },
+  Air: {
+    d: "What feeds the air this chart runs low on, the one puzzle worth setting, stays sealed.",
+    m: "What fed the air this chart runs low on, the games that did it, stays sealed.",
+  },
+  Water: {
+    d: "What tops up the water this chart runs low on, the one softness that reaches them, stays sealed.",
+    m: "What topped up the water this chart runs low on, the softness that always reached them, stays sealed.",
+  },
+};
+
+const ELEMENT_ORDER: readonly ElementName[] = ["Fire", "Earth", "Air", "Water"];
+
+function composeElement(bodies: ChartBodies, voice: "d" | "m", render: (t: string, bag?: NumberBag) => string): ComposedElementCard | null {
+  const counts: Record<ElementName, number> = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  let placed = 0;
+  for (const p of DECK_PLANETS) {
+    const pos = bodies[p];
+    if (!pos) continue;
+    counts[signMeta(pos.sign).element] += 1;
+    placed += 1;
+  }
+  if (placed < 3) return null;
+
+  const ranked = [...ELEMENT_ORDER].sort((a, b) => counts[b] - counts[a] || ELEMENT_ORDER.indexOf(a) - ELEMENT_ORDER.indexOf(b));
+  const top1 = ranked[0];
+  const top2 = ranked[1];
+  const twoLean = counts[top1] >= 2 && counts[top2] >= 2;
+  const lean = twoLean ? [top1, top2] : [top1];
+
+  /* The scarce element: a zero first, else the smallest count outside the lean. */
+  let scarce: ElementName | null = null;
+  for (const el of ELEMENT_ORDER) {
+    if (counts[el] === 0) { scarce = el; break; }
+  }
+  if (!scarce) {
+    const outside = ranked.filter((el) => !lean.includes(el));
+    scarce = outside.length ? outside[outside.length - 1] : ranked[ranked.length - 1];
+  }
+  const missing = counts[scarce] === 0;
+
+  const low = (s: string) => s.toLowerCase();
+  const skyLead = twoLean
+    ? `{Poss} chart leans ${low(top1)} and ${low(top2)}: ${ELEMENT_TRAIT[top1]} and ${ELEMENT_TRAIT[top2]}.`
+    : `{Poss} chart leans hard into ${low(top1)}: ${ELEMENT_TRAIT[top1]} before everything else.`;
+  const skyTail = missing
+    ? `There is no ${low(scarce)} in it at all.`
+    : `${scarce} is the element it carries least.`;
+
+  const feel = lean.map((el) => ELEMENT_FEEL[el][voice]).join(" ");
+  const love = `${feel} ${ELEMENT_LOW[scarce][voice]}`;
+
+  const card: ComposedElementCard = {
+    teach: ELEMENT_TEACH,
+    sky: render(`${skyLead} ${skyTail}`),
+    love: render(love),
+    seal: render(ELEMENT_SEAL[scarce][voice]),
+  };
+  if (hasLeak([card.teach, card.sky, card.love, card.seal])) return null;
+  return card;
+}
+
 /* ── The composer ───────────────────────────────────────────────────────── */
 
 export function composeDeck(args: {
@@ -290,7 +505,7 @@ export function composeDeck(args: {
   seed: string; /* pet name + date */
 }): ComposedDeck {
   const { raw, voice, species, subject, seed } = args;
-  const empty: ComposedDeck = { planets: {}, signature: null };
+  const empty: ComposedDeck = { planets: {}, element: null, signature: null };
 
   let bodies: ChartBodies;
   let aspects: Aspect[];
@@ -310,10 +525,18 @@ export function composeDeck(args: {
      needs verb-agreement repair the singular name paths never do. */
   const isPluralSubject = subject.Name === "They" && subject.name === "them";
 
-  const render = (text: string, bag: NumberBag, orbN: number | null = null): string => {
+  const render = (text: string, bag: NumberBag = {}, orbN: number | null = null): string => {
     const out = fixZeroDegree(fixDegreeGrammar(sentenceCase(fill(inject(prepOrbContexts(text, orbN), bag), subject))));
     return isPluralSubject ? normalizeTheyThem(out) : out;
   };
+
+  /* The sealed bodies each planet REALLY aspects (for linked seal devices). */
+  const partneredSealed = new Map<DeckPlanet, Set<SealedBody>>();
+  for (const p of DECK_PLANETS) partneredSealed.set(p, new Set());
+  for (const a of aspects) {
+    if ((DECK_PLANETS as readonly string[]).includes(a.a) && isSealed(a.b)) partneredSealed.get(a.a as DeckPlanet)?.add(a.b);
+    if ((DECK_PLANETS as readonly string[]).includes(a.b) && isSealed(a.a)) partneredSealed.get(a.b as DeckPlanet)?.add(a.a);
+  }
 
   /* Seal choice: the aspect partner when it is genuinely sealed, else the
      card planet's next sealed aspect partner, else the chart's tightest
@@ -342,25 +565,29 @@ export function composeDeck(args: {
   const composeSeal = (planet: DeckPlanet, factPartner: BodyName | null): { seal: string; sealBody: SealedBody } | null => {
     const body = chooseSeal(planet, factPartner);
     if (!body) return null;
-    const pool = SEALS.filter((s) => s.body === body);
+    const linkable = partneredSealed.get(planet)?.has(body) ?? false;
+    const pool = PLANET_SEALS[planet].filter((b) => !b.linked || linkable);
     if (!pool.length) return null;
     const beat = pickFrom(pool, `${seed}|seal|${planet}|${body}`);
-    const seal = render(beat.text[voice], {});
+    const seal = render(beat.text[voice], { SEALED: bodyPhrase(body) });
     if (hasLeak([seal])) return null;
     return { seal, sealBody: body };
   };
 
-  /* ── Planet cards ── */
+  /* ── Planet cards: the four beats ── */
   const planets: Partial<Record<DeckPlanet, ComposedPlanetCard>> = {};
 
   for (const planet of DECK_PLANETS) {
     const pos = bodies[planet];
     if (!pos) continue; /* missing body: the card stays on legacy copy */
 
+    const loveEntry = LOVE_POOL[loveKey(planet, pos.sign)];
+    if (!loveEntry) continue; /* no sign-love entry: legacy copy holds the card */
+
     type Candidate = {
-      beat: Beat;
+      sky: string;
+      behaviour: Beat["behaviour"] | null; /* null = plain degree card, love uses "more" */
       bag: NumberBag;
-      teaching: string;
       orb: number | null;
       markUsed: () => void;
       factPartner: BodyName | null;
@@ -380,7 +607,8 @@ export function composeDeck(args: {
       const ppos = bodies[partner];
       if (!ppos) continue;
       candidates.push({
-        beat: pickBeat(pool, `${seed}|${planet}|${partner}|${asp.type}`),
+        sky: skyForAspect(planet, pos, partner, asp, seed),
+        behaviour: pickBeat(pool, `${seed}|${planet}|${partner}|${asp.type}`).behaviour,
         bag: {
           DEG: String(Math.round(pos.degree)),
           SIGN: pos.sign,
@@ -390,7 +618,6 @@ export function composeDeck(args: {
           ORB: orbPhrase(asp.orb),
           SEP: String(Math.round(asp.separation)),
         },
-        teaching: TEACHING[asp.type],
         orb: asp.orb,
         markUsed: () => usedAspects.add(pairId),
         factPartner: partner,
@@ -403,9 +630,9 @@ export function composeDeck(args: {
       const pool = beatsFor(dignityKey(planet, dig.primary), species);
       if (pool.length) {
         candidates.push({
-          beat: pickBeat(pool, `${seed}|${planet}|${dig.primary}`),
+          sky: skyForDignity(planet, pos, dig.primary),
+          behaviour: pickBeat(pool, `${seed}|${planet}|${dig.primary}`).behaviour,
           bag: { DEG: String(Math.round(pos.degree)), SIGN: pos.sign },
-          teaching: TEACHING[dig.primary as TeachingKey],
           orb: null,
           markUsed: () => usedDignities.add(`${planet}|${dig.primary}`),
           factPartner: null,
@@ -418,9 +645,9 @@ export function composeDeck(args: {
       const pool = beatsFor(dignityKey(planet, "face"), species);
       if (pool.length) {
         candidates.push({
-          beat: pickBeat(pool, `${seed}|${planet}|face`),
+          sky: skyForDignity(planet, pos, "face"),
+          behaviour: pickBeat(pool, `${seed}|${planet}|face`).behaviour,
           bag: { DEG: String(Math.round(pos.degree)), SIGN: pos.sign },
-          teaching: TEACHING.face,
           orb: null,
           markUsed: () => usedDignities.add(`${planet}|face`),
           factPartner: null,
@@ -428,29 +655,37 @@ export function composeDeck(args: {
       }
     }
 
+    /* 4. The always-there fallback: the plain degree line + the full
+       sign-love beat. Never fails, so every present planet composes. */
+    candidates.push({
+      sky: skyPlain(planet, pos, seed),
+      behaviour: null,
+      bag: { DEG: String(Math.round(pos.degree)), SIGN: pos.sign },
+      orb: null,
+      markUsed: () => undefined,
+      factPartner: null,
+    });
+
     for (const cand of candidates) {
-      const fact = render(cand.beat.meaning[voice], cand.bag, cand.orb);
-      const behaviour = render(cand.beat.behaviour[voice], cand.bag, cand.orb);
-      const law = render(cand.beat.law[voice], cand.bag, cand.orb);
-      if (hasLeak([fact, behaviour, law])) {
-        console.warn(`[Little Souls] placeholder leak in ${planet} pool beat "${cand.beat.key}", trying next fact`);
+      const teach = CANON_TEACH[planet];
+      const sky = render(cand.sky, cand.bag, cand.orb);
+      const loveTail = cand.behaviour ? render(cand.behaviour[voice], cand.bag, cand.orb) : render(loveEntry.more[voice]);
+      const love = `${render(loveEntry.core[voice])} ${loveTail}`;
+      if (hasLeak([teach, sky, love])) {
+        console.warn(`[Little Souls] placeholder leak in ${planet} beat, trying next fact`);
         continue;
       }
       const sealed = composeSeal(planet, cand.factPartner);
       if (!sealed) continue;
       cand.markUsed();
       usedSeals.add(sealed.sealBody);
-      planets[planet] = {
-        fact,
-        teaching: cand.teaching,
-        behaviour,
-        law,
-        seal: sealed.seal,
-        sealBody: sealed.sealBody,
-      };
+      planets[planet] = { teach, sky, love, seal: sealed.seal, sealBody: sealed.sealBody };
       break;
     }
   }
+
+  /* ── The balance card (beat anatomy from the real element counts) ── */
+  const element = composeElement(bodies, voice, (t, bag) => render(t, bag));
 
   /* ── The chart signature (revelation) card ── */
   let signature: ComposedSignatureCard | null = null;
@@ -464,12 +699,14 @@ export function composeDeck(args: {
     const tpl = pickFrom(pool, `${seed}|signature|${kind}`);
     const out: ComposedSignatureCard = {
       kind,
+      teach: SIGNATURE_TEACH,
       fact: render(tpl.fact[voice], bag, orbN),
       meaning: render(tpl.meaning[voice], bag, orbN),
       behaviour: render(tpl.behaviour[voice], bag, orbN),
       law: render(tpl.law[voice], bag, orbN),
+      seal: render(SIGNATURE_SEAL[voice]),
     };
-    if (hasLeak([out.fact, out.meaning, out.behaviour, out.law])) {
+    if (hasLeak([out.teach, out.fact, out.meaning, out.behaviour, out.law, out.seal])) {
       console.warn(`[Little Souls] placeholder leak in signature template "${kind}", trying next storyline`);
       return null;
     }
@@ -559,5 +796,5 @@ export function composeDeck(args: {
     }
   }
 
-  return { planets, signature };
+  return { planets, element, signature };
 }

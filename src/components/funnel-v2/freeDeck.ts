@@ -821,20 +821,23 @@ export function signArticle(sign: string): string {
   return sign === "Aries" || sign === "Aquarius" ? "An" : "A";
 }
 
-/* Tease + handoff card, both voices. */
+/* Tease + handoff card, both voices, in the approved four-beat anatomy:
+   keep = teach (the ledger truth), deeper = their sky (the eight inside
+   ones), love = the recognition, bridge + cta = the open door. */
 export type TeaseCopy = {
   keep: string;
   deeper: string;
   ledger: { body: string; line: string }[];
   rising: string;
+  love: string;
   bridge: string;
   cta: string;
 };
 
 export const TEASE: { d: TeaseCopy; m: TeaseCopy } = {
   d: {
-    keep: "Five of {poss} thirteen, yours to keep. A chart does not change. These five hold for life.",
-    deeper: "The eight still dark run deeper. What they fear. What they carry from before you. The job they came to do.",
+    keep: "You have read five of {poss} thirteen. The five anyone can see from the outside.",
+    deeper: "The eight still sealed are the inside ones. What they fear. What they carry from before you. The job they came to do.",
     ledger: [
       { body: "Saturn", line: "What they fear, and what steadies them." },
       { body: "Chiron", line: "What they carry from before you." },
@@ -846,12 +849,13 @@ export const TEASE: { d: TeaseCopy; m: TeaseCopy } = {
       { body: "Lilith", line: "The wild streak." },
     ],
     rising: "And the rising. It turns on the exact minute they arrived.",
+    love: "Everything you just recognised came from one date and five lights. The rest of who they are has been waiting a whole life to be read.",
     bridge: "The full reading opens all thirteen and reads them as one. The reason for the exact spot on you they always pick is in there.",
-    cta: "Meet the rest of who they are",
+    cta: "Open the rest of who they are",
   },
   m: {
-    keep: "Five of {poss} thirteen, yours to keep. A chart does not change. These five held for the whole of their life.",
-    deeper: "The eight still dark run deeper. What they feared. What they carried from before you. The job they came to do.",
+    keep: "You have read five of {poss} thirteen. The five anyone can see from the outside.",
+    deeper: "The eight still sealed are the inside ones. What they feared. What they carried from before you. The job they came to do.",
     ledger: [
       { body: "Saturn", line: "What they feared, and what steadied them." },
       { body: "Chiron", line: "What they carried from before you." },
@@ -863,8 +867,9 @@ export const TEASE: { d: TeaseCopy; m: TeaseCopy } = {
       { body: "Lilith", line: "The wild streak." },
     ],
     rising: "And the rising. It turns on the exact minute they arrived.",
+    love: "Everything you just recognised came from one date and five lights. The rest of who they were is still written in the sky, waiting to be read.",
     bridge: "The full reading opens all thirteen and reads them as one. The reason for the exact spot on you they always picked is in there.",
-    cta: "Meet the rest of who they are",
+    cta: "Open the rest of who they are",
   },
 };
 

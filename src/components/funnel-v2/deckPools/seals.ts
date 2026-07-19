@@ -1,177 +1,138 @@
-// AUTO-ASSEMBLED from approved copy-pool batches (free-reading deck pools).
-// Do not hand-edit strings here without re-running the copy quality gate.
-// Placeholders injected live by the composer: {DEG} {SIGN} {PDEG} {PSIGN} {PARTNER} {ORB} {SEP}
-// Name tokens (from freeDeck): {self} {name} {Name} {poss} {Poss}
+// THE LOCKED DOOR pools: beat 4 of the approved four-beat card. One device
+// per planet, per the approved draft, so no two cards tease the same way:
+//   Sun     = the one life job with your name on it
+//   Moon    = what restores them is written one layer deeper
+//   Venus   = what they ask in return, measured only in the full reading
+//   Mercury = the one signal you have been misreading
+//   Mars    = the steadier: the off switch belongs to a sealed body
+// A beat marked linked:true names the REAL sealed body the card planet
+// aspects (injected as {SEALED} by the composer, only when that aspect
+// exists in the chart); linked:false beats make no body claim and are the
+// always-safe pick. No em-dashes, no "report", no sell-words.
 
-import type { SealBeat } from "./types";
+import type { Voiced } from "../freeDeck";
+import type { DeckPlanet } from "../freeDeck";
 
-export const SEALS: SealBeat[] = [
-  {
-    "body": "saturn",
-    "text": {
-      "d": "The one rule Saturn set for {name} on the first day, the rule under all the others, stays sealed.",
-      "m": "The one rule Saturn set for {name} on the first day, and how faithfully it was kept, stays sealed."
-    }
-  },
-  {
-    "body": "saturn",
-    "text": {
-      "d": "What Saturn asks {name} to earn before it can be trusted, and how the earning is going, stays sealed.",
-      "m": "What Saturn asked {name} to earn, and the exact day the earning was done, stays sealed."
-    }
-  },
-  {
-    "body": "saturn",
-    "text": {
-      "d": "Where {poss} patience comes from, and what Saturn charged for it, stays sealed.",
-      "m": "Where all that patience came from, and what Saturn charged for it, stays sealed."
-    }
-  },
-  {
-    "body": "chiron",
-    "text": {
-      "d": "Where the old tender spot sits, the one place Chiron never let toughen, stays sealed.",
-      "m": "Where the old tender spot sits, the place Chiron never let toughen, and how gently {name} was loved there, stays sealed."
-    }
-  },
-  {
-    "body": "chiron",
-    "text": {
-      "d": "What {poss} soft spot knows how to recognise in you, Chiron's side of the trade, stays sealed.",
-      "m": "What {poss} soft spot always recognised in you, and what Chiron gave back for it, stays sealed."
-    }
-  },
-  {
-    "body": "chiron",
-    "text": {
-      "d": "How close {name} lets anyone come to the tender place, and what Chiron asks of the one allowed, stays sealed.",
-      "m": "How close {name} let you come to the tender place, closer than Chiron usually allows, stays sealed."
-    }
-  },
-  {
-    "body": "jupiter",
-    "text": {
-      "d": "Where the far edge of {poss} territory actually ends, the line Jupiter drew, stays sealed.",
-      "m": "Where the far edge of {poss} territory actually ended, the line Jupiter drew and never redrew, stays sealed."
-    }
-  },
-  {
-    "body": "jupiter",
-    "text": {
-      "d": "What Jupiter promised {name} is out there, the thing every horizon check is for, stays sealed.",
-      "m": "What Jupiter promised {name} was out there, the thing all that looking was for, stays sealed."
-    }
-  },
-  {
-    "body": "jupiter",
-    "text": {
-      "d": "How big {name} believes the world is, Jupiter's exact figure, stays sealed.",
-      "m": "How big {name} believed the world was, Jupiter's exact figure, and how much of it was claimed, stays sealed."
-    }
-  },
-  {
-    "body": "pluto",
-    "text": {
-      "d": "What {name} holds onto after everyone else lets go, the thing in Pluto's grip, stays sealed.",
-      "m": "What {name} held onto after everyone else let go, the thing Pluto still keeps in its grip, stays sealed."
-    }
-  },
-  {
-    "body": "pluto",
-    "text": {
-      "d": "The one attachment Pluto made permanent, formed once and never revisited, stays sealed.",
-      "m": "The one attachment Pluto made permanent, formed once and kept whole for life, stays sealed."
-    }
-  },
-  {
-    "body": "pluto",
-    "text": {
-      "d": "How deep the quiet watching goes, and what Pluto is keeping the ledger for, stays sealed.",
-      "m": "How deep the quiet watching went, and what Pluto kept the ledger for, stays sealed."
-    }
-  },
-  {
-    "body": "northNode",
-    "text": {
-      "d": "The heading the whole chart steers by, the work the North Node considers unfinished, stays sealed.",
-      "m": "The heading the whole chart still steers by, and how far along it {name} travelled with you, stays sealed."
-    }
-  },
-  {
-    "body": "northNode",
-    "text": {
-      "d": "What {name} is here to practise, the one skill the North Node keeps setting up, stays sealed.",
-      "m": "What {name} came to practise, the one skill the North Node kept setting up, and how devotedly it was worked at, stays sealed."
-    }
-  },
-  {
-    "body": "northNode",
-    "text": {
-      "d": "Which direction {name} is slowly being turned toward, degree by degree, the North Node's patient work, stays sealed.",
-      "m": "Which direction {name} was turned toward, degree by degree across a whole life, the North Node's patient work, stays sealed."
-    }
-  },
-  {
-    "body": "uranus",
-    "text": {
-      "d": "What the odd clock is set to, the timing Uranus wound into {name}, stays sealed.",
-      "m": "What the odd clock was set to, the timing Uranus wound into {name} and never adjusted, stays sealed."
-    }
-  },
-  {
-    "body": "uranus",
-    "text": {
-      "d": "Which habit {name} will break next, the one Uranus already has a date for, stays sealed.",
-      "m": "Which of {poss} rules broke on schedule, Uranus keeping the calendar the whole time, stays sealed."
-    }
-  },
-  {
-    "body": "uranus",
-    "text": {
-      "d": "Where the sideways move comes from, the part of {name} that answers to Uranus alone, stays sealed.",
-      "m": "Where the sideways moves came from, the part of {name} that answered to Uranus alone, stays sealed."
-    }
-  },
-  {
-    "body": "neptune",
-    "text": {
-      "d": "What {name} feels arriving before it arrives, and how Neptune delivers the warning, stays sealed.",
-      "m": "What {name} always felt arriving before it arrived, and how Neptune delivered the warning, stays sealed."
-    }
-  },
-  {
-    "body": "neptune",
-    "text": {
-      "d": "Which of your moods {poss} instinct catches through a closed door, Neptune's favourite channel, stays sealed.",
-      "m": "Which of your moods {poss} instinct caught through a closed door, Neptune's channel, and why it never needed telling, stays sealed."
-    }
-  },
-  {
-    "body": "neptune",
-    "text": {
-      "d": "Where {name} goes when the gaze turns soft and far away, the address Neptune keeps, stays sealed.",
-      "m": "Where {name} went when the gaze turned soft and far away, the address Neptune keeps to this day, stays sealed."
-    }
-  },
-  {
-    "body": "lilith",
-    "text": {
-      "d": "The one part of {name} that never got tamed and never will, the part in Lilith's keeping, stays sealed.",
-      "m": "The one part of {name} that never got tamed, the part Lilith kept wild on purpose, stays sealed."
-    }
-  },
-  {
-    "body": "lilith",
-    "text": {
-      "d": "What {name} wants that no hand can provide, the want Lilith guards, stays sealed.",
-      "m": "What {name} wanted that no hand could provide, the want Lilith guarded, and why it never needed fixing, stays sealed."
-    }
-  },
-  {
-    "body": "lilith",
-    "text": {
-      "d": "Which request {name} will always refuse, politely or not, Lilith's standing order, stays sealed.",
-      "m": "Which request {name} always refused, politely or not, Lilith's standing order that still stands, stays sealed."
-    }
-  }
-];
+export type PlanetSealBeat = {
+  /** true = the beat names {SEALED}, a sealed body genuinely aspecting the card planet */
+  linked: boolean;
+  text: Voiced;
+};
+
+export const PLANET_SEALS: Record<DeckPlanet, PlanetSealBeat[]> = {
+  sun: [
+    {
+      linked: false,
+      text: {
+        d: "There is one job a Sun placed like this gives a soul for life. {Poss} job has your name on it. The full reading names it back.",
+        m: "There is one job a Sun placed like this gives a soul for life. {Poss} job had your name on it from the first day. The full reading names it back.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "Every Sun sets one lifelong assignment. {Poss} assignment is about you. What it is, word for word, stays sealed.",
+        m: "Every Sun sets one lifelong assignment. {Poss} assignment was about you, start to finish. What it was, word for word, stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "The Sun hands every chart one post to hold. Where {name} stands guard, and why that post was chosen, stays sealed.",
+        m: "The Sun hands every chart one post to hold. Where {name} stood guard, and why that post was chosen, stays sealed.",
+      },
+    },
+  ],
+  moon: [
+    {
+      linked: true,
+      text: {
+        d: "What actually restores {name} after a hard day is written one layer deeper, where the Moon strikes its bargain with {SEALED}. That bargain, and how to answer it, stays sealed.",
+        m: "What actually restored {name} after a hard day is written one layer deeper, where the Moon strikes its bargain with {SEALED}. That bargain, and how you answered it without knowing, stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "What actually restores {name} after a hard day sits one layer under this card. That layer, and how to reach it, stays sealed.",
+        m: "What actually restored {name} after a hard day sits one layer under this card. That layer, and how often you reached it without knowing, stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "The Moon keeps one need it never shows in daylight. {Poss} version of it, and what answers it, stays sealed.",
+        m: "The Moon keeps one need it never shows in daylight. {Poss} version of it, and how you answered it, stays sealed.",
+      },
+    },
+  ],
+  venus: [
+    {
+      linked: false,
+      text: {
+        d: "What {name} is asking for in return, the one thing that makes the affection double, is measured in the full reading and nowhere else.",
+        m: "What {name} was asking for in return, the one thing that made the affection double, is measured in the full reading and nowhere else.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "Venus never gives without asking one thing back. {Poss} one thing stays sealed.",
+        m: "Venus never gives without asking one thing back. {Poss} one thing, and how faithfully you paid it, stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "There is a price on {poss} affection, small and exact and never spoken. The full reading reads it out.",
+        m: "There was a price on {poss} affection, small and exact and never spoken. The full reading reads it out.",
+      },
+    },
+  ],
+  mercury: [
+    {
+      linked: false,
+      text: {
+        d: "There is one signal {name} sends that you have been reading as something else. Which one, and what it actually says, stays sealed.",
+        m: "There is one signal {name} sent that you read as something else the whole time. Which one, and what it actually said, stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "One line of {poss} language has been translated wrong in this house for years. The correction stays sealed.",
+        m: "One line of {poss} language was translated wrong for years, and it is not too late to know. The correction stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "Of everything {name} says without words, one message keeps going over your head. The full reading catches it.",
+        m: "Of everything {name} said without words, one message went over your head every time. The full reading catches it.",
+      },
+    },
+  ],
+  mars: [
+    {
+      linked: true,
+      text: {
+        d: "What steadies {name} when you are not there to be found is {SEALED}'s answer to give. {SEALED} stays sealed.",
+        m: "What steadied {name} when you were not there to be found was {SEALED}'s answer to give. {SEALED} stays sealed.",
+      },
+    },
+    {
+      linked: true,
+      text: {
+        d: "Where the fire goes when it has nowhere to go is written at the other end of this line, at {SEALED}. {SEALED} stays sealed.",
+        m: "Where the fire went when it had nowhere to go is written at the other end of this line, at {SEALED}. {SEALED} stays sealed.",
+      },
+    },
+    {
+      linked: false,
+      text: {
+        d: "What sets the engine off is on this card. What shuts it down gently, the switch you have been looking for, stays sealed.",
+        m: "What set the engine off is on this card. What shut it down gently, the switch you found without ever being told, stays sealed.",
+      },
+    },
+  ],
+};

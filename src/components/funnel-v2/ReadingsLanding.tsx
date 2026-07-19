@@ -1538,12 +1538,12 @@ type DeckCard =
      + law, composed from the real chart by deckCompose) OR the legacy static
      anatomy (beats + tell) as the always-safe fallback. beats holds the hero
      line in both shapes; sealed holds the drawer line in both shapes. */
-  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; essence: string; l1: string; fact?: string; teaching?: string; beats: string; tell?: string; law?: string; sealed: string; count: number }
-  | { kind: "element"; counts: Record<DeckElement, number>; byElement: Record<DeckElement, DeckPlanet[]>; dominant: DeckElement; l1: string; beats: string; tell: string }
+  | { kind: "planet"; key: DeckPlanet; sign: string; deg: number | null; essence: string; l1?: string; teach?: string; sky?: string; love?: string; beats?: string; tell?: string; sealed: string; count: number }
+  | { kind: "element"; counts: Record<DeckElement, number>; byElement: Record<DeckElement, DeckPlanet[]>; dominant: DeckElement; teach?: string; sky?: string; love?: string; sealed?: string; l1?: string; beats?: string; tell?: string }
   | { kind: "synthesis"; lead: string; wants: string; needs: string; close: string }
   /* The chart-signature revelation card: the engine's top storyline that no
      planet card has already told, rendered from the signature templates. */
-  | { kind: "signature"; fact: string; meaning: string; behaviour: string; law: string }
+  | { kind: "signature"; teach: string; fact: string; meaning: string; behaviour: string; law: string; sealed: string }
   | { kind: "tease"; copy: TeaseCopy };
 
 // The planet-in-sign hook is one sentence: "Monty's Sun sits in Cancer, the
@@ -1597,19 +1597,18 @@ function buildDeck(
     const deg = typeof body?.degree === "number" ? Math.round(body.degree) : null;
     const engine = composed.planets[key];
     if (engine && deg != null) {
-      // ENGINE ANATOMY: l1 (degree woven in), fact, teaching, behaviour
-      // beat, law, seal keyed to a real sealed body.
+      // THE FOUR BEATS (approved draft): teach (the canonical planet line),
+      // sky (the real chart fact, numbers injected), love (the recognition),
+      // seal (the locked-door device, keyed to a real sealed body).
       cards.push({
         kind: "planet",
         key,
         sign,
         deg,
         essence: PLANET_ESSENCE[key],
-        l1: fill(DECK_L1[key](sign), S).replace(`sits in ${sign}`, `sits at ${deg} ${deg === 1 ? "degree" : "degrees"} of ${sign}`),
-        fact: engine.fact,
-        teaching: engine.teaching,
-        beats: engine.behaviour,
-        law: engine.law,
+        teach: engine.teach,
+        sky: engine.sky,
+        love: engine.love,
         sealed: engine.seal,
         count,
       });
@@ -1644,15 +1643,31 @@ function buildDeck(
   }
   const dominant = (Object.keys(counts) as DeckElement[]).reduce((a, b) => (counts[b] > counts[a] ? b : a));
   if (counts[dominant] > 0) {
-    cards.push({
-      kind: "element",
-      counts,
-      byElement,
-      dominant,
-      l1: fill(elementL1(counts[dominant], dominant), S),
-      beats: fill(ELEMENT_READS[dominant].beats[voice], S),
-      tell: fill(ELEMENT_READS[dominant].tell[voice], S),
-    });
+    if (composed.element) {
+      // THE FOUR BEATS: teach / their sky (the real lean + scarcest element)
+      // / the love / the locked door, composed from the true counts.
+      cards.push({
+        kind: "element",
+        counts,
+        byElement,
+        dominant,
+        teach: composed.element.teach,
+        sky: composed.element.sky,
+        love: composed.element.love,
+        sealed: composed.element.seal,
+      });
+    } else {
+      // LEGACY ANATOMY: the static freeDeck entry, unchanged.
+      cards.push({
+        kind: "element",
+        counts,
+        byElement,
+        dominant,
+        l1: fill(elementL1(counts[dominant], dominant), S),
+        beats: fill(ELEMENT_READS[dominant].beats[voice], S),
+        tell: fill(ELEMENT_READS[dominant].tell[voice], S),
+      });
+    }
   }
 
   // The revelation card: the chart signature (the engine's strongest
@@ -1662,10 +1677,12 @@ function buildDeck(
   if (composed.signature) {
     cards.push({
       kind: "signature",
+      teach: composed.signature.teach,
       fact: composed.signature.fact,
       meaning: composed.signature.meaning,
       behaviour: composed.signature.behaviour,
       law: composed.signature.law,
+      sealed: composed.signature.seal,
     });
   } else {
     const sunSign = chart.sun?.sign;
@@ -1780,25 +1797,35 @@ function deckCardBlocks(card: DeckCard): NarrationBlock[] {
     text && text.trim() ? [{ id, text }] : [];
   switch (card.kind) {
     case "planet":
-      // Engine anatomy reads l1 -> fact -> teaching -> beat -> law -> seal;
-      // the legacy anatomy (no fact/teaching/law) keeps its original order.
+      // The four beats read teach -> sky -> love -> seal; the legacy anatomy
+      // (l1/beats/tell, no teach/sky/love) keeps its original order.
       return [
+        ...mk("teach", card.teach),
         ...mk("l1", card.l1),
-        ...mk("fact", card.fact),
-        ...mk("teaching", card.teaching),
+        ...mk("sky", card.sky),
         ...mk("beats", card.beats),
         ...mk("tell", card.tell),
-        ...mk("law", card.law),
+        ...mk("love", card.love),
         ...mk("sealed", card.sealed),
       ];
     case "element":
-      return [...mk("l1", card.l1), ...mk("beats", card.beats), ...mk("tell", card.tell)];
+      return [
+        ...mk("teach", card.teach),
+        ...mk("l1", card.l1),
+        ...mk("sky", card.sky),
+        ...mk("beats", card.beats),
+        ...mk("tell", card.tell),
+        ...mk("love", card.love),
+        ...mk("sealed", card.sealed),
+      ];
     case "synthesis":
       return [...mk("lead", card.lead), ...mk("wants", card.wants), ...mk("needs", card.needs), ...mk("close", card.close)];
     case "signature":
-      return [...mk("fact", card.fact), ...mk("meaning", card.meaning), ...mk("behaviour", card.behaviour), ...mk("law", card.law)];
+      // Beat 3 is meaning + behaviour; the law line stays composed but off
+      // the card so the seal bar always fits a phone viewport.
+      return [...mk("teach", card.teach), ...mk("fact", card.fact), ...mk("meaning", card.meaning), ...mk("behaviour", card.behaviour), ...mk("sealed", card.sealed)];
     case "tease":
-      return [...mk("keep", card.copy.keep), ...mk("deeper", card.copy.deeper), ...mk("rising", card.copy.rising), ...mk("bridge", card.copy.bridge)];
+      return [...mk("keep", card.copy.keep), ...mk("deeper", card.copy.deeper), ...mk("rising", card.copy.rising), ...mk("love", card.copy.love), ...mk("bridge", card.copy.bridge)];
     default:
       return [];
   }
@@ -1817,7 +1844,7 @@ type PlanetDeckCard = Extract<DeckCard, { kind: "planet" }>;
 function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: NarrationHandle; reduce: boolean }) {
   const lc = (id: string, base: string) => narratedLineClass(id, nar, base);
   const angle = card.deg != null ? (card.deg / 30) * 360 : 0;
-  const engine = !!card.fact;
+  const engine = !!card.sky;
 
   const innerRef = useRef<HTMLDivElement>(null);
   const momentRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -1830,10 +1857,10 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
   const [shown, setShown] = useState(reduce ? total : 0);
 
   const blockMoment = (id: string | null | undefined): number => {
-    if (id === "l1") return 1;
-    if (id === "fact" || id === "teaching") return 2;
-    if (id === "beats" || id === "tell") return 3;
-    return 4; // law, sealed
+    if (id === "teach" || id === "l1") return 1;
+    if (id === "sky") return 2;
+    if (id === "love" || id === "beats" || id === "tell") return 3;
+    return 4; // sealed
   };
 
   const panToMoment = useCallback((moment: number) => {
@@ -1957,33 +1984,40 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
             </div>
           </div>
         </div>
-        <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
+        {engine ? (
+          <p className={lc("teach", "ls-dk-l1")}><NarratedWords blockId="teach" text={card.teach} nar={nar} /></p>
+        ) : (
+          <p className={lc("l1", "ls-dk-l1")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
+        )}
       </div>
 
-      {/* MOMENT 2 — the discovery */}
+      {/* MOMENT 2 — THEIR SKY: the real chart fact, numbers injected */}
       {engine && (
         <div ref={setRef(2)} className={`ls-dk-m ls-dk-m2${on(2)}`}>
-          <p className="ls-dk-mlabel">What we found</p>
-          <p className={lc("fact", "ls-dk-fact")}><NarratedWords blockId="fact" text={card.fact} nar={nar} /></p>
-          {card.teaching && (
-            <p className={lc("teaching", "ls-dk-teach")}><NarratedWords blockId="teaching" text={card.teaching} nar={nar} /></p>
-          )}
+          <p className="ls-dk-mlabel">Their sky</p>
+          <p className={lc("sky", "ls-dk-fact")}><NarratedWords blockId="sky" text={card.sky} nar={nar} /></p>
         </div>
       )}
 
-      {/* MOMENT 3 — the behaviour beat */}
+      {/* MOMENT 3 — THE LOVE: the recognition beat, the card's warm heart */}
       <div ref={setRef(3)} className={`ls-dk-m ls-dk-m3${on(3)}`}>
-        <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
-        {card.tell && (
-          <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+        {engine ? (
+          <>
+            <p className="ls-dk-mlabel">The love</p>
+            <p className={lc("love", "ls-dk-beats")}><NarratedWords blockId="love" text={card.love} nar={nar} /></p>
+          </>
+        ) : (
+          <>
+            <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+            {card.tell && (
+              <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+            )}
+          </>
         )}
       </div>
 
-      {/* MOMENT 4 — the quiet close + the teaser seal */}
+      {/* MOMENT 4 — THE LOCKED DOOR */}
       <div ref={setRef(4)} className={`ls-dk-m ls-dk-m4${on(4)}`}>
-        {card.law && (
-          <p className={lc("law", "ls-dk-tell ls-dk-law")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="law" text={card.law} nar={nar} /></p>
-        )}
         <div className="ls-dk-sealbar">
           <SealMark />
           <p className={lc("sealed", "ls-dk-sealtext")}><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
@@ -2088,9 +2122,13 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
     const domLabel =
       tied.length > 0 ? `${card.dominant} and ${tied[0]}` : domCount >= 3 ? `Mostly ${card.dominant}` : `Led by ${card.dominant}`;
     let chipIdx = 0;
+    const elEngine = !!card.sky;
     return wrap(
       <div className="ls-dk-inner ls-dk-el">
         <p className="ls-dk-eyebrow ls-dk-el-eyebrow">The balance of them</p>
+        {elEngine && (
+          <p className={lc("teach", "ls-dk-l1 ls-dk-el-teach")}><NarratedWords blockId="teach" text={card.teach} nar={nar} /></p>
+        )}
         <p className="ls-dk-el-dom">{domLabel}</p>
         <div className="ls-dk-houses">
           {order.map((el) => {
@@ -2116,11 +2154,27 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
             );
           })}
         </div>
-        <p className={lc("l1", "ls-dk-l1 ls-dk-el-meaning")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
-        <div className="ls-dk-read">
-          <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
-          <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
-        </div>
+        {elEngine ? (
+          <>
+            <p className={lc("sky", "ls-dk-l1 ls-dk-el-meaning")}><NarratedWords blockId="sky" text={card.sky} nar={nar} /></p>
+            <div className="ls-dk-read">
+              <p className={lc("love", "ls-dk-beats")}><NarratedWords blockId="love" text={card.love} nar={nar} /></p>
+            </div>
+            <div className="ls-dk-sealbar">
+              <SealMark />
+              <p className={lc("sealed", "ls-dk-sealtext")}><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
+              <span className="ls-dk-sealtag">In the full reading</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className={lc("l1", "ls-dk-l1 ls-dk-el-meaning")}><NarratedWords blockId="l1" text={card.l1} nar={nar} /></p>
+            <div className="ls-dk-read">
+              <p className={lc("beats", "ls-dk-beats")}><NarratedWords blockId="beats" text={card.beats} nar={nar} /></p>
+              <p className={lc("tell", "ls-dk-tell")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="tell" text={card.tell} nar={nar} /></p>
+            </div>
+          </>
+        )}
       </div>,
     );
   }
@@ -2165,10 +2219,15 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
         </span>
         <p className="ls-dk-eyebrow ls-dk-sig-eyebrow">The chart signature</p>
         <div className="ls-dk-read is-engine">
+          <p className={lc("teach", "ls-dk-l1")}><NarratedWords blockId="teach" text={card.teach} nar={nar} /></p>
           <p className={lc("fact", "ls-dk-fact")}><NarratedWords blockId="fact" text={card.fact} nar={nar} /></p>
           <p className={lc("meaning", "ls-dk-teach")}><NarratedWords blockId="meaning" text={card.meaning} nar={nar} /></p>
           <p className={lc("behaviour", "ls-dk-beats")}><NarratedWords blockId="behaviour" text={card.behaviour} nar={nar} /></p>
-          <p className={lc("law", "ls-dk-tell ls-dk-law")}><span className="ls-dk-tell-mark" aria-hidden="true" /><NarratedWords blockId="law" text={card.law} nar={nar} /></p>
+        </div>
+        <div className="ls-dk-sealbar">
+          <SealMark />
+          <p className={lc("sealed", "ls-dk-sealtext")}><NarratedWords blockId="sealed" text={card.sealed} nar={nar} /></p>
+          <span className="ls-dk-sealtag">In the full reading</span>
         </div>
       </div>,
     );
@@ -2200,6 +2259,7 @@ function DeckCardBody({ card, reduce, floating = false, showNext = false, showBa
         ))}
       </ul>
       <p className={lc("rising", "ls-dk-rising")}><AstroGlyph name="rising" className="ls-dk-rising-g" /><NarratedWords blockId="rising" text={t.rising} nar={nar} /></p>
+      <p className={lc("love", "ls-dk-deeper ls-dk-tease-love")}><NarratedWords blockId="love" text={t.love} nar={nar} /></p>
       <p className={lc("bridge", "ls-dk-bridge")}><NarratedWords blockId="bridge" text={t.bridge} nar={nar} /></p>
         <button type="button" className="ls-dk-cta" onClick={() => descendTo("#the-rest")}>
           {t.cta} <ChevronDown size={19} strokeWidth={1.7} />
@@ -2337,6 +2397,9 @@ const DECK_CSS = `
   /* the chart-signature revelation card shares the engine read grammar */
   .ls-dk-sig { gap: clamp(8px, 1.4svh, 13px); }
   .ls-dk-sig-eyebrow { animation-delay: 0.1s; }
+  /* The signature card carries four beats + the seal bar: its teach line runs
+     a step smaller so the whole card seats above the control band on phones. */
+  .ls-dk-sig .ls-dk-l1 { font-size: clamp(16px, 2.3svh, 19px); }
   /* SEAL stratum: the labelled sealed drawer. Hairline top, lock left, the
      sealed line, the destination tag right. A drawer with a destination. */
   @keyframes lsDkRuleX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -2351,10 +2414,14 @@ const DECK_CSS = `
   /* THE FOUR HOUSES (element card): his five planets standing in four
      hairline-divided element columns. The dominant column lit, the empty
      column a dimmed dot. Astronomy, not a settings widget. */
-  .ls-dk-el { gap: clamp(8px, 1.5svh, 14px); }
+  .ls-dk-el { gap: clamp(7px, 1.2svh, 12px); }
   .ls-dk-el-eyebrow { animation-delay: 0.05s; }
-  .ls-dk-el-dom { margin: 0; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1; letter-spacing: -0.014em; text-shadow: 0 0 32px rgba(154,126,230,0.32); animation-delay: 0.12s; }
-  .ls-dk-houses { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); width: min(88vw, 460px); margin: clamp(4px, 1svh, 10px) 0; padding: 18px 0 14px; animation: none; opacity: 1; }
+  /* Four beats + the seal bar share this card: the teach line runs a step
+     smaller and the lean word a step tighter so the bar seats above the
+     control band on phones. */
+  .ls-dk-el-teach { font-size: clamp(15px, 2.2svh, 18px); }
+  .ls-dk-el-dom { margin: 0; color: #ffffff; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(1.55rem, 6.4vw, 2.4rem); line-height: 1; letter-spacing: -0.014em; text-shadow: 0 0 32px rgba(154,126,230,0.32); animation-delay: 0.12s; }
+  .ls-dk-houses { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); width: min(88vw, 460px); margin: clamp(2px, 0.7svh, 8px) 0; padding: clamp(10px, 1.6svh, 16px) 0 clamp(8px, 1.3svh, 13px); animation: none; opacity: 1; }
   .ls-dk-houses::before, .ls-dk-houses::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(154,126,230,0.22) 20%, rgba(154,126,230,0.22) 80%, transparent); transform-origin: left; animation: lsDkRuleX 0.45s cubic-bezier(0.4,0,0.2,1) 0.22s both; }
   .ls-dk-houses::before { top: 0; }
   .ls-dk-houses::after { bottom: 0; }
@@ -2363,8 +2430,8 @@ const DECK_CSS = `
   .ls-dk-house.is-empty { opacity: 0.45; }
   .ls-dk-house-name { color: #ececf2; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-indent: 0.18em; text-transform: uppercase; }
   .ls-dk-house.is-dom .ls-dk-house-name { color: #cfc0f4; }
-  .ls-dk-house-chips { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; min-height: 118px; padding-top: 2px; }
-  .ls-dk-house-chip { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(185,165,240,0.22); background: rgba(154,126,230,0.04); display: grid; place-items: center; font-style: normal; font-size: 16px; color: rgba(217,210,234,0.6); animation: lsDkChipPop 0.35s cubic-bezier(0.22,0.7,0.2,1) var(--pop-delay, 0.3s) both; }
+  .ls-dk-house-chips { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: clamp(5px, 0.9svh, 8px); min-height: clamp(78px, 10svh, 112px); padding-top: 2px; }
+  .ls-dk-house-chip { width: clamp(28px, 4svh, 34px); height: clamp(28px, 4svh, 34px); border-radius: 50%; border: 1px solid rgba(185,165,240,0.22); background: rgba(154,126,230,0.04); display: grid; place-items: center; font-style: normal; font-size: 15px; color: rgba(217,210,234,0.6); animation: lsDkChipPop 0.35s cubic-bezier(0.22,0.7,0.2,1) var(--pop-delay, 0.3s) both; }
   .ls-dk-house.is-many .ls-dk-house-chip { width: 30px; height: 30px; font-size: 14px; }
   @keyframes lsDkChipPop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
   .ls-dk-house.is-dom .ls-dk-house-chip { color: #cfc0f4; border-color: rgba(185,165,240,0.55); background: rgba(154,126,230,0.08); box-shadow: 0 0 14px rgba(185,165,240,0.35); animation: lsDkChipPop 0.35s cubic-bezier(0.22,0.7,0.2,1) var(--pop-delay, 0.3s) both, lsDkDomBreath 1.4s ease-in-out 0.7s both; }
@@ -2374,8 +2441,9 @@ const DECK_CSS = `
   .ls-dk-house-n { color: rgba(200,200,210,0.7); font-family: "Newsreader", Georgia, serif; font-size: 12.5px; }
   .ls-dk-house.is-dom .ls-dk-house-n { color: #cfc0f4; }
   .ls-dk-house.is-empty .ls-dk-house-n { opacity: 0.4; }
-  .ls-dk-el-meaning { max-width: 30ch; color: #d9d2ea; font-style: italic; font-size: clamp(0.92rem, 3.6vw, 1.02rem); animation-delay: 0.5s; }
-  .ls-dk-el .ls-dk-beats { animation-delay: 0.66s; }
+  .ls-dk-el-meaning { max-width: 34ch; color: #d9d2ea; font-style: italic; font-size: clamp(0.92rem, 3.6vw, 1.02rem); animation-delay: 0.5s; }
+  .ls-dk-el .ls-dk-beats { animation-delay: 0.66s; font-size: clamp(16px, 2.4svh, 19px); }
+  .ls-dk-el .ls-dk-sealtext { font-size: clamp(14.5px, 2svh, 16.5px); }
   .ls-dk-el .ls-dk-beats::before { animation-delay: 0.68s; }
   .ls-dk-el .ls-dk-tell { animation-delay: 0.85s; }
 

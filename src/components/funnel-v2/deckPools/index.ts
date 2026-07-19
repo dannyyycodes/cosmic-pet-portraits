@@ -73,15 +73,17 @@ export { MARS_HARD } from "./marsHard";
 export { MARS_SOFT } from "./marsSoft";
 export { DIGNITY_BEATS } from "./dignity";
 export { TEACHING } from "./teaching";
-export { SEALS } from "./seals";
+export { PLANET_SEALS } from "./seals";
+export type { PlanetSealBeat } from "./seals";
 export { SIGNATURES } from "./signatures";
+export { LOVE_POOL, loveKey } from "./love";
+export type { LoveEntry } from "./love";
 export { aspectKey, dignityKey } from "./types";
 export type {
   Family,
   Species,
   Beat,
   SealedBody,
-  SealBeat,
   TeachingKey,
   SignatureKind,
   SignatureTemplate,

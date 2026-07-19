@@ -37,11 +37,9 @@ export type SealedBody =
   | "neptune"
   | "lilith";
 
-export type SealBeat = {
-  body: SealedBody;
-  /** names the precise unanswered question at that body; ends with "stays sealed" */
-  text: Voiced;
-};
+/* The locked-door beats moved to per-planet device pools: see seals.ts
+   (PlanetSealBeat). SealedBody remains the type of the body a linked
+   device names and the tease ledger runs on. */
 
 export type TeachingKey =
   | "conjunction"
