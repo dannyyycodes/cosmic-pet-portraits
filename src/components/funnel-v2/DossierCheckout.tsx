@@ -145,6 +145,11 @@ export const REVIEWS = {
     quote: "I am not usually one for this kind of thing, especially at £29. Beryl's reading gave us a better way to understand why she sulks under the desk after visitors, and the Saturn section was oddly useful. I wished one part had gone a bit longer, but it still cost less than a vet taxi and was worth it.",
     attr: "Martin C. · Beryl, British shorthair cat",
   },
+  practicalDog: {
+    img: "/reviews/review-1.webp", alt: "Ted", stars: 4,
+    quote: "£29 is not nothing, and I am not usually one for this kind of thing. But Ted's reading pinned the way he patrols the front window at the same hour every evening, and the Saturn section was oddly useful. One chapter I wanted longer. Still worth it, and it has been quoted at our dinner table since.",
+    attr: "Rachel D. · Ted, whippet cross",
+  },
   returner: {
     img: "/reviews/review-6.webp", alt: "Tilly", stars: 5,
     quote: "We came back for Tilly six months after doing our first reading for Pip. Pip's is framed in the hallway and I still notice new lines in it when I am putting my shoes on, especially the bit about his Moon softening with age. Tilly's felt different in exactly the way she is different: steadier, slower, still checking every room for us...",
@@ -799,8 +804,9 @@ export function DossierCheckout(props: DossierCheckoutProps) {
           )}
         </div>
 
-        {/* the practical one, glued to the number it names */}
-        <Review kind="practical" variant="mini" />
+        {/* the practical one, glued to the number it names - matched to the
+            visitor's own species so a dog owner never meets a cat here */}
+        <Review kind={(() => { try { return sessionStorage.getItem("ls_chart_species") === "dog" ? "practicalDog" : "practical"; } catch { return "practical"; } })()} variant="mini" />
 
         {/* the open value stack — always visible at the price, never folded */}
         <ul className="dsr-stack" aria-label="What opens with their reading">

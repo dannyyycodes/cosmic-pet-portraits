@@ -5178,7 +5178,7 @@ const VALUE_MOMENTS: { key: string; label: string; name: string; line: string; t
     key: "placements",
     label: "The written reading",
     name: "Thirteen chapters, one soul.",
-    line: "Every placement opened all the way down and written in full, the way you just saw begun.",
+    line: "The free cards read you the first lines. Here, every placement becomes a full chapter, followed all the way down.",
     target: "ring",
   },
   {
