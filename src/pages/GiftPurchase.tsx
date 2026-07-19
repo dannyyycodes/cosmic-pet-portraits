@@ -1293,6 +1293,9 @@ export default function GiftPurchase() {
                     <li><GlyphComet /> Nothing to ship</li>
                     <li><GlyphSeal /> Full refund if it does not feel like them</li>
                   </ul>
+                  <div className="gp-tier-pay">
+                    <PaymentMethodsRow />
+                  </div>
 
                 </motion.div>
               )}
@@ -2219,6 +2222,7 @@ const GP_CSS = `
   margin:20px 0 0;padding:0;font-size:13.5px;font-weight:500;color:rgba(236,236,242,.7)}
 .gp-worry-row li{display:inline-flex;align-items:center;gap:7px}
 .gp-worry-row svg{width:14px;height:14px;flex-shrink:0;color:var(--vio-soft)}
+.gp-tier-pay{display:flex;justify-content:center;margin-top:16px;opacity:.75}
 
 /* the one voice beside the decision: a compact strip below the chips */
 
