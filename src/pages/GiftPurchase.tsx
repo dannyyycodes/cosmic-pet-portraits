@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 import { REVIEWS } from '@/components/funnel-v2/DossierCheckout';
+import { PaymentMethodsRow } from '@/components/funnel-v2/PaymentMethodsRow';
 
 /* ═══════════════════════════════════════════════════════════════════
    GIFT PAGE v10 — cosmic purple + white, matched to the live readings
@@ -1346,18 +1347,24 @@ export default function GiftPurchase() {
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                     className="gp-flow"
                   >
-                    {/* Selected tier reminder */}
-                    <div className="gp-flow-reminder">
-                      <span>{(selectedOccasion && OCCASION_TIERS[selectedOccasion]?.[selectedTier]?.label) ?? TIERS[selectedTier].label}</span>
-                      <span>{fmt(TIER_CENTS[selectedTier].cents)}</span>
-                      <button onClick={() => { setSelectedTier(null); setStep(1); }} className="gp-change">
-                        change
-                      </button>
+                    {/* Panel header — the chosen gift, stated with confidence */}
+                    <div className="gp-flow-head">
+                      <div className="gp-flow-head-l">
+                        <p className="gp-flow-eyebrow">Their gift</p>
+                        <p className="gp-flow-tier">{(selectedOccasion && OCCASION_TIERS[selectedOccasion]?.[selectedTier]?.label) ?? TIERS[selectedTier].label}</p>
+                      </div>
+                      <div className="gp-flow-head-r">
+                        <span className="gp-flow-price">{fmt(TIER_CENTS[selectedTier].cents)}</span>
+                        <button onClick={() => { setSelectedTier(null); setStep(1); }} className="gp-change">
+                          Change
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Step indicator */}
+                    {/* Step indicator — slim violet progress */}
                     <div className="gp-stepper" aria-hidden="true">
                       {[...Array(stepCount)].map((_, idx) => {
                         const s = idx + 1;
@@ -1376,15 +1383,18 @@ export default function GiftPurchase() {
 
                       {/* ── STEP 1: Who? ── */}
                       {step === 1 && (
-                        <motion.div key="ds1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                        <motion.div key="ds1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                           className="gp-step-col">
 
-                          <p className="gp-flow-q">One gift or a few?</p>
+                          <div className="gp-step-intro">
+                            <p className="gp-flow-q">One gift or a few?</p>
+                            <p className="gp-flow-hint">Each person gets their own reading, and their own reveal.</p>
+                          </div>
 
                           <div className="gp-two-col">
                             {[
                               { key: 'single' as const, Glyph: GlyphStar, title: 'One Soul', sub: 'For one cherished pet parent' },
-                              { key: 'multiple' as const, Glyph: GlyphSoulFew, title: 'A Few Souls', sub: 'For several gifts at once' },
+                              { key: 'multiple' as const, Glyph: GlyphSoulFew, title: 'A Few Souls', sub: 'Several people, one order' },
                             ].map(opt => (
                               <button key={opt.key}
                                 onClick={() => {
@@ -1398,7 +1408,8 @@ export default function GiftPurchase() {
                                 {opt.key === 'multiple' && (
                                   <span className="gp-save-chip">SAVE UP TO 30%</span>
                                 )}
-                                <opt.Glyph className="gp-choice-icon" />
+                                <span className={`gp-choice-picked ${giftType === opt.key ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
+                                <span className="gp-choice-plaque" aria-hidden="true"><opt.Glyph className="gp-choice-icon" /></span>
                                 <p className="gp-choice-t">{opt.title}</p>
                                 <p className="gp-choice-s">{opt.sub}</p>
                               </button>
@@ -1421,7 +1432,7 @@ export default function GiftPurchase() {
 
                       {/* ── STEP 2: Delivery + recipient details ── */}
                       {step === 2 && (
-                        <motion.div key="ds2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                        <motion.div key="ds2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                           className="gp-step-col">
 
                           <div className="gp-step-head">
@@ -1453,7 +1464,8 @@ export default function GiftPurchase() {
                                   {opt.badge && (
                                     <span className="gp-flex-chip">{opt.badge}</span>
                                   )}
-                                  <opt.Glyph className="gp-choice-icon gp-choice-icon-sm" />
+                                  <span className={`gp-choice-picked ${deliveryMethod === opt.key ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
+                                  <span className="gp-choice-plaque gp-choice-plaque-sm" aria-hidden="true"><opt.Glyph className="gp-choice-icon gp-choice-icon-sm" /></span>
                                   <p className="gp-choice-t">{opt.title}</p>
                                   <p className="gp-choice-s">{opt.sub}</p>
                                 </button>
@@ -1568,7 +1580,7 @@ export default function GiftPurchase() {
 
                       {/* ── STEP 3: Checkout ── */}
                       {step === 3 && (
-                        <motion.div key="ds3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                        <motion.div key="ds3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                           className="gp-step-col">
 
                           <div className="gp-step-head">
@@ -1580,21 +1592,22 @@ export default function GiftPurchase() {
                           </div>
 
                           {/* Gift message first — emotional anchor */}
-                          <div>
+                          <div className="gp-message">
                             <label className="gp-field-label" htmlFor="gp-message">
                               Write them a message
                             </label>
-                            <p className="gp-field-sub" style={{ marginBottom: 8 }}>They'll see this the moment they open their gift.</p>
+                            <p className="gp-field-sub gp-message-sub">They'll see this the moment they open their gift.</p>
                             <textarea
                               id="gp-message"
-                              className="gp-field"
+                              className="gp-field gp-message-field"
                               value={giftMessage}
                               onChange={e => setGiftMessage(e.target.value)}
                               placeholder={`From the moment I saw you with your pet, I knew you two were meant to be...`}
-                              rows={3}
+                              rows={4}
                               maxLength={500}
                               style={{ resize: 'none' }}
                             />
+                            <p className="gp-message-count" aria-hidden="true">{giftMessage.length}/500</p>
                           </div>
 
                           {/* Purchaser email */}
@@ -1606,8 +1619,8 @@ export default function GiftPurchase() {
                             <input id="gp-email" type="email" className="gp-field" value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} placeholder="your@email.com" />
                           </div>
 
-                          {/* Order summary */}
-                          <div className="gp-panel gp-pad">
+                          {/* Order summary — receipt block */}
+                          <div className="gp-panel gp-pad gp-receipt">
                             <div className="gp-summary-head">
                               <GlyphGift />
                               <p>Order Summary</p>
@@ -1678,12 +1691,6 @@ export default function GiftPurchase() {
                             </div>
                           )}
 
-                          {/* Risk reversal — directly against the money decision */}
-                          <div className="gp-refund">
-                            <GlyphSeal />
-                            <p>If the reading does not feel like them, we refund every cent.</p>
-                          </div>
-
                           {/* Pay button */}
                           <button
                             onClick={handlePurchase}
@@ -1691,12 +1698,23 @@ export default function GiftPurchase() {
                             className="gp-cta gp-cta-full gp-cta-pay"
                           >
                             {isLoading
-                              ? <><SpinnerInline />Processing...</>
+                              ? <><SpinnerInline />Opening secure checkout...</>
                               : <><GlyphGift />Send This Gift &middot; {fmt(pricing.finalTotal)}</>
                             }
                           </button>
 
-                          <TrustRow items={['Secure checkout', 'Ready in minutes', 'Valid a full year']} glyphs={[GlyphSeal, GlyphMoonClock, GlyphGift]} />
+                          {/* Risk reversal at the money moment — DossierCheckout treatment */}
+                          <p className="gp-pay-guarantee">If the reading does not feel like them, we refund every cent.</p>
+
+                          {/* Quiet trust footer + the real payment marks */}
+                          <div className="gp-pay-quiet">
+                            <div className="gp-pay-trust-line">
+                              <span>Secure checkout</span>
+                              <span>Ready in minutes</span>
+                              <span>Valid a full year</span>
+                            </div>
+                            <PaymentMethodsRow />
+                          </div>
                         </motion.div>
                       )}
 
@@ -1931,7 +1949,6 @@ const GP_CSS = `
 .gp-cta:disabled{cursor:default;color:var(--dim);background:rgba(124,92,214,.16);box-shadow:none;transform:none}
 .gp-cta:disabled::after{display:none}
 .gp-cta-full{width:100%}
-.gp-cta-pay{min-height:60px}
 .gp-spin{width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
   border-radius:50%;animation:gpspin 1s linear infinite;flex-shrink:0;display:inline-block}
 @keyframes gpspin{to{transform:rotate(360deg)}}
@@ -2297,49 +2314,102 @@ const GP_CSS = `
 .gp-decide-review figcaption img{width:40px;height:40px;border-radius:11px;object-fit:cover;
   border:1px solid rgba(197,178,255,.4);flex:none}
 
-/* flow */
-.gp-flow{margin-top:36px;padding-top:32px;border-top:2px solid var(--line)}
-.gp-flow-reminder{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;
-  font-family:'Fraunces',Georgia,serif;font-size:1.05rem;color:var(--white)}
-.gp-change{margin-left:4px;font-size:14px;color:var(--dim);background:none;border:none;cursor:pointer;
-  text-decoration:underline;font-family:'Newsreader',Georgia,serif}
-.gp-stepper{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px}
-.gp-stepper-seg{display:flex;align-items:center;gap:8px}
-.gp-stepper-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:700;background:rgba(154,126,230,.16);color:var(--dim);transition:all .3s}
-.gp-stepper-dot.is-on{background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
+/* ── flow: the checkout panel. Opens as a considered, elevated piece
+   of cosmos glass (spotlight surface language), never a bare divider.
+   Entrance handled by framer (450ms ease-out, y 24 → 0). ── */
+.gp-flow{position:relative;overflow:hidden;margin-top:clamp(36px,6vw,52px);border-radius:24px;
+  padding:clamp(24px,4.6vw,38px) clamp(18px,3.8vw,34px) clamp(28px,4.6vw,40px);
+  background:
+    radial-gradient(130% 90% at 50% -10%, rgba(167,139,250,.22), transparent 62%),
+    linear-gradient(180deg,#1c1629,#151020);
+  border:1px solid rgba(167,139,250,.38);
+  box-shadow:0 1px 0 rgba(207,192,244,.16) inset,0 30px 70px -30px rgba(8,5,18,.95),
+    0 0 54px -14px rgba(124,92,214,.36)}
+.gp-flow::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,#b9a5f0 30%,#e3d9ff 50%,#b9a5f0 70%,transparent);opacity:.9}
+
+/* header row: the chosen tier + price, stated with confidence */
+.gp-flow-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+  padding-bottom:18px;margin-bottom:22px;
+  border-bottom:1px solid rgba(154,126,230,.24)}
+.gp-flow-eyebrow{font-weight:600;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--vio-bright)}
+.gp-flow-tier{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(1.25rem,3.2vw,1.5rem);
+  line-height:1.15;color:var(--white);margin-top:4px}
+.gp-flow-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.gp-flow-price{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(1.25rem,3.2vw,1.5rem);line-height:1.15;
+  font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gp-change{font-size:14px;color:var(--dim);background:none;border:none;cursor:pointer;
+  display:inline-flex;align-items:center;min-height:44px;padding:0 2px;margin:-10px 0;
+  text-decoration:underline;text-underline-offset:3px;font-family:'Newsreader',Georgia,serif;
+  transition:color .18s ease}
+.gp-change:hover{color:var(--body)}
+
+/* slim violet progress */
+.gp-stepper{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:26px}
+.gp-stepper-seg{display:flex;align-items:center;gap:10px}
+.gp-stepper-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:rgba(124,92,214,.10);border:1px solid rgba(154,126,230,.30);color:var(--dim);
+  transition:background-color .3s ease,border-color .3s ease,color .3s ease,box-shadow .3s ease}
+.gp-stepper-dot.is-on{background:linear-gradient(180deg,#9a7ee6,#5d47a0);border-color:transparent;color:#fff;
   box-shadow:0 0 14px rgba(167,139,250,.45)}
-.gp-stepper-dot svg{width:14px;height:14px}
-.gp-stepper-bar{width:28px;height:2px;background:rgba(154,126,230,.16);border-radius:2px;transition:background .3s}
+.gp-stepper-dot svg{width:13px;height:13px}
+.gp-stepper-bar{width:44px;height:2px;background:rgba(154,126,230,.18);border-radius:2px;transition:background .3s}
 .gp-stepper-bar.is-on{background:var(--vio-soft)}
-.gp-step-col{display:flex;flex-direction:column;gap:18px}
-.gp-flow-q{text-align:center;font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:1.4rem;color:var(--white)}
+.gp-step-col{display:flex;flex-direction:column;gap:20px}
+.gp-step-intro{text-align:center}
+.gp-flow-q{text-align:center;font-family:'Fraunces',Georgia,serif;font-weight:500;
+  font-size:clamp(1.35rem,3.4vw,1.55rem);color:var(--white)}
+.gp-flow-hint{margin-top:7px;font-size:15.5px;font-style:italic;color:var(--dim)}
+
+/* panel-on-panel: surfaces inside the flow sit one step deeper */
+.gp-flow .gp-panel{background:linear-gradient(180deg,#120d1d,#100c18);border:1px solid rgba(154,126,230,.24)}
 .gp-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.gp-choice{position:relative;padding:22px 14px;border-radius:18px;cursor:pointer;text-align:center;
-  border:2px solid var(--line);background:rgba(124,92,214,.05);transition:all .2s}
+.gp-choice{position:relative;padding:24px 16px 20px;border-radius:16px;cursor:pointer;text-align:center;
+  border:1px solid rgba(154,126,230,.30);
+  background:linear-gradient(180deg,rgba(124,92,214,.10),rgba(124,92,214,.03)),#141020;
+  transition:transform .2s var(--ease-stage),border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
 @media (hover:hover){
   .gp-choice:hover{transform:translateY(-2px);border-color:var(--line-bright);
     box-shadow:0 10px 26px -10px rgba(124,92,214,.4)}
 }
 .gp-choice:active{transform:scale(.98);transition-duration:.06s}
-.gp-choice.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.14);
-  box-shadow:0 0 0 3px rgba(154,126,230,.16)}
-.gp-choice-left{text-align:left;padding:16px 14px}
-.gp-choice-icon{width:30px;height:30px;margin:0 auto 10px;color:var(--dim);display:block}
-.gp-choice-left .gp-choice-icon{margin:0 0 8px}
-.gp-choice-icon-sm{width:21px;height:21px}
-.gp-choice.is-on .gp-choice-icon{color:var(--vio-bright)}
+.gp-choice.is-on{border-color:#9a7ee6;
+  background:linear-gradient(180deg,rgba(124,92,214,.18),rgba(124,92,214,.08)),#141020;
+  box-shadow:0 0 0 3px rgba(154,126,230,.16),0 12px 30px -12px rgba(124,92,214,.5)}
+.gp-choice-picked{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
+  box-shadow:0 4px 12px -4px rgba(124,92,214,.6);
+  opacity:0;transform:scale(.6);transition:opacity .18s var(--ease-stage),transform .18s var(--ease-stage)}
+.gp-choice-picked svg{width:11px;height:11px}
+.gp-choice-picked.is-on{opacity:1;transform:scale(1)}
+.gp-choice-plaque{display:inline-grid;place-items:center;width:46px;height:46px;margin:0 auto 12px;border-radius:14px;
+  background:linear-gradient(165deg,rgba(154,126,230,.24),rgba(124,92,214,.10));
+  border:1px solid rgba(185,165,240,.30);box-shadow:0 8px 22px -12px rgba(124,92,214,.5);
+  transition:border-color .2s ease,box-shadow .2s ease}
+.gp-choice.is-on .gp-choice-plaque{border-color:rgba(197,178,255,.55);
+  box-shadow:0 10px 26px -10px rgba(124,92,214,.65)}
+.gp-choice-left{text-align:left;padding:18px 16px 16px}
+.gp-choice-left .gp-choice-plaque{margin:0 0 10px}
+.gp-choice-plaque-sm{width:38px;height:38px;border-radius:11px}
+.gp-choice-icon{width:24px;height:24px;color:var(--vio-pale);display:block}
+.gp-choice-icon-sm{width:19px;height:19px}
+.gp-choice.is-on .gp-choice-icon{color:#fff}
 .gp-choice-t{font-weight:700;font-size:16.5px;color:var(--white)}
-.gp-choice-s{font-size:14.5px;color:var(--dim);margin-top:3px;line-height:1.35}
+.gp-choice-s{font-size:14.5px;color:var(--dim);margin-top:3px;line-height:1.4}
 .gp-save-chip{position:absolute;top:-9px;right:12px;font-size:11px;font-weight:700;
   background:linear-gradient(180deg,#9a7ee6,#7c5cd6);color:#fff;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
 .gp-flex-chip{position:absolute;top:-9px;left:12px;font-size:11.5px;font-weight:700;
   background:linear-gradient(180deg,#9a7ee6,#7c5cd6);color:#fff;padding:2px 9px;border-radius:20px}
-.gp-trust-mini{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--dim)}
-.gp-trust-mini span{display:inline-flex;align-items:center;gap:5px}
-.gp-trust-mini svg{width:14px;height:14px}
+.gp-trust-mini{display:flex;justify-content:center;gap:8px 18px;flex-wrap:wrap;
+  font-size:14.5px;color:var(--dim);opacity:.85}
+.gp-trust-mini span{display:inline-flex;align-items:center;gap:6px}
+.gp-trust-mini svg{width:14px;height:14px;color:var(--vio-soft)}
 .gp-step-head{display:flex;align-items:center;justify-content:space-between}
-.gp-step-head p{font-weight:700;font-size:17.5px;color:var(--white)}
+.gp-step-head p{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.15rem;color:var(--white)}
 .gp-ghost{background:none;border:none;color:var(--dim);cursor:pointer;display:inline-flex;
   align-items:center;gap:5px;font-size:15px;padding:4px}
 .gp-ghost:hover{color:var(--body)}
@@ -2348,9 +2418,22 @@ const GP_CSS = `
 /* fields */
 .gp-field{width:100%;padding:13px 16px;border-radius:10px;min-height:48px;
   border:1px solid rgba(139,123,216,.38);background:rgba(11,8,18,.55);
-  font-size:17px;color:var(--body);outline:none;transition:border-color .2s}
+  font-size:17px;color:var(--body);outline:none;
+  transition:border-color .2s ease,box-shadow .2s ease}
 .gp-field::placeholder{color:var(--dim)}
-.gp-field:focus{border-color:#9a7ee6;box-shadow:0 0 0 3px rgba(167,139,250,.16)}
+.gp-field:focus{border-color:#9a7ee6;box-shadow:0 0 0 3px rgba(167,139,250,.22)}
+
+/* the gift message — the emotional moment of step 3 */
+.gp-message{padding:20px 18px 14px;border-radius:16px;
+  background:radial-gradient(120% 80% at 50% -10%, rgba(167,139,250,.14), transparent 60%),
+    linear-gradient(180deg,#161022,#120d1d);
+  border:1px solid rgba(167,139,250,.30)}
+.gp-message .gp-field-label{margin-bottom:4px}
+.gp-message-sub{font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;
+  color:var(--vio-pale);font-size:15.5px;margin-bottom:12px}
+.gp-message-field{min-height:112px;line-height:1.55}
+.gp-message-count{text-align:right;font-size:12.5px;color:var(--dim);margin-top:6px;
+  font-variant-numeric:tabular-nums}
 .gp-field-sm{padding:10px 14px;min-height:44px;font-size:16px}
 .gp-field-col{display:flex;flex-direction:column;gap:10px}
 .gp-field-label{font-size:16.5px;font-weight:600;color:var(--white);display:block;margin-bottom:10px}
@@ -2414,6 +2497,16 @@ const GP_CSS = `
 .gp-summary-total-v{font-family:'Fraunces',Georgia,serif}
 .gp-summary-note{font-size:13px;color:var(--dim);margin-top:6px;text-align:right}
 
+/* receipt treatment — dashed rules, tabular figures, lifted total */
+.gp-receipt{padding:22px 20px}
+.gp-receipt .gp-summary-head{border-bottom:1px dashed rgba(154,126,230,.34)}
+.gp-receipt .gp-summary-price{font-variant-numeric:tabular-nums}
+.gp-receipt .gp-summary-totals{border-top:1px dashed rgba(154,126,230,.34)}
+.gp-receipt .gp-summary-total{align-items:baseline}
+.gp-receipt .gp-summary-total-v{font-size:1.45rem;font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
 /* promo */
 .gp-promo-row{display:flex;gap:8px}
 .gp-apply{padding:0 20px;border-radius:10px;min-height:48px;border:none;cursor:pointer;
@@ -2427,16 +2520,25 @@ const GP_CSS = `
 .gp-promo-chip span{font-size:15px;color:var(--vio-pale);font-weight:600}
 .gp-promo-chip button{background:none;border:none;color:var(--vio-pale);cursor:pointer;font-size:1.1rem;line-height:1}
 
-/* refund line */
-.gp-refund{display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;
-  background:rgba(124,92,214,.07);border:1px solid var(--line)}
-.gp-refund svg{width:21px;height:21px;color:var(--vio-bright);flex-shrink:0}
-.gp-refund p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:17px;color:var(--white);line-height:1.45}
+/* ── the pay moment: guarantee + quiet trust footer + real payment
+   marks, mirroring the approved DossierCheckout treatment ── */
+.gp-cta-pay{min-height:62px}
+.gp-pay-guarantee{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:17.5px;line-height:1.5;
+  color:var(--white);text-align:center;margin:2px 6px 0}
+.gp-pay-quiet{display:flex;flex-direction:column;gap:14px;opacity:.8;margin-top:2px}
+.gp-pay-trust-line{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  font-size:15px;color:var(--dim);text-align:center}
+.gp-pay-trust-line span{white-space:nowrap}
+.gp-pay-trust-line span + span::before{content:"\\00B7";margin-right:8px;color:rgba(139,123,216,.5)}
 
 @media (max-width:520px){
-  .gp-two-col{grid-template-columns:1fr 1fr}
+  .gp-two-col{grid-template-columns:1fr}
   .gp-recip-fields.has-email{grid-template-columns:1fr}
   .gp-sticky-price{display:none}
   .gp-cta-sticky{width:100%;max-width:420px}
+  .gp-flow{border-radius:18px}
+  .gp-stepper-bar{width:26px}
+  .gp-flow-head{align-items:flex-start}
+  .gp-cta-pay{font-size:17px}
 }
 `;
