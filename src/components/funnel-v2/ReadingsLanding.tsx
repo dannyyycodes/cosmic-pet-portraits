@@ -5326,14 +5326,20 @@ function ValueMoments() {
   const petName = capName(pet?.name);
   const objLabel = `The full reading, kept as one keepsake with ${petName ? `${petName}'s` : "their"} photo at the centre`;
 
-  // SoulSpeak teaser copy, register-aware. A tender owner question and the
-  // little soul answering in first person — clearly a preview, not a live
-  // channel. Voice is hinted, never a fresh claim (the holding already
-  // promises "their own voice").
-  const soulOwnerAsk = memorialIntent ? "Are you still with me?" : "Do you know you are safe with me?";
-  const soulPetReply = memorialIntent
-    ? "I never left the warm end of the sofa. Say my name and listen, I always answer."
-    : "Every time you say my name, I know. Your voice is the warm part of my whole day.";
+  // SoulSpeak teaser copy, register-aware. Discovery brings back the funny
+  // exchange from the original SoulSpeak preview (Danny 2026-07-19: "make it
+  // funny, bring back the chat from the old design"); memorial stays tender.
+  const soulChat = memorialIntent
+    ? [
+        { who: "user", text: "Are you still with me?" },
+        { who: "pet", text: "I never left the warm end of the sofa. Say my name and listen, I always answer." },
+      ]
+    : [
+        { who: "user", text: "Why do you stare at me like that when I pack a bag?" },
+        { who: "pet", text: "Because I've done the maths. Bag out, you vanish. Every time." },
+        { who: "user", text: "I'll be back on Sunday." },
+        { who: "pet", text: "I don't have a Sunday." },
+      ];
   const WEEK: { d: string; m?: boolean }[] = [
     { d: "Mon" }, { d: "Tue", m: true }, { d: "Wed" }, { d: "Thu" },
     { d: "Fri" }, { d: "Sat" }, { d: "Sun", m: true },
@@ -5376,11 +5382,16 @@ function ValueMoments() {
               <span className="vm-chat-badge">SoulSpeak</span>
             </div>
             <div className="vm-chat-body">
-              <div className="vm-msg vm-msg-user"><span className="vm-bub">{soulOwnerAsk}</span></div>
-              <div className="vm-msg vm-msg-pet">
-                <span className="vm-msg-av"><img src={coreSrc} alt="" loading="lazy" decoding="async" /></span>
-                <span className="vm-bub">{soulPetReply}</span>
-              </div>
+              {soulChat.map((m, i) => (
+                m.who === "user" ? (
+                  <div key={i} className="vm-msg vm-msg-user"><span className="vm-bub">{m.text}</span></div>
+                ) : (
+                  <div key={i} className="vm-msg vm-msg-pet">
+                    <span className="vm-msg-av"><img src={coreSrc} alt="" loading="lazy" decoding="async" /></span>
+                    <span className="vm-bub">{m.text}</span>
+                  </div>
+                )
+              ))}
             </div>
             <div className="vm-chat-foot">
               <span className="vm-chat-input"><Mic size={15} strokeWidth={1.6} aria-hidden="true" />Ask them anything</span>
@@ -5391,12 +5402,27 @@ function ValueMoments() {
       case "horoscope":
         return (
           <div className="ls-vm-prev vm-prev-week" aria-hidden="true">
+            <div className="vm-week-head">
+              <span className="vm-week-title">{petName ? `${petName}'s week` : "Their week"}</span>
+              <span className="vm-week-sub">arrives every Monday</span>
+            </div>
             <div className="vm-week-row">
               {WEEK.map((w, i) => (
                 <span key={i} className={`vm-week-day${w.m ? " is-mark" : ""}`}>{w.d}</span>
               ))}
             </div>
-            <p className="vm-week-line">This week: a restless Tuesday, a clingy Sunday.</p>
+            <div className="vm-week-entry">
+              <span className="vm-week-day-label">Tuesday</span>
+              <p className="vm-week-entry-line">
+                {memorialIntent
+                  ? `Mars crosses ${petName ? `${petName}'s` : "their"} Sun this week. The day the whole house used to know about. Light something warm and remember the zoomies.`
+                  : `Mars crosses ${petName ? `${petName}'s` : "their"} Sun. Expect the sudden burst at the door, the toy nobody has seen for weeks, the lap that stops being optional. Guard the sofa cushions.`}
+              </p>
+            </div>
+            <div className="vm-week-entry is-veiled">
+              <span className="vm-week-day-label">Sunday</span>
+              <p className="vm-week-entry-line">The clingy one. Written in full in their week.</p>
+            </div>
           </div>
         );
       default:
@@ -5661,6 +5687,13 @@ function ValueMoments() {
 
         /* IV — a week ahead: seven days, two stirred */
         .vm-prev-week { max-width: 340px; padding: 16px 18px; border-radius: 14px; border: 1px solid rgba(185,165,240,0.2); background: linear-gradient(180deg, rgba(30,24,44,0.9), rgba(18,13,28,0.9)); }
+        .vm-week-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 10px; }
+        .vm-week-title { color: ${C.cream}; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 1.05rem; }
+        .vm-week-sub { color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 12.5px; }
+        .vm-week-entry { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(185,165,240,0.18); background: rgba(124,92,214,0.08); }
+        .vm-week-entry.is-veiled { opacity: 0.55; }
+        .vm-week-day-label { display: block; color: ${C.violetBright}; font-family: "Newsreader", Georgia, serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 4px; }
+        .vm-week-entry-line { margin: 0; color: ${C.creamDim}; font-family: "Newsreader", Georgia, serif; font-size: 14.5px; line-height: 1.5; }
         .vm-week-row { display: flex; gap: 6px; }
         .vm-week-day { flex: 1 1 0; display: grid; place-items: center; height: 34px; border-radius: 9px; border: 1px solid rgba(185,165,240,0.16); color: ${C.muted}; font-family: "Newsreader", Georgia, serif; font-size: 12px; font-weight: 600; }
         .vm-week-day.is-mark { border-color: rgba(185,165,240,0.6); background: rgba(124,92,214,0.28); color: #fff; box-shadow: 0 0 0 1px rgba(185,165,240,0.3), 0 6px 16px -8px rgba(124,92,214,0.6); }
