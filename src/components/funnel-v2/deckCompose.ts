@@ -259,9 +259,9 @@ const THEY_SUBORDINATORS = new Set([
 const THEY_PREPS = new Set([
   "at", "to", "for", "with", "in", "on", "of", "into", "from", "between",
   "near", "beside", "around", "past", "behind", "before", "after", "against",
-  "through", "over", "under", "by", "like", "than", "up", "off", "toward",
-  "towards", "onto", "upon", "without", "within", "across", "about", "among",
-  "beneath", "below", "above",
+  "through", "over", "under", "underneath", "by", "like", "than", "up", "off",
+  "toward", "towards", "onto", "upon", "without", "within", "across", "about",
+  "among", "beneath", "below", "above",
 ]);
 const THEY_OBJECT_VERBS = new Set([
   "let", "make", "give", "tell", "show", "watch", "keep", "hold", "take",
@@ -340,28 +340,30 @@ function skyForAspect(planet: DeckPlanet, pos: BodyPosition, partner: BodyName, 
   const deg = Math.round(pos.degree);
   const partnerLabel = BODY_LABEL[partner]; /* after {poss}: "their North Node" reads right */
   const dist = orbDistance(asp.orb);
+  /* The second mention goes through {their}: "his North Node" / "her Moon"
+     when a gender was given, and word-for-word today's possessive when not. */
   switch (asp.type) {
     case "conjunction":
       return dist
-        ? `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, ${dist} from {poss} ${partnerLabel}. In a chart that close, two planets speak as one instrument.`
-        : `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, on the very same degree as {poss} ${partnerLabel}. Planets do not sit closer than this. The two speak as one instrument.`;
+        ? `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, ${dist} from {their} ${partnerLabel}. In a chart that close, two planets speak as one instrument.`
+        : `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, on the very same degree as {their} ${partnerLabel}. Planets do not sit closer than this. The two speak as one instrument.`;
     case "opposition": {
       const variants = dist
         ? [
-            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, staring straight across the whole sky at {poss} ${partnerLabel}, ${dist} from an exact opposition.`,
-            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, directly across the sky from {poss} ${partnerLabel}. The two face each other, ${dist} off an exact opposition.`,
+            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, staring straight across the whole sky at {their} ${partnerLabel}, ${dist} from an exact opposition.`,
+            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, directly across the sky from {their} ${partnerLabel}. The two face each other, ${dist} off an exact opposition.`,
           ]
         : [
-            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, staring straight across the whole sky at {poss} ${partnerLabel}. The line between them is exact to the degree.`,
+            `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, staring straight across the whole sky at {their} ${partnerLabel}. The line between them is exact to the degree.`,
           ];
       return pickFrom(variants, `${seed}|sky|opp`);
     }
     case "square":
-      return `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, meeting {poss} ${partnerLabel} at a right angle, ${orbPhrase(asp.orb)}. Astrologers call it a square: two pulls grinding at one corner, and neither gives way.`;
+      return `{Poss} ${P} stands at ${deg} degrees of ${pos.sign}, meeting {their} ${partnerLabel} at a right angle, ${orbPhrase(asp.orb)}. Astrologers call it a square: two pulls grinding at one corner, and neither gives way.`;
     case "trine":
-      return `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, in an easy flowing line to {poss} ${partnerLabel}, ${orbPhrase(asp.orb)}. A trine: one part of them feeding another without effort.`;
+      return `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, in an easy flowing line to {their} ${partnerLabel}, ${orbPhrase(asp.orb)}. A trine: one part of them feeding another without effort.`;
     case "sextile":
-      return `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, at a helping angle to {poss} ${partnerLabel}, ${orbPhrase(asp.orb)}. A sextile: a door held open between two planets, and this chart uses it.`;
+      return `{Poss} ${P} sits at ${deg} degrees of ${pos.sign}, at a helping angle to {their} ${partnerLabel}, ${orbPhrase(asp.orb)}. A sextile: a door held open between two planets, and this chart uses it.`;
   }
 }
 
@@ -388,7 +390,7 @@ function skyPlain(planet: DeckPlanet, pos: BodyPosition, seed: string): string {
   const deg = Math.round(pos.degree);
   const variants = [
     `The day {name} arrived, ${planetWithThe(planet)} stood at ${deg} degrees of ${pos.sign}.`,
-    `{Poss} ${PLANET_WORD[planet]} holds ${deg} degrees of ${pos.sign}. It has held that exact spot since the day they were born, and it never moves.`,
+    `{Poss} ${PLANET_WORD[planet]} holds ${deg} degrees of ${pos.sign}. It has held that exact spot since the day {they} {was} born, and it never moves.`,
   ];
   return pickFrom(variants, `${seed}|sky|plain|${planet}`);
 }
@@ -412,16 +414,16 @@ const ELEMENT_LOW: Record<ElementName, Voiced> = {
     m: "Low fire meant the love never blazed and burned out. It held. No fireworks, just a flame that never once went out.",
   },
   Earth: {
-    d: "Low earth means routine is not what holds them. You are. Move the whole house tomorrow and they are fine by Thursday, as long as the people come too. {Poss} home has always been a who, not a where.",
+    d: "Low earth means routine is not what holds them. You are. Move the whole house tomorrow and {they} {is} fine by Thursday, as long as the people come too. {Poss} home has always been a who, not a where.",
     m: "Low earth meant routine was never what held them. You were. {Poss} home was never a where. It was a who, and it was you.",
   },
   Air: {
-    d: "Low air means there is no figuring you out and no need to. They skip the thinking and go straight to the knowing. You are not a puzzle to them. You are the answer.",
-    m: "Low air meant there was no figuring you out and no need to. They skipped the thinking and went straight to the knowing. You were never a puzzle to them. You were the answer.",
+    d: "Low air means there is no figuring you out and no need to. {They} skip{s} the thinking and go{es} straight to the knowing. You are not a puzzle to {them}. You are the answer.",
+    m: "Low air meant there was no figuring you out and no need to. {They} skipped the thinking and went straight to the knowing. You were never a puzzle to {them}. You were the answer.",
   },
   Water: {
-    d: "Low water means the love is not weather. It is ground. They do not ride your moods, they stand steady underneath them, the same on your worst day as your best.",
-    m: "Low water meant the love was never weather. It was ground. They did not ride your moods, they stood steady underneath them, the same on your worst day as your best.",
+    d: "Low water means the love is not weather. It is ground. {They} {does} not ride your moods, standing steady underneath them instead, the same on your worst day as your best.",
+    m: "Low water meant the love was never weather. It was ground. {They} did not ride your moods. {Their} love stood steady underneath them, the same on your worst day as your best.",
   },
 };
 

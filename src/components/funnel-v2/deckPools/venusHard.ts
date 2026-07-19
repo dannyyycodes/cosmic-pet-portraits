@@ -343,6 +343,22 @@ export const VENUS_HARD: Beat[] = [
     }
   },
   {
+    "key": "venus|chiron|hard",
+    "species": "any",
+    "meaning": {
+      "d": "{Poss} Venus stands at a hard angle to {PARTNER}, the old tender spot, {ORB}. It folds a small brace into the asking: the love comes forward and checks at the same time, sure of you and still asking.",
+      "m": "{Poss} Venus stands at a hard angle to {PARTNER}, the old tender spot, {ORB}. It folded a small brace into the asking: the love came forward and checked at the same time, sure of you and still asking."
+    },
+    "behaviour": {
+      "d": "The tell is the pause one beat before the affection lands. The approach, the small stop, the eyes finishing the journey before the body does. Keep still once today and let the last step happen on its own. It always does.",
+      "m": "The affection always had a pause built in: the approach, the small stop, the eyes finishing the journey before the body did. The last step always happened."
+    },
+    "law": {
+      "d": "The pause before the landing is not doubt about you. It is {poss} Venus clearing {PARTNER} on the way to you.",
+      "m": "The pause before the landing was never doubt about you. It was {poss} Venus clearing {PARTNER} on the way to you, and it cleared it every time."
+    }
+  },
+  {
     "key": "venus|northNode|hard",
     "species": "dog",
     "meaning": {

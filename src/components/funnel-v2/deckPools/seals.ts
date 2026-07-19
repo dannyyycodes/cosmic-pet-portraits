@@ -24,15 +24,15 @@ export const PLANET_SEALS: Record<DeckPlanet, PlanetSealBeat[]> = {
     {
       linked: false,
       text: {
-        d: "There is one job a Sun placed like this gives a soul for life. {Poss} job has your name on it. The full reading names it back.",
-        m: "There is one job a Sun placed like this gives a soul for life. {Poss} job had your name on it from the first day. The full reading names it back.",
+        d: "There is one job a Sun placed like this gives a soul for life. {Their} job has your name on it. The full reading names it back.",
+        m: "There is one job a Sun placed like this gives a soul for life. {Their} job had your name on it from the first day. The full reading names it back.",
       },
     },
     {
       linked: false,
       text: {
-        d: "Every Sun sets one lifelong assignment. {Poss} assignment is about you. What it is, word for word, stays sealed.",
-        m: "Every Sun sets one lifelong assignment. {Poss} assignment was about you, start to finish. What it was, word for word, stays sealed.",
+        d: "Every Sun sets one lifelong assignment. {Their} assignment is about you. What it is, word for word, stays sealed.",
+        m: "Every Sun sets one lifelong assignment. {Their} assignment was about you, start to finish. What it was, word for word, stays sealed.",
       },
     },
     {
@@ -61,8 +61,8 @@ export const PLANET_SEALS: Record<DeckPlanet, PlanetSealBeat[]> = {
     {
       linked: false,
       text: {
-        d: "The Moon keeps one need it never shows in daylight. {Poss} version of it, and what answers it, stays sealed.",
-        m: "The Moon keeps one need it never shows in daylight. {Poss} version of it, and how you answered it, stays sealed.",
+        d: "The Moon keeps one need it never shows in daylight. {Their} version of it, and what answers it, stays sealed.",
+        m: "The Moon keeps one need it never shows in daylight. {Their} version of it, and how you answered it, stays sealed.",
       },
     },
   ],
@@ -77,15 +77,15 @@ export const PLANET_SEALS: Record<DeckPlanet, PlanetSealBeat[]> = {
     {
       linked: false,
       text: {
-        d: "Venus never gives without asking one thing back. {Poss} one thing stays sealed.",
-        m: "Venus never gives without asking one thing back. {Poss} one thing, and how faithfully you paid it, stays sealed.",
+        d: "Venus never gives without asking one thing back. {Their} one thing stays sealed.",
+        m: "Venus never gives without asking one thing back. {Their} one thing, and how faithfully you paid it, stays sealed.",
       },
     },
     {
       linked: false,
       text: {
-        d: "There is a price on {poss} affection, small and exact and never spoken. The full reading reads it out.",
-        m: "There was a price on {poss} affection, small and exact and never spoken. The full reading reads it out.",
+        d: "There is a price on {their} affection, small and exact and never spoken. The full reading reads it out.",
+        m: "There was a price on {their} affection, small and exact and never spoken. The full reading reads it out.",
       },
     },
   ],
@@ -100,8 +100,8 @@ export const PLANET_SEALS: Record<DeckPlanet, PlanetSealBeat[]> = {
     {
       linked: false,
       text: {
-        d: "One line of {poss} language has been translated wrong in this house for years. The correction stays sealed.",
-        m: "One line of {poss} language was translated wrong for years, and it is not too late to know. The correction stays sealed.",
+        d: "One line of {their} language has been translated wrong in this house for years. The correction stays sealed.",
+        m: "One line of {their} language was translated wrong for years, and it is not too late to know. The correction stays sealed.",
       },
     },
     {

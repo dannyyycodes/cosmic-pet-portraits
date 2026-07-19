@@ -423,6 +423,22 @@ export const VENUS_FUSED: Beat[] = [
     }
   },
   {
+    "key": "venus|chiron|fused",
+    "species": "any",
+    "meaning": {
+      "d": "Chiron sits with Venus at {DEG} degrees, {ORB}, so the love and the old tender spot share one address in {poss} chart. The affection is real, and it arrives gently, the way careful hands carry glass.",
+      "m": "Chiron sits with Venus at {DEG} degrees, {ORB}, so the love and the old tender spot shared one address in {poss} chart. The affection was real, and it arrived gently, the way careful hands carry glass."
+    },
+    "behaviour": {
+      "d": "Watch the approach today: it comes in stages, never all at once, the distance closed a little, held, then closed again. Nobody taught the stages. They are the tender spot and the love arriving in the same motion.",
+      "m": "The approach always came in stages, never all at once, the distance closed a little, held, then closed again. Nobody taught the stages. They were the tender spot and the love arriving in the same motion."
+    },
+    "law": {
+      "d": "The love arrives in stages because Venus and Chiron share one address in {poss} chart.",
+      "m": "The love arrived in stages because Venus and Chiron share one address in {poss} chart."
+    }
+  },
+  {
     "key": "venus|northNode|fused",
     "species": "dog",
     "meaning": {

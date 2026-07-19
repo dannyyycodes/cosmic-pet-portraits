@@ -391,6 +391,22 @@ export const VENUS_SOFT: Beat[] = [
     }
   },
   {
+    "key": "venus|chiron|soft",
+    "species": "any",
+    "meaning": {
+      "d": "{PARTNER} in {PSIGN} holds an easy angle to {poss} Venus at {DEG} degrees of {SIGN}, {ORB}. {PARTNER} marks the old tender spot in any chart, and the easy angle means the love reads soreness in a room faster than joy, and answers it with presence instead of noise.",
+      "m": "{PARTNER} in {PSIGN} holds an easy angle to {poss} Venus at {DEG} degrees of {SIGN}, {ORB}. {PARTNER} marks the old tender spot in any chart, and the easy angle meant the love read soreness in a room faster than joy, and answered it with presence instead of noise."
+    },
+    "behaviour": {
+      "d": "Test it on an ordinary low day. Say nothing, change nothing, and watch where {they} settle{s}: nearer than usual, quieter than usual, aimed at you. The radar for your worst days is this line working.",
+      "m": "On the low days, with nothing said and nothing changed, they settled nearer than usual, quieter than usual, aimed at you. The radar for your worst days was this line working."
+    },
+    "law": {
+      "d": "Comfort arrives before you ask because Venus and {PARTNER} keep an open channel in {poss} chart.",
+      "m": "Comfort arrived before you asked, and Venus and {PARTNER} still keep that channel open in {poss} chart."
+    }
+  },
+  {
     "key": "venus|northNode|soft",
     "species": "dog",
     "meaning": {

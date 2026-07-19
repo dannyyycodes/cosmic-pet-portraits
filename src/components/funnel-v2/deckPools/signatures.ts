@@ -42,8 +42,8 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "You watched the check run itself for years. A chair moved, a bag packed, a routine shifted ten minutes, and the noticing landed everywhere at once, ears and eyes and feet. Small things were never small in that house."
     },
     "law": {
-      "d": "Say it plain: one patch of {SIGN}, {SPAN} degrees wide, runs most of {poss} chart.",
-      "m": "Say it plain: everything arrived at once because one patch of {SIGN}, {SPAN} degrees wide, runs most of {poss} chart."
+      "d": "Say it plain: one patch of {SIGN}, {SPAN} degrees wide, runs most of {their} chart.",
+      "m": "Say it plain: everything arrived at once because one patch of {SIGN}, {SPAN} degrees wide, runs most of {their} chart."
     }
   },
   {
@@ -58,7 +58,7 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "A conjunction this tight is a fusion. Two functions stop taking turns and become one instrument with two jobs wired to a single trigger. In {name}, whatever one of these planets started, the other finished in the same motion."
     },
     "behaviour": {
-      "d": "So look for the missing seam. Some time in the next day, catch {poss} shift from stillness to motion. There is no gap in it, no wind-up, decision and movement in one piece. That seamlessness is the fusion showing.",
+      "d": "So look for the missing seam. Some time in the next day, catch {their} shift from stillness to motion. There is no gap in it, no wind-up, decision and movement in one piece. That seamlessness is the fusion showing.",
       "m": "You could never find the seam. When the shift from stillness to motion came, there was no gap, no wind-up, decision and movement in one piece. That seamlessness was the fusion showing, and the chart holds the weld to this day."
     },
     "law": {
@@ -82,8 +82,8 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "The blend showed at the day's hinges, waking, settling, the moment the house changed gear. The two-step other animals do, first feel then act, first look then move, never happened here. In {name} it was one step, every time, for a whole life."
     },
     "law": {
-      "d": "The line worth repeating: two jobs share one address in {poss} chart, so they only ever arrive together.",
-      "m": "The line worth repeating: two jobs share one address in {poss} chart, and for a whole life they only ever arrived together."
+      "d": "The line worth repeating: two jobs share one address in {their} chart, so they only ever arrive together.",
+      "m": "The line worth repeating: two jobs share one address in {their} chart, and for a whole life they only ever arrived together."
     }
   },
   {
@@ -198,7 +198,7 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "Full standing means the planet answers to nobody. {BODIES} ran its part of {name} in its own language, undiluted, which is why that part read louder and steadier than the chart around it."
     },
     "behaviour": {
-      "d": "Strength this native shows as calm, not noise. In the next day, watch for the one corner of {poss} day that never waits on your face, no glance for permission, no second look. Everywhere else the chart negotiates. There, it simply proceeds.",
+      "d": "Strength this native shows as calm, not noise. In the next day, watch for the one corner of {their} day that never waits on your face, no glance for permission, no second look. Everywhere else the chart negotiates. There, it simply proceeds.",
       "m": "Strength this native showed as calm, not noise. There was one corner of the day that never waited on your face, no glance for permission, no second look. Everywhere else the chart negotiated. There, it simply proceeded."
     },
     "law": {
@@ -218,11 +218,11 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "An element is a language a chart can speak, and this chart speaks three, not four. Nothing was broken. But whatever {ELEMENT} usually handles got routed through the other channels, the long way round, in a borrowed accent, and the old books treat an empty column as loud as a full one."
     },
     "behaviour": {
-      "d": "The tell is the workaround. Somewhere in {poss} day is a task most animals take head-on, and in {name} it goes by a private detour, the same destination by a different road. You likely stopped noticing years ago. Watch for it once today, freshly.",
+      "d": "The tell is the workaround. Somewhere in {their} day is a task most animals take head-on, and in {name} it goes by a private detour, the same destination by a different road. You likely stopped noticing years ago. Watch for it once today, freshly.",
       "m": "The tell was the workaround. Somewhere in every day was a task most animals take head-on, and in {name} it went by a private detour, the same destination by a different road. Once you saw it, you saw it everywhere, and the empty column in the chart is why."
     },
     "law": {
-      "d": "Say it plain: there is no {ELEMENT} anywhere in {poss} chart, so the chart built a detour, and the detour became character.",
+      "d": "Say it plain: there is no {ELEMENT} anywhere in {their} chart, so the chart built a detour, and the detour became character.",
       "m": "Say it plain: there is no {ELEMENT} anywhere in {poss} chart. The detours it forced became half of the character you loved."
     }
   },
@@ -254,8 +254,8 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "Count the ten planets in {poss} chart by element and the vote is not close: {COUNT} of them stand in {ELEMENT} signs. That is not an accent. That is a landslide."
     },
     "meaning": {
-      "d": "When one element carries that many planets it stops being a flavour and becomes the medium. Most of {poss} wanting, noticing and starting gets processed the {ELEMENT} way first, whatever the subject, the way a lens colours everything on its far side.",
-      "m": "When one element carries that many planets it stops being a flavour and becomes the medium. Most of {poss} wanting, noticing and starting got processed the {ELEMENT} way first, whatever the subject, the way a lens colours everything on its far side."
+      "d": "When one element carries that many planets it stops being a flavour and becomes the medium. Most of {their} wanting, noticing and starting gets processed the {ELEMENT} way first, whatever the subject, the way a lens colours everything on its far side.",
+      "m": "When one element carries that many planets it stops being a flavour and becomes the medium. Most of {their} wanting, noticing and starting got processed the {ELEMENT} way first, whatever the subject, the way a lens colours everything on its far side."
     },
     "behaviour": {
       "d": "So the giveaway is sameness of style across unrelated moments. Today, set two scenes side by side, the way rest gets chosen and the way play gets opened. Strip the content away and the style underneath is one style. That is {COUNT} planets voting as a bloc.",
@@ -302,8 +302,8 @@ export const SIGNATURES: SignatureTemplate[] = [
       "m": "One particular mood in {name} always felt unlike the rest, almost a second animal, brief, distinct, then gone. That visitor was {BODIES} taking the only shift it has, and the shift is still on the books."
     },
     "law": {
-      "d": "Tell it to anyone: a whole gear of {poss} chart rides on one planet, and you can watch the handover happen.",
-      "m": "Tell it to anyone: a whole gear of {poss} chart rides on one planet. You saw the handover happen, more than once."
+      "d": "Tell it to anyone: a whole gear of {their} chart rides on one planet, and you can watch the handover happen.",
+      "m": "Tell it to anyone: a whole gear of {their} chart rides on one planet. You saw the handover happen, more than once."
     }
   },
   {

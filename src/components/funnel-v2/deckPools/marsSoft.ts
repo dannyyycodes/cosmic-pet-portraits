@@ -485,5 +485,21 @@ export const MARS_SOFT: Beat[] = [
       "d": "Nothing has to be tamed flat because Mars gives Lilith a clean outlet.",
       "m": "Nothing had to be tamed flat because Mars gives Lilith a clean outlet in this chart."
     }
+  },
+  {
+    "key": "mars|lilith|soft",
+    "species": "any",
+    "meaning": {
+      "d": "{PARTNER} answers Mars from {PSIGN}, {ORB}. Lilith is the register of a chart that answers to nobody, and the easy line means the will and the wild streak are not at war: the energy keeps one part of itself for its own reasons and spends it cleanly.",
+      "m": "{PARTNER} answers Mars from {PSIGN}, {ORB}. Lilith is the register of a chart that answers to nobody, and the easy line meant the will and the wild streak were never at war: the energy kept one part of itself for its own reasons and spent it cleanly."
+    },
+    "behaviour": {
+      "d": "One piece of the day is kept for nobody's benefit, a patrol, a game, a ritual with an audience of none. Catch it once today and notice how complete it is, start to finish, no glance for permission.",
+      "m": "One piece of the day was kept for nobody's benefit, a patrol, a game, a ritual with an audience of none, complete from start to finish, no glance for permission."
+    },
+    "law": {
+      "d": "The private ritual is not distance. It is Mars and Lilith agreeing, and the agreement is why the wild streak never needed taming.",
+      "m": "The private ritual was never distance. It was Mars and Lilith agreeing, and the agreement is why the wild streak never needed taming."
+    }
   }
 ];

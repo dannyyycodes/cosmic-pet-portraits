@@ -20,14 +20,33 @@ export type Voiced = { d: string; m: string };
 export type DeckSignEntry = { beats: Voiced; tell: Voiced };
 
 /* ── The subject resolver ──────────────────────────────────────────────────
-   Turns the pet's name + species into every grammatical form the copy needs,
-   then fill() splices them into the token strings. */
+   Turns the pet's name + species (+ the optional gender from the free form)
+   into every grammatical form the copy needs, then fill() splices them into
+   the token strings. */
+export type PetGender = "male" | "female";
+
 export type Subject = {
   self: string; // appositive: "a Monty" | "a side of your dog" | "a side of them"
   name: string; // mid-sentence object: "Monty" | "your dog" | "them"
   Name: string; // sentence-start (non-verb) object: "Monty" | "Your dog" | "They"
   poss: string; // mid-sentence possessive: "Monty's" | "your dog's" | "their"
   Poss: string; // sentence-start possessive: "Monty's" | "Your dog's" | "Their"
+  /* Pronoun tokens. Gendered they resolve he/him/his/his or she/her/her/hers.
+     Ungendered they fall back to the subject's own best referent (the name,
+     the species phrase, or singular they), so every template that uses them
+     stays word-for-word identical to today when no gender was given. */
+  they: string;   // subject: "he" | "she" | "Monty" | "your dog" | "they"
+  They: string;   // sentence-start subject
+  them: string;   // object: "him" | "her" | "Monty" | "your dog" | "them"
+  Them: string;   // sentence-start object
+  their: string;  // possessive: "his" | "her" | "Monty's" | "your dog's" | "their"
+  Their: string;  // sentence-start possessive
+  theirs: string; // absolute possessive: "his" | "hers" | "Monty's" | "theirs"
+  Theirs: string; // sentence-start absolute possessive
+  /* Verb-agreement tokens ({s} {es} {is} {was} {has} {does}) conjugate third
+     person singular when true. Only the no-name "Other" fallback subject is
+     plural (singular they); a name, a species phrase or a gender is singular. */
+  singular: boolean;
 };
 
 /** Display form for an owner-typed pet name: first character uppercased, the
@@ -38,21 +57,62 @@ export function capName(raw?: string | null): string {
   return n ? n.charAt(0).toUpperCase() + n.slice(1) : n;
 }
 
-export function makeSubject(name?: string | null, species?: string | null): Subject {
+export function makeSubject(name?: string | null, species?: string | null, gender?: string | null): Subject {
   const n = (name || "").trim();
+  const g: PetGender | null = gender === "male" || gender === "female" ? gender : null;
+
+  /* The base noun slots: the name, the species phrase, or singular they.
+     These are UNCHANGED by gender, so every approved line reads exactly as
+     it always has; gender only sharpens the pronoun tokens below. */
+  let base: Pick<Subject, "self" | "name" | "Name" | "poss" | "Poss">;
+  let plural = false;
   if (n) {
     // display form: first letter up (owners type "monty"; the reading says
     // "Monty"). Only the first char is touched so "DJ" and "McFly" survive.
     const d = n.charAt(0).toUpperCase() + n.slice(1);
-    return { self: `a ${d}`, name: d, Name: d, poss: `${d}'s`, Poss: `${d}'s` };
+    base = { self: `a ${d}`, name: d, Name: d, poss: `${d}'s`, Poss: `${d}'s` };
+  } else if (species === "dog") {
+    base = { self: "a side of your dog", name: "your dog", Name: "Your dog", poss: "your dog's", Poss: "Your dog's" };
+  } else if (species === "cat") {
+    base = { self: "a side of your cat", name: "your cat", Name: "Your cat", poss: "your cat's", Poss: "Your cat's" };
+  } else {
+    base = { self: "a side of them", name: "them", Name: "They", poss: "their", Poss: "Their" };
+    plural = true;
   }
-  if (species === "dog") {
-    return { self: "a side of your dog", name: "your dog", Name: "Your dog", poss: "your dog's", Poss: "Your dog's" };
-  }
-  if (species === "cat") {
-    return { self: "a side of your cat", name: "your cat", Name: "Your cat", poss: "your cat's", Poss: "Your cat's" };
-  }
-  return { self: "a side of them", name: "them", Name: "They", poss: "their", Poss: "Their" };
+
+  const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  /* The no-name "Other" subject already speaks in singular they through every
+     base slot ("Their Sun", "They"). Gendering only the tokens would mix
+     registers mid-sentence ("Their Sun... his North Node"), so that one path
+     keeps the they-set; the gender still carries through to the full reading. */
+  const genderApplies = g !== null && !plural;
+  const pronouns = genderApplies
+    ? g === "male"
+      ? { they: "he", them: "him", their: "his", theirs: "his" }
+      : { they: "she", them: "her", their: "her", theirs: "hers" }
+    : {
+        /* No gender: subject and possessive tokens fall back to the subject's
+           own referent (the name or species phrase) so composed lines keep
+           their name-anchored reading; the object token stays "them", which
+           is grammatical for every referent and avoids name pile-ups. */
+        they: plural ? "they" : base.name,
+        them: "them",
+        their: base.poss,
+        theirs: plural ? "theirs" : base.poss,
+      };
+
+  return {
+    ...base,
+    they: pronouns.they,
+    They: genderApplies ? cap(pronouns.they) : plural ? "They" : base.Name,
+    them: pronouns.them,
+    Them: genderApplies ? cap(pronouns.them) : plural ? "Them" : base.Name,
+    their: pronouns.their,
+    Their: genderApplies ? cap(pronouns.their) : plural ? "Their" : base.Poss,
+    theirs: pronouns.theirs,
+    Theirs: genderApplies ? cap(pronouns.theirs) : plural ? "Theirs" : base.Poss,
+    singular: !plural,
+  };
 }
 
 export function fill(t: string, S: Subject): string {
@@ -61,7 +121,21 @@ export function fill(t: string, S: Subject): string {
     .replace(/\{Name\}/g, S.Name)
     .replace(/\{name\}/g, S.name)
     .replace(/\{Poss\}/g, S.Poss)
-    .replace(/\{poss\}/g, S.poss);
+    .replace(/\{poss\}/g, S.poss)
+    .replace(/\{They\}/g, S.They)
+    .replace(/\{they\}/g, S.they)
+    .replace(/\{Them\}/g, S.Them)
+    .replace(/\{them\}/g, S.them)
+    .replace(/\{Theirs\}/g, S.Theirs)
+    .replace(/\{theirs\}/g, S.theirs)
+    .replace(/\{Their\}/g, S.Their)
+    .replace(/\{their\}/g, S.their)
+    .replace(/\{is\}/g, S.singular ? "is" : "are")
+    .replace(/\{was\}/g, S.singular ? "was" : "were")
+    .replace(/\{has\}/g, S.singular ? "has" : "have")
+    .replace(/\{does\}/g, S.singular ? "does" : "do")
+    .replace(/\{es\}/g, S.singular ? "es" : "")
+    .replace(/\{s\}/g, S.singular ? "s" : "");
 }
 
 /* L1 NAME IT: the placement fact hook. Name + real sign + what the planet

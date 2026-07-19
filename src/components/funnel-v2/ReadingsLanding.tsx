@@ -1561,12 +1561,12 @@ const PLANET_ESSENCE: Record<DeckPlanet, string> = {
 function buildDeck(
   chart: PetBirthChart,
   memorial: boolean,
-  subject: { name?: string | null; species?: string | null },
+  subject: { name?: string | null; species?: string | null; gender?: string | null },
   keepsake?: { photoUrl: string; name: string | null } | null,
   birthDate?: string | null,
 ): DeckCard[] {
   const voice = memorial ? ("m" as const) : ("d" as const);
-  const S = makeSubject(subject.name, subject.species);
+  const S = makeSubject(subject.name, subject.species, subject.gender);
   const cards: DeckCard[] = [];
   let count = 0;
 
@@ -1897,7 +1897,10 @@ function StagedPlanet({ card, nar, reduce }: { card: PlanetDeckCard; nar: Narrat
     const lastBottom = kids[kids.length - 1].getBoundingClientRect().bottom;
     const contentH = lastBottom - firstTop;
     const naturalTop = firstTop - translateRef.current; // content top with no transform
-    const padTop = 20;
+    // The card's own padding-top is what clears the fixed site header; the old
+    // flat 20px let a settled teach line slide up underneath it on phones.
+    const cardPadTop = parseFloat(window.getComputedStyle(cardEl).paddingTop) || 0;
+    const padTop = Math.max(20, cardPadTop);
     const padBottom = 116; // clears the fixed footer + progress band under the card
     const availTop = cardRect.top + padTop;
     const availBottom = cardRect.bottom - padBottom;
@@ -2396,6 +2399,12 @@ const DECK_CSS = `
   .ls-dk-pl.is-engine .ls-dk-chip { font-size: clamp(1.4rem, 5.6vw, 1.82rem); }
   /* the chart-signature revelation card shares the engine read grammar */
   .ls-dk-sig { gap: clamp(8px, 1.4svh, 13px); }
+  /* Non-staged engine cards (signature + element) carry four beats + the seal
+     bar. On small phones a long template used to overflow the reserved band
+     and seat the seal bar under the floating controls; containing the column
+     lets it scroll inside its own frame instead. No overflow = no change. */
+  .ls-dk-inner.ls-dk-sig, .ls-dk-inner.ls-dk-el { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; max-height: 100%; padding: 4px 4px 8px; }
+  .ls-dk.is-static .ls-dk-sig, .ls-dk.is-static .ls-dk-el { overflow: visible; max-height: none; }
   .ls-dk-sig-eyebrow { animation-delay: 0.1s; }
   /* The signature card carries four beats + the seal bar: its teach line runs
      a step smaller so the whole card seats above the control band on phones. */
@@ -2642,7 +2651,7 @@ const DECK_CSS = `
   }
 `;
 
-function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIndex = 0 }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; birthDate?: string | null; initialIndex?: number }) {
+function FreeDeck({ chart, reduce, photoUrl, name, species, gender, birthDate, initialIndex = 0 }: { chart: PetBirthChart; reduce: boolean; photoUrl?: string | null; name?: string | null; species?: string | null; gender?: string | null; birthDate?: string | null; initialIndex?: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The memorial register swaps every card to its remembered-tense twin.
@@ -2656,7 +2665,7 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIn
   const reduced = reduce || (typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   const keepsake = useMemo(() => (photoUrl ? { photoUrl, name: name ?? null } : null), [photoUrl, name]);
-  const cards = useMemo(() => buildDeck(chart, memorial, { name, species }, keepsake, birthDate), [chart, memorial, name, species, keepsake, birthDate]);
+  const cards = useMemo(() => buildDeck(chart, memorial, { name, species, gender }, keepsake, birthDate), [chart, memorial, name, species, gender, keepsake, birthDate]);
   const last = cards.length - 1;
   // A resumed reading reopens at the stored card, clamped to the deck.
   const [active, setActive] = useState(() => Math.max(0, Math.min(last, Math.floor(initialIndex) || 0)));
@@ -2759,6 +2768,11 @@ function FreeDeck({ chart, reduce, photoUrl, name, species, birthDate, initialIn
     const dx = e.clientX - g.x;
     const dy = e.clientY - g.y;
     if (target.closest(".ls-dk-tease")) return; // the terminal card scrolls; only its CTA and the edges act
+    // The signature + element cards scroll inside their frame when their copy
+    // outruns a small phone; while they do, a vertical drag is a scroll, not a
+    // card turn. Taps still advance.
+    const scrollCard = target.closest(".ls-dk-sig, .ls-dk-el") as HTMLElement | null;
+    if (scrollCard && scrollCard.scrollHeight > scrollCard.clientHeight + 4 && Math.abs(dy) >= 48 && Math.abs(dy) > Math.abs(dx)) return;
     if (Math.abs(dy) >= 48 && Math.abs(dy) > Math.abs(dx)) {
       step(dy < 0 ? 1 : -1);
       return;
@@ -2899,6 +2913,23 @@ function BirthSkyJourney() {
   const [species, setSpecies] = useState<string>(() => {
     try { const s = sessionStorage.getItem("ls_chart_species") || ""; return ["dog", "cat", "other"].includes(s) ? s : ""; } catch { return ""; }
   });
+  // Optional he/she. One quiet tap, never required, tap again to unset. It
+  // genders the whole reading ("his Sun", "she stretches out") and carries
+  // through to the full reading so the paid intake arrives pre-answered.
+  // Stored as male/female to match the intake's own gender values.
+  const [gender, setGender] = useState<string>(() => {
+    try { const g = sessionStorage.getItem("ls_chart_gender") || ""; return g === "male" || g === "female" ? g : ""; } catch { return ""; }
+  });
+  const pickGender = (v: "male" | "female") => {
+    const next = gender === v ? "" : v;
+    setGender(next);
+    try {
+      if (next) sessionStorage.setItem("ls_chart_gender", next);
+      else sessionStorage.removeItem("ls_chart_gender");
+    } catch { /* ignore */ }
+    patchResume({ gender: next || null });
+    trackSpine("gender_set", { value: next || "unset", via: "user_tap" });
+  };
   // Email lives at the START of the free reading (Danny, 2026-07): the seal
   // card carries it, so the reading is theirs before the sky opens. A prior
   // visit's address prefills quietly.
@@ -3031,10 +3062,11 @@ function BirthSkyJourney() {
   // inscription, eyebrow, sample excerpt). sessionStorage covers later
   // mounts; the events cover the checkout already mounted further down this
   // same page. Shared by the form submit and the resume restore.
-  const publishChart = (data: PetBirthChart, pet: { name: string | null; date: string; species: string | null }) => {
+  const publishChart = (data: PetBirthChart, pet: { name: string | null; date: string; species: string | null; gender?: string | null }) => {
     try {
       sessionStorage.setItem("ls_chart_pet", JSON.stringify(pet));
       if (pet.species) sessionStorage.setItem("ls_chart_species", pet.species);
+      if (pet.gender) sessionStorage.setItem("ls_chart_gender", pet.gender);
       window.dispatchEvent(new CustomEvent("ls-chart-pet", { detail: pet }));
     } catch { /* ignore */ }
     // Computed signs travel too, so the checkout's sample excerpt can quote a
@@ -3072,6 +3104,10 @@ function BirthSkyJourney() {
     setPetName(snap.name || "");
     setDate(snap.date);
     if (snap.species) setSpecies(snap.species);
+    if (snap.gender) {
+      setGender(snap.gender);
+      try { sessionStorage.setItem("ls_chart_gender", snap.gender); } catch { /* ignore */ }
+    }
     if (snap.email) {
       setEmail(snap.email);
       try {
@@ -3094,7 +3130,7 @@ function BirthSkyJourney() {
       if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as PetBirthChart;
       if (!data?.sun) throw new Error("incomplete");
-      publishChart(data, { name: snap.name, date: snap.date, species: snap.species });
+      publishChart(data, { name: snap.name, date: snap.date, species: snap.species, gender: snap.gender });
       setResumeAt(snap.index);
       growFromRef.current = sectionRef.current?.offsetHeight ?? 0;
       setChart(data);
@@ -3211,7 +3247,7 @@ function BirthSkyJourney() {
       if (!data?.sun) throw new Error("incomplete");
       trackSpine("chart_computed", { latency_ms: Date.now() - computeStart, ok: true });
       setChart(data);
-      const petPayload = { name: petName.trim() || null, date, species: species || null };
+      const petPayload = { name: petName.trim() || null, date, species: species || null, gender: gender || null };
       publishChart(data, petPayload);
       // The recovery snapshot: everything needed to rebuild this deck after a
       // reload or from an emailed deep link. Card index starts at 0 and is
@@ -3245,7 +3281,7 @@ function BirthSkyJourney() {
         // Species rides in so the drip can speak dog vs cat; the photo rides in
         // (when a returning visitor already has one) so the drip can greet them
         // with their own dog before they have opened the full reading.
-        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: photo || undefined, source, register: getIntent() === "memorial" ? "memorial" : "discovery", utm: getUtm() },
+        body: { email: cleanEmail, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, gender: gender || undefined, birthDate: date || undefined, petPhotoUrl: photo || undefined, source, register: getIntent() === "memorial" ? "memorial" : "discovery", utm: getUtm() },
       })
       .catch((error) => console.warn("[Little Souls] lead capture failed", error));
     try {
@@ -3298,7 +3334,7 @@ function BirthSkyJourney() {
       if (/.+@.+\..+/.test(em)) {
         supabase.functions
           .invoke("track-subscriber", {
-            body: { email: em, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, petPhotoUrl: url, source: "free_reading_start", register: getIntent() === "memorial" ? "memorial" : "discovery", utm: getUtm() },
+            body: { email: em, event: "birth_chart_lead", petName: petName.trim() || null, species: species || undefined, gender: gender || undefined, birthDate: date || undefined, petPhotoUrl: url, source: "free_reading_start", register: getIntent() === "memorial" ? "memorial" : "discovery", utm: getUtm() },
           })
           .catch((e) => console.warn("[Little Souls] photo enrich failed", e));
       }
@@ -3326,7 +3362,7 @@ function BirthSkyJourney() {
   return (
     <section id="computed-sky" ref={sectionRef} className={`ls-orrery-section ls-parallax-band${ready && chart ? "" : " is-await"}`}>
       {ready && chart ? (
-        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} birthDate={date} initialIndex={resumeAt} />
+        <FreeDeck chart={chart} reduce={reduce} photoUrl={photo} name={name} species={species} gender={gender} birthDate={date} initialIndex={resumeAt} />
       ) : (
         <>
           <div className="ls-stage">
@@ -3408,6 +3444,34 @@ function BirthSkyJourney() {
                     ))}
                   </div>
                   {fieldErrs.species && <p id="seal-species-err" className="ls-field-err" role="alert">{fieldErrs.species}</p>}
+                </div>
+                {/* Optional he/she, styled like the species row. Never required,
+                    never an error; tapping the selected pill again unsets it.
+                    Skipping keeps the reading in its graceful they voice. */}
+                <div id="seal-gender-group" className="ls-seal-field ls-reveal" style={revealDelay(0.195)}>
+                  <label id="seal-gender-label">He or she? <span>optional</span></label>
+                  <div
+                    className="ls-seal-species ls-seal-gender"
+                    role="group"
+                    aria-labelledby="seal-gender-label"
+                  >
+                    <button
+                      type="button"
+                      className={`ls-species-btn${gender === "male" ? " is-sel" : ""}`}
+                      aria-pressed={gender === "male"}
+                      onClick={() => pickGender("male")}
+                    >
+                      He
+                    </button>
+                    <button
+                      type="button"
+                      className={`ls-species-btn${gender === "female" ? " is-sel" : ""}`}
+                      aria-pressed={gender === "female"}
+                      onClick={() => pickGender("female")}
+                    >
+                      She
+                    </button>
+                  </div>
                 </div>
                 {/* The here/memory choice, captured explicitly ON the form (it
                     used to be a top-of-page toggle a cold visitor missed). Wired

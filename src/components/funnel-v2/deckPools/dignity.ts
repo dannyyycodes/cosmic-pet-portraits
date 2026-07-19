@@ -423,6 +423,22 @@ export const DIGNITY_BEATS: Beat[] = [
     }
   },
   {
+    "key": "venus|domicile",
+    "species": "any",
+    "meaning": {
+      "d": "{Poss} Venus is in {SIGN}, its own sign. The loving-back function runs on home ground, nothing borrowed, nothing improvised, and affection built like that keeps a shape and keeps a schedule, whatever body it lives in.",
+      "m": "{Poss} Venus is in {SIGN}, its own sign. The loving-back function ran on home ground, nothing borrowed, nothing improvised, and affection built like that kept a shape and kept a schedule, whatever body it lived in."
+    },
+    "behaviour": {
+      "d": "Find the appointment. Somewhere in the day one slot belongs to you: the same hour, the same place, the same quiet turn toward you when you arrive. Note the time tonight and check it tomorrow. It repeats within minutes.",
+      "m": "Somewhere in the day one slot belonged to you: the same hour, the same place, the same quiet turn toward you when you arrived. It repeated within minutes, day after day, an appointment that kept itself."
+    },
+    "law": {
+      "d": "Love this reliable was never trained in. Venus is at home in {SIGN}, and home keeps its hours.",
+      "m": "Love that reliable was never trained in. Venus is at home in {SIGN}, and home kept its hours."
+    }
+  },
+  {
     "key": "venus|exaltation",
     "species": "dog",
     "meaning": {

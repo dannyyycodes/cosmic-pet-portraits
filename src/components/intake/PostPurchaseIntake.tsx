@@ -4,6 +4,7 @@ import { Camera, X, MapPin, Loader2, ChevronDown, ArrowLeft } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { readResume } from "@/lib/deckResume";
 import imageCompression from 'browser-image-compression';
 
 interface SharedOwnerData {
@@ -114,17 +115,18 @@ const grainStyle: React.CSSProperties = {
 // instead of re-typing. Every seeded field stays visible and editable — no
 // step is ever silently skipped. Direct buyers who never ran the free reading
 // find the blank form exactly as before.
-interface FreeReadingSeed { name: string; date: string; email: string; photo: string; species: string }
-const EMPTY_SEED: FreeReadingSeed = { name: "", date: "", email: "", photo: "", species: "" };
+interface FreeReadingSeed { name: string; date: string; email: string; photo: string; species: string; gender: string }
+const EMPTY_SEED: FreeReadingSeed = { name: "", date: "", email: "", photo: "", species: "", gender: "" };
 function readFreeReadingSeed(): FreeReadingSeed {
   const seed: FreeReadingSeed = { ...EMPTY_SEED };
   try {
     const raw = sessionStorage.getItem("ls_chart_pet");
     if (raw) {
-      const pet = JSON.parse(raw) as { name?: unknown; date?: unknown; species?: unknown };
+      const pet = JSON.parse(raw) as { name?: unknown; date?: unknown; species?: unknown; gender?: unknown };
       if (typeof pet.name === "string") seed.name = pet.name.trim();
       if (typeof pet.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(pet.date)) seed.date = pet.date;
       if (typeof pet.species === "string") seed.species = pet.species;
+      if (pet.gender === "male" || pet.gender === "female") seed.gender = pet.gender;
     }
   } catch { /* ignore — the blank form is the graceful fallback */ }
   try {
@@ -132,6 +134,12 @@ function readFreeReadingSeed(): FreeReadingSeed {
     // is written for — carry it in so they confirm instead of re-picking.
     const sp = (sessionStorage.getItem("ls_chart_species") || "").trim();
     if (sp) seed.species = sp;
+  } catch { /* ignore */ }
+  try {
+    // The optional he/she tap from the free form. Same values the intake's own
+    // gender pills use, so it arrives pre-selected and stays editable.
+    const g = (sessionStorage.getItem("ls_chart_gender") || "").trim();
+    if (g === "male" || g === "female") seed.gender = g;
   } catch { /* ignore */ }
   try {
     // The photo they added on the free reading is the SAME photo the report
@@ -143,6 +151,21 @@ function readFreeReadingSeed(): FreeReadingSeed {
     // Same preference order as InlineCheckout: wheel email wins over chart email.
     const stored = (sessionStorage.getItem("ls_wheel_email") || sessionStorage.getItem("ls_chart_email") || "").trim();
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stored)) seed.email = stored;
+  } catch { /* ignore */ }
+  // Cross-tab safety net: an in-app browser or an emailed link can land the
+  // buyer in a FRESH tab where sessionStorage is empty, but the free reading's
+  // recovery snapshot lives in localStorage and survives the hop. Fill only
+  // the fields still blank — sessionStorage (same-tab, freshest) always wins.
+  try {
+    const snap = readResume();
+    if (snap) {
+      if (!seed.name && snap.name) seed.name = snap.name;
+      if (!seed.date && snap.date) seed.date = snap.date;
+      if (!seed.species && snap.species) seed.species = snap.species;
+      if (!seed.gender && snap.gender) seed.gender = snap.gender;
+      if (!seed.photo && snap.photo && /^https?:\/\//.test(snap.photo)) seed.photo = snap.photo;
+      if (!seed.email && snap.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(snap.email)) seed.email = snap.email;
+    }
   } catch { /* ignore */ }
   return seed;
 }
@@ -207,7 +230,9 @@ export function PostPurchaseIntake({
   // Seed the species tapped on the free reading (dog / cat / other all map to an
   // intake option), so it arrives pre-selected and stays editable.
   const [species, setSpecies] = useState(["dog", "cat", "rabbit", "bird", "hamster", "guinea_pig", "fish", "reptile", "horse", "other"].includes(seed.species) ? seed.species : "");
-  const [gender, setGender] = useState("");
+  // The optional he/she tap from the free form pre-answers this; the pills
+  // stay visible and editable, so "Not sure" is still one tap away.
+  const [gender, setGender] = useState(seed.gender === "male" || seed.gender === "female" ? seed.gender : "");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [breed, setBreed] = useState("");

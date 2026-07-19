@@ -14,6 +14,7 @@ export type ResumeSnapshot = {
   name: string | null;
   date: string; // YYYY-MM-DD — the only input the chart needs
   species: string | null;
+  gender: string | null; // "male" | "female" | null — the optional he/she tap
   email: string | null;
   photo: string | null;
   index: number; // last open card in the free deck
@@ -34,6 +35,7 @@ export function readResume(): ResumeSnapshot | null {
       name: typeof v.name === "string" && v.name ? v.name : null,
       date: v.date,
       species: v.species === "dog" || v.species === "cat" || v.species === "other" ? v.species : null,
+      gender: v.gender === "male" || v.gender === "female" ? v.gender : null,
       email: typeof v.email === "string" && v.email ? v.email : null,
       photo: typeof v.photo === "string" && v.photo ? v.photo : null,
       index: typeof v.index === "number" && Number.isFinite(v.index) ? Math.max(0, Math.floor(v.index)) : 0,

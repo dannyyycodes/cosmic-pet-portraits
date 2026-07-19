@@ -398,8 +398,8 @@ export const MERCURY_HARD: Beat[] = [
       "m": "Lilith holds a hard angle on {poss} Mercury, {ORB}, and keeps one register of the voice for the wild ledger. There was a sound in {name} you only ever overheard, through a window, from another room, and never once received face to face."
     },
     "behaviour": {
-      "d": "You can name the sound without prompting. The one from the far end of the garden or the dark end of the hallway, pitched at no person. Listen for it once within the day and notice it stop when you appear. It is not for you. It was never for anyone.",
-      "m": "There was a sound you only ever overheard, from the far end of the garden or the dark end of the hallway, pitched at no person, and it stopped when you appeared. It was never for you. It was never for anyone. That was the point of it."
+      "d": "You can name the sound without prompting. The one from the far end of the garden or the dark end of the hallway, pitched at no person. Listen for it once within the day and notice it stop when you appear. It is not asking for anything. You are the only one who has ever been close enough to overhear it.",
+      "m": "There was a sound you only ever overheard, from the far end of the garden or the dark end of the hallway, pitched at no person, and it stopped when you appeared. It was never asking for anything. You were the only one ever close enough to overhear it."
     },
     "law": {
       "d": "Keep this line: one register of the voice belongs to nobody, and the chart filed it under Lilith on day one.",
