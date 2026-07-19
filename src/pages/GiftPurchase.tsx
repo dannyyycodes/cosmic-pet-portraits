@@ -540,10 +540,18 @@ const GIFTER_CARDS: GifterReview[] = [
    below). Chosen because it answers the gifter's exact fear: the
    dismissive person in the house was won over. NOT the Mo spotlight,
    which opens the reviews section. Never edit the words. ── */
-const DECISION_REVIEW: GifterReview = {
+/* Decision-point proof, keyed by occasion so a grieving gifter never
+   reads a playful quote under the memorial card. Both verbatim from
+   the sanctioned REVIEWS set; Jasper appears nowhere else on the page. */
+const DECISION_REVIEW_DEFAULT: GifterReview = {
   img: '/reviews/review-3.webp', alt: 'Alfie', stars: 5,
   quote: "alfie has a habit of dropping one toy on your foot and then pretending he has nothing to do with it. The reading called out his Venus charm and the little performance before asking to play, which made me laugh in the queue at Tesco. Sent it straight to the family chat.",
   attr: 'Tom W. · Alfie, cocker spaniel',
+};
+const DECISION_REVIEW_MEMORIAL: GifterReview = {
+  img: '/reviews/review-2.webp', alt: 'Jasper', stars: 5,
+  quote: "I opened Jasper's reading at 11pm, four days after we lost him, sitting on the kitchen floor because the house felt wrong. When it spoke about his Moon needing the highest warm place, I had to put the phone down and breathe through my sleeve. His blanket was still on the window seat.",
+  attr: 'Priya S. · Jasper, ginger cat',
 };
 
 /* ── Review stars — the ONE gold exception: star fills only. ── */
@@ -931,17 +939,27 @@ function TierCard({
   const base = TIERS[tierKey];
   const tier = override ?? base;
 
+  // Presentation only: split the localized price string so the currency
+  // mark sets smaller than the figure. The rendered characters are
+  // byte-identical to fmt(cents); handles symbol-before and symbol-after
+  // locales.
+  const renderPrice = (str: string) => {
+    const m = str.match(/^([^\d]*)([\d.,\s ]*\d)([^\d]*)$/);
+    if (!m) return str;
+    return (
+      <>
+        {m[1] && <span className="gp-tier-cur">{m[1]}</span>}
+        {m[2]}
+        {m[3] && <span className="gp-tier-cur">{m[3]}</span>}
+      </>
+    );
+  };
+
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.15 }}
-      className={`gp-tier ${selected ? 'is-selected' : ''}`}
-      style={{
-        boxShadow: selected
-          ? `0 6px 24px rgba(124,92,214,0.35)${occAccent ? `, 0 0 0 5px ${occAccent.ring}` : ''}`
-          : `0 2px 12px rgba(0,0,0,0.35)${occAccent ? `, inset 0 0 0 1px ${occAccent.ring}` : ''}`,
-      }}
+      className={`gp-tier ${tierKey === 'portrait' ? 'is-feat' : ''} ${selected ? 'is-selected' : ''}`}
+      style={{ ['--acc-ring' as string]: occAccent?.ring ?? 'rgba(154,126,230,0.30)' }}
     >
       {tier.badge && (
         <span className="gp-tier-badge" style={{ background: occAccent?.badge ?? '#9a7ee6' }}>
@@ -949,19 +967,34 @@ function TierCard({
         </span>
       )}
 
-      <div className="gp-tier-head">
-        <div className="gp-tier-names">
-          <p className="gp-tier-label">{tier.label}</p>
-          <p className="gp-tier-tag">{tier.tagline}</p>
-        </div>
-        <div className="gp-tier-price-wrap">
-          {typeof wasCents === 'number' && wasCents > cents && (
-            <p className="gp-tier-was">{fmt(wasCents)}</p>
-          )}
-          <p className="gp-tier-price">{fmt(cents)}</p>
-          <p className="gp-tier-once">one-time</p>
-        </div>
+      {/* selected indicator, top right. Purely visual; aria state lives
+          on the card via is-selected */}
+      <span className={`gp-tier-picked ${selected ? 'is-on' : ''}`} aria-hidden="true"><GlyphCheck /></span>
+
+      <div className="gp-tier-names">
+        <p className="gp-tier-label">{tier.label}</p>
+        <p className="gp-tier-tag">{tier.tagline}</p>
       </div>
+
+      {/* price row: quiet anchor, confident figure, one-time suffix */}
+      <div className="gp-tier-price-row">
+        {typeof wasCents === 'number' && wasCents > cents && (
+          <span className="gp-tier-was">{fmt(wasCents)}</span>
+        )}
+        <span className="gp-tier-price">{renderPrice(fmt(cents))}</span>
+        <span className="gp-tier-once">one-time</span>
+      </div>
+
+      {/* Select CTA — the price lives at the point of action. The whole
+          card is the button; this is its visual affordance. Sits above
+          the checklist so price and action read as one unit. */}
+      <span className={`gp-tier-cta ${selected ? 'is-picked' : ''}`}>
+        {selected
+          ? <><GlyphCheck /> Selected. Continue below</>
+          : <>Give the {tier.label.replace(/^The /, '')} &middot; {fmt(cents)}</>}
+      </span>
+
+      <span className="gp-tier-hair" aria-hidden="true" />
 
       <div className="gp-tier-features">
         {tier.features.map((f, idx) => {
@@ -974,14 +1007,6 @@ function TierCard({
           );
         })}
       </div>
-
-      {/* Select CTA — the price lives at the point of action. The whole
-          card is the button; this is its visual affordance. */}
-      <span className={`gp-tier-cta ${selected ? 'is-picked' : ''}`}>
-        {selected
-          ? <><GlyphCheck /> Selected. Continue below</>
-          : <>Give the {tier.label.replace(/^The /, '')} &middot; {fmt(cents)}</>}
-      </span>
     </motion.button>
   );
 }
@@ -1244,7 +1269,7 @@ export default function GiftPurchase() {
             </div>
           </motion.div>
 
-          <div className="gp-funnel-col">
+          <div className="gp-tier-zone">
 
             {/* ── TIER CARDS — gated on occasion pick. Memorial is
                 portrait-only; other occasions render both tiers. ── */}
@@ -1261,7 +1286,7 @@ export default function GiftPurchase() {
                     {OCCASION_TIER_KICKER[selectedOccasion]}
                   </p>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div className={`gp-tier-row ${selectedOccasion === 'memorial' ? 'is-single' : ''}`}>
                     {(() => {
                       const occTiers = OCCASION_TIERS[selectedOccasion];
                       const accent = OCCASION_ACCENT[selectedOccasion];
@@ -1294,18 +1319,25 @@ export default function GiftPurchase() {
                     <li><GlyphSeal /> Full refund if it does not feel like them</li>
                   </ul>
 
-                  <figure className="gp-decide-review">
-                    <StarsRow n={DECISION_REVIEW.stars} size={14} />
-                    <blockquote>{DECISION_REVIEW.quote}</blockquote>
-                    <figcaption>
-                      <img src={DECISION_REVIEW.img} alt={DECISION_REVIEW.alt} width={40} height={40} loading="lazy" decoding="async" />
-                      <span>{DECISION_REVIEW.attr}</span>
-                    </figcaption>
-                  </figure>
+                  {(() => {
+                    const dr = selectedOccasion === 'memorial' ? DECISION_REVIEW_MEMORIAL : DECISION_REVIEW_DEFAULT;
+                    return (
+                      <figure className="gp-decide-review">
+                        <StarsRow n={dr.stars} size={14} />
+                        <blockquote>{dr.quote}</blockquote>
+                        <figcaption>
+                          <img src={dr.img} alt={dr.alt} width={40} height={40} loading="lazy" decoding="async" />
+                          <span>{dr.attr}</span>
+                        </figcaption>
+                      </figure>
+                    );
+                  })()}
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>{/* /.gp-tier-zone */}
 
+          <div className="gp-funnel-col">
             {/* ── FLOW (appears after tier selection) ── */}
             <div id="gift-flow">
               <AnimatePresence>
@@ -2133,87 +2165,133 @@ const GP_CSS = `
 @media (prefers-reduced-motion: reduce){.gp-sticky{transition:none}}
 
 /* ── funnel ── */
+.gp-funnel .gp-shead{margin-bottom:clamp(30px,4.4vw,44px)}
+.gp-funnel .gp-h2{font-size:clamp(1.85rem,4vw,2.6rem);line-height:1.12}
+.gp-funnel .gp-support{font-size:17px;color:rgba(236,236,242,.72)}
+.gp-tier-zone{max-width:920px;margin:0 auto}
 .gp-funnel-col{max-width:560px;margin:0 auto}
-/* occasion picker — tiny tick-box row. Quiet by design: the tier
+/* occasion picker: quiet segmented chips on one shared rail. The tier
    cards are the stars of the section. 44px touch targets kept. */
-.gp-occ-strip{max-width:760px;margin:0 auto clamp(28px,4.6vw,40px)}
-.gp-occ-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-.gp-occ-tickbox{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;
-  border-radius:12px;cursor:pointer;border:1px solid var(--line);
-  background:rgba(124,92,214,.05);color:var(--muted);font-size:14.5px;font-weight:600;
-  transition:border-color .2s ease,background-color .2s ease,color .2s ease;
+.gp-occ-strip{max-width:760px;margin:0 auto clamp(26px,4vw,36px)}
+.gp-occ-row{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;
+  width:fit-content;margin:0 auto;padding:5px;border-radius:16px;
+  border:1px solid rgba(154,126,230,.18);background:rgba(21,16,32,.55)}
+.gp-occ-tickbox{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 15px;
+  border-radius:12px;cursor:pointer;border:1px solid transparent;
+  background:transparent;color:var(--dim);font-size:14px;font-weight:500;
+  transition:border-color .18s ease,background-color .18s ease,color .18s ease;
   -webkit-tap-highlight-color:transparent}
 @media (hover:hover){
-  .gp-occ-tickbox:hover{border-color:var(--line-bright);color:var(--body)}
+  .gp-occ-tickbox:hover{color:var(--body);background:rgba(124,92,214,.08)}
 }
 .gp-occ-tickbox:active{transform:scale(.97);transition-duration:.06s}
-.gp-occ-sq{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
-  border-radius:5px;border:1.5px solid rgba(154,126,230,.5);flex-shrink:0;
+.gp-occ-sq{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+  border-radius:5px;border:1.5px solid rgba(154,126,230,.45);flex-shrink:0;
   transition:background-color .15s ease,border-color .15s ease}
-.gp-occ-sq svg{width:11px;height:11px;color:#fff}
-.gp-occ-tickbox.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.14);color:var(--white)}
+.gp-occ-sq svg{width:10px;height:10px;color:#fff}
+.gp-occ-tickbox.is-on{border-color:rgba(154,126,230,.55);background:rgba(124,92,214,.15);color:var(--white)}
 .gp-occ-tickbox.is-on .gp-occ-sq{background:linear-gradient(180deg,#9a7ee6,#5d47a0);border-color:#9a7ee6}
-.gp-occ-tickbox.is-mem.is-on{border-color:#b8b2cc;background:rgba(200,196,216,.12)}
+.gp-occ-tickbox.is-mem.is-on{border-color:rgba(200,196,216,.5);background:rgba(200,196,216,.10)}
 .gp-occ-tickbox.is-mem.is-on .gp-occ-sq{background:linear-gradient(180deg,#c9c4dd,#948caa);border-color:#b8b2cc}
 @media (max-width:560px){
-  .gp-occ-row{display:grid;grid-template-columns:1fr 1fr}
-  .gp-occ-tickbox{justify-content:flex-start;padding:8px 12px}
+  .gp-occ-row{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:5px}
+  .gp-occ-tickbox{justify-content:flex-start;padding:8px 12px;text-align:left}
 }
 
-/* tier cards */
-.gp-tier{width:100%;text-align:left;padding:24px 22px;border-radius:20px;cursor:pointer;position:relative;
-  border:2px solid var(--line);
-  background:linear-gradient(180deg,rgba(124,92,214,.13),rgba(124,92,214,.05)),#15101c;
-  transition:border-color .2s,background .2s,box-shadow .2s}
-.gp-tier::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:radial-gradient(120% 80% at 50% 0%,rgba(154,126,230,.14),transparent 60%);
-  opacity:0;transition:opacity .2s ease}
+/* ── tier cards: two-up pricing row, featured Bond physically taller ── */
+.gp-tier-row{display:grid;grid-template-columns:1fr;gap:20px;align-items:start;padding-top:16px}
+@media (min-width:720px){
+  .gp-tier-row{grid-template-columns:1fr 1fr;gap:24px}
+  .gp-tier-row .gp-tier.is-feat{margin-top:-14px}
+}
+@media (max-width:719.98px){
+  .gp-tier-row .gp-tier.is-feat{order:-1}
+}
+.gp-tier-row.is-single{grid-template-columns:1fr;justify-items:center}
+.gp-tier-row.is-single .gp-tier{max-width:520px;margin-top:0}
+.gp-tier{width:100%;text-align:left;padding:30px 28px 26px;border-radius:18px;cursor:pointer;position:relative;
+  border:1px solid rgba(154,126,230,.26);
+  background:linear-gradient(180deg,rgba(124,92,214,.09),rgba(124,92,214,.03)),#15101c;
+  box-shadow:0 2px 10px rgba(0,0,0,.3);
+  transition:transform .18s var(--ease-stage),border-color .18s ease,box-shadow .18s ease}
+@media (prefers-reduced-motion: no-preference){
+  .gp-tier{animation:gpTierIn .5s var(--ease-settle) backwards}
+  .gp-tier-row .gp-tier:nth-child(2){animation-delay:90ms}
+}
+@keyframes gpTierIn{from{opacity:0;transform:translateY(16px)}}
+.gp-tier.is-feat{border:1.5px solid rgba(185,165,240,.5);
+  background:radial-gradient(120% 82% at 50% -12%,rgba(167,139,250,.17),transparent 62%),
+    linear-gradient(180deg,#1c1530,#151020);
+  box-shadow:0 16px 48px rgba(8,5,18,.55),0 0 44px -12px rgba(124,92,214,.35)}
 @media (hover:hover){
-  .gp-tier:hover{border-color:var(--line-bright)}
-  .gp-tier:hover::after{opacity:1}
+  .gp-tier:hover{transform:translateY(-3px);border-color:var(--line-bright);
+    box-shadow:0 12px 30px rgba(8,5,18,.45)}
+  .gp-tier.is-feat:hover{transform:none;border-color:rgba(197,178,255,.62);
+    box-shadow:0 22px 58px rgba(8,5,18,.65),0 0 56px -10px rgba(124,92,214,.5)}
+  .gp-tier.is-selected:hover{transform:none}
 }
 .gp-tier.is-selected{border-color:#9a7ee6;
-  background:linear-gradient(180deg,rgba(124,92,214,.20),rgba(124,92,214,.08)),#15101c}
-.gp-tier.is-selected::after{opacity:1}
-.gp-tier-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);color:#0d0a14;
-  font-size:12px;font-weight:700;padding:3px 14px;border-radius:20px;letter-spacing:.1em;white-space:nowrap}
-.gp-tier-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
-.gp-tier-names{flex:1;min-width:0}
-.gp-tier-label{font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:1.4rem;color:var(--white);
-  margin-bottom:4px;line-height:1.12}
-.gp-tier-tag{font-style:italic;font-size:16px;color:var(--muted);line-height:1.4}
-.gp-tier-price-wrap{text-align:right;flex-shrink:0}
-.gp-tier-was{font-size:15px;color:var(--dim);text-decoration:line-through;margin-bottom:2px}
-.gp-tier-price{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:2.1rem;line-height:1;color:var(--vio-pale)}
-.gp-tier-once{font-size:13px;color:var(--dim);margin-top:3px}
-.gp-tier-features{display:flex;flex-direction:column;gap:8px}
-.gp-tier-feat{display:flex;align-items:flex-start;gap:9px;font-size:16px;line-height:1.45;color:var(--body)}
-.gp-tier-feat svg{width:14px;height:14px;color:var(--vio-soft);flex-shrink:0;margin-top:4px}
-.gp-tier-feat span{flex:1}
-.gp-tier-div{font-style:italic;font-weight:600;font-size:16px;color:var(--vio-bright)}
-.gp-tier-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;
-  min-height:48px;padding:0 18px;border-radius:11px;
-  font-weight:600;font-size:16.5px;letter-spacing:.02em;color:#fff;
+  box-shadow:0 0 0 1px #9a7ee6,0 0 0 5px var(--acc-ring),0 16px 44px rgba(8,5,18,.5)}
+.gp-tier-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);color:#0d0a14;
+  font-size:11px;font-weight:700;padding:6px 16px;border-radius:999px;letter-spacing:.08em;white-space:nowrap;
+  box-shadow:0 8px 18px -8px rgba(124,92,214,.6)}
+.gp-tier-picked{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#9a7ee6,#5d47a0);color:#fff;
+  box-shadow:0 4px 12px -4px rgba(124,92,214,.6);
+  opacity:0;transform:scale(.6);transition:opacity .18s var(--ease-stage),transform .18s var(--ease-stage)}
+.gp-tier-picked svg{width:13px;height:13px}
+.gp-tier-picked.is-on{opacity:1;transform:scale(1)}
+.gp-tier-names{padding-right:30px}
+.gp-tier-label{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.3rem;color:var(--white);
+  margin-bottom:5px;line-height:1.15}
+.gp-tier-tag{font-style:italic;font-size:15.5px;color:var(--dim);line-height:1.45}
+.gp-tier-price-row{display:flex;align-items:baseline;gap:9px;margin:18px 0 20px;flex-wrap:wrap}
+.gp-tier-was{font-size:16px;color:var(--dim);opacity:.75;text-decoration:line-through}
+.gp-tier-price{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(2.35rem,5.6vw,2.875rem);
+  line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#ffffff 15%,#cfc0f4 85%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gp-tier-cur{font-size:.58em;font-weight:600}
+.gp-tier-once{font-size:14px;color:var(--dim)}
+.gp-tier-hair{display:block;height:1px;margin:22px 0;
+  background:linear-gradient(90deg,transparent,rgba(154,126,230,.32),transparent)}
+.gp-tier-features{display:flex;flex-direction:column;gap:13px}
+.gp-tier-feat{display:grid;grid-template-columns:24px 1fr;align-items:start;
+  font-size:16px;line-height:1.5;color:var(--body)}
+.gp-tier-feat svg{width:16px;height:16px;color:var(--vio-soft);margin-top:4px}
+.gp-tier-div{font-style:italic;font-weight:600;font-size:15.5px;color:var(--vio-bright)}
+.gp-tier-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:50px;padding:0 18px;border-radius:12px;
+  font-weight:600;font-size:16px;letter-spacing:.02em;color:#fff;
   background:linear-gradient(180deg,#9a7ee6 0%,#7c5cd6 45%,#5d47a0 100%);
-  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 6px 16px -8px rgba(124,92,214,.5);
-  transition:filter .2s ease,box-shadow .2s ease}
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 8px 18px -8px rgba(124,92,214,.55);
+  transition:filter .18s ease,box-shadow .18s ease,background-color .18s ease,border-color .18s ease,color .18s ease}
+.gp-tier:not(.is-feat) .gp-tier-cta{background:rgba(124,92,214,.07);
+  border:1px solid rgba(154,126,230,.5);color:var(--vio-pale);box-shadow:none}
 @media (hover:hover){
-  .gp-tier:hover .gp-tier-cta{filter:brightness(1.07);
-    box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 10px 24px -8px rgba(124,92,214,.65)}
+  .gp-tier.is-feat:hover .gp-tier-cta{filter:brightness(1.07);
+    box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 12px 26px -8px rgba(124,92,214,.7)}
+  .gp-tier:not(.is-feat):hover .gp-tier-cta{background:rgba(124,92,214,.14);
+    border-color:rgba(185,165,240,.7);color:#fff}
 }
 .gp-tier-cta svg{width:15px;height:15px}
-.gp-tier-cta.is-picked{background:rgba(124,92,214,.16);color:var(--vio-bright);box-shadow:none}
+.gp-tier .gp-tier-cta.is-picked{background:rgba(124,92,214,.16);border:1px solid transparent;
+  color:var(--vio-bright);box-shadow:none;filter:none}
+@media (max-width:560px){
+  .gp-tier{padding:26px 20px 24px}
+}
 
-/* worry-killers under the tier cards */
-.gp-worry-row{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:10px 18px;
-  margin:18px 0 0;padding:0;font-size:14px;color:var(--dim)}
-.gp-worry-row li{display:inline-flex;align-items:center;gap:6px}
+/* worry-killers: one quiet chip row under both cards */
+.gp-worry-row{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:10px 24px;
+  margin:20px 0 0;padding:0;font-size:13.5px;font-weight:500;color:rgba(236,236,242,.7)}
+.gp-worry-row li{display:inline-flex;align-items:center;gap:7px}
 .gp-worry-row svg{width:14px;height:14px;flex-shrink:0;color:var(--vio-soft)}
 
-/* the one voice beside the decision */
-.gp-decide-review{margin:22px 0 0;padding:20px 20px 17px;border-radius:16px;text-align:left;
-  background:linear-gradient(180deg,#1c1629,#17111f);border:1px solid rgba(167,139,250,.32);
-  box-shadow:0 1px 0 rgba(207,192,244,.12) inset,0 16px 36px -20px rgba(8,5,18,.9)}
+/* the one voice beside the decision: a compact strip below the chips */
+.gp-decide-review{margin:56px auto 0;max-width:640px;padding:24px 26px 20px;border-radius:16px;text-align:left;
+  background:linear-gradient(180deg,#1c1629,#17111f);border:1px solid rgba(167,139,250,.3);
+  box-shadow:0 1px 0 rgba(207,192,244,.11) inset,0 18px 40px -22px rgba(8,5,18,.9)}
 .gp-decide-review blockquote{margin:10px 0 13px;font-size:16px;line-height:1.6;color:#efeaff}
 .gp-decide-review figcaption{display:flex;align-items:center;gap:10px;color:var(--vio-pale);font-size:14px}
 .gp-decide-review figcaption img{width:40px;height:40px;border-radius:11px;object-fit:cover;
