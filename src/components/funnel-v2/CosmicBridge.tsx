@@ -450,8 +450,14 @@ const LCB_CSS = `
   width:clamp(104px, 24vw, 178px);
   right:clamp(6px, 6vw, 78px);
   top:clamp(104px, 20svh, 172px);
-  filter:drop-shadow(0 8px 26px rgba(124,92,214,0.42));
+  overflow:visible;
+  filter:drop-shadow(0 0 12px rgba(167,139,250,0.35));
 }
+.c2-love-heart .c2-heart-line,.c2-love-heart .c2-heart-tail{
+  stroke:var(--lcb-violet-br); stroke-linecap:round; stroke-linejoin:round;
+}
+.c2-love-heart .c2-heart-line{ stroke-width:3.2 }
+.c2-love-heart .c2-heart-tail{ stroke-width:2.4; opacity:.8 }
 @media (min-width:900px){ .c2-love-heart{ top:clamp(96px, 15svh, 156px); } }
 @media (max-width:520px){
   .c2-love-heart{ width:clamp(84px, 26vw, 118px); right:-4px; top:clamp(92px, 17svh, 138px); }
@@ -1570,22 +1576,19 @@ export function CosmicBridge() {
           <span className="c2-node" data-node data-for="c2-open" aria-hidden="true" />
           <p className="c2-lxl c2-rv" id="c2-open">We love animals just as much as each other.</p>
           <p className="c2-ll c2-rv"><em>If not more.</em></p>
-          <svg className="c2-love-heart c2-rv" viewBox="0 0 120 110" aria-hidden="true">
-            <defs>
-              <radialGradient id="c2lh-fill" cx="40%" cy="32%" r="78%">
-                <stop offset="0%" stopColor="#e0d3ff" />
-                <stop offset="40%" stopColor="#b9a5f0" />
-                <stop offset="100%" stopColor="#7c5cd6" />
-              </radialGradient>
-              <radialGradient id="c2lh-glow" cx="50%" cy="46%" r="55%">
-                <stop offset="0%" stopColor="rgba(167,139,250,0.5)" />
-                <stop offset="58%" stopColor="rgba(167,139,250,0.13)" />
-                <stop offset="100%" stopColor="rgba(167,139,250,0)" />
-              </radialGradient>
-            </defs>
-            <ellipse cx="60" cy="58" rx="60" ry="52" fill="url(#c2lh-glow)" />
-            <path d="M60 31 C 55 19 44 13 33 15 C 20 17 12 29 14 43 C 16 65 42 83 60 99 C 78 83 104 65 106 43 C 108 29 100 17 87 15 C 76 13 65 19 60 31 Z" fill="url(#c2lh-fill)" />
-            <path d="M42 31 C 35 32 30 38 29 47" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="3.2" strokeLinecap="round" />
+          <svg className="c2-love-heart c2-rv" viewBox="0 0 124 116" aria-hidden="true">
+            {/* a single-stroke, hand-drawn heart: one continuous violet line,
+                a small ribbon tail at the base, no fill. */}
+            <path
+              className="c2-heart-line"
+              d="M62 104 C 40 84 14 63 14 41 C 14 26 26 15 39 15 C 50 15 58 22 62 32 C 66 22 74 15 85 15 C 98 15 110 26 110 41 C 110 63 84 84 62 104 Z"
+              fill="none"
+            />
+            <path
+              className="c2-heart-tail"
+              d="M62 104 C 60 110 55 113 49 112 C 55 110 58 107 58 102"
+              fill="none"
+            />
           </svg>
         </section>
 
