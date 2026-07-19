@@ -130,6 +130,14 @@ function GlyphPlus({ className }: GlyphProps) {
   );
 }
 
+function GlyphMinus({ className }: GlyphProps) {
+  return (
+    <svg {...glyphBase} className={className}>
+      <path d="M5.2 12h13.6" />
+    </svg>
+  );
+}
+
 function GlyphCross({ className }: GlyphProps) {
   return (
     <svg {...glyphBase} className={className}>
@@ -930,7 +938,6 @@ export default function GiftPurchase() {
     setGiftType('multiple');
     setDeliveryMethod('link');
     setRecipients(rs => {
-      if (n === 5 && rs.length >= 5) return rs;
       if (rs.length === n) return rs;
       if (rs.length > n) return rs.slice(0, n);
       return [
@@ -1213,23 +1220,33 @@ export default function GiftPurchase() {
             <div className="go-form">
 
               <div className="go-block gp-rev">
-                <p className="go-q">How many are you gifting?</p>
-                <div id="gift-count" role="radiogroup" aria-label="How many gifts" className="go-count">
-                  {[1, 2, 3, 4, 5].map((n) => {
-                    const active = giftType === 'single'
-                      ? n === 1
-                      : (n === 5 ? recipients.length >= 5 : recipients.length === n);
-                    const pct = Math.round(getVolumeDiscount(n) * 100);
+                <p className="go-q">How many gifts?</p>
+                <div id="gift-count" className="go-stepper-row">
+                  {(() => {
+                    const count = giftType === 'single' ? 1 : recipients.length;
+                    const pct = Math.round(getVolumeDiscount(count) * 100);
+                    const nextPct = Math.round(getVolumeDiscount(count + 1) * 100);
                     return (
-                      <button key={n} type="button" role="radio" aria-checked={active}
-                        aria-label={n === 5 ? '5 or more gifts' : `${n} ${n === 1 ? 'gift' : 'gifts'}`}
-                        onClick={() => handleCountSelect(n)}
-                        className={`go-count-btn ${active ? 'is-on' : ''}`}>
-                        <span className="go-count-n">{n === 5 ? '5+' : n}</span>
-                        {pct > 0 && <span className="go-count-save">{pct}% off</span>}
-                      </button>
+                      <>
+                        <div className="go-stepper" role="group" aria-label="How many gifts">
+                          <button type="button" aria-label="One fewer gift" disabled={count <= 1}
+                            onClick={() => handleCountSelect(Math.max(1, count - 1))}>
+                            <GlyphMinus />
+                          </button>
+                          <span className="go-stepper-n" aria-live="polite">{count}</span>
+                          <button type="button" aria-label="One more gift" disabled={count >= 10}
+                            onClick={() => handleCountSelect(Math.min(10, count + 1))}>
+                            <GlyphPlus />
+                          </button>
+                        </div>
+                        <p className="go-stepper-note">
+                          {pct > 0
+                            ? `${pct}% off ${count} gifts`
+                            : `Add a second gift and save ${nextPct}%`}
+                        </p>
+                      </>
                     );
-                  })}
+                  })()}
                 </div>
               </div>
 
@@ -1237,6 +1254,7 @@ export default function GiftPurchase() {
                 {giftType === 'single' ? (
                   <>
                     <p className="go-q">What's the occasion?</p>
+                    <p className="go-q-hint">This shapes the reading they receive.</p>
                     <div role="radiogroup" aria-label="Occasion" className="go-occt-grid">
                       {OCCASION_CHIPS.map(({ value, label }) => {
                         const active = selectedOccasion === value;
@@ -1257,6 +1275,7 @@ export default function GiftPurchase() {
                 ) : (
                   <>
                     <p className="go-q">Set up each gift.</p>
+                <p className="go-q-hint">The occasion shapes the reading each person receives.</p>
                     <p className="go-q-sub">A name and an occasion for every person on your list.</p>
                     <div className="go-recips">
                       {recipients.map((r, idx) => (
@@ -1888,10 +1907,11 @@ const GP_CSS = `
 .gp-paymarks{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
 .gp-paymarks svg{display:block}
 .gp-paychip{display:inline-flex;align-items:center;justify-content:center;
-  min-width:58px;height:36px;padding:0 12px;border-radius:9px;
-  background:linear-gradient(180deg,#221a35,#181221);
-  border:1px solid rgba(154,126,230,.28);
-  box-shadow:0 2px 10px rgba(8,5,18,.5),inset 0 1px 0 rgba(207,192,244,.08)}
+  min-width:72px;height:44px;padding:0 15px;border-radius:11px;
+  background:linear-gradient(180deg,#241c38,#181221);
+  border:1px solid rgba(154,126,230,.34);
+  box-shadow:0 3px 14px rgba(8,5,18,.55),inset 0 1px 0 rgba(207,192,244,.10)}
+.gp-paychip svg{height:24px !important;width:auto !important}
 @media (max-width:520px){
   .gp-sticky-price{display:none}
   .gp-cta-sticky{width:100%;max-width:420px}
@@ -2004,18 +2024,27 @@ const GO_CSS = `
 /* ── the form ── */
 .go-form{max-width:660px;margin:0 auto}
 .go-block{margin-bottom:clamp(28px,4.6vw,40px)}
+.go-q-hint{margin:-6px 0 14px;font-size:15px;font-style:italic;color:var(--dim)}
+.go-stepper-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.go-stepper{display:inline-flex;align-items:center;gap:0;border:1px solid rgba(154,126,230,.32);
+  border-radius:14px;background:linear-gradient(180deg,#1c1629,#151020);overflow:hidden}
+.go-stepper button{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;
+  background:none;border:none;cursor:pointer;color:var(--vio-pale);
+  transition:background-color .15s ease,color .15s ease}
+.go-stepper button:hover:not(:disabled){background:rgba(124,92,214,.14);color:#fff}
+.go-stepper button:disabled{opacity:.3;cursor:default}
+.go-stepper button svg{width:20px;height:20px}
+.go-stepper-n{min-width:56px;text-align:center;font-family:'Fraunces',Georgia,serif;font-weight:600;
+  font-size:1.6rem;color:var(--white);border-left:1px solid rgba(154,126,230,.2);
+  border-right:1px solid rgba(154,126,230,.2);align-self:stretch;display:inline-flex;
+  align-items:center;justify-content:center}
+.go-stepper-note{font-size:15px;color:var(--vio-bright);font-weight:600}
 .go-q{display:block;font-family:'Asap',system-ui,sans-serif;font-weight:700;color:var(--white);
   font-size:clamp(1.2rem,2.8vw,1.4rem);line-height:1.2;letter-spacing:-.01em;margin-bottom:12px}
 .go-q-sub{margin:-6px 0 14px;font-size:15.5px;font-style:italic;color:var(--dim)}
 label.go-q{cursor:pointer}
 
 /* count */
-.go-count{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.go-count-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  min-height:68px;padding:8px 2px;border-radius:16px;cursor:pointer;
-  border:1.5px solid rgba(154,126,230,.3);background:rgba(13,10,20,.4);
-  transition:border-color .15s ease,background-color .15s ease,transform .15s var(--ease-stage),box-shadow .15s ease;
-  -webkit-tap-highlight-color:transparent}
 @media (hover:hover){.go-count-btn:hover{border-color:var(--line-bright);transform:translateY(-1px)}}
 .go-count-btn:active{transform:scale(.96);transition-duration:.06s}
 .go-count-n{font-family:'Asap',system-ui,sans-serif;font-weight:700;font-size:1.35rem;line-height:1;
