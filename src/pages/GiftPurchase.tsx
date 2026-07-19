@@ -1187,7 +1187,6 @@ export default function GiftPurchase() {
         {/* cream bands carry their own crisp seams; no violet hr at
             a dark/cream boundary */}
         <HowItWorks />
-        <GifterProof />
 
         <ScenesBand />
 
@@ -1662,6 +1661,8 @@ export default function GiftPurchase() {
 
           </div>{/* /.gp-funnel-col */}
         </section>
+
+        <GifterProof />
 
         <hr className="gp-hr" />
         <RigorBand />
