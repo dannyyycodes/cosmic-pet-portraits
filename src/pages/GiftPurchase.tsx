@@ -455,14 +455,14 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
   },
 };
 
-// Desire-framed kicker above tier cards. Tells the gifter what the
-// recipient will DO with it — not what it is.
-const OCCASION_TIER_KICKER: Record<GiftOccasion, string> = {
-  new:      'What they\'ll open first',
-  discover: "What they'll read twice",
-  memorial: 'What they\'ll return to on the hard days',
-  birthday: 'What makes this birthday the one',
-};
+// The four occasions, in gifting order. Rendered per gift — one chip row
+// for a single gift, one labelled row per gift for group orders.
+const OCCASION_CHIPS: Array<{ value: GiftOccasion; label: string }> = [
+  { value: 'new',      label: 'New pet' },
+  { value: 'discover', label: 'Had them for years' },
+  { value: 'memorial', label: 'Their pet has passed' },
+  { value: 'birthday', label: "Pet's birthday" },
+];
 
 // Subtle visual accent per occasion — a soft coloured ring that frames
 // the tier cards per occasion. Memorial resolves to moon silver (the
@@ -1011,14 +1011,17 @@ export default function GiftPurchase() {
     portrait:  { cents: prices.premium, wasCents: prices.wasPremium },
   };
   const [selectedTier, setSelectedTier] = useState<TierKey | null>(null);
-  // Top-level gift occasion — memorial/new/discover/birthday. This is the
-  // PRIMARY product choice on the page. Defaults to 'discover' so the tier
-  // cards and their prices are visible in the natural scroll; the picker
-  // still lets the gifter switch occasion.
+  // Single-gift occasion — written together with singleRecipient.occasion
+  // by the single-mode occasion chips. The copy the section actually
+  // renders comes from derivedOccasion below, which unifies single and
+  // group orders.
   const [selectedOccasion, setSelectedOccasion] = useState<GiftOccasion | null>('discover');
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
-  const [giftType, setGiftType] = useState<'single' | 'multiple' | null>(null);
+  // Owned by the "How many are you gifting?" selector. Defaults to a
+  // single gift so the occasion row, tier cards and prices are all
+  // visible in the natural scroll — the funnel never opens dead.
+  const [giftType, setGiftType] = useState<'single' | 'multiple'>('single');
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -1067,20 +1070,36 @@ export default function GiftPurchase() {
     return () => io.disconnect();
   }, []);
 
-  // When the primary occasion is picked, propagate it to all recipient
-  // rows as the default so downstream steps start in the right tone.
-  // Per-recipient picker stays editable afterwards for mixed gifts.
-  // Also clear the tier selection if switching to Memorial (which only
-  // has portrait) — keeps the flow from getting into impossible states.
-  const handleOccasionSelect = useCallback((occ: GiftOccasion) => {
+  // Count selector — the funnel's first question. 1 keeps the single-gift
+  // path; 2..5 switch to the group path and size the recipients array,
+  // preserving anything already typed. Group orders stay link-delivery
+  // only (one gift email cannot reach five people). "5+" means at least
+  // five — more rows can be added in the details step, hard cap 10.
+  const handleCountSelect = useCallback((n: number) => {
+    if (n === 1) {
+      setGiftType('single');
+      return;
+    }
+    setGiftType('multiple');
+    setDeliveryMethod('link');
+    setRecipients(rs => {
+      if (n === 5 && rs.length >= 5) return rs;
+      if (rs.length === n) return rs;
+      if (rs.length > n) return rs.slice(0, n);
+      return [
+        ...rs,
+        ...Array.from({ length: n - rs.length }, () => ({
+          id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' as GiftOccasion,
+        })),
+      ];
+    });
+  }, []);
+
+  // Single-gift occasion chips write both the page-level state and the
+  // recipient row that actually ships in the payload.
+  const handleSingleOccasion = useCallback((occ: GiftOccasion) => {
     setSelectedOccasion(occ);
     setSingleRecipient(r => ({ ...r, occasion: occ }));
-    setRecipients(rs => rs.map(r => ({ ...r, occasion: occ })));
-    setSelectedTier((prev) => {
-      if (prev === null) return null;
-      if (occ === 'memorial' && prev !== 'portrait') return null;
-      return prev;
-    });
   }, []);
 
   // Auto-apply promo from URL
@@ -1103,7 +1122,6 @@ export default function GiftPurchase() {
   const handleTierSelect = (tier: TierKey) => {
     setSelectedTier(tier);
     setStep(2);
-    setGiftType('single');
     // Small delay then scroll to flow section
     setTimeout(() => {
       document.getElementById('gift-flow')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1111,15 +1129,33 @@ export default function GiftPurchase() {
   };
 
   // Hero / closing CTAs drop the visitor onto the first real choice:
-  // the occasion picker (which then gates the tier cards + flow).
+  // the count selector (which leads into occasion + tier cards).
   const scrollToPicker = useCallback(() => {
-    const el = document.querySelector('[role="radiogroup"][aria-label="Gift occasion"]');
+    const el = document.getElementById('gift-count');
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
   const giftCount = activeRecipients.length;
   const discount = getVolumeDiscount(giftCount);
+
+  // The occasion the section displays. One gift: that gift's occasion.
+  // Several gifts sharing one occasion: that occasion (drives the
+  // occasion copy overrides and the memorial portrait-only gating).
+  // Mixed occasions: neutral 'discover' framing with both tiers visible.
+  const derivedOccasion: GiftOccasion = useMemo(() => {
+    if (giftType === 'single') return singleRecipient.occasion ?? 'discover';
+    const first = recipients[0]?.occasion ?? 'discover';
+    return recipients.every(r => (r.occasion ?? 'discover') === first) ? first : 'discover';
+  }, [giftType, singleRecipient, recipients]);
+
+  // Memorial has no essential tier — drop an impossible tier selection
+  // whenever the derived occasion lands on memorial.
+  useEffect(() => {
+    if (derivedOccasion === 'memorial') {
+      setSelectedTier(prev => (prev !== null && prev !== 'portrait') ? null : prev);
+    }
+  }, [derivedOccasion]);
 
   const pricing = useMemo(() => {
     if (!selectedTier) return { baseTotal: 0, discountAmount: 0, promoAmount: 0, finalTotal: 0 };
@@ -1213,107 +1249,164 @@ export default function GiftPurchase() {
 
 
         {/* ── CREATE THEIR GIFT — the interactive purchase funnel.
-             Occasion picker gates the tier cards, which drive
-             handleTierSelect and the preserved 3-step flow. All
-             logic/state/handlers unchanged; presentation is new. ── */}
+             Order: how many → occasion per gift → tier cards → the
+             preserved 2-step wizard. The count selector owns giftType
+             and the recipients array; the section copy follows
+             derivedOccasion. ── */}
         <section className="gp-wrap gp-band gp-funnel gp-night-late" id="tiers" ref={funnelRef as React.RefObject<HTMLElement>}>
           <div className="gp-shead gp-rev">
             <h2 className="gp-h2">Choose their reading.</h2>
-            <p className="gp-support">
-              Soul Reading {fmt(prices.basic)} &middot; Soul Bond {fmt(prices.premium)}
-            </p>
           </div>
 
-          {/* ── OCCASION — a tiny tick-box row directly under the
-               header. The tier cards are the stars of this section;
-               this stays quiet and small. Wiring unchanged: radiogroup,
-               occasion literals, handleOccasionSelect. ── */}
+          {/* ── HOW MANY — the funnel's first question. This group is
+               the page's scroll target: hero / closing / sticky CTAs
+               land here (selector [role="radiogroup"]
+               [aria-label="Gift occasion"] — keep it unique). ── */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06 }}
-            className="gp-occ-strip"
+            className="gp-count-strip"
           >
-            <div role="radiogroup" aria-label="Gift occasion" className="gp-occ-row">
-              {([
-                { value: 'new',      label: 'New pet' },
-                { value: 'discover', label: 'Had them for years' },
-                { value: 'memorial', label: 'Their pet has passed' },
-                { value: 'birthday', label: "Pet's birthday" },
-              ] as Array<{ value: GiftOccasion; label: string }>).map(({ value, label }) => {
-                const active = selectedOccasion === value;
+            <p className="gp-ask">How many are you gifting?</p>
+            <div id="gift-count" role="radiogroup" aria-label="How many gifts" className="gp-count-row">
+              {[1, 2, 3, 4, 5].map((n) => {
+                const active = giftType === 'single'
+                  ? n === 1
+                  : (n === 5 ? recipients.length >= 5 : recipients.length === n);
+                const pct = Math.round(getVolumeDiscount(n) * 100);
                 return (
                   <button
-                    key={value}
+                    key={n}
                     type="button"
                     role="radio"
                     aria-checked={active}
-                    onClick={() => handleOccasionSelect(value)}
-                    className={`gp-occ-tickbox ${active ? 'is-on' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
+                    aria-label={n === 5 ? '5 or more gifts' : `${n} ${n === 1 ? 'gift' : 'gifts'}`}
+                    onClick={() => handleCountSelect(n)}
+                    className={`gp-count-chip ${active ? 'is-on' : ''}`}
                   >
-                    <span className="gp-occ-sq" aria-hidden="true">{active && <GlyphCheck />}</span>
-                    <span>{label}</span>
+                    <span className="gp-count-n">{n === 5 ? '5+' : n}</span>
+                    {pct > 0 && <span className="gp-count-save">{pct}% off</span>}
                   </button>
                 );
               })}
             </div>
           </motion.div>
 
+          {/* ── OCCASION PER GIFT — one chip row for a single gift, one
+               labelled row per gift for group orders. Writes the
+               occasion that ships on each recipient row. ── */}
+          <motion.div
+            key={`occ-${giftType}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="gp-occ-strip"
+          >
+            {giftType === 'single' ? (
+              <>
+                <p className="gp-ask">What's the occasion?</p>
+                <div role="radiogroup" aria-label="Occasion" className="gp-occ-row">
+                  {OCCASION_CHIPS.map(({ value, label }) => {
+                    const active = selectedOccasion === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => handleSingleOccasion(value)}
+                        className={`gp-occ-tickbox ${active ? 'is-on' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
+                      >
+                        <span className="gp-occ-sq" aria-hidden="true">{active && <GlyphCheck />}</span>
+                        <span>{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="gp-ask">What's the occasion for each?</p>
+                <div className="gp-occ-multi">
+                  {recipients.map((r, idx) => (
+                    <div key={r.id} className="gp-occ-gift">
+                      <span className="gp-occ-gift-label">Gift {idx + 1}</span>
+                      <div role="radiogroup" aria-label={`Gift occasion ${idx + 1}`} className="gp-occ-row">
+                        {OCCASION_CHIPS.map(({ value, label }) => {
+                          const active = (r.occasion ?? 'discover') === value;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              role="radio"
+                              aria-checked={active}
+                              onClick={() => updateRecipient(r.id, 'occasion', value)}
+                              className={`gp-occ-tickbox ${active ? 'is-on' : ''} ${value === 'memorial' ? 'is-mem' : ''}`}
+                            >
+                              <span className="gp-occ-sq" aria-hidden="true">{active && <GlyphCheck />}</span>
+                              <span>{label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </motion.div>
+
           <div className="gp-tier-zone">
 
-            {/* ── TIER CARDS — gated on occasion pick. Memorial is
-                portrait-only; other occasions render both tiers. ── */}
+            {/* ── TIER CARDS — always live (derived occasion defaults
+                to discover). An all-memorial order is portrait-only;
+                everything else renders both tiers. ── */}
             <AnimatePresence>
-              {selectedOccasion && (
-                <motion.div
-                  key={`tiers-${selectedOccasion}`}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <p className="gp-kicker" style={{ marginBottom: 22 }}>
-                    {OCCASION_TIER_KICKER[selectedOccasion]}
-                  </p>
+              <motion.div
+                key={`tiers-${derivedOccasion}`}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className={`gp-tier-row ${derivedOccasion === 'memorial' ? 'is-single' : ''}`}>
+                  {(() => {
+                    const occTiers = OCCASION_TIERS[derivedOccasion];
+                    const accent = OCCASION_ACCENT[derivedOccasion];
+                    const visibleKeys: TierKey[] = derivedOccasion === 'memorial'
+                      ? ['portrait']
+                      : ['essential', 'portrait'];
 
-                  <div className={`gp-tier-row ${selectedOccasion === 'memorial' ? 'is-single' : ''}`}>
-                    {(() => {
-                      const occTiers = OCCASION_TIERS[selectedOccasion];
-                      const accent = OCCASION_ACCENT[selectedOccasion];
-                      const visibleKeys: TierKey[] = selectedOccasion === 'memorial'
-                        ? ['portrait']
-                        : ['essential', 'portrait'];
+                    return visibleKeys.map((key) => (
+                      <TierCard
+                        key={key}
+                        tierKey={key}
+                        selected={selectedTier === key}
+                        onClick={() => handleTierSelect(key)}
+                        fmt={fmt}
+                        cents={TIER_CENTS[key].cents}
+                        wasCents={TIER_CENTS[key].wasCents}
+                        override={occTiers?.[key]}
+                        accent={accent}
+                      />
+                    ));
+                  })()}
+                </div>
 
-                      return visibleKeys.map((key) => (
-                        <TierCard
-                          key={key}
-                          tierKey={key}
-                          selected={selectedTier === key}
-                          onClick={() => handleTierSelect(key)}
-                          fmt={fmt}
-                          cents={TIER_CENTS[key].cents}
-                          wasCents={TIER_CENTS[key].wasCents}
-                          override={occTiers?.[key]}
-                          accent={accent}
-                        />
-                      ));
-                    })()}
-                  </div>
+                {/* Worry-killer row + one voice at the decision. No
+                    gp-rev here: this block re-mounts on occasion
+                    change and the reveal observer only runs once. */}
+                <ul className="gp-worry-row">
+                  <li><GlyphMoonClock /> Ready in minutes</li>
+                  <li><GlyphComet /> Nothing to ship</li>
+                  <li><GlyphSeal /> Full refund if it does not feel like them</li>
+                </ul>
+                <div className="gp-tier-pay">
+                  <GiftPayMarks />
+                </div>
 
-                  {/* Worry-killer row + one voice at the decision. No
-                      gp-rev here: this block re-mounts on occasion
-                      change and the reveal observer only runs once. */}
-                  <ul className="gp-worry-row">
-                    <li><GlyphMoonClock /> Ready in minutes</li>
-                    <li><GlyphComet /> Nothing to ship</li>
-                    <li><GlyphSeal /> Full refund if it does not feel like them</li>
-                  </ul>
-                  <div className="gp-tier-pay">
-                    <GiftPayMarks />
-                  </div>
-
-                </motion.div>
-              )}
+              </motion.div>
             </AnimatePresence>
           </div>{/* /.gp-tier-zone */}
 
@@ -1333,7 +1426,7 @@ export default function GiftPurchase() {
                     <div className="gp-flow-head">
                       <div className="gp-flow-head-l">
                         <p className="gp-flow-eyebrow">Their gift</p>
-                        <p className="gp-flow-tier">{(selectedOccasion && OCCASION_TIERS[selectedOccasion]?.[selectedTier]?.label) ?? TIERS[selectedTier].label}</p>
+                        <p className="gp-flow-tier">{OCCASION_TIERS[derivedOccasion]?.[selectedTier]?.label ?? TIERS[selectedTier].label}</p>
                       </div>
                       <div className="gp-flow-head-r">
                         <span className="gp-flow-price">{fmt(TIER_CENTS[selectedTier].cents)}</span>
@@ -1371,19 +1464,6 @@ export default function GiftPurchase() {
                             <p>{giftType === 'single' ? 'Their Details' : 'Add Recipients'}</p>
                             <div style={{ width: 48 }} />
                           </div>
-
-                          <button
-                            type="button"
-                            className="gp-few-toggle"
-                            onClick={() => {
-                              if (giftType === 'single') { setGiftType('multiple'); setDeliveryMethod('link'); }
-                              else setGiftType('single');
-                            }}
-                          >
-                            {giftType === 'single'
-                              ? 'Buying for a few people? Save up to 30%'
-                              : 'Just one gift? Switch back'}
-                          </button>
 
                           {/* Delivery method. Group gifts are link-only: the
                               gift email reaches one recipient, so promising
@@ -1454,7 +1534,7 @@ export default function GiftPurchase() {
                               ))}
                               {recipients.length < 10 && (
                                 <button
-                                  onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: selectedOccasion ?? 'discover' }])}
+                                  onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: derivedOccasion }])}
                                   className="gp-add-row"
                                 >
                                   <GlyphPlus /> Add another person
@@ -1526,7 +1606,7 @@ export default function GiftPurchase() {
                                 <div className="gp-summary-item">
                                   <GlyphPaw />
                                   <div>
-                                    <p className="gp-summary-tier">{(selectedOccasion && OCCASION_TIERS[selectedOccasion]?.[selectedTier!]?.label) ?? TIERS[selectedTier!].label}</p>
+                                    <p className="gp-summary-tier">{OCCASION_TIERS[derivedOccasion]?.[selectedTier!]?.label ?? TIERS[selectedTier!].label}</p>
                                     {r.name && <p className="gp-summary-for">for {r.name}</p>}
                                   </div>
                                 </div>
@@ -2080,9 +2160,36 @@ const GP_CSS = `
 /* ── funnel ── */
 .gp-funnel .gp-shead{margin-bottom:clamp(30px,4.4vw,44px)}
 .gp-funnel .gp-h2{font-size:clamp(1.85rem,4vw,2.6rem);line-height:1.12}
-.gp-funnel .gp-support{font-size:17px;color:rgba(236,236,242,.72)}
 .gp-tier-zone{max-width:920px;margin:0 auto}
 .gp-funnel-col{max-width:560px;margin:0 auto}
+
+/* the two funnel questions: count first, then occasion per gift */
+.gp-ask{text-align:center;font-family:'Fraunces',Georgia,serif;font-weight:500;
+  font-size:clamp(1.15rem,2.6vw,1.3rem);color:var(--white);margin-bottom:14px}
+.gp-count-strip{max-width:560px;margin:0 auto clamp(26px,4vw,36px)}
+.gp-count-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;
+  max-width:430px;margin:0 auto}
+.gp-count-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:62px;padding:9px 4px;border-radius:14px;cursor:pointer;
+  border:1px solid rgba(154,126,230,.28);
+  background:linear-gradient(180deg,rgba(124,92,214,.08),rgba(124,92,214,.02)),#141020;
+  transition:transform .18s var(--ease-stage),border-color .18s ease,background-color .18s ease,box-shadow .18s ease;
+  -webkit-tap-highlight-color:transparent}
+@media (hover:hover){
+  .gp-count-chip:hover{transform:translateY(-1px);border-color:var(--line-bright)}
+}
+.gp-count-chip:active{transform:scale(.96);transition-duration:.06s}
+.gp-count-n{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:1.35rem;line-height:1;
+  color:var(--body);font-variant-numeric:tabular-nums;transition:color .18s ease}
+.gp-count-save{font-size:10.5px;font-weight:600;letter-spacing:.03em;line-height:1;
+  color:var(--vio-bright);white-space:nowrap}
+.gp-count-chip.is-on{border-color:#9a7ee6;background:rgba(124,92,214,.16);
+  box-shadow:0 0 0 1px #9a7ee6,0 10px 24px -12px rgba(124,92,214,.55)}
+.gp-count-chip.is-on .gp-count-n{color:var(--white)}
+@media (prefers-reduced-motion: reduce){
+  .gp-count-chip,.gp-count-chip:hover,.gp-count-chip:active{transform:none}
+}
+
 /* occasion picker: quiet segmented chips on one shared rail. The tier
    cards are the stars of the section. 44px touch targets kept. */
 .gp-occ-strip{max-width:760px;margin:0 auto clamp(26px,4vw,36px)}
@@ -2108,6 +2215,20 @@ const GP_CSS = `
 @media (max-width:560px){
   .gp-occ-row{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:5px}
   .gp-occ-tickbox{justify-content:flex-start;padding:8px 12px;text-align:left}
+}
+
+/* group orders: one labelled occasion row per gift. Label sits ABOVE its
+   row so the chip row gets the full 760px rail — all four chips render on
+   one line per gift at desktop, matching the single-mode strip. */
+.gp-occ-multi{display:flex;flex-direction:column;gap:16px;max-width:760px;margin:0 auto}
+.gp-occ-gift{display:flex;flex-direction:column;align-items:center;gap:7px}
+.gp-occ-gift-label{font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--vio-bright);flex-shrink:0}
+.gp-occ-gift .gp-occ-row{margin:0}
+@media (max-width:560px){
+  .gp-occ-multi{gap:18px}
+  .gp-occ-gift{align-items:stretch}
+  .gp-occ-gift-label{text-align:left}
 }
 
 /* ── tier cards: two-up pricing row, featured Bond physically taller ── */
@@ -2207,11 +2328,6 @@ const GP_CSS = `
   background:linear-gradient(180deg,#221a35,#181221);
   border:1px solid rgba(154,126,230,.28);
   box-shadow:0 2px 10px rgba(8,5,18,.5),inset 0 1px 0 rgba(207,192,244,.08)}
-.gp-few-toggle{display:block;margin:-6px auto 4px;background:none;border:none;cursor:pointer;
-  color:var(--vio-bright);font-size:14px;text-decoration:underline;text-underline-offset:3px;
-  padding:6px 10px;min-height:36px}
-.gp-few-toggle:hover{color:var(--vio-pale)}
-
 /* the one voice beside the decision: a compact strip below the chips */
 
 /* ── flow: the checkout panel. Opens as a considered, elevated piece
