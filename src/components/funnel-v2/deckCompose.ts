@@ -32,6 +32,7 @@ import {
   computeAspects,
   chartSignature,
   dignity,
+  elementBalance,
   hasFaceDignity,
   normalizeBodies,
   signMeta,
@@ -447,13 +448,14 @@ const ELEMENT_SEAL: Record<ElementName, Voiced> = {
 const ELEMENT_ORDER: readonly ElementName[] = ["Fire", "Earth", "Air", "Water"];
 
 function composeElement(bodies: ChartBodies, voice: "d" | "m", render: (t: string, bag?: NumberBag) => string): ComposedElementCard | null {
-  const counts: Record<ElementName, number> = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  // Count the full ten planets, exactly like the engine's elementBalance, the
+  // live edge function and the PAID reading do. Counting only the five free
+  // planets shipped claims like "no earth in it at all" while Saturn stood in
+  // Taurus, and the full reading would then contradict the free one.
+  const counts = elementBalance(bodies);
   let placed = 0;
   for (const p of DECK_PLANETS) {
-    const pos = bodies[p];
-    if (!pos) continue;
-    counts[signMeta(pos.sign).element] += 1;
-    placed += 1;
+    if (bodies[p]) placed += 1;
   }
   if (placed < 3) return null;
 
@@ -757,7 +759,7 @@ export function composeDeck(args: {
          a wide same-sign scatter falls through to the next real signature. */
       if (!s.tight) continue;
       signature = renderSignature("tightCluster", {
-        COUNT: String(s.bodies.length),
+        COUNT: SMALL_WORDS[s.bodies.length] ?? String(s.bodies.length),
         SIGN: s.sign,
         SPAN: String(Math.max(1, Math.round(s.spanDegrees))),
         BODIES: joinLabels(s.bodies),
@@ -766,12 +768,12 @@ export function composeDeck(args: {
       if (item.scarce && item.counts[item.scarce] === 0) {
         const total = (["Fire", "Earth", "Air", "Water"] as const).reduce((sum, k) => sum + item.counts[k], 0);
         signature = renderSignature("missingElement", {
-          COUNT: String(total),
+          COUNT: SMALL_WORDS[total] ?? String(total),
           ELEMENT: item.scarce,
         });
       } else if (item.dominant) {
         signature = renderSignature("dominantElement", {
-          COUNT: String(item.counts[item.dominant]),
+          COUNT: SMALL_WORDS[item.counts[item.dominant]] ?? String(item.counts[item.dominant]),
           ELEMENT: item.dominant,
         });
       }
@@ -779,7 +781,7 @@ export function composeDeck(args: {
     } else if (item.kind === "mode") {
       if (item.dominant) {
         signature = renderSignature("modeDominant", {
-          COUNT: String(item.counts[item.dominant]),
+          COUNT: SMALL_WORDS[item.counts[item.dominant]] ?? String(item.counts[item.dominant]),
           MODE: item.dominant.toLowerCase(),
         });
       } else if (item.scarce && item.counts[item.scarce] === 1) {

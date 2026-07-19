@@ -50,8 +50,8 @@ export const SIGNATURES: SignatureTemplate[] = [
     "kind": "exactConjunction",
     "species": "any",
     "fact": {
-      "d": "In {poss} chart, {BODIES} stand together at {DEG} degrees of {SIGN}, {ORB}. Planets do not sit closer than this. On the wheel the two read as a single point.",
-      "m": "In {poss} chart, {BODIES} stand together at {DEG} degrees of {SIGN}, {ORB}. Planets do not sit closer than this. On the wheel the two read as a single point."
+      "d": "In {poss} chart, {BODIES} stand together at {DEG} degrees of {SIGN}, {ORB}. On the wheel the two read as a single point.",
+      "m": "In {poss} chart, {BODIES} stand together at {DEG} degrees of {SIGN}, {ORB}. On the wheel the two read as a single point."
     },
     "meaning": {
       "d": "A conjunction this tight is a fusion. Two functions stop taking turns and become one instrument with two jobs wired to a single trigger. In {name}, whatever one of these planets starts, the other finishes in the same motion.",
