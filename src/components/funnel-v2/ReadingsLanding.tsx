@@ -4313,7 +4313,10 @@ function StickyBeginBar() {
       <style>{`
         .ls-stickybegin { position: fixed; left: 0; right: 0; bottom: 0; z-index: 39; padding: 9px 16px calc(9px + env(safe-area-inset-bottom)); background: rgba(11,8,18,0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 -6px 24px rgba(0,0,0,0.45); transform: translateY(110%); transition: transform 0.45s cubic-bezier(0.16,1,0.3,1); pointer-events: none; }
         .ls-stickybegin::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(139,123,216,0.35) 20% 80%, transparent); }
-        .ls-stickybegin.show { transform: none; pointer-events: auto; }
+        /* Only the button takes taps - the bar's padding/backdrop band must
+           never eat touches aimed at content scrolled behind it. */
+        .ls-stickybegin.show { transform: none; }
+        .ls-stickybegin.show button { pointer-events: auto; }
         .ls-stickybegin button { display: block; width: 100%; max-width: 560px; margin: 0 auto; min-height: 52px; border: 0; border-radius: 12px; cursor: pointer; background: linear-gradient(180deg, #a78bfa 0%, #8266d9 45%, #6a4cc4 100%); color: #ffffff; font-family: "Newsreader", Georgia, serif; font-size: 16.5px; font-weight: 700; letter-spacing: 0.02em; box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 -1px 0 rgba(0,0,0,0.28) inset, 0 6px 18px -6px rgba(124,92,214,0.45); }
         .ls-stickybegin button:focus-visible { outline: 2px solid #cfc0f4; outline-offset: 3px; }
         @media (min-width: 768px) and (max-width: 1023.98px) { .ls-stickybegin { display: none; } }
@@ -5454,7 +5457,20 @@ function ValueMoments() {
               const Icon = VM_ICON[key];
               const open = openKey === key;
               return (
-                <li key={key} className={`ls-vm-entry ls-reveal${open ? " is-open" : ""}`} data-k={key} style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}>
+                <li
+                  key={key}
+                  className={`ls-vm-entry ls-reveal${open ? " is-open" : ""}`}
+                  data-k={key}
+                  style={{ ...revealDelay(0.3 + i * 0.1), ["--ni" as string]: i } as CSSProperties}
+                  onClick={(e) => {
+                    // The whole row toggles - users tap the item name, not the
+                    // small peek button. Ignore clicks inside the open preview
+                    // itself so its content stays interactable.
+                    const t = e.target as HTMLElement;
+                    if (t.closest(".ls-vm-prevwrap") || t.closest(".ls-vm-peek")) return;
+                    setOpenKey((k) => (k === key ? null : key));
+                  }}
+                >
                   <span className="ls-vm-seal" aria-hidden="true">
                     {Icon ? <Icon size={22} strokeWidth={1.5} /> : null}
                   </span>
@@ -5592,9 +5608,15 @@ function ValueMoments() {
         .ls-vm-peek:focus-visible { outline: 2px solid ${C.violetBright}; outline-offset: 3px; }
         .ls-vm-peek-chev { transition: transform 0.35s var(--e-stage); }
         .ls-vm-entry.is-open .ls-vm-peek-chev { transform: rotate(180deg); }
+        .ls-vm-entry { cursor: pointer; }
         .ls-vm-prevwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.5s var(--e-settle); }
         .ls-vm-entry.is-open .ls-vm-prevwrap { grid-template-rows: 1fr; }
         .ls-vm-prevwrap-in { overflow: hidden; min-height: 0; }
+        /* older engines that reject 0fr rows: plain show/hide, no animation */
+        @supports not (grid-template-rows: 0fr) {
+          .ls-vm-prevwrap { display: none; }
+          .ls-vm-entry.is-open .ls-vm-prevwrap { display: block; }
+        }
         .ls-vm-prev { margin-top: 16px; }
 
         /* I — a page glimpse: heading, then lines that trail into the seal */

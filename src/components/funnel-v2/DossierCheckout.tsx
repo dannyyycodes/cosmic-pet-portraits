@@ -880,33 +880,24 @@ export function DossierCheckout(props: DossierCheckoutProps) {
         <p className="dsr-guarantee">If the reading does not feel like them, we refund every cent.</p>
 
         {/* ── giving — the gift-page charity treatment, white-on-night marks in
-            the trust position under the CTA. Selectable so 10% routes to the
-            buyer's chosen cause. ── */}
+            the trust position under the CTA. STATIC visuals (Danny 2026-07-19:
+            not a toggle); the donation keeps its existing default routing. ── */}
         <section className="dsr-give" aria-label="Where your reading gives back">
           <p className="dsr-give-lead">Every reading gives back</p>
-          <ul className="dsr-give-grid" role="radiogroup" aria-label="Choose where ten percent of your reading goes">
-            {DSR_CHARITIES.map((c) => {
-              const on = selectedCharity === c.id;
-              return (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    className={`dsr-give-opt${on ? " is-sel" : ""}`}
-                    onClick={() => onCharityChange(c.id)}
-                  >
-                    <span className={`dsr-give-logo${c.mono ? " is-mono" : ""}`}>
-                      <img src={c.src} alt={c.alt} style={{ height: c.h }} loading="lazy" decoding="async" />
-                    </span>
-                    <span className="dsr-give-does">{c.does}</span>
-                  </button>
-                </li>
-              );
-            })}
+          <ul className="dsr-give-grid">
+            {DSR_CHARITIES.map((c) => (
+              <li key={c.id}>
+                <div className="dsr-give-opt is-static">
+                  <span className={`dsr-give-logo${c.mono ? " is-mono" : ""}`}>
+                    <img src={c.src} alt={c.alt} style={{ height: c.h }} loading="lazy" decoding="async" />
+                  </span>
+                  <span className="dsr-give-does">{c.does}</span>
+                </div>
+              </li>
+            ))}
           </ul>
           <p className="dsr-give-note">
-            10% of {petName ? `${petName}'s` : "your"} reading goes to <b>{CHARITY_LABELS[selectedCharity]}</b>.
+            10% of every reading goes to animal and wildlife charities.
           </p>
         </section>
 
@@ -1479,9 +1470,9 @@ function DossierStyles(): ReactNode {
         gap:11px;width:100%;min-width:0;padding:14px 8px 12px;border-radius:14px;cursor:pointer;
         background:transparent;border:1px solid transparent;
         transition:border-color .25s var(--dsr-ease),background .25s var(--dsr-ease)}
-      .dsr-give-opt:hover{border-color:rgba(139,123,216,.28);background:rgba(139,123,216,.06)}
-      .dsr-give-opt.is-sel{border-color:rgba(139,123,216,.5);background:rgba(139,123,216,.10)}
-      .dsr-give-opt:focus-visible{outline:2px solid var(--dsr-violet-400);outline-offset:2px}
+      .dsr-give-opt.is-static{cursor:default}
+      
+      
       .dsr-give-logo{display:flex;align-items:center;justify-content:center;height:46px}
       .dsr-give-logo img{display:block;width:auto;max-width:100%;opacity:.82;
         transition:opacity .25s var(--dsr-ease)}
