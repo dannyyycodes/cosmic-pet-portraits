@@ -111,7 +111,7 @@ const logStep = (step: string, details?: unknown) => {
 interface RecipientGroup {
   recipientEmail: string | null;
   recipientName: string;
-  pets: { id: string; tier: GiftTier; horoscopeAddon: HoroscopeAddon }[];
+  pets: { id: string; tier: GiftTier; horoscopeAddon: HoroscopeAddon; occasion?: "discover" | "new" | "birthday" | "memorial" | "gift" }[];
 }
 
 serve(async (req) => {
@@ -125,7 +125,7 @@ serve(async (req) => {
     const input = giftSchema.parse(rawInput);
     
     // Determine pets and tiers
-    let giftPets: { id: string; tier: GiftTier; horoscopeAddon: HoroscopeAddon; recipientName?: string; recipientEmail?: string | null }[] = [];
+    let giftPets: { id: string; tier: GiftTier; horoscopeAddon: HoroscopeAddon; recipientName?: string; recipientEmail?: string | null; occasion?: "discover" | "new" | "birthday" | "memorial" | "gift" }[] = [];
     
     if (input.giftPets && input.giftPets.length > 0) {
       // New mix-and-match mode with optional per-pet recipients
@@ -381,20 +381,29 @@ serve(async (req) => {
       cancel_url: `${origin}/gift`,
       metadata: {
         type: "gift_certificate",
+        // Compact comma list — GIFT-XXXX-XXXX is 14 chars, so 10 codes ≈ 149
+        // chars, safely under Stripe's 500-char-per-value cap.
         gift_codes: giftCodes.join(','),
         primary_gift_code: primaryGiftCode,
         recipient_count: String(recipientGroups.length),
         petCount: String(petCount),
         discountPercent: String(Math.round(discount * 100)),
         multiRecipient: String(input.multiRecipient),
-        giftMessage: input.giftMessage || "",
+        // Trim so a long note can never push this value over Stripe's 500-char
+        // cap (which throws in sessions.create BEFORE any cert row is minted).
+        giftMessage: (input.giftMessage || "").slice(0, 480),
         deliveryMethod: input.deliveryMethod,
         horoscopeAddons: JSON.stringify(addonCounts),
-        // Store full config for webhook
-        recipientGroupsJson: JSON.stringify(recipientGroups.map((group, idx) => ({
-          ...group,
-          giftCode: giftCodes[idx],
-        }))),
+        // BLOCKER 4 FIX: the full recipientGroups mapping used to be packed into
+        // ONE metadata value (recipientGroupsJson). Stripe caps each metadata
+        // VALUE at 500 chars, so sessions.create threw at ~4+ recipients — BEFORE
+        // any gift_certificates row was minted, losing the whole order. The
+        // mapping is already persisted PER ROW below (gift_pets_json +
+        // recipient_email + recipient_name + code, all keyed by
+        // stripe_session_id = session.id), and stripe-webhook resolves every code
+        // for a session via that stripe_session_id — never from this metadata — so
+        // recipientGroupsJson is removed entirely. No single metadata value can
+        // now exceed 500 chars for up to 10 recipients.
       },
     });
 

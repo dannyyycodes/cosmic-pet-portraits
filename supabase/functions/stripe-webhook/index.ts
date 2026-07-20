@@ -1373,6 +1373,55 @@ serve(async (req) => {
           }
         }
 
+        // BLOCKER 3 FIX: gift-certificate refund/dispute. A gift PURCHASE creates
+        // no pet_reports (the recipient creates them later at redeem time), so
+        // refundedReportIds is empty here and the report-revocation block below
+        // never fired — the code stayed 'paid' and redeemable forever after a
+        // refund/chargeback. Gift sessions carry type==='gift_certificate' plus
+        // gift_codes / primary_gift_code / gift_code metadata. Flip every code on
+        // this session to payment_status='refunded' (redeem-gift + validate-gift-code
+        // both require 'paid', so a 'refunded' code is dead), and revoke any reading
+        // already redeemed against these codes.
+        const isGiftRefund = !!refundedSessionMetadata && (
+          refundedSessionMetadata.type === "gift_certificate"
+          || !!refundedSessionMetadata.gift_codes
+          || !!refundedSessionMetadata.primary_gift_code
+          || !!refundedSessionMetadata.gift_code
+        );
+        if (isGiftRefund && refundedSessionMetadata) {
+          const giftCodeSet = new Set<string>();
+          for (const c of (refundedSessionMetadata.gift_codes || "").split(",")) {
+            const code = c.trim().toUpperCase();
+            if (code) giftCodeSet.add(code);
+          }
+          for (const key of ["primary_gift_code", "gift_code"]) {
+            const c = (refundedSessionMetadata[key] || "").trim().toUpperCase();
+            if (c) giftCodeSet.add(c);
+          }
+          const giftCodes = Array.from(giftCodeSet);
+          if (giftCodes.length > 0) {
+            const { error: giftRefundErr } = await supabaseClient
+              .from("gift_certificates")
+              .update({ payment_status: "refunded" })
+              .in("code", giftCodes);
+            if (giftRefundErr) {
+              console.error("[STRIPE-WEBHOOK] Failed to mark gift certificate(s) refunded:", giftCodes, giftRefundErr);
+            } else {
+              console.log("[STRIPE-WEBHOOK] Gift certificate(s) marked refunded:", giftCodes);
+            }
+            // Revoke any reading already redeemed against these codes. redeem-gift
+            // stamps redeemed reports with stripe_session_id = 'gift_' + code.
+            const giftSessionStamps = giftCodes.map((c) => `gift_${c}`);
+            const { error: revokeErr } = await supabaseClient
+              .from("pet_reports")
+              .update({ payment_status: "refunded", report_content: null })
+              .in("stripe_session_id", giftSessionStamps);
+            if (revokeErr) {
+              console.error("[STRIPE-WEBHOOK] Failed to revoke redeemed gift reports:", giftSessionStamps, revokeErr);
+            }
+          }
+        }
+
         if (refundedReportIds.length > 0) {
           // Flip payment_status AND wipe report_content so a refunded buyer
           // can't keep the reading after getting their money back. get-report

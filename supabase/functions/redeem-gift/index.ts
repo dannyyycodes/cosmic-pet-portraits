@@ -287,6 +287,20 @@ serve(async (req) => {
         continue;
       }
 
+      // BLOCKER 6 FIX: redeem-gift has already atomically consumed the code and
+      // marked every report 'paid' above, but generation used to depend entirely
+      // on the browser later reaching /payment-success (verify-payment). If the
+      // recipient closed the tab, the code was burned with NO reading ever made.
+      // Trigger generation SERVER-SIDE now, for every redeemed report — the same
+      // call verify-payment makes. Best-effort + idempotent: we only fire when
+      // report_content is null (matching verify-payment's guard), and
+      // generate-report-background itself skips reports that already have real
+      // content or are mid-generation, so the later client trigger never
+      // double-generates. The client trigger still works as a fallback.
+      if (!report.report_content) {
+        triggerReadingGeneration(reportId, thisPetIncludesPortrait);
+      }
+
       // For Portrait tier, auto-enroll in weekly horoscope (only once per email/report)
       if (thisPetIncludesHoroscope) {
         // Check if subscription already exists for this email
@@ -391,12 +405,38 @@ serve(async (req) => {
 
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[REDEEM-GIFT] Error:", message);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: "Failed to redeem gift",
-      success: false 
+      success: false
     }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }
 });
+
+// BLOCKER 6 FIX: fire-and-forget server-side generation trigger. Mirrors
+// verify-payment's triggerBackgroundGeneration (same URL, headers, body). The
+// service-role Authorization makes generate-report-background treat this as an
+// internal call (no per-IP rate limit). Fully best-effort — never blocks or
+// fails the redemption; generate-report-background enforces its own paid-gate
+// and idempotency.
+function triggerReadingGeneration(reportId: string, includesPortrait = false) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  try {
+    fetch(`${supabaseUrl}/functions/v1/generate-report-background`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({ reportId, includesPortrait, attempt: 1 }),
+    }).catch((err) => {
+      console.error("[REDEEM-GIFT] Failed to trigger background generation:", reportId, err);
+    });
+    console.log("[REDEEM-GIFT] Background generation triggered for:", reportId);
+  } catch (err) {
+    console.error("[REDEEM-GIFT] Error triggering background generation:", reportId, err);
+  }
+}

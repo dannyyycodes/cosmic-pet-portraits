@@ -175,6 +175,23 @@ serve(async (req) => {
       }
       if (giftCert.redeemed_by_report_id) allowedReportIds.add(giftCert.redeemed_by_report_id);
 
+      // BLOCKER 1 FIX: the gift_pets_json ids are synthetic gifter-side ids and
+      // redeemed_by_report_id only holds the PRIMARY recipient report, so every
+      // non-primary pet in a multi-pet redemption failed this allowlist and 404'd
+      // (never authorized to generate). redeem-gift stamps EVERY redeemed report
+      // (all pets) with stripe_session_id = 'gift_' + code, which equals this
+      // sessionId. Authorize every report sharing that stamp so all pets in the
+      // redemption can generate.
+      const { data: giftStampedReports } = await supabaseClient
+        .from("pet_reports")
+        .select("id")
+        .eq("stripe_session_id", sessionId);
+      if (Array.isArray(giftStampedReports)) {
+        for (const r of giftStampedReports) {
+          if (r && typeof r.id === "string") allowedReportIds.add(r.id);
+        }
+      }
+
       for (const requested of allReportIds) {
         if (!allowedReportIds.has(requested)) {
           console.warn("[VERIFY-PAYMENT] Gift branch rejected reportId not on cert:", giftCode, requested);

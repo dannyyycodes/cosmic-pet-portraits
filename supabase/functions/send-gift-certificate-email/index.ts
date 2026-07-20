@@ -18,6 +18,34 @@ interface GiftCertificateEmailRequest {
   giftCertificateId: string;
 }
 
+// BLOCKER 5 FIX: a Resend send failure used to be logged to console and swallowed
+// (recipient path returned success anyway), so bad email config / provider errors
+// were invisible and un-retryable. Record a visible webhook_failures row on ANY
+// failure (matches the schema used across stripe-webhook: source, event_type,
+// stripe_session_id, order_id[uuid], details[jsonb]) so the caller and support
+// can see and retry it.
+async function logGiftEmailFailure(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  // deno-lint-ignore no-explicit-any
+  giftCert: any,
+  giftCertificateId: string,
+  which: "recipient" | "purchaser",
+  error: unknown,
+) {
+  try {
+    await supabase.from("webhook_failures").insert({
+      source: "send-gift-certificate-email",
+      event_type: "gift_email_send_failed",
+      stripe_session_id: giftCert?.stripe_session_id ?? null,
+      order_id: giftCertificateId,
+      details: { giftCertificateId, which, error },
+    });
+  } catch (logErr) {
+    console.error("[SEND-GIFT-EMAIL] Failed to record webhook_failures row:", logErr);
+  }
+}
+
 const getPurchaserEmailTemplate = (recipientName: string, giftCode: string, giftMessage: string, recipientEmail?: string) => `
 <!DOCTYPE html>
 <html>
@@ -217,6 +245,7 @@ const handler = async (req: Request): Promise<Response> => {
     const purchaserResendError = (purchaserEmailResult as any)?.error;
     if (purchaserResendError) {
       console.error("[SEND-GIFT-EMAIL] Purchaser email provider error:", purchaserResendError);
+      await logGiftEmailFailure(supabase, giftCert, giftCertificateId, "purchaser", purchaserResendError);
       return new Response(JSON.stringify({ error: "Email delivery failed" }), {
         status: 502,
         headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
@@ -240,7 +269,16 @@ const handler = async (req: Request): Promise<Response> => {
       const recipientResendError = (recipientEmailResult as any)?.error;
       if (recipientResendError) {
         console.error("[SEND-GIFT-EMAIL] Recipient email provider error:", recipientResendError);
-        // Purchaser email already sent; don't fail the whole request.
+        // BLOCKER 5 FIX: was silently swallowed (returned success). Record a
+        // visible failure row and return non-2xx so the caller (stripe-webhook)
+        // also logs it. The purchaser email already sent; the payment is real, so
+        // the webhook treats this as a secondary/non-fatal failure and won't retry
+        // the charge — but the failure is now durable and actionable.
+        await logGiftEmailFailure(supabase, giftCert, giftCertificateId, "recipient", recipientResendError);
+        return new Response(JSON.stringify({ error: "Recipient email delivery failed" }), {
+          status: 502,
+          headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
+        });
       } else {
         console.log("[SEND-GIFT-EMAIL] Recipient email accepted by provider", {
           to: giftCert.recipient_email,
